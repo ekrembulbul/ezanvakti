@@ -10,9 +10,9 @@
 
 ## Vakitler (veri katmanı)
 - [ ] Awqat Salah API’den (Diyanet verisi) veri çekme ve parse etme fonksiyonu
-- [ ] Vakit veri modeli + repository (cache + remote)
-- [ ] Cache stratejisi: bugün + ileri günleri tut; çok eski veriyi temizle
-- [ ] “Son güncelleme zamanı” bilgisini kaydet ve döndür
+- [ ] Vakit veri modeli + repository (cache via SQLite + remote)
+- [ ] Cache stratejisi (SQLite): bugün + ileri günleri tut; çok eski veriyi temizle
+- [ ] “Son güncelleme zamanı” bilgisini (SQLite) kaydet ve döndür
 
 ## Lokasyon
 - [ ] İl/ilçe veri kaynağı ve UI bileşeni
@@ -20,9 +20,9 @@
 - [ ] Lokasyon değişiminde: vakitleri yeniden çek, cache’i güncelle, bildirimleri yeniden planla
 
 ## Offline davranış
-- [ ] İnternet yokken cache’den vakitleri göster
+- [ ] İnternet yokken cache’den (SQLite) vakitleri göster
 - [ ] Güncelleme başarısızsa kullanıcıya net mesaj göster
-- [ ] Cache süresi dolmuş/veri yoksa “veri alınamadı” ekranı
+- [ ] Cache (SQLite) süresi dolmuş/veri yoksa “veri alınamadı” ekranı
 
 ## Saat/Zaman Dilimi
 - [ ] Vakitleri cihaz saat dilimine göre göster
@@ -49,7 +49,7 @@
 - [ ] Ayarlar: lokasyon değiştir, (hazır) kaynak seçimi, temel tercihler
 
 ## Hata senaryoları
-- [ ] API erişilemiyor: cache varsa göster; yoksa “veri alınamadı”
+- [ ] API erişilemiyor: SQLite cache varsa göster; yoksa “veri alınamadı”
 - [ ] Lokasyon yok: zorunlu onboarding’e yönlendir
 - [ ] Bildirim izni yok: ayar aktif edilemez, durum açıklanır
 - [ ] Veri parse değişti: crash etme; logla ve kullanıcıya güncelleme mesajı göster

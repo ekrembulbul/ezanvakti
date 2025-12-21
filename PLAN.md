@@ -44,9 +44,9 @@ Türkiye için (başlangıçta) Awqat Salah API üzerinden Diyanet verisini alı
 
 ### 3.3 Offline davranış
 - Uygulama internet yokken:
-  - En son kaydedilmiş vakitleri göstermeli
+  - En son kaydedilmiş vakitleri (SQLite cache) göstermeli
   - “Son güncelleme zamanı” ve “veri güncellenemedi” gibi net bilgi vermeli
-- Cache stratejisi:
+- Cache stratejisi (SQLite):
   - En az “bugün + ileri günler” (ör. 30 gün) tutulması hedeflenir
   - Çok eski veriler temizlenebilir (ör. 90 gün)
 
@@ -131,7 +131,7 @@ Türkiye için (başlangıçta) Awqat Salah API üzerinden Diyanet verisini alı
 
 ## 7) Hata senaryoları (beklenen davranış)
 - API erişilemiyor:
-  - Cache varsa göster, yoksa “veri alınamadı” ekranı
+  - SQLite cache varsa göster, yoksa “veri alınamadı” ekranı
 - Lokasyon seçilmemiş:
   - Zorunlu onboarding’e yönlendir
 - Bildirim izni yok:
