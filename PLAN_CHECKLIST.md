@@ -3,7 +3,7 @@
 ## Hazırlık
 - [ ] Proje yapısını kur (modüller: vakitler, lokasyon, bildirimler, ayarlar)
 - [ ] Diyanet API istemci/adapter arayüzünü tanımla
-- [ ] Yerel saklama altyapısını seç ve arayüzünü yaz (SQLite/Room/Core Data)
+- [ ] Yerel saklama altyapısını seç ve arayüzünü yaz (SQLite)
 - [ ] Bildirim planlayıcı için platform servislerini tanımla
 
 ## Vakitler (veri katmanı)
