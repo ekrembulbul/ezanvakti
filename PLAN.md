@@ -1,5 +1,7 @@
 # PLAN.md — Ezan Vakti Uygulaması (Ürün Sınırları + Kurallar)
 
+**IMPORTANT: All code, file names, variable names, class names, and function names MUST be in English. Only user-facing text and documentation can be in Turkish.**
+
 ## 1) Amaç
 
 Türkiye için (başlangıçta) Awqat Salah API üzerinden Diyanet verisini alıp, telefonda lokal saklayan ve bu vakitlere göre bildirim gönderebilen bir mobil uygulama (Android + iOS). İleride yeni ülke/kaynak eklenebilecek şekilde genişlemeye açık olmalı.

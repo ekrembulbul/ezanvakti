@@ -1,10 +1,12 @@
 # Ezan Vakti Uygulaması — Checklist
 
+**IMPORTANT: All code, file names, variable names, class names, and function names MUST be in English.**
+
 ## Hazırlık
-- [ ] Proje yapısını kur (modüller: vakitler, lokasyon, bildirimler, ayarlar)
-- [ ] Awqat Salah API istemci/adapter arayüzünü tanımla
-- [ ] Yerel saklama altyapısını seç ve arayüzünü yaz (SQLite)
-- [ ] Bildirim planlayıcı için platform servislerini tanımla
+- [x] Proje yapısını kur (modüller: vakitler, lokasyon, bildirimler, ayarlar)
+- [x] Awqat Salah API istemci/adapter arayüzünü tanımla
+- [x] Yerel saklama altyapısını seç ve arayüzünü yaz (SQLite)
+- [x] Bildirim planlayıcı için platform servislerini tanımla
 
 ## Vakitler (veri katmanı)
 - [ ] Awqat Salah API’den (Diyanet verisi) veri çekme ve parse etme fonksiyonu
