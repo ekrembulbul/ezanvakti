@@ -2,12 +2,12 @@
 
 ## Hazırlık
 - [ ] Proje yapısını kur (modüller: vakitler, lokasyon, bildirimler, ayarlar)
-- [ ] Diyanet API istemci/adapter arayüzünü tanımla
+- [ ] Awqat Salah API istemci/adapter arayüzünü tanımla
 - [ ] Yerel saklama altyapısını seç ve arayüzünü yaz (SQLite)
 - [ ] Bildirim planlayıcı için platform servislerini tanımla
 
 ## Vakitler (veri katmanı)
-- [ ] Diyanet sağlayıcısından veri çekme ve parse etme fonksiyonu
+- [ ] Awqat Salah API’den (Diyanet verisi) veri çekme ve parse etme fonksiyonu
 - [ ] Vakit veri modeli + repository (cache + remote)
 - [ ] Cache stratejisi: bugün + ileri günleri tut; çok eski veriyi temizle
 - [ ] “Son güncelleme zamanı” bilgisini kaydet ve döndür

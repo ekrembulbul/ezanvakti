@@ -2,12 +2,12 @@
 
 ## 1) Amaç
 
-Türkiye için (başlangıçta) Diyanet kaynağından ezan vakitlerini alıp, telefonda lokal saklayan ve bu vakitlere göre bildirim gönderebilen bir mobil uygulama (Android + iOS). İleride yeni ülke/kaynak eklenebilecek şekilde genişlemeye açık olmalı.
+Türkiye için (başlangıçta) Awqat Salah API üzerinden Diyanet verisini alıp, telefonda lokal saklayan ve bu vakitlere göre bildirim gönderebilen bir mobil uygulama (Android + iOS). İleride yeni ülke/kaynak eklenebilecek şekilde genişlemeye açık olmalı.
 
 ## 2) Kapsam sınırları (Net çizgiler)
 
 ### 2.1 Dahil (MVP)
-- Türkiye lokasyonları için vakitleri çekme (Diyanet).
+- Türkiye lokasyonları için vakitleri çekme (Awqat Salah API - Diyanet verisi).
 - Vakitleri cihazda lokal saklama, offline gösterme.
 - Kullanıcının lokasyon seçebilmesi (en az il/ilçe seviyesinde).
 - Bildirim ayarları:
@@ -27,7 +27,7 @@ Türkiye için (başlangıçta) Diyanet kaynağından ezan vakitlerini alıp, te
 ## 3) Çekirdek iş kuralları
 
 ### 3.1 Vakit Kaynağı
-- Varsayılan kaynak: Diyanet (Türkiye).
+- Varsayılan kaynak: Awqat Salah API üzerinden Diyanet verisi (Türkiye).
 - Mimari olarak “kaynak sağlayıcı” konsepti olmalı:
   - Kaynak değiştirmek (gelecekte) mümkün olmalı.
   - Kaynağa özgü parse/format değişiklikleri uygulamanın geri kalanını kırmamalı.
@@ -111,7 +111,7 @@ Türkiye için (başlangıçta) Diyanet kaynağından ezan vakitlerini alıp, te
 - Bugünün vakitleri listesi
 - “Bir sonraki vakit” vurgusu (opsiyonel)
 - “Son veri güncelleme zamanı”
-- Kaynak: Diyanet (etiket)
+- Kaynak: Awqat Salah API (Diyanet verisi etiketi)
 
 ### 6.3 Vakit takvimi ekranı
 - En az 7 gün, tercihen 30 gün liste görünümü
