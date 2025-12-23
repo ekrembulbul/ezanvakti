@@ -10,11 +10,11 @@
 - [x] Test: Proje kurulumu sonrası modüller ve arayüzlerin birbirine bağımlılıkları derleniyor mu?
 
 ## Vakitler (veri katmanı)
-- [ ] Awqat Salah API’den (Diyanet verisi) veri çekme ve parse etme fonksiyonu
-- [ ] Vakit veri modeli + repository (cache via SQLite + remote)
-- [ ] Cache stratejisi (SQLite): bugün + ileri günleri tut; çok eski veriyi temizle
-- [ ] “Son güncelleme zamanı” bilgisini (SQLite) kaydet ve döndür
-- [ ] Test: API’den alınan veriler doğru parse ediliyor ve SQLite’a cacheleniyor; son güncelleme zamanı beklenen formatta dönüyor mu?
+- [x] Awqat Salah API'den (Diyanet verisi) veri çekme ve parse etme fonksiyonu
+- [x] Vakit veri modeli + repository (cache via SQLite + remote)
+- [x] Cache stratejisi (SQLite): bugün + ileri günleri tut; çok eski veriyi temizle
+- [x] "Son güncelleme zamanı" bilgisini (SQLite) kaydet ve döndür
+- [x] Test: API'den alınan veriler doğru parse ediliyor ve SQLite'a cacheleniyor; son güncelleme zamanı beklenen formatta dönüyor mu?
 
 ## Lokasyon
 - [ ] İl/ilçe veri kaynağı ve UI bileşeni
