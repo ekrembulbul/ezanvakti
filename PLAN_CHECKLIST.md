@@ -29,10 +29,10 @@
 - [x] Test: Offline modda cache verisi gösteriliyor, cache yoksa uygun hata ekranı ve mesajlar geliyor mu?
 
 ## Saat/Zaman Dilimi
-- [ ] Vakitleri cihaz saat dilimine göre göster
-- [ ] DST/timezone değişimlerinde bildirim saatlerini güncelle
-- [ ] Cihaz saati hatalıysa uyarı göster (opsiyonel)
-- [ ] Test: Saat dilimi/DST değişimlerinde vakit ve bildirim saatleri doğru güncelleniyor, cihaz saati sapmasında uyarı çıkıyor mu?
+- [x] Vakitleri cihaz saat dilimine göre göster
+- [x] DST/timezone değişimlerinde bildirim saatlerini güncelle
+- [x] Cihaz saati hatalıysa uyarı göster (opsiyonel)
+- [x] Test: Saat dilimi/DST değişimlerinde vakit ve bildirim saatleri doğru güncelleniyor, cihaz saati sapmasında uyarı çıkıyor mu?
 
 ## Bildirimler
 - [ ] Bildirim izni durumunu oku ve ayarlarda göster
