@@ -23,10 +23,10 @@
 - [x] Test: Lokasyon seçimi ve değişimi sonrası cache güncelleniyor, yeni bildirimler planlanıyor ve önceki planlar iptal oluyor mu?
 
 ## Offline davranış
-- [ ] İnternet yokken cache’den (SQLite) vakitleri göster
-- [ ] Güncelleme başarısızsa kullanıcıya net mesaj göster
-- [ ] Cache (SQLite) süresi dolmuş/veri yoksa “veri alınamadı” ekranı
-- [ ] Test: Offline modda cache verisi gösteriliyor, cache yoksa uygun hata ekranı ve mesajlar geliyor mu?
+- [x] İnternet yokken cache'den (SQLite) vakitleri göster
+- [x] Güncelleme başarısızsa kullanıcıya net mesaj göster
+- [x] Cache (SQLite) süresi dolmuş/veri yoksa "veri alınamadı" ekranı
+- [x] Test: Offline modda cache verisi gösteriliyor, cache yoksa uygun hata ekranı ve mesajlar geliyor mu?
 
 ## Saat/Zaman Dilimi
 - [ ] Vakitleri cihaz saat dilimine göre göster
