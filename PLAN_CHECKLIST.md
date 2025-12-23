@@ -7,7 +7,7 @@
 - [x] Awqat Salah API istemci/adapter arayüzünü tanımla
 - [x] Yerel saklama altyapısını seç ve arayüzünü yaz (SQLite)
 - [x] Bildirim planlayıcı için platform servislerini tanımla
-- [ ] Test: Proje kurulumu sonrası modüller ve arayüzlerin birbirine bağımlılıkları derleniyor mu?
+- [x] Test: Proje kurulumu sonrası modüller ve arayüzlerin birbirine bağımlılıkları derleniyor mu?
 
 ## Vakitler (veri katmanı)
 - [ ] Awqat Salah API’den (Diyanet verisi) veri çekme ve parse etme fonksiyonu
