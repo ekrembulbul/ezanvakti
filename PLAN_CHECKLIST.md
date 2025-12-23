@@ -35,18 +35,18 @@
 - [x] Test: Saat dilimi/DST değişimlerinde vakit ve bildirim saatleri doğru güncelleniyor, cihaz saati sapmasında uyarı çıkıyor mu?
 
 ## Bildirimler
-- [ ] Bildirim izni durumunu oku ve ayarlarda göster
-- [ ] Her vakit için iki tetik: tam vakit ve X dk önce
-- [ ] Kullanıcı bazlı offset seçimini kaydet ve uygula
-- [ ] “Yakın gelecek” (örn. 7 gün) için bildirim planla; açılışta/ayar değişince yenile
-- [ ] Lokasyon/kaynak değişiminde eski planları iptal, yenilerini kur
-- [ ] Duplicate bildirimleri engelle (vakit + offset bazında)
-- [ ] Test: İzin durumu doğru okunuyor; vakit ve offset bildirimleri tekil şekilde planlanıp gerektiğinde iptal/yenileniyor mu?
+- [x] Bildirim izni durumunu oku ve ayarlarda göster
+- [x] Her vakit için iki tetik: tam vakit ve X dk önce
+- [x] Kullanıcı bazlı offset seçimini kaydet ve uygula
+- [x] "Yakın gelecek" (örn. 7 gün) için bildirim planla; açılışta/ayar değişince yenile
+- [x] Lokasyon/kaynak değişiminde eski planları iptal, yenilerini kur
+- [x] Duplicate bildirimleri engelle (vakit + offset bazında)
+- [x] Test: İzin durumu doğru okunuyor; vakit ve offset bildirimleri tekil şekilde planlanıp gerektiğinde iptal/yenileniyor mu?
 
 ## İzinler
-- [ ] Bildirim iznini ihtiyaç anında iste; reddedilirse CTA göster
-- [ ] Otomatik konum eklenirse: izin sadece tetiklendiğinde iste; reddedilirse manuel seçime dön
-- [ ] Test: İzin akışında hem bildirim hem konum için reddet/izin ver senaryoları doğru CTA’lar ve fallback’lerle çalışıyor mu?
+- [x] Bildirim iznini ihtiyaç anında iste; reddedilirse CTA göster
+- [x] Otomatik konum eklenirse: izin sadece tetiklendiğinde iste; reddedilirse manuel seçime dön
+- [x] Test: İzin akışında hem bildirim hem konum için reddet/izin ver senaryoları doğru CTA’lar ve fallback’lerle çalışıyor mu?
 
 ## Ekranlar ve akışlar
 - [ ] İlk kurulum: lokasyon seçimi → ana ekran → (isteğe bağlı) bildirim ayarları
