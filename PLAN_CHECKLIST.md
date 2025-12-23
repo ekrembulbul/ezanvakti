@@ -49,12 +49,12 @@
 - [x] Test: İzin akışında hem bildirim hem konum için reddet/izin ver senaryoları doğru CTA’lar ve fallback’lerle çalışıyor mu?
 
 ## Ekranlar ve akışlar
-- [ ] İlk kurulum: lokasyon seçimi → ana ekran → (isteğe bağlı) bildirim ayarları
-- [ ] Ana ekran: bugünün vakitleri, sonraki vakit vurgusu, son güncelleme zamanı, kaynak etiketi
-- [ ] Vakit takvimi: en az 7 gün, tercihen 30 gün liste
-- [ ] Bildirim ayarları: global toggle (opsiyonel), vakit bazlı toggle, offset seçimi, izin durumu/CTA
-- [ ] Ayarlar: lokasyon değiştir, (hazır) kaynak seçimi, temel tercihler
-- [ ] Test: Onboarding’den ayarlara kadar akışlar kesintisiz ilerliyor; her ekranda gerekli veriler, izin durumu ve aksiyonlar doğru görünüyor mu?
+- [x] İlk kurulum: lokasyon seçimi → ana ekran → (isteğe bağlı) bildirim ayarları
+- [x] Ana ekran: bugünün vakitleri, sonraki vakit vurgusu, son güncelleme zamanı, kaynak etiketi
+- [x] Vakit takvimi: en az 7 gün, tercihen 30 gün liste
+- [x] Bildirim ayarları: global toggle (opsiyonel), vakit bazlı toggle, offset seçimi, izin durumu/CTA
+- [x] Ayarlar: lokasyon değiştir, (hazır) kaynak seçimi, temel tercihler
+- [x] Test: Onboarding'den ayarlara kadar akışlar kesintisiz ilerliyor; her ekranda gerekli veriler, izin durumu ve aksiyonlar doğru görünüyor mu?
 
 ## Hata senaryoları
 - [ ] API erişilemiyor: SQLite cache varsa göster; yoksa “veri alınamadı”
