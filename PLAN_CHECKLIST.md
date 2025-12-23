@@ -17,10 +17,10 @@
 - [x] Test: API'den alınan veriler doğru parse ediliyor ve SQLite'a cacheleniyor; son güncelleme zamanı beklenen formatta dönüyor mu?
 
 ## Lokasyon
-- [ ] İl/ilçe veri kaynağı ve UI bileşeni
-- [ ] Seçilen lokasyonu sakla (tek aktif lokasyon)
-- [ ] Lokasyon değişiminde: vakitleri yeniden çek, cache’i güncelle, bildirimleri yeniden planla
-- [ ] Test: Lokasyon seçimi ve değişimi sonrası cache güncelleniyor, yeni bildirimler planlanıyor ve önceki planlar iptal oluyor mu?
+- [x] İl/ilçe veri kaynağı ve UI bileşeni
+- [x] Seçilen lokasyonu sakla (tek aktif lokasyon)
+- [x] Lokasyon değişiminde: vakitleri yeniden çek, cache'i güncelle, bildirimleri yeniden planla
+- [x] Test: Lokasyon seçimi ve değişimi sonrası cache güncelleniyor, yeni bildirimler planlanıyor ve önceki planlar iptal oluyor mu?
 
 ## Offline davranış
 - [ ] İnternet yokken cache’den (SQLite) vakitleri göster
