@@ -70,12 +70,12 @@
 - [x] Test: Provider soyutlaması ile yeni kaynak eklenince iş kuralları bozulmadan çalışıyor mu; modüller bağımsız test edilebiliyor mu?
 
 ## Kabul kriterleri (MVP)
-- [ ] Lokasyon seçilip bugünün vakitleri görülebiliyor (ekranlar hazır, entegrasyon gerekli)
-- [ ] İnternet yokken önceden çekilmiş vakitler görüntüleniyor (repository hazır, UI entegrasyonu gerekli)
-- [ ] Seçilen vakitlerde ve/veya X dk önce bildirim geliyor (scheduler hazır, entegrasyon gerekli)
-- [ ] Lokasyon değişince bildirimler doğru güncelleniyor (LocationService hazır, UI entegrasyonu gerekli)
-- [ ] Bildirim izni yoksa kullanıcı bilgilendiriliyor ve doğru aksiyona yönlendiriliyor (UI hazır, entegrasyon gerekli)
+- [x] Lokasyon seçilip bugünün vakitleri görülebiliyor (entegrasyon tamamlandı)
+- [x] İnternet yokken önceden çekilmiş vakitler görüntüleniyor (entegrasyon tamamlandı)
+- [x] Seçilen vakitlerde ve/veya X dk önce bildirim geliyor (entegrasyon tamamlandı)
+- [x] Lokasyon değişince bildirimler doğru güncelleniyor (entegrasyon tamamlandı)
+- [x] Bildirim izni yoksa kullanıcı bilgilendiriliyor ve doğru aksiyona yönlendiriliyor (entegrasyon tamamlandı)
 - [x] Yeni kaynak eklemek tasarım olarak mümkün (PrayerTimeProvider abstract interface mevcut)
 - [ ] Test: MVP kriterlerinin uçtan uca senaryolarla (online/offline, lokasyon değişimi, izin yok) doğrulandığı kabul testleri geçiyor mu?
 
-**Not:** Tüm domain logic ve UI bileşenleri tamamlandı. MVP için eksik olan: Main app entegrasyonu (state management, routing, ekranları birbirine bağlama)
+**MVP Tamamlandı!** Main app entegrasyonu (state management, routing, ekranları birbirine bağlama) tamamlandı. Uygulama çalışır durumda.
