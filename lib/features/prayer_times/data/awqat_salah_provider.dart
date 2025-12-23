@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import '../../../core/interfaces/prayer_time_provider.dart';
 import '../../../core/models/prayer_time.dart';
 import '../../../core/models/location.dart';
+import '../../../core/exceptions/parse_exception.dart';
+import '../../../core/utils/app_logger.dart';
 
 class AwqatSalahProvider implements PrayerTimeProvider {
   final http.Client httpClient;
@@ -20,17 +22,30 @@ class AwqatSalahProvider implements PrayerTimeProvider {
     required DateTime startDate,
     required DateTime endDate,
   }) async {
+    final logger = AppLogger();
     final List<PrayerTime> prayerTimes = [];
 
     DateTime currentDate = startDate;
     while (currentDate.isBefore(endDate) ||
         currentDate.isAtSameMomentAs(endDate)) {
-      final prayerTime = await fetchDailyPrayerTime(
-        location: location,
-        date: currentDate,
-      );
-      if (prayerTime != null) {
-        prayerTimes.add(prayerTime);
+      try {
+        final prayerTime = await fetchDailyPrayerTime(
+          location: location,
+          date: currentDate,
+        );
+        if (prayerTime != null) {
+          prayerTimes.add(prayerTime);
+        }
+      } on ParseException catch (e) {
+        logger.warning(
+          'Skipping date ${currentDate.toIso8601String()} due to parse error',
+          e,
+        );
+      } catch (e) {
+        logger.warning(
+          'Skipping date ${currentDate.toIso8601String()} due to error',
+          e,
+        );
       }
       currentDate = currentDate.add(const Duration(days: 1));
     }
@@ -43,6 +58,7 @@ class AwqatSalahProvider implements PrayerTimeProvider {
     required Location location,
     required DateTime date,
   }) async {
+    final logger = AppLogger();
     try {
       final timestamp = date.millisecondsSinceEpoch ~/ 1000;
 
@@ -70,15 +86,71 @@ class AwqatSalahProvider implements PrayerTimeProvider {
         isha: _parseTime(timings['Isha'] as String, normalizedDate),
         date: normalizedDate,
       );
-    } catch (e) {
+    } on FormatException catch (e, stackTrace) {
+      logger.parseError(
+        context: 'AwqatSalahProvider.fetchDailyPrayerTime - JSON parsing',
+        error: e,
+        stackTrace: stackTrace,
+        additionalData: {
+          'location': location.toJson(),
+          'date': date.toIso8601String(),
+        },
+      );
+      throw ParseException(
+        message: 'Failed to parse API response',
+        originalError: e,
+        stackTrace: stackTrace,
+        context: 'AwqatSalahProvider.fetchDailyPrayerTime',
+      );
+    } on TypeError catch (e, stackTrace) {
+      logger.parseError(
+        context: 'AwqatSalahProvider.fetchDailyPrayerTime - Type casting',
+        error: e,
+        stackTrace: stackTrace,
+        additionalData: {
+          'location': location.toJson(),
+          'date': date.toIso8601String(),
+        },
+      );
+      throw ParseException(
+        message: 'API response structure has changed',
+        originalError: e,
+        stackTrace: stackTrace,
+        context: 'AwqatSalahProvider.fetchDailyPrayerTime',
+      );
+    } catch (e, stackTrace) {
+      logger.error(
+        'Unexpected error in AwqatSalahProvider.fetchDailyPrayerTime',
+        e,
+        stackTrace,
+      );
       return null;
     }
   }
 
   DateTime _parseTime(String time, DateTime date) {
-    final parts = time.split(':');
-    final hour = int.parse(parts[0]);
-    final minute = int.parse(parts[1]);
-    return DateTime(date.year, date.month, date.day, hour, minute);
+    try {
+      final parts = time.split(':');
+      if (parts.length < 2) {
+        throw FormatException('Invalid time format: $time');
+      }
+      final hour = int.parse(parts[0]);
+      final minute = int.parse(parts[1]);
+      return DateTime(date.year, date.month, date.day, hour, minute);
+    } catch (e, stackTrace) {
+      final logger = AppLogger();
+      logger.parseError(
+        context: 'AwqatSalahProvider._parseTime',
+        error: e,
+        stackTrace: stackTrace,
+        additionalData: {'time': time, 'date': date.toIso8601String()},
+      );
+      throw ParseException(
+        message: 'Failed to parse time string',
+        originalError: e,
+        stackTrace: stackTrace,
+        context: '_parseTime',
+      );
+    }
   }
 }

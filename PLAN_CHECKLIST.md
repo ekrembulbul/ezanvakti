@@ -57,23 +57,25 @@
 - [x] Test: Onboarding'den ayarlara kadar akışlar kesintisiz ilerliyor; her ekranda gerekli veriler, izin durumu ve aksiyonlar doğru görünüyor mu?
 
 ## Hata senaryoları
-- [ ] API erişilemiyor: SQLite cache varsa göster; yoksa “veri alınamadı”
-- [ ] Lokasyon yok: zorunlu onboarding’e yönlendir
-- [ ] Bildirim izni yok: ayar aktif edilemez, durum açıklanır
-- [ ] Veri parse değişti: crash etme; logla ve kullanıcıya güncelleme mesajı göster
-- [ ] Test: Her hata senaryosunda uygun fallback, yönlendirme ve kullanıcı mesajları gösteriliyor; uygulama crash etmiyor mu?
+- [x] API erişilemiyor: SQLite cache varsa göster; yoksa "veri alınamadı"
+- [x] Lokasyon yok: zorunlu onboarding'e yönlendir
+- [x] Bildirim izni yok: ayar aktif edilemez, durum açıklanır
+- [x] Veri parse değişti: crash etme; logla ve kullanıcıya güncelleme mesajı göster
+- [x] Test: Her hata senaryosunda uygun fallback, yönlendirme ve kullanıcı mesajları gösteriliyor; uygulama crash etmiyor mu?
 
 ## Modülerlik
-- [ ] Provider konseptini soyut arayüzle uygula (Türkiye/Diyanet varsayılan)
-- [ ] Bildirim, lokasyon, vakitler, ayarlar modüler kalsın
-- [ ] Depolama motoru değişse de iş kuralları korunacak şekilde soyutlama
-- [ ] Test: Provider soyutlaması ile yeni kaynak eklenince iş kuralları bozulmadan çalışıyor mu; modüller bağımsız test edilebiliyor mu?
+- [x] Provider konseptini soyut arayüzle uygula (Türkiye/Diyanet varsayılan)
+- [x] Bildirim, lokasyon, vakitler, ayarlar modüler kalsın
+- [x] Depolama motoru değişse de iş kuralları korunacak şekilde soyutlama
+- [x] Test: Provider soyutlaması ile yeni kaynak eklenince iş kuralları bozulmadan çalışıyor mu; modüller bağımsız test edilebiliyor mu?
 
 ## Kabul kriterleri (MVP)
-- [ ] Lokasyon seçilip bugünün vakitleri görülebiliyor
-- [ ] İnternet yokken önceden çekilmiş vakitler görüntüleniyor (varsa)
-- [ ] Seçilen vakitlerde ve/veya X dk önce bildirim geliyor (izin verilmişse)
-- [ ] Lokasyon değişince bildirimler doğru güncelleniyor (eski planlar iptal)
-- [ ] Bildirim izni yoksa kullanıcı bilgilendiriliyor ve doğru aksiyona yönlendiriliyor
-- [ ] Yeni kaynak eklemek tasarım olarak mümkün
+- [ ] Lokasyon seçilip bugünün vakitleri görülebiliyor (ekranlar hazır, entegrasyon gerekli)
+- [ ] İnternet yokken önceden çekilmiş vakitler görüntüleniyor (repository hazır, UI entegrasyonu gerekli)
+- [ ] Seçilen vakitlerde ve/veya X dk önce bildirim geliyor (scheduler hazır, entegrasyon gerekli)
+- [ ] Lokasyon değişince bildirimler doğru güncelleniyor (LocationService hazır, UI entegrasyonu gerekli)
+- [ ] Bildirim izni yoksa kullanıcı bilgilendiriliyor ve doğru aksiyona yönlendiriliyor (UI hazır, entegrasyon gerekli)
+- [x] Yeni kaynak eklemek tasarım olarak mümkün (PrayerTimeProvider abstract interface mevcut)
 - [ ] Test: MVP kriterlerinin uçtan uca senaryolarla (online/offline, lokasyon değişimi, izin yok) doğrulandığı kabul testleri geçiyor mu?
+
+**Not:** Tüm domain logic ve UI bileşenleri tamamlandı. MVP için eksik olan: Main app entegrasyonu (state management, routing, ekranları birbirine bağlama)

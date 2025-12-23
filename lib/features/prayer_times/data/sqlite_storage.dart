@@ -5,6 +5,8 @@ import '../../../core/interfaces/local_storage.dart';
 import '../../../core/models/prayer_time.dart';
 import '../../../core/models/location.dart';
 import '../../../core/models/notification_setting.dart';
+import '../../../core/exceptions/parse_exception.dart';
+import '../../../core/utils/app_logger.dart';
 
 class SqliteStorage implements LocalStorage {
   Database? _database;
@@ -95,19 +97,43 @@ class SqliteStorage implements LocalStorage {
     required DateTime startDate,
     required DateTime endDate,
   }) async {
-    final db = await database;
-    final results = await db.query(
-      'prayer_times',
-      where: 'location_id = ? AND date >= ? AND date <= ?',
-      whereArgs: [
-        locationId,
-        startDate.toIso8601String(),
-        endDate.toIso8601String(),
-      ],
-      orderBy: 'date ASC',
-    );
+    final logger = AppLogger();
+    try {
+      final db = await database;
+      final results = await db.query(
+        'prayer_times',
+        where: 'location_id = ? AND date >= ? AND date <= ?',
+        whereArgs: [
+          locationId,
+          startDate.toIso8601String(),
+          endDate.toIso8601String(),
+        ],
+        orderBy: 'date ASC',
+      );
 
-    return results.map((row) => PrayerTime.fromJson(row)).toList();
+      return results.map((row) {
+        try {
+          return PrayerTime.fromJson(row);
+        } catch (e, stackTrace) {
+          logger.parseError(
+            context: 'SqliteStorage.getPrayerTimes - PrayerTime.fromJson',
+            error: e,
+            stackTrace: stackTrace,
+            additionalData: {'row': row},
+          );
+          throw ParseException(
+            message: 'Failed to parse prayer time from database',
+            originalError: e,
+            stackTrace: stackTrace,
+            context: 'SqliteStorage.getPrayerTimes',
+          );
+        }
+      }).toList();
+    } catch (e, stackTrace) {
+      if (e is ParseException) rethrow;
+      logger.error('Error in SqliteStorage.getPrayerTimes', e, stackTrace);
+      rethrow;
+    }
   }
 
   @override
@@ -115,18 +141,45 @@ class SqliteStorage implements LocalStorage {
     required String locationId,
     required DateTime date,
   }) async {
-    final db = await database;
-    final dateStr = DateTime(date.year, date.month, date.day).toIso8601String();
+    final logger = AppLogger();
+    try {
+      final db = await database;
+      final dateStr = DateTime(
+        date.year,
+        date.month,
+        date.day,
+      ).toIso8601String();
 
-    final results = await db.query(
-      'prayer_times',
-      where: 'location_id = ? AND date = ?',
-      whereArgs: [locationId, dateStr],
-      limit: 1,
-    );
+      final results = await db.query(
+        'prayer_times',
+        where: 'location_id = ? AND date = ?',
+        whereArgs: [locationId, dateStr],
+        limit: 1,
+      );
 
-    if (results.isEmpty) return null;
-    return PrayerTime.fromJson(results.first);
+      if (results.isEmpty) return null;
+
+      try {
+        return PrayerTime.fromJson(results.first);
+      } catch (e, stackTrace) {
+        logger.parseError(
+          context: 'SqliteStorage.getDailyPrayerTime - PrayerTime.fromJson',
+          error: e,
+          stackTrace: stackTrace,
+          additionalData: {'row': results.first},
+        );
+        throw ParseException(
+          message: 'Failed to parse prayer time from database',
+          originalError: e,
+          stackTrace: stackTrace,
+          context: 'SqliteStorage.getDailyPrayerTime',
+        );
+      }
+    } catch (e, stackTrace) {
+      if (e is ParseException) rethrow;
+      logger.error('Error in SqliteStorage.getDailyPrayerTime', e, stackTrace);
+      rethrow;
+    }
   }
 
   @override
