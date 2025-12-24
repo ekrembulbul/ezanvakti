@@ -1,12 +1,14 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../core/models/prayer_time.dart';
 import '../../core/models/location.dart';
 import '../../core/models/notification_setting.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   final Location location;
   final PrayerTime? todaysPrayerTime;
+  final PrayerTime? tomorrowsPrayerTime;
   final DateTime? lastUpdateTime;
   final String dataSource;
   final VoidCallback? onCalendarTap;
@@ -20,6 +22,7 @@ class HomeScreen extends StatelessWidget {
     super.key,
     required this.location,
     this.todaysPrayerTime,
+    this.tomorrowsPrayerTime,
     this.lastUpdateTime,
     this.dataSource = 'Diyanet (Awqat Salah API)',
     this.onCalendarTap,
@@ -30,15 +33,91 @@ class HomeScreen extends StatelessWidget {
     this.errorMessage,
   });
 
-  PrayerType? _getNextPrayer(PrayerTime prayerTime) {
-    final now = DateTime.now();
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
 
-    if (now.isBefore(prayerTime.fajr)) return PrayerType.fajr;
-    if (now.isBefore(prayerTime.sunrise)) return PrayerType.sunrise;
-    if (now.isBefore(prayerTime.dhuhr)) return PrayerType.dhuhr;
-    if (now.isBefore(prayerTime.asr)) return PrayerType.asr;
-    if (now.isBefore(prayerTime.maghrib)) return PrayerType.maghrib;
-    if (now.isBefore(prayerTime.isha)) return PrayerType.isha;
+class _HomeScreenState extends State<HomeScreen> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  PrayerType? _getCurrentPrayer(PrayerTime prayerTime) {
+    final now = DateTime.now();
+    final midnight = DateTime(now.year, now.month, now.day);
+
+    if (now.isBefore(prayerTime.fajr) ||
+        now.isBefore(midnight.add(const Duration(hours: 0)))) {
+      return null;
+    }
+    if (now.isBefore(prayerTime.sunrise)) return PrayerType.fajr;
+    if (now.isBefore(prayerTime.dhuhr)) return PrayerType.sunrise;
+    if (now.isBefore(prayerTime.asr)) return PrayerType.dhuhr;
+    if (now.isBefore(prayerTime.maghrib)) return PrayerType.asr;
+    if (now.isBefore(prayerTime.isha)) return PrayerType.maghrib;
+
+    final todayMidnight = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).add(const Duration(days: 1));
+    if (now.isBefore(todayMidnight)) {
+      return PrayerType.isha;
+    }
+
+    return null;
+  }
+
+  DateTime? _getNextPrayerTime() {
+    if (widget.todaysPrayerTime == null) return null;
+
+    final now = DateTime.now();
+    final prayerTime = widget.todaysPrayerTime!;
+
+    if (now.isBefore(prayerTime.fajr)) return prayerTime.fajr;
+    if (now.isBefore(prayerTime.sunrise)) return prayerTime.sunrise;
+    if (now.isBefore(prayerTime.dhuhr)) return prayerTime.dhuhr;
+    if (now.isBefore(prayerTime.asr)) return prayerTime.asr;
+    if (now.isBefore(prayerTime.maghrib)) return prayerTime.maghrib;
+    if (now.isBefore(prayerTime.isha)) return prayerTime.isha;
+
+    if (widget.tomorrowsPrayerTime != null) {
+      return widget.tomorrowsPrayerTime!.fajr;
+    }
+
+    return null;
+  }
+
+  String? _getNextPrayerName() {
+    if (widget.todaysPrayerTime == null) return null;
+
+    final now = DateTime.now();
+    final prayerTime = widget.todaysPrayerTime!;
+
+    if (now.isBefore(prayerTime.fajr)) return 'İmsak';
+    if (now.isBefore(prayerTime.sunrise)) return 'Güneş';
+    if (now.isBefore(prayerTime.dhuhr)) return 'Öğle';
+    if (now.isBefore(prayerTime.asr)) return 'İkindi';
+    if (now.isBefore(prayerTime.maghrib)) return 'Akşam';
+    if (now.isBefore(prayerTime.isha)) return 'Yatsı';
+
+    if (widget.tomorrowsPrayerTime != null) {
+      return 'İmsak';
+    }
 
     return null;
   }
@@ -86,33 +165,33 @@ class HomeScreen extends StatelessWidget {
           children: [
             const Text('Ezan Vakti'),
             Text(
-              '${location.province} / ${location.district}',
+              '${widget.location.province} / ${widget.location.district}',
               style: const TextStyle(fontSize: 12),
             ),
           ],
         ),
         actions: [
-          if (onNotificationSettingsTap != null)
+          if (widget.onNotificationSettingsTap != null)
             IconButton(
               key: const Key('notification_settings_button'),
               icon: const Icon(Icons.notifications),
-              onPressed: onNotificationSettingsTap,
+              onPressed: widget.onNotificationSettingsTap,
             ),
-          if (onSettingsTap != null)
+          if (widget.onSettingsTap != null)
             IconButton(
               key: const Key('settings_button'),
               icon: const Icon(Icons.settings),
-              onPressed: onSettingsTap,
+              onPressed: widget.onSettingsTap,
             ),
         ],
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          onRefresh?.call();
+          widget.onRefresh?.call();
         },
-        child: isLoading
+        child: widget.isLoading
             ? const Center(child: CircularProgressIndicator())
-            : errorMessage != null
+            : widget.errorMessage != null
             ? Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -124,20 +203,20 @@ class HomeScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      errorMessage!,
+                      widget.errorMessage!,
                       textAlign: TextAlign.center,
                       style: const TextStyle(fontSize: 16),
                     ),
                     const SizedBox(height: 16),
-                    if (onRefresh != null)
+                    if (widget.onRefresh != null)
                       ElevatedButton(
-                        onPressed: onRefresh,
+                        onPressed: widget.onRefresh,
                         child: const Text('Yeniden Dene'),
                       ),
                   ],
                 ),
               )
-            : todaysPrayerTime == null
+            : widget.todaysPrayerTime == null
             ? const Center(child: Text('Veri bulunamadı'))
             : SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -146,20 +225,16 @@ class HomeScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if (_getNextPrayer(todaysPrayerTime!) != null)
-                        _buildNextPrayerCard(
-                          todaysPrayerTime!,
-                          _getNextPrayer(todaysPrayerTime!)!,
-                        ),
+                      _buildCountdownCard(),
                       const SizedBox(height: 16),
-                      _buildPrayerTimesList(todaysPrayerTime!),
+                      _buildPrayerTimesList(widget.todaysPrayerTime!),
                       const SizedBox(height: 16),
                       _buildInfoSection(),
                       const SizedBox(height: 16),
-                      if (onCalendarTap != null)
+                      if (widget.onCalendarTap != null)
                         OutlinedButton.icon(
                           key: const Key('calendar_button'),
-                          onPressed: onCalendarTap,
+                          onPressed: widget.onCalendarTap,
                           icon: const Icon(Icons.calendar_month),
                           label: const Text('Vakit Takvimi'),
                         ),
@@ -171,30 +246,51 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildNextPrayerCard(PrayerTime prayerTime, PrayerType nextPrayer) {
-    final prayerDateTime = _getPrayerTime(prayerTime, nextPrayer);
-    final timeFormat = DateFormat('HH:mm');
+  Widget _buildCountdownCard() {
+    final nextPrayerTime = _getNextPrayerTime();
+    final nextPrayerName = _getNextPrayerName();
+
+    if (nextPrayerTime == null || nextPrayerName == null) {
+      return const SizedBox.shrink();
+    }
+
+    final now = DateTime.now();
+    final difference = nextPrayerTime.difference(now);
+
+    final hours = difference.inHours;
+    final minutes = difference.inMinutes.remainder(60);
+    final seconds = difference.inSeconds.remainder(60);
+
+    String countdownText;
+    if (hours > 0) {
+      countdownText =
+          '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+    } else {
+      countdownText =
+          '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+    }
 
     return Card(
-      key: const Key('next_prayer_card'),
+      key: const Key('countdown_card'),
       color: Colors.blue.shade50,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             const Text(
-              'Sonraki Vakit',
+              'Sonraki Vakte Kalan Süre',
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
             ),
             const SizedBox(height: 8),
             Text(
-              _getPrayerName(nextPrayer),
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              nextPrayerName,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
+            const SizedBox(height: 4),
             Text(
-              timeFormat.format(prayerDateTime),
+              countdownText,
               style: const TextStyle(
-                fontSize: 32,
+                fontSize: 36,
                 fontWeight: FontWeight.bold,
                 color: Colors.blue,
               ),
@@ -215,34 +311,35 @@ class HomeScreen extends StatelessWidget {
       PrayerType.isha,
     ];
 
-    final nextPrayer = _getNextPrayer(prayerTime);
+    final currentPrayer = _getCurrentPrayer(prayerTime);
 
     return Card(
       child: Column(
         children: prayers.map((prayer) {
           final prayerDateTime = _getPrayerTime(prayerTime, prayer);
           final timeFormat = DateFormat('HH:mm');
-          final isNext = prayer == nextPrayer;
+          final isCurrent = prayer == currentPrayer;
 
           return ListTile(
             key: Key('prayer_${prayer.name}'),
+            tileColor: isCurrent ? Colors.blue.shade50 : null,
             leading: Icon(
               Icons.access_time,
-              color: isNext ? Colors.blue : null,
+              color: isCurrent ? Colors.blue : null,
             ),
             title: Text(
               _getPrayerName(prayer),
               style: TextStyle(
-                fontWeight: isNext ? FontWeight.bold : FontWeight.normal,
-                color: isNext ? Colors.blue : null,
+                fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+                color: isCurrent ? Colors.blue : null,
               ),
             ),
             trailing: Text(
               timeFormat.format(prayerDateTime),
               style: TextStyle(
                 fontSize: 18,
-                fontWeight: isNext ? FontWeight.bold : FontWeight.normal,
-                color: isNext ? Colors.blue : null,
+                fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+                color: isCurrent ? Colors.blue : null,
               ),
             ),
           );
@@ -263,20 +360,20 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Kaynak: $dataSource',
+                'Kaynak: ${widget.dataSource}',
                 style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ),
           ],
         ),
-        if (lastUpdateTime != null) ...[
+        if (widget.lastUpdateTime != null) ...[
           const SizedBox(height: 4),
           Row(
             children: [
               const Icon(Icons.update, size: 16),
               const SizedBox(width: 8),
               Text(
-                'Son güncelleme: ${dateFormat.format(lastUpdateTime!)}',
+                'Son Güncelleme: ${dateFormat.format(widget.lastUpdateTime!)}',
                 style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ],

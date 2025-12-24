@@ -6,6 +6,7 @@ import '../models/notification_setting.dart';
 class AppState extends ChangeNotifier {
   Location? _activeLocation;
   PrayerTime? _todaysPrayerTime;
+  PrayerTime? _tomorrowsPrayerTime;
   List<PrayerTime> _prayerTimes = [];
   List<NotificationSetting> _notificationSettings = [];
   DateTime? _lastUpdateTime;
@@ -15,6 +16,7 @@ class AppState extends ChangeNotifier {
 
   Location? get activeLocation => _activeLocation;
   PrayerTime? get todaysPrayerTime => _todaysPrayerTime;
+  PrayerTime? get tomorrowsPrayerTime => _tomorrowsPrayerTime;
   List<PrayerTime> get prayerTimes => _prayerTimes;
   List<NotificationSetting> get notificationSettings => _notificationSettings;
   DateTime? get lastUpdateTime => _lastUpdateTime;
@@ -30,6 +32,11 @@ class AppState extends ChangeNotifier {
 
   void setTodaysPrayerTime(PrayerTime? prayerTime) {
     _todaysPrayerTime = prayerTime;
+    notifyListeners();
+  }
+
+  void setTomorrowsPrayerTime(PrayerTime? prayerTime) {
+    _tomorrowsPrayerTime = prayerTime;
     notifyListeners();
   }
 

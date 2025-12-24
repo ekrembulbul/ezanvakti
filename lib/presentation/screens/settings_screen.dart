@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../../core/models/location.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends StatefulWidget {
   final Location currentLocation;
   final String dataSource;
   final VoidCallback? onChangeLocation;
@@ -14,6 +15,28 @@ class SettingsScreen extends StatelessWidget {
     this.onChangeLocation,
     this.onAbout,
   });
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  String _version = 'Yükleniyor...';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVersion();
+  }
+
+  Future<void> _loadVersion() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+    if (mounted) {
+      setState(() {
+        _version = packageInfo.version;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,10 +52,10 @@ class SettingsScreen extends StatelessWidget {
                 leading: const Icon(Icons.location_on),
                 title: const Text('Lokasyon'),
                 subtitle: Text(
-                  '${currentLocation.province} / ${currentLocation.district}',
+                  '${widget.currentLocation.province} / ${widget.currentLocation.district}',
                 ),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: onChangeLocation,
+                onTap: widget.onChangeLocation,
               ),
             ],
           ),
@@ -43,7 +66,7 @@ class SettingsScreen extends StatelessWidget {
                 key: const Key('data_source_tile'),
                 leading: const Icon(Icons.source),
                 title: const Text('Kaynak'),
-                subtitle: Text(dataSource),
+                subtitle: Text(widget.dataSource),
                 enabled: false,
               ),
               const Padding(
@@ -62,15 +85,15 @@ class SettingsScreen extends StatelessWidget {
                 key: const Key('version_tile'),
                 leading: const Icon(Icons.info_outline),
                 title: const Text('Versiyon'),
-                subtitle: const Text('1.0.0'),
+                subtitle: Text(_version),
               ),
-              if (onAbout != null)
+              if (widget.onAbout != null)
                 ListTile(
                   key: const Key('about_tile'),
                   leading: const Icon(Icons.help_outline),
                   title: const Text('Hakkında'),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: onAbout,
+                  onTap: widget.onAbout,
                 ),
             ],
           ),

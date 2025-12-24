@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/providers/app_state.dart';
 import '../../core/di/service_locator.dart';
+import '../../core/models/location.dart';
 import '../../core/models/notification_setting.dart';
+import '../../core/utils/app_logger.dart';
 import '../../features/prayer_times/domain/prayer_times_repository.dart';
 import '../../features/notifications/domain/notification_scheduler.dart';
 import '../../features/notifications/domain/notification_settings_manager.dart';
@@ -23,14 +25,24 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _loadInitialData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadInitialData();
+    });
   }
 
   Future<void> _loadInitialData() async {
+    final logger = AppLogger();
     final appState = context.read<AppState>();
     final location = appState.activeLocation;
 
-    if (location == null) return;
+    if (location == null) {
+      logger.warning('⚠️ No active location found, skipping initial data load');
+      return;
+    }
+
+    logger.info(
+      '🏠 HomePage: Loading initial data for ${location.province}/${location.district}',
+    );
 
     appState.setLoading(true);
     appState.clearError();
@@ -46,18 +58,22 @@ class _HomePageState extends State<HomePage> {
       );
 
       appState.setTodaysPrayerTime(todayPrayer);
+      appState.setPrayerTimes(todayPrayer != null ? [todayPrayer] : []);
 
-      final prayerTimes = await repository.getPrayerTimes(
-        location: location,
-        startDate: todayNormalized,
-        endDate: todayNormalized.add(const Duration(days: 30)),
-      );
+      final now = DateTime.now();
+      if (todayPrayer != null && now.isAfter(todayPrayer.isha)) {
+        logger.info(
+          '⏰ After Isha, fetching tomorrow\'s prayer times for countdown',
+        );
+        final tomorrow = todayNormalized.add(const Duration(days: 1));
+        final tomorrowPrayer = await repository.getDailyPrayerTime(
+          location: location,
+          date: tomorrow,
+        );
+        appState.setTomorrowsPrayerTime(tomorrowPrayer);
+      }
 
-      appState.setPrayerTimes(prayerTimes);
-
-      final lastUpdate = await ServiceLocator()
-          .get<PrayerTimesRepository>()
-          .getLastUpdateTime();
+      final lastUpdate = await repository.getLastUpdateTime();
       appState.setLastUpdateTime(lastUpdate);
 
       final notificationService = ServiceLocator().get<NotificationService>();
@@ -68,18 +84,56 @@ class _HomePageState extends State<HomePage> {
           .get<NotificationSettingsManager>();
       final settings = await settingsManager.getSettings();
       appState.setNotificationSettings(settings);
+
+      appState.setLoading(false);
+      logger.info('✅ Initial data loaded successfully');
+
+      _loadMoreDataInBackground(location, todayNormalized);
     } catch (e) {
+      logger.error('❌ Failed to load initial data', e);
       appState.setError('Veri yüklenirken hata oluştu: $e');
-    } finally {
       appState.setLoading(false);
     }
   }
 
+  Future<void> _loadMoreDataInBackground(
+    Location location,
+    DateTime startDate,
+  ) async {
+    final logger = AppLogger();
+    logger.info('🔄 Starting background data load for next 30 days');
+    try {
+      final repository = ServiceLocator().get<PrayerTimesRepository>();
+      final prayerTimes = await repository.getPrayerTimes(
+        location: location,
+        startDate: startDate.add(const Duration(days: 1)),
+        endDate: startDate.add(const Duration(days: 30)),
+        forceRefresh: false,
+      );
+
+      if (mounted) {
+        final appState = context.read<AppState>();
+        final existingTimes = appState.prayerTimes;
+        appState.setPrayerTimes([...existingTimes, ...prayerTimes]);
+        logger.info(
+          '✅ Background load completed: Total ${existingTimes.length + prayerTimes.length} days available',
+        );
+      }
+    } catch (e) {
+      logger.warning('⚠️ Background loading failed (ignored)', e);
+    }
+  }
+
   Future<void> _refreshData() async {
+    final logger = AppLogger();
+    logger.info('🔄 User triggered refresh');
     final appState = context.read<AppState>();
     final location = appState.activeLocation;
 
-    if (location == null) return;
+    if (location == null) {
+      logger.warning('⚠️ No location for refresh');
+      return;
+    }
 
     try {
       final repository = ServiceLocator().get<PrayerTimesRepository>();
@@ -181,6 +235,7 @@ class _HomePageState extends State<HomePage> {
         return HomeScreen(
           location: appState.activeLocation!,
           todaysPrayerTime: appState.todaysPrayerTime,
+          tomorrowsPrayerTime: appState.tomorrowsPrayerTime,
           lastUpdateTime: appState.lastUpdateTime,
           isLoading: appState.isLoading,
           errorMessage: appState.errorMessage,

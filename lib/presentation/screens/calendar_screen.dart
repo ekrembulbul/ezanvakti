@@ -126,6 +126,15 @@ class CalendarScreen extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       color: isToday ? Colors.blue.shade50 : null,
       child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide.none,
+        ),
+        collapsedShape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide.none,
+        ),
         initiallyExpanded: isToday,
         title: Row(
           children: [
@@ -160,6 +169,7 @@ class CalendarScreen extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Table(
+              border: TableBorder.all(color: Colors.transparent, width: 0),
               columnWidths: const {
                 0: FlexColumnWidth(1),
                 1: FlexColumnWidth(1),

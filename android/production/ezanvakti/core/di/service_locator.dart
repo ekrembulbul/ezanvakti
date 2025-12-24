@@ -12,6 +12,7 @@ import '../interfaces/prayer_time_provider.dart';
 import '../interfaces/local_storage.dart';
 import '../interfaces/notification_service.dart';
 import '../services/timezone_service.dart';
+import '../utils/app_logger.dart';
 
 class ServiceLocator {
   static final ServiceLocator _instance = ServiceLocator._internal();
@@ -36,18 +37,29 @@ class ServiceLocator {
   }
 
   Future<void> initialize() async {
+    final logger = AppLogger();
+    logger.info('🚀 ServiceLocator: Starting initialization...');
+
+    logger.info('⏰ Initializing TimezoneService...');
     final timezoneService = TimezoneService.instance;
     await timezoneService.initialize();
     register<TimezoneService>(timezoneService);
+    logger.info('✅ TimezoneService registered');
 
+    logger.info('🌐 Initializing HTTP Client...');
     final httpClient = http.Client();
     register<http.Client>(httpClient);
+    logger.info('✅ HTTP Client registered');
 
+    logger.info('🕌 Initializing Prayer Time Provider (Awqat Salah)...');
     final prayerTimeProvider = AwqatSalahProvider(httpClient: httpClient);
     register<PrayerTimeProvider>(prayerTimeProvider);
+    logger.info('✅ Prayer Time Provider registered');
 
+    logger.info('💾 Initializing Local Storage (SQLite)...');
     final localStorage = SqliteStorage();
     register<LocalStorage>(localStorage);
+    logger.info('✅ Local Storage registered');
 
     final prayerTimesRepository = PrayerTimesRepository(
       provider: prayerTimeProvider,
