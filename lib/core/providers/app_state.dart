@@ -74,4 +74,9 @@ class AppState extends ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
   }
+
+  void clearPrayerTimes() {
+    _prayerTimes = [];
+    notifyListeners();
+  }
 }

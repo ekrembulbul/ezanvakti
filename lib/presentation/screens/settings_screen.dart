@@ -49,11 +49,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               ListTile(
                 key: const Key('location_tile'),
-                leading: const Icon(Icons.location_on),
-                title: const Text('Lokasyon'),
-                subtitle: Text(
-                  '${widget.currentLocation.province} / ${widget.currentLocation.district}',
+                leading: Icon(
+                  widget.currentLocation.type == LocationType.gps
+                      ? Icons.my_location
+                      : Icons.location_on,
                 ),
+                title: const Text('Konumlar'),
+                subtitle: Text(widget.currentLocation.displayName),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: widget.onChangeLocation,
               ),

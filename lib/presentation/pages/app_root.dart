@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/providers/app_state.dart';
+import '../../core/models/location.dart';
 import '../../core/di/service_locator.dart';
 import '../../features/location/domain/location_repository.dart';
 import '../screens/onboarding_screen.dart';
@@ -61,6 +62,11 @@ class _AppRootState extends State<AppRoot> {
             onLocationSelected: (location) async {
               final locationRepository = ServiceLocator()
                   .get<LocationRepository>();
+              if (location.type == LocationType.gps) {
+                await locationRepository.saveOrUpdateGpsLocation(location);
+              } else {
+                await locationRepository.saveLocation(location);
+              }
               await locationRepository.setActiveLocation(location);
               appState.setActiveLocation(location);
             },

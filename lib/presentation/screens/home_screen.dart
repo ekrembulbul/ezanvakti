@@ -15,6 +15,7 @@ class HomeScreen extends StatefulWidget {
   final VoidCallback? onSettingsTap;
   final VoidCallback? onNotificationSettingsTap;
   final VoidCallback? onRefresh;
+  final VoidCallback? onGpsRefresh;
   final bool isLoading;
   final String? errorMessage;
 
@@ -29,6 +30,7 @@ class HomeScreen extends StatefulWidget {
     this.onSettingsTap,
     this.onNotificationSettingsTap,
     this.onRefresh,
+    this.onGpsRefresh,
     this.isLoading = false,
     this.errorMessage,
   });
@@ -164,13 +166,36 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text('Ezan Vakti'),
-            Text(
-              '${widget.location.province} / ${widget.location.district}',
-              style: const TextStyle(fontSize: 12),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  widget.location.type == LocationType.gps
+                      ? Icons.my_location
+                      : Icons.location_on,
+                  size: 14,
+                ),
+                const SizedBox(width: 4),
+                Flexible(
+                  child: Text(
+                    '${widget.location.province} / ${widget.location.district}',
+                    style: const TextStyle(fontSize: 12),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
         actions: [
+          if (widget.location.type == LocationType.gps &&
+              widget.onGpsRefresh != null)
+            IconButton(
+              key: const Key('gps_refresh_button'),
+              icon: const Icon(Icons.gps_fixed),
+              onPressed: widget.onGpsRefresh,
+              tooltip: 'GPS Konumunu Yenile',
+            ),
           if (widget.onNotificationSettingsTap != null)
             IconButton(
               key: const Key('notification_settings_button'),
