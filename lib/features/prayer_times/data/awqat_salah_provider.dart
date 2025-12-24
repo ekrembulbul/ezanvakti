@@ -23,9 +23,56 @@ class AwqatSalahProvider implements PrayerTimeProvider {
     required DateTime endDate,
   }) async {
     final logger = AppLogger();
+
+    final daysDiff = endDate.difference(startDate).inDays;
+
+    if (daysDiff >= 7) {
+      try {
+        return await _fetchMonthlyPrayerTimes(
+          location: location,
+          startDate: startDate,
+          endDate: endDate,
+        );
+      } catch (e) {
+        logger.warning(
+          'Calendar endpoint failed, falling back to daily (max 7 days)',
+          e,
+        );
+        final limitedEndDate = startDate.add(const Duration(days: 6));
+        final actualEndDate = endDate.isBefore(limitedEndDate)
+            ? endDate
+            : limitedEndDate;
+        return await _fetchDailyPrayerTimes(
+          location: location,
+          startDate: startDate,
+          endDate: actualEndDate,
+        );
+      }
+    }
+
+    return await _fetchDailyPrayerTimes(
+      location: location,
+      startDate: startDate,
+      endDate: endDate,
+    );
+  }
+
+  Future<List<PrayerTime>> _fetchDailyPrayerTimes({
+    required Location location,
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    final logger = AppLogger();
+    final dayCount = endDate.difference(startDate).inDays + 1;
+    logger.info(
+      '📅 Fetching $dayCount days using DAILY endpoint (${startDate.toIso8601String().split('T')[0]} to ${endDate.toIso8601String().split('T')[0]})',
+    );
+
     final List<PrayerTime> prayerTimes = [];
 
     DateTime currentDate = startDate;
+    bool isFirstRequest = true;
+
     while (currentDate.isBefore(endDate) ||
         currentDate.isAtSameMomentAs(endDate)) {
       try {
@@ -47,10 +94,121 @@ class AwqatSalahProvider implements PrayerTimeProvider {
           e,
         );
       }
+
+      if (!isFirstRequest) {
+        await Future.delayed(const Duration(milliseconds: 500));
+      }
+      isFirstRequest = false;
       currentDate = currentDate.add(const Duration(days: 1));
     }
 
+    logger.info(
+      '✅ Daily fetch completed: ${prayerTimes.length} days retrieved',
+    );
     return prayerTimes;
+  }
+
+  Future<List<PrayerTime>> _fetchMonthlyPrayerTimes({
+    required Location location,
+    required DateTime startDate,
+    required DateTime endDate,
+  }) async {
+    final logger = AppLogger();
+    final dayCount = endDate.difference(startDate).inDays + 1;
+    logger.info(
+      '📅 Fetching $dayCount days using CALENDAR endpoint (${startDate.toIso8601String().split('T')[0]} to ${endDate.toIso8601String().split('T')[0]})',
+    );
+
+    final List<PrayerTime> allPrayerTimes = [];
+
+    DateTime currentMonth = DateTime(startDate.year, startDate.month, 1);
+    final endMonth = DateTime(endDate.year, endDate.month, 1);
+
+    while (currentMonth.isBefore(endMonth) ||
+        currentMonth.isAtSameMomentAs(endMonth)) {
+      try {
+        final uri = Uri.parse(
+          '$baseUrl/calendar?latitude=${location.latitude}&longitude=${location.longitude}&method=13&month=${currentMonth.month}&year=${currentMonth.year}',
+        );
+
+        final response = await httpClient.get(uri);
+
+        if (response.statusCode != 200) {
+          throw Exception('API error: ${response.statusCode}');
+        }
+
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        final daysData = data['data'] as List<dynamic>;
+
+        for (final dayData in daysData) {
+          final timings = dayData['timings'] as Map<String, dynamic>;
+          final dateInfo = dayData['date']['gregorian'] as Map<String, dynamic>;
+
+          final day = int.parse(dateInfo['day'] as String);
+          final month = int.parse(dateInfo['month']['number'].toString());
+          final year = int.parse(dateInfo['year'] as String);
+
+          final date = DateTime(year, month, day);
+
+          if (date.isBefore(startDate) || date.isAfter(endDate)) {
+            continue;
+          }
+
+          final prayerTime = PrayerTime(
+            fajr: _parseTime(timings['Fajr'] as String, date),
+            sunrise: _parseTime(timings['Sunrise'] as String, date),
+            dhuhr: _parseTime(timings['Dhuhr'] as String, date),
+            asr: _parseTime(timings['Asr'] as String, date),
+            maghrib: _parseTime(timings['Maghrib'] as String, date),
+            isha: _parseTime(timings['Isha'] as String, date),
+            date: date,
+          );
+
+          allPrayerTimes.add(prayerTime);
+        }
+      } on FormatException catch (e, stackTrace) {
+        logger.parseError(
+          context: 'AwqatSalahProvider._fetchMonthlyPrayerTimes - JSON parsing',
+          error: e,
+          stackTrace: stackTrace,
+          additionalData: {
+            'location': location.toJson(),
+            'month': currentMonth.month,
+            'year': currentMonth.year,
+          },
+        );
+        throw ParseException(
+          message: 'Failed to parse calendar API response',
+          originalError: e,
+          stackTrace: stackTrace,
+          context: 'AwqatSalahProvider._fetchMonthlyPrayerTimes',
+        );
+      } on TypeError catch (e, stackTrace) {
+        logger.parseError(
+          context: 'AwqatSalahProvider._fetchMonthlyPrayerTimes - Type casting',
+          error: e,
+          stackTrace: stackTrace,
+          additionalData: {
+            'location': location.toJson(),
+            'month': currentMonth.month,
+            'year': currentMonth.year,
+          },
+        );
+        throw ParseException(
+          message: 'Calendar API response structure has changed',
+          originalError: e,
+          stackTrace: stackTrace,
+          context: 'AwqatSalahProvider._fetchMonthlyPrayerTimes',
+        );
+      }
+
+      currentMonth = DateTime(currentMonth.year, currentMonth.month + 1, 1);
+    }
+
+    logger.info(
+      '✅ Calendar fetch completed: ${allPrayerTimes.length} days retrieved',
+    );
+    return allPrayerTimes;
   }
 
   @override
@@ -59,6 +217,9 @@ class AwqatSalahProvider implements PrayerTimeProvider {
     required DateTime date,
   }) async {
     final logger = AppLogger();
+    logger.info(
+      '📅 Fetching single day via DAILY endpoint for ${date.toIso8601String().split('T')[0]}',
+    );
     try {
       final timestamp = date.millisecondsSinceEpoch ~/ 1000;
 
@@ -130,7 +291,12 @@ class AwqatSalahProvider implements PrayerTimeProvider {
 
   DateTime _parseTime(String time, DateTime date) {
     try {
-      final parts = time.split(':');
+      String cleanTime = time.trim();
+      if (cleanTime.contains(' ')) {
+        cleanTime = cleanTime.split(' ')[0];
+      }
+
+      final parts = cleanTime.split(':');
       if (parts.length < 2) {
         throw FormatException('Invalid time format: $time');
       }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/providers/app_state.dart';
 import '../../core/di/service_locator.dart';
+import '../../core/models/location.dart';
 import '../../core/models/notification_setting.dart';
 import '../../features/prayer_times/domain/prayer_times_repository.dart';
 import '../../features/notifications/domain/notification_scheduler.dart';
@@ -23,7 +24,9 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _loadInitialData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadInitialData();
+    });
   }
 
   Future<void> _loadInitialData() async {
@@ -46,18 +49,9 @@ class _HomePageState extends State<HomePage> {
       );
 
       appState.setTodaysPrayerTime(todayPrayer);
+      appState.setPrayerTimes(todayPrayer != null ? [todayPrayer] : []);
 
-      final prayerTimes = await repository.getPrayerTimes(
-        location: location,
-        startDate: todayNormalized,
-        endDate: todayNormalized.add(const Duration(days: 30)),
-      );
-
-      appState.setPrayerTimes(prayerTimes);
-
-      final lastUpdate = await ServiceLocator()
-          .get<PrayerTimesRepository>()
-          .getLastUpdateTime();
+      final lastUpdate = await repository.getLastUpdateTime();
       appState.setLastUpdateTime(lastUpdate);
 
       final notificationService = ServiceLocator().get<NotificationService>();
@@ -68,10 +62,36 @@ class _HomePageState extends State<HomePage> {
           .get<NotificationSettingsManager>();
       final settings = await settingsManager.getSettings();
       appState.setNotificationSettings(settings);
+
+      appState.setLoading(false);
+
+      _loadMoreDataInBackground(location, todayNormalized);
     } catch (e) {
       appState.setError('Veri yüklenirken hata oluştu: $e');
-    } finally {
       appState.setLoading(false);
+    }
+  }
+
+  Future<void> _loadMoreDataInBackground(
+    Location location,
+    DateTime startDate,
+  ) async {
+    try {
+      final repository = ServiceLocator().get<PrayerTimesRepository>();
+      final prayerTimes = await repository.getPrayerTimes(
+        location: location,
+        startDate: startDate.add(const Duration(days: 1)),
+        endDate: startDate.add(const Duration(days: 30)),
+        forceRefresh: false,
+      );
+
+      if (mounted) {
+        final appState = context.read<AppState>();
+        final existingTimes = appState.prayerTimes;
+        appState.setPrayerTimes([...existingTimes, ...prayerTimes]);
+      }
+    } catch (e) {
+      // Ignore background loading errors
     }
   }
 
