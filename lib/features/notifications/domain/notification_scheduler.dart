@@ -3,6 +3,7 @@ import '../../../core/interfaces/local_storage.dart';
 import '../../../core/models/prayer_time.dart';
 import '../../../core/models/notification_setting.dart';
 import '../../../core/models/location.dart';
+import '../../../core/utils/app_logger.dart';
 
 class NotificationScheduler {
   final NotificationService notificationService;
@@ -19,13 +20,21 @@ class NotificationScheduler {
     required Location location,
     required List<PrayerTime> prayerTimes,
   }) async {
+    final logger = AppLogger();
+    logger.info(
+      '🔔 Scheduling notifications for ${location.province}/${location.district} (${prayerTimes.length} days)',
+    );
+
     final settings = await storage.getNotificationSettings();
 
     if (settings.isEmpty) {
+      logger.warning('⚠️ No notification settings found, skipping');
       return;
     }
 
+    logger.info('📋 Found ${settings.length} notification settings');
     await notificationService.cancelAllNotifications();
+    logger.info('🗑️ Cancelled all existing notifications');
 
     final scheduledIds = <String>{};
 
@@ -68,6 +77,8 @@ class NotificationScheduler {
         scheduledIds.add(notificationId);
       }
     }
+
+    logger.info('✅ Scheduled ${scheduledIds.length} notifications');
   }
 
   Future<void> rescheduleNotifications({

@@ -2,6 +2,7 @@ import '../../../core/interfaces/prayer_time_provider.dart';
 import '../../../core/interfaces/local_storage.dart';
 import '../../../core/models/prayer_time.dart';
 import '../../../core/models/location.dart';
+import '../../../core/utils/app_logger.dart';
 
 class PrayerTimesRepository {
   final PrayerTimeProvider provider;
@@ -18,6 +19,12 @@ class PrayerTimesRepository {
     required DateTime endDate,
     bool forceRefresh = false,
   }) async {
+    final logger = AppLogger();
+    final dayCount = endDate.difference(startDate).inDays + 1;
+    logger.info(
+      '📦 Repository: Getting prayer times for ${location.province}/${location.district} ($dayCount days, forceRefresh: $forceRefresh)',
+    );
+
     if (!forceRefresh) {
       final cachedTimes = await storage.getPrayerTimes(
         locationId: location.id,
@@ -27,11 +34,19 @@ class PrayerTimesRepository {
 
       if (cachedTimes.isNotEmpty &&
           _isCacheComplete(cachedTimes, startDate, endDate)) {
+        logger.info('✅ Cache HIT: ${cachedTimes.length} days from cache');
         return cachedTimes;
+      } else {
+        logger.info(
+          '❌ Cache MISS: Found ${cachedTimes.length} days, but incomplete. Fetching from remote...',
+        );
       }
+    } else {
+      logger.info('🔄 Force refresh requested, skipping cache');
     }
 
     try {
+      logger.info('🌐 Fetching from remote API...');
       final remoteTimes = await provider.fetchPrayerTimes(
         location: location,
         startDate: startDate,
@@ -39,12 +54,14 @@ class PrayerTimesRepository {
       );
 
       if (remoteTimes.isNotEmpty) {
+        logger.info('💾 Saving ${remoteTimes.length} days to cache');
         await storage.savePrayerTimes(remoteTimes, location.id);
         await storage.saveLastUpdateTime(DateTime.now());
       }
 
       return remoteTimes;
     } catch (e) {
+      logger.warning('⚠️ Remote fetch failed, attempting fallback to cache', e);
       final cachedTimes = await storage.getPrayerTimes(
         locationId: location.id,
         startDate: startDate,
@@ -52,9 +69,13 @@ class PrayerTimesRepository {
       );
 
       if (cachedTimes.isEmpty) {
+        logger.error('❌ No cached data available, rethrowing error', e);
         rethrow;
       }
 
+      logger.info(
+        '✅ Fallback successful: ${cachedTimes.length} days from cache',
+      );
       return cachedTimes;
     }
   }
@@ -64,7 +85,11 @@ class PrayerTimesRepository {
     required DateTime date,
     bool forceRefresh = false,
   }) async {
+    final logger = AppLogger();
     final normalizedDate = DateTime(date.year, date.month, date.day);
+    logger.info(
+      '📦 Repository: Getting single day for ${location.province}/${location.district} on ${normalizedDate.toIso8601String().split('T')[0]}',
+    );
 
     if (!forceRefresh) {
       final cachedTime = await storage.getDailyPrayerTime(
@@ -73,32 +98,40 @@ class PrayerTimesRepository {
       );
 
       if (cachedTime != null) {
+        logger.info('✅ Cache HIT: Single day from cache');
         return cachedTime;
+      } else {
+        logger.info('❌ Cache MISS: Fetching from remote...');
       }
     }
 
     try {
+      logger.info('🌐 Fetching from remote API...');
       final remoteTime = await provider.fetchDailyPrayerTime(
         location: location,
         date: normalizedDate,
       );
 
       if (remoteTime != null) {
+        logger.info('💾 Saving single day to cache');
         await storage.savePrayerTimes([remoteTime], location.id);
         await storage.saveLastUpdateTime(DateTime.now());
       }
 
       return remoteTime;
     } catch (e) {
+      logger.warning('⚠️ Remote fetch failed, attempting fallback to cache', e);
       final cachedTime = await storage.getDailyPrayerTime(
         locationId: location.id,
         date: normalizedDate,
       );
 
       if (cachedTime == null) {
+        logger.error('❌ No cached data available, rethrowing error', e);
         rethrow;
       }
 
+      logger.info('✅ Fallback successful: Single day from cache');
       return cachedTime;
     }
   }
