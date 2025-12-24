@@ -60,6 +60,19 @@ class _HomePageState extends State<HomePage> {
       appState.setTodaysPrayerTime(todayPrayer);
       appState.setPrayerTimes(todayPrayer != null ? [todayPrayer] : []);
 
+      final now = DateTime.now();
+      if (todayPrayer != null && now.isAfter(todayPrayer.isha)) {
+        logger.info(
+          '⏰ After Isha, fetching tomorrow\'s prayer times for countdown',
+        );
+        final tomorrow = todayNormalized.add(const Duration(days: 1));
+        final tomorrowPrayer = await repository.getDailyPrayerTime(
+          location: location,
+          date: tomorrow,
+        );
+        appState.setTomorrowsPrayerTime(tomorrowPrayer);
+      }
+
       final lastUpdate = await repository.getLastUpdateTime();
       appState.setLastUpdateTime(lastUpdate);
 
@@ -222,6 +235,7 @@ class _HomePageState extends State<HomePage> {
         return HomeScreen(
           location: appState.activeLocation!,
           todaysPrayerTime: appState.todaysPrayerTime,
+          tomorrowsPrayerTime: appState.tomorrowsPrayerTime,
           lastUpdateTime: appState.lastUpdateTime,
           isLoading: appState.isLoading,
           errorMessage: appState.errorMessage,
