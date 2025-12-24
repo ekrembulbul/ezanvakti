@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../core/models/location.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart' hide Location;
+import '../../core/models/location.dart' as AppLocation;
 import '../../features/location/data/turkey_locations_data.dart';
 
 class OnboardingScreen extends StatefulWidget {
-  final Function(Location) onLocationSelected;
+  final Function(AppLocation.Location) onLocationSelected;
 
   const OnboardingScreen({super.key, required this.onLocationSelected});
 
@@ -12,10 +14,13 @@ class OnboardingScreen extends StatefulWidget {
 }
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
+  bool _showManualSelection = false;
   String? selectedProvince;
-  Location? selectedDistrict;
+  AppLocation.Location? selectedDistrict;
   List<String> provinces = [];
-  List<Location> districts = [];
+  List<AppLocation.Location> districts = [];
+  bool _isLoadingLocation = false;
+  String? _locationError;
 
   @override
   void initState() {
@@ -33,12 +38,140 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     });
   }
 
-  void _onDistrictSelected(Location? district) {
+  void _onDistrictSelected(AppLocation.Location? district) {
     if (district == null) return;
 
     setState(() {
       selectedDistrict = district;
     });
+  }
+
+  Future<void> _detectLocation() async {
+    setState(() {
+      _isLoadingLocation = true;
+      _locationError = null;
+    });
+
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        throw Exception('Konum servisleri kapalı. Lütfen açın.');
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        final shouldRequest = await _showLocationRationale();
+        if (!shouldRequest) {
+          throw Exception('Konum izni gerekli.');
+        }
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw Exception('Konum izni reddedildi.');
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception(
+          'Konum izni kalıcı olarak reddedildi. Ayarlardan izin verin.',
+        );
+      }
+
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      if (placemarks.isEmpty) {
+        throw Exception('Konum bilgisi alınamadı.');
+      }
+
+      final placemark = placemarks.first;
+      final province = placemark.administrativeArea ?? '';
+      final district =
+          placemark.subAdministrativeArea ?? placemark.locality ?? '';
+
+      if (province.isEmpty || district.isEmpty) {
+        throw Exception('İl veya ilçe bilgisi bulunamadı.');
+      }
+
+      final matchedLocation = _findMatchingLocation(province, district);
+      if (matchedLocation != null) {
+        widget.onLocationSelected(matchedLocation);
+      } else {
+        throw Exception(
+          '$province/$district için veri bulunamadı. Manuel seçim yapın.',
+        );
+      }
+    } catch (e) {
+      setState(() {
+        _locationError = e.toString().replaceAll('Exception: ', '');
+      });
+    } finally {
+      setState(() {
+        _isLoadingLocation = false;
+      });
+    }
+  }
+
+  AppLocation.Location? _findMatchingLocation(
+    String province,
+    String district,
+  ) {
+    final allProvinces = TurkeyLocationsData.getAllProvinces();
+
+    String? matchedProvince;
+    for (final p in allProvinces) {
+      if (p.toLowerCase().contains(province.toLowerCase()) ||
+          province.toLowerCase().contains(p.toLowerCase())) {
+        matchedProvince = p;
+        break;
+      }
+    }
+
+    if (matchedProvince == null) return null;
+
+    final districts = TurkeyLocationsData.getDistrictsByProvince(
+      matchedProvince,
+    );
+    for (final d in districts) {
+      if (d.district.toLowerCase().contains(district.toLowerCase()) ||
+          district.toLowerCase().contains(d.district.toLowerCase())) {
+        return d;
+      }
+    }
+
+    return districts.isNotEmpty ? districts.first : null;
+  }
+
+  Future<bool> _showLocationRationale() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Konum İzni'),
+          content: const Text(
+            'Namaz vakitlerini bulunduğunuz konuma göre gösterebilmek için konum iznine ihtiyaç var. '
+            'İzni vererek bulunduğunuz il/ilçe otomatik seçilecektir.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('İptal'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('İzin Ver'),
+            ),
+          ],
+        );
+      },
+    );
+
+    return result ?? false;
   }
 
   void _onContinue() {
@@ -58,63 +191,164 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       appBar: AppBar(title: const Text('Hoş Geldiniz')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: _showManualSelection
+            ? _buildManualSelection()
+            : _buildChoiceScreen(),
+      ),
+    );
+  }
+
+  Widget _buildChoiceScreen() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Spacer(),
+        const Icon(Icons.mosque, size: 80, color: Colors.teal),
+        const SizedBox(height: 24),
+        const Text(
+          'Lokasyon Seçimi',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Namaz vakitlerini görmek için lokasyonunuzu belirleyin.',
+          style: TextStyle(fontSize: 16),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 48),
+        ElevatedButton.icon(
+          key: const Key('auto_detect_button'),
+          onPressed: _isLoadingLocation ? null : _detectLocation,
+          icon: _isLoadingLocation
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: Colors.white,
+                  ),
+                )
+              : const Icon(Icons.my_location),
+          label: Text(
+            _isLoadingLocation ? 'Konum Alınıyor...' : 'Konumu Otomatik Bul',
+          ),
+          style: ElevatedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            textStyle: const TextStyle(fontSize: 16),
+          ),
+        ),
+        if (_locationError != null) ...[
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.red.shade50,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              _locationError!,
+              style: const TextStyle(color: Colors.red, fontSize: 13),
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
+        const SizedBox(height: 16),
+        OutlinedButton.icon(
+          key: const Key('manual_select_button'),
+          onPressed: () {
+            setState(() {
+              _showManualSelection = true;
+              _locationError = null;
+            });
+          },
+          icon: const Icon(Icons.edit_location_alt),
+          label: const Text('Manuel Seç'),
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            textStyle: const TextStyle(fontSize: 16),
+          ),
+        ),
+        const Spacer(flex: 2),
+      ],
+    );
+  }
+
+  Widget _buildManualSelection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Text(
+          'Manuel Seçim',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Lütfen il ve ilçe seçiniz.',
+          style: TextStyle(fontSize: 16),
+        ),
+        const SizedBox(height: 32),
+        DropdownButtonFormField<String>(
+          key: const Key('province_dropdown'),
+          value: selectedProvince,
+          decoration: const InputDecoration(
+            labelText: 'İl',
+            border: OutlineInputBorder(),
+          ),
+          items: provinces
+              .map(
+                (province) =>
+                    DropdownMenuItem(value: province, child: Text(province)),
+              )
+              .toList(),
+          onChanged: _onProvinceSelected,
+        ),
+        const SizedBox(height: 16),
+        DropdownButtonFormField<AppLocation.Location>(
+          key: const Key('district_dropdown'),
+          value: selectedDistrict,
+          decoration: const InputDecoration(
+            labelText: 'İlçe',
+            border: OutlineInputBorder(),
+          ),
+          items: districts
+              .map(
+                (district) => DropdownMenuItem<AppLocation.Location>(
+                  value: district,
+                  child: Text(district.district),
+                ),
+              )
+              .toList(),
+          onChanged: _onDistrictSelected,
+        ),
+        const Spacer(),
+        Row(
           children: [
-            const Text(
-              'Lokasyon Seçimi',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Namaz vakitlerini görmek için lütfen şehir ve ilçe seçiniz.',
-              style: TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 32),
-            DropdownButtonFormField<String>(
-              key: const Key('province_dropdown'),
-              value: selectedProvince,
-              decoration: const InputDecoration(
-                labelText: 'İl',
-                border: OutlineInputBorder(),
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () {
+                  setState(() {
+                    _showManualSelection = false;
+                    selectedProvince = null;
+                    selectedDistrict = null;
+                    districts = [];
+                  });
+                },
+                child: const Text('Geri'),
               ),
-              items: provinces
-                  .map(
-                    (province) => DropdownMenuItem(
-                      value: province,
-                      child: Text(province),
-                    ),
-                  )
-                  .toList(),
-              onChanged: _onProvinceSelected,
             ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<Location>(
-              key: const Key('district_dropdown'),
-              value: selectedDistrict,
-              decoration: const InputDecoration(
-                labelText: 'İlçe',
-                border: OutlineInputBorder(),
+            const SizedBox(width: 16),
+            Expanded(
+              flex: 2,
+              child: ElevatedButton(
+                key: const Key('continue_button'),
+                onPressed: _onContinue,
+                child: const Text('Devam Et'),
               ),
-              items: districts
-                  .map(
-                    (district) => DropdownMenuItem(
-                      value: district,
-                      child: Text(district.district),
-                    ),
-                  )
-                  .toList(),
-              onChanged: _onDistrictSelected,
-            ),
-            const Spacer(),
-            ElevatedButton(
-              key: const Key('continue_button'),
-              onPressed: _onContinue,
-              child: const Text('Devam Et'),
             ),
           ],
         ),
-      ),
+      ],
     );
   }
 }

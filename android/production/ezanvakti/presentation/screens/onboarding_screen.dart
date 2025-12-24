@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart' hide Location;
 import '../../core/models/location.dart';
 import '../../features/location/data/turkey_locations_data.dart';
 
@@ -16,6 +18,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Location? selectedDistrict;
   List<String> provinces = [];
   List<Location> districts = [];
+  bool _isLoadingLocation = false;
+  String? _locationError;
 
   @override
   void initState() {
@@ -39,6 +43,128 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     setState(() {
       selectedDistrict = district;
     });
+  }
+
+  Future<void> _detectLocation() async {
+    setState(() {
+      _isLoadingLocation = true;
+      _locationError = null;
+    });
+
+    try {
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        throw Exception('Konum servisleri kapalı. Lütfen açın.');
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        final shouldRequest = await _showLocationRationale();
+        if (!shouldRequest) {
+          throw Exception('Konum izni gerekli.');
+        }
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw Exception('Konum izni reddedildi.');
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception('Konum izni kalıcı olarak reddedildi. Ayarlardan izin verin.');
+      }
+
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      List<Placemark> placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      if (placemarks.isEmpty) {
+        throw Exception('Konum bilgisi alınamadı.');
+      }
+
+      final placemark = placemarks.first;
+      final province = placemark.administrativeArea ?? '';
+      final district = placemark.subAdministrativeArea ?? placemark.locality ?? '';
+
+      if (province.isEmpty || district.isEmpty) {
+        throw Exception('İl veya ilçe bilgisi bulunamadı.');
+      }
+
+      final matchedLocation = _findMatchingLocation(province, district);
+      if (matchedLocation != null) {
+        setState(() {
+          selectedProvince = matchedLocation.province;
+          selectedDistrict = matchedLocation;
+          districts = TurkeyLocationsData.getDistrictsByProvince(matchedLocation.province);
+        });
+      } else {
+        throw Exception('$province/$district için veri bulunamadı. Manuel seçim yapın.');
+      }
+    } catch (e) {
+      setState(() {
+        _locationError = e.toString().replaceAll('Exception: ', '');
+      });
+    } finally {
+      setState(() {
+        _isLoadingLocation = false;
+      });
+    }
+  }
+
+  Location? _findMatchingLocation(String province, String district) {
+    final allProvinces = TurkeyLocationsData.getAllProvinces();
+    
+    String? matchedProvince;
+    for (final p in allProvinces) {
+      if (p.toLowerCase().contains(province.toLowerCase()) ||
+          province.toLowerCase().contains(p.toLowerCase())) {
+        matchedProvince = p;
+        break;
+      }
+    }
+
+    if (matchedProvince == null) return null;
+
+    final districts = TurkeyLocationsData.getDistrictsByProvince(matchedProvince);
+    for (final d in districts) {
+      if (d.district.toLowerCase().contains(district.toLowerCase()) ||
+          district.toLowerCase().contains(d.district.toLowerCase())) {
+        return d;
+      }
+    }
+
+    return districts.isNotEmpty ? districts.first : null;
+  }
+
+  Future<bool> _showLocationRationale() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Konum İzni'),
+          content: const Text(
+            'Namaz vakitlerini bulunduğunuz konuma göre gösterebilmek için konum iznine ihtiyaç var. '
+            'İzni vererek bulunduğunuz il/ilçe otomatik seçilecektir.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('İptal'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('İzin Ver'),
+            ),
+          ],
+        );
+      },
+    );
+
+    return result ?? false;
   }
 
   void _onContinue() {
@@ -70,7 +196,39 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               'Namaz vakitlerini görmek için lütfen şehir ve ilçe seçiniz.',
               style: TextStyle(fontSize: 16),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
+            OutlinedButton.icon(
+              key: const Key('detect_location_button'),
+              onPressed: _isLoadingLocation ? null : _detectLocation,
+              icon: _isLoadingLocation
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.my_location),
+              label: Text(_isLoadingLocation ? 'Konum alınıyor...' : 'Konumumu Bul'),
+            ),
+            if (_locationError != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                _locationError!,
+                style: const TextStyle(color: Colors.red, fontSize: 12),
+                textAlign: TextAlign.center,
+              ),
+            ],
+            const SizedBox(height: 16),
+            const Row(
+              children: [
+                Expanded(child: Divider()),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Text('veya', style: TextStyle(color: Colors.grey)),
+                ),
+                Expanded(child: Divider()),
+              ],
+            ),
+            const SizedBox(height: 16),
             DropdownButtonFormField<String>(
               key: const Key('province_dropdown'),
               value: selectedProvince,

@@ -45,5 +45,7 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Namaz vakitlerini bulunduğunuz konuma göre göstermek için konum iznine ihtiyaç var.</string>
 </dict>
 </plist>
