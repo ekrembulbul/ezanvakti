@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:geocoding/geocoding.dart' hide Location;
 import '../../core/providers/app_state.dart';
 import '../../core/di/service_locator.dart';
 import '../../core/models/location.dart';
@@ -18,6 +16,9 @@ import '../screens/calendar_screen.dart';
 import '../screens/notification_settings_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/location_list_screen.dart';
+import '../services/location_service.dart';
+import '../services/data_loader_service.dart';
+import '../controllers/location_monitor_controller.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -27,42 +28,50 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  LocationMonitorService? _locationMonitor;
+  LocationMonitorController? _locationMonitorController;
   bool _isRefreshingGps = false;
+  late final LocationService _locationService;
+  late final DataLoaderService _dataLoaderService;
 
   @override
   void initState() {
     super.initState();
+    _initializeServices();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadInitialData();
       _startLocationMonitoring();
     });
   }
 
+  void _initializeServices() {
+    final locationRepository = ServiceLocator().get<LocationRepository>();
+    _locationService = LocationService(locationRepository);
+    _dataLoaderService = DataLoaderService(
+      prayerTimesRepository: ServiceLocator().get<PrayerTimesRepository>(),
+      notificationService: ServiceLocator().get<NotificationService>(),
+      settingsManager: ServiceLocator().get<NotificationSettingsManager>(),
+      logger: AppLogger(),
+    );
+  }
+
   @override
   void dispose() {
-    _locationMonitor?.stopMonitoring();
+    _locationMonitorController?.stopMonitoring();
     super.dispose();
   }
 
   Future<void> _startLocationMonitoring() async {
     final appState = context.read<AppState>();
-    if (appState.activeLocation?.type == LocationType.gps) {
-      _locationMonitor = ServiceLocator().get<LocationMonitorService>();
-
-      _locationMonitor?.onLocationChanged.listen((newLocation) async {
-        final logger = AppLogger();
-        logger.info('🔄 GPS location changed, refreshing prayer times...');
-
-        final locationRepository = ServiceLocator().get<LocationRepository>();
-        await locationRepository.setActiveLocation(newLocation);
+    _locationMonitorController = LocationMonitorController(
+      monitorService: ServiceLocator().get<LocationMonitorService>(),
+      locationRepository: ServiceLocator().get<LocationRepository>(),
+      logger: AppLogger(),
+      onLocationChanged: (newLocation) async {
         appState.setActiveLocation(newLocation);
-
         await _loadInitialData();
-      });
-
-      await _locationMonitor?.startMonitoring();
-    }
+      },
+    );
+    await _locationMonitorController?.startMonitoring(appState.activeLocation);
   }
 
   Future<void> _manualGpsRefresh() async {
@@ -76,66 +85,27 @@ class _HomePageState extends State<HomePage> {
     try {
       logger.info('🔄 Manual GPS refresh triggered');
 
-      final hasPermission = await Geolocator.checkPermission();
-      if (hasPermission != LocationPermission.always &&
-          hasPermission != LocationPermission.whileInUse) {
-        throw Exception('Konum izni gerekli');
-      }
+      final gpsLocation = await _locationService.getCurrentGpsLocation();
 
-      final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+      final locationRepository = ServiceLocator().get<LocationRepository>();
+      final savedLocation = await locationRepository.saveOrUpdateGpsLocation(
+        gpsLocation,
       );
+      await locationRepository.setActiveLocation(savedLocation);
+      appState.setActiveLocation(savedLocation);
 
-      final placemarks = await placemarkFromCoordinates(
-        position.latitude,
-        position.longitude,
-      );
+      await _loadInitialData();
 
-      if (placemarks.isEmpty) {
-        throw Exception('Konum bilgisi alınamadı');
-      }
-
-      final placemark = placemarks.first;
-      final province = placemark.administrativeArea ?? '';
-      final district =
-          placemark.subAdministrativeArea ?? placemark.locality ?? '';
-
-      if (province.isEmpty || district.isEmpty) {
-        throw Exception('İl veya ilçe bilgisi bulunamadı');
-      }
-
-      final matchedLocation = _findMatchingLocation(province, district);
-      if (matchedLocation != null) {
-        final gpsLocation = matchedLocation.copyWith(
-          type: LocationType.gps,
-          latitude: position.latitude,
-          longitude: position.longitude,
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('GPS konumu güncellendi: ${gpsLocation.displayName}'),
+            backgroundColor: Colors.green,
+          ),
         );
-
-        final locationRepository = ServiceLocator().get<LocationRepository>();
-        final savedLocation = await locationRepository.saveOrUpdateGpsLocation(
-          gpsLocation,
-        );
-        await locationRepository.setActiveLocation(savedLocation);
-        appState.setActiveLocation(savedLocation);
-
-        await _loadInitialData();
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'GPS konumu güncellendi: ${gpsLocation.displayName}',
-              ),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-
-        logger.info('✅ Manual GPS refresh completed');
-      } else {
-        throw Exception('$province/$district için veri bulunamadı');
       }
+
+      logger.info('✅ Manual GPS refresh completed');
     } catch (e) {
       logger.error('❌ Manual GPS refresh failed', e);
       if (mounted) {
@@ -155,34 +125,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Location? _findMatchingLocation(String province, String district) {
-    final locationRepository = ServiceLocator().get<LocationRepository>();
-    final allProvinces = locationRepository.getAllProvinces();
-
-    String? matchedProvince;
-    for (final p in allProvinces) {
-      if (p.toLowerCase().contains(province.toLowerCase()) ||
-          province.toLowerCase().contains(p.toLowerCase())) {
-        matchedProvince = p;
-        break;
-      }
-    }
-
-    if (matchedProvince == null) return null;
-
-    final districts = locationRepository.getDistrictsByProvince(
-      matchedProvince,
-    );
-    for (final d in districts) {
-      if (d.district.toLowerCase().contains(district.toLowerCase()) ||
-          district.toLowerCase().contains(d.district.toLowerCase())) {
-        return d;
-      }
-    }
-
-    return districts.isNotEmpty ? districts.first : null;
-  }
-
   Future<void> _loadInitialData() async {
     final logger = AppLogger();
     final appState = context.read<AppState>();
@@ -193,55 +135,23 @@ class _HomePageState extends State<HomePage> {
       return;
     }
 
-    logger.info(
-      '🏠 HomePage: Loading initial data for ${location.province}/${location.district}',
-    );
-
     appState.setLoading(true);
     appState.clearError();
 
     try {
-      final repository = ServiceLocator().get<PrayerTimesRepository>();
-      final today = DateTime.now();
-      final todayNormalized = DateTime(today.year, today.month, today.day);
+      final data = await _dataLoaderService.loadInitialData(location);
 
-      final todayPrayer = await repository.getDailyPrayerTime(
-        location: location,
-        date: todayNormalized,
-      );
-
-      appState.setTodaysPrayerTime(todayPrayer);
-      appState.setPrayerTimes(todayPrayer != null ? [todayPrayer] : []);
-
-      final now = DateTime.now();
-      if (todayPrayer != null && now.isAfter(todayPrayer.isha)) {
-        logger.info(
-          '⏰ After Isha, fetching tomorrow\'s prayer times for countdown',
-        );
-        final tomorrow = todayNormalized.add(const Duration(days: 1));
-        final tomorrowPrayer = await repository.getDailyPrayerTime(
-          location: location,
-          date: tomorrow,
-        );
-        appState.setTomorrowsPrayerTime(tomorrowPrayer);
-      }
-
-      final lastUpdate = await repository.getLastUpdateTime();
-      appState.setLastUpdateTime(lastUpdate);
-
-      final notificationService = ServiceLocator().get<NotificationService>();
-      final hasPermission = await notificationService.isPermissionGranted();
-      appState.setNotificationPermission(hasPermission);
-
-      final settingsManager = ServiceLocator()
-          .get<NotificationSettingsManager>();
-      final settings = await settingsManager.getSettings();
-      appState.setNotificationSettings(settings);
+      appState.setTodaysPrayerTime(data['todayPrayer']);
+      appState.setTomorrowsPrayerTime(data['tomorrowPrayer']);
+      appState.setPrayerTimes(data['prayerTimes']);
+      appState.setLastUpdateTime(data['lastUpdate']);
+      appState.setNotificationPermission(data['hasPermission']);
+      appState.setNotificationSettings(data['settings']);
 
       appState.setLoading(false);
       logger.info('✅ Initial data loaded successfully');
 
-      _loadMoreDataInBackground(location, todayNormalized);
+      _loadMoreDataInBackground(location);
     } catch (e) {
       logger.error('❌ Failed to load initial data', e);
       appState.setError('Veri yüklenirken hata oluştu: $e');
@@ -249,31 +159,19 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _loadMoreDataInBackground(
-    Location location,
-    DateTime startDate,
-  ) async {
-    final logger = AppLogger();
-    logger.info('🔄 Starting background data load for next 30 days');
-    try {
-      final repository = ServiceLocator().get<PrayerTimesRepository>();
-      final prayerTimes = await repository.getPrayerTimes(
-        location: location,
-        startDate: startDate.add(const Duration(days: 1)),
-        endDate: startDate.add(const Duration(days: 30)),
-        forceRefresh: false,
-      );
+  Future<void> _loadMoreDataInBackground(Location location) async {
+    final today = DateTime.now();
+    final todayNormalized = DateTime(today.year, today.month, today.day);
 
-      if (mounted) {
-        final appState = context.read<AppState>();
-        final existingTimes = appState.prayerTimes;
-        appState.setPrayerTimes([...existingTimes, ...prayerTimes]);
-        logger.info(
-          '✅ Background load completed: Total ${existingTimes.length + prayerTimes.length} days available',
-        );
-      }
-    } catch (e) {
-      logger.warning('⚠️ Background loading failed (ignored)', e);
+    final prayerTimes = await _dataLoaderService.loadBackgroundData(
+      location,
+      todayNormalized,
+    );
+
+    if (mounted && prayerTimes.isNotEmpty) {
+      final appState = context.read<AppState>();
+      final existingTimes = appState.prayerTimes;
+      appState.setPrayerTimes([...existingTimes, ...prayerTimes]);
     }
   }
 
