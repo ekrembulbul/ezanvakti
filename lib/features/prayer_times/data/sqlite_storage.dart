@@ -23,7 +23,7 @@ class SqliteStorage implements LocalStorage {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -55,9 +55,10 @@ class SqliteStorage implements LocalStorage {
     await db.execute('''
       CREATE TABLE notification_settings (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        prayer_type TEXT NOT NULL UNIQUE,
+        prayer_type TEXT NOT NULL,
         is_active INTEGER NOT NULL,
-        minutes_before INTEGER NOT NULL
+        minutes_before INTEGER NOT NULL,
+        UNIQUE(prayer_type, minutes_before)
       )
     ''');
 
@@ -92,6 +93,18 @@ class SqliteStorage implements LocalStorage {
           type TEXT NOT NULL,
           custom_name TEXT,
           created_at TEXT NOT NULL
+        )
+      ''');
+    }
+    if (oldVersion < 3) {
+      await db.execute('DROP TABLE IF EXISTS notification_settings');
+      await db.execute('''
+        CREATE TABLE notification_settings (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          prayer_type TEXT NOT NULL,
+          is_active INTEGER NOT NULL,
+          minutes_before INTEGER NOT NULL,
+          UNIQUE(prayer_type, minutes_before)
         )
       ''');
     }
@@ -257,17 +270,49 @@ class SqliteStorage implements LocalStorage {
     List<NotificationSetting> settings,
   ) async {
     final db = await database;
-    final batch = db.batch();
+    await db.delete('notification_settings');
 
+    final batch = db.batch();
     for (final setting in settings) {
       batch.insert('notification_settings', {
         'prayer_type': setting.prayerType.name,
         'is_active': setting.isActive ? 1 : 0,
         'minutes_before': setting.minutesBefore,
-      }, conflictAlgorithm: ConflictAlgorithm.replace);
+      });
     }
 
     await batch.commit(noResult: true);
+  }
+
+  Future<void> addNotificationSetting(NotificationSetting setting) async {
+    final db = await database;
+    await db.insert('notification_settings', {
+      'prayer_type': setting.prayerType.name,
+      'is_active': setting.isActive ? 1 : 0,
+      'minutes_before': setting.minutesBefore,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<void> deleteNotificationSetting({
+    required PrayerType prayerType,
+    required int minutesBefore,
+  }) async {
+    final db = await database;
+    await db.delete(
+      'notification_settings',
+      where: 'prayer_type = ? AND minutes_before = ?',
+      whereArgs: [prayerType.name, minutesBefore],
+    );
+  }
+
+  Future<void> updateNotificationSetting(NotificationSetting setting) async {
+    final db = await database;
+    await db.update(
+      'notification_settings',
+      {'is_active': setting.isActive ? 1 : 0},
+      where: 'prayer_type = ? AND minutes_before = ?',
+      whereArgs: [setting.prayerType.name, setting.minutesBefore],
+    );
   }
 
   @override

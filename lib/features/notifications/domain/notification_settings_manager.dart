@@ -1,8 +1,11 @@
 import '../../../core/interfaces/local_storage.dart';
 import '../../../core/models/notification_setting.dart';
+import '../../prayer_times/data/sqlite_storage.dart';
 
 class NotificationSettingsManager {
   final LocalStorage storage;
+  SqliteStorage? get _sqliteStorage =>
+      storage is SqliteStorage ? storage as SqliteStorage : null;
 
   NotificationSettingsManager({required this.storage});
 
@@ -165,16 +168,34 @@ class NotificationSettingsManager {
     required PrayerType prayerType,
     required int minutesBefore,
   }) async {
-    final settings = await getSettings();
+    final sqliteStorage = _sqliteStorage;
+    if (sqliteStorage != null) {
+      await sqliteStorage.deleteNotificationSetting(
+        prayerType: prayerType,
+        minutesBefore: minutesBefore,
+      );
+    } else {
+      final settings = await getSettings();
+      final updated = settings
+          .where(
+            (s) =>
+                !(s.prayerType == prayerType &&
+                    s.minutesBefore == minutesBefore),
+          )
+          .toList();
+      await saveSettings(updated);
+    }
+  }
 
-    final updated = settings
-        .where(
-          (s) =>
-              !(s.prayerType == prayerType && s.minutesBefore == minutesBefore),
-        )
-        .toList();
-
-    await saveSettings(updated);
+  Future<void> addSetting(NotificationSetting setting) async {
+    final sqliteStorage = _sqliteStorage;
+    if (sqliteStorage != null) {
+      await sqliteStorage.addNotificationSetting(setting);
+    } else {
+      final settings = await getSettings();
+      settings.add(setting);
+      await saveSettings(settings);
+    }
   }
 
   Future<int> getActiveNotificationCount() async {

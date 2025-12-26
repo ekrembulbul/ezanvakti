@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import '../../core/providers/app_state.dart';
 import '../../core/di/service_locator.dart';
 import '../../core/models/location.dart';
-import '../../core/models/notification_setting.dart';
 import '../../core/utils/app_logger.dart';
 import '../../features/prayer_times/domain/prayer_times_repository.dart';
 import '../../features/notifications/domain/notification_scheduler.dart';
@@ -220,37 +219,13 @@ class _HomePageState extends State<HomePage> {
     final result = await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => NotificationSettingsScreen(
-          settings: appState.notificationSettings,
           hasPermission: appState.hasNotificationPermission,
           prayerTime: prayerTime,
-          onSettingToggled: (setting) async {
-            final manager = ServiceLocator().get<NotificationSettingsManager>();
-            await manager.updateSetting(setting);
-            await _reloadNotificationSettings();
-          },
-          onOffsetChanged: (prayer, offset) async {
-            final manager = ServiceLocator().get<NotificationSettingsManager>();
-            final newSetting = NotificationSetting(
-              prayerType: prayer,
-              isActive: true,
-              minutesBefore: offset,
-            );
-            await manager.updateSetting(newSetting);
-            await _reloadNotificationSettings();
-          },
           onRequestPermission: () async {
             final service = ServiceLocator().get<NotificationService>();
             final granted = await service.requestPermission();
             appState.setNotificationPermission(granted);
             return granted;
-          },
-          onDeleteSetting: (prayer, minutesBefore) async {
-            final manager = ServiceLocator().get<NotificationSettingsManager>();
-            await manager.removeSetting(
-              prayerType: prayer,
-              minutesBefore: minutesBefore,
-            );
-            await _reloadNotificationSettings();
           },
         ),
       ),
