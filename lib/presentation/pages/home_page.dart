@@ -340,6 +340,7 @@ class _HomePageState extends State<HomePage> {
             final service = ServiceLocator().get<NotificationService>();
             final granted = await service.requestPermission();
             appState.setNotificationPermission(granted);
+            return granted;
           },
         ),
       ),

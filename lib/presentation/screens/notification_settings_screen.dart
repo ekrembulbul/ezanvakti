@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../core/models/notification_setting.dart';
 
-class NotificationSettingsScreen extends StatelessWidget {
+class NotificationSettingsScreen extends StatefulWidget {
   final List<NotificationSetting> settings;
   final bool hasPermission;
   final Function(NotificationSetting) onSettingToggled;
   final Function(PrayerType, int) onOffsetChanged;
-  final VoidCallback? onRequestPermission;
+  final Future<bool> Function()? onRequestPermission;
   final VoidCallback? onOpenAppSettings;
 
   const NotificationSettingsScreen({
@@ -18,6 +18,21 @@ class NotificationSettingsScreen extends StatelessWidget {
     this.onRequestPermission,
     this.onOpenAppSettings,
   });
+
+  @override
+  State<NotificationSettingsScreen> createState() =>
+      _NotificationSettingsScreenState();
+}
+
+class _NotificationSettingsScreenState
+    extends State<NotificationSettingsScreen> {
+  late bool _hasPermission;
+
+  @override
+  void initState() {
+    super.initState();
+    _hasPermission = widget.hasPermission;
+  }
 
   String _getPrayerName(PrayerType type) {
     switch (type) {
@@ -39,7 +54,7 @@ class NotificationSettingsScreen extends StatelessWidget {
   Map<PrayerType, List<NotificationSetting>> _groupByPrayer() {
     final grouped = <PrayerType, List<NotificationSetting>>{};
 
-    for (final setting in settings) {
+    for (final setting in widget.settings) {
       if (!grouped.containsKey(setting.prayerType)) {
         grouped[setting.prayerType] = [];
       }
@@ -69,7 +84,7 @@ class NotificationSettingsScreen extends StatelessWidget {
       appBar: AppBar(title: const Text('Bildirim Ayarları')),
       body: Column(
         children: [
-          if (!hasPermission) _buildPermissionWarning(context),
+          if (!_hasPermission) _buildPermissionWarning(context),
           Expanded(
             child: ListView(
               children: prayers.map((prayer) {
@@ -117,16 +132,23 @@ class NotificationSettingsScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              if (onRequestPermission != null)
+              if (widget.onRequestPermission != null)
                 TextButton(
                   key: const Key('request_permission_button'),
-                  onPressed: onRequestPermission,
+                  onPressed: () async {
+                    final granted = await widget.onRequestPermission!.call();
+                    if (granted && mounted) {
+                      setState(() {
+                        _hasPermission = true;
+                      });
+                    }
+                  },
                   child: const Text('İzin Ver'),
                 ),
-              if (onOpenAppSettings != null)
+              if (widget.onOpenAppSettings != null)
                 TextButton(
                   key: const Key('open_settings_button'),
-                  onPressed: onOpenAppSettings,
+                  onPressed: widget.onOpenAppSettings,
                   child: const Text('Ayarlara Git'),
                 ),
             ],
@@ -173,10 +195,11 @@ class NotificationSettingsScreen extends StatelessWidget {
                 ),
                 trailing: Switch(
                   key: Key('switch_${prayer.name}_${setting.minutesBefore}'),
-                  value: setting.isActive && hasPermission,
-                  onChanged: hasPermission
-                      ? (value) =>
-                            onSettingToggled(setting.copyWith(isActive: value))
+                  value: setting.isActive && _hasPermission,
+                  onChanged: _hasPermission
+                      ? (value) => widget.onSettingToggled(
+                          setting.copyWith(isActive: value),
+                        )
                       : null,
                 ),
               );
@@ -260,7 +283,7 @@ class NotificationSettingsScreen extends StatelessWidget {
               onPressed: selectedPrayer == null
                   ? null
                   : () {
-                      onOffsetChanged(selectedPrayer!, selectedOffset);
+                      widget.onOffsetChanged(selectedPrayer!, selectedOffset);
                       Navigator.of(context).pop();
                     },
               child: const Text('Ekle'),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:geocoding/geocoding.dart' hide Location;
 import '../../core/providers/app_state.dart';
 import '../../core/di/service_locator.dart';
 import '../../core/models/location.dart';
@@ -8,11 +10,14 @@ import '../../core/utils/app_logger.dart';
 import '../../features/prayer_times/domain/prayer_times_repository.dart';
 import '../../features/notifications/domain/notification_scheduler.dart';
 import '../../features/notifications/domain/notification_settings_manager.dart';
+import '../../features/location/domain/location_repository.dart';
+import '../../features/location/domain/location_monitor_service.dart';
 import '../../core/interfaces/notification_service.dart';
 import '../screens/home_screen.dart';
 import '../screens/calendar_screen.dart';
 import '../screens/notification_settings_screen.dart';
 import '../screens/settings_screen.dart';
+import '../screens/location_list_screen.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -22,12 +27,160 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  LocationMonitorService? _locationMonitor;
+  bool _isRefreshingGps = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadInitialData();
+      _startLocationMonitoring();
     });
+  }
+
+  @override
+  void dispose() {
+    _locationMonitor?.stopMonitoring();
+    super.dispose();
+  }
+
+  Future<void> _startLocationMonitoring() async {
+    final appState = context.read<AppState>();
+    if (appState.activeLocation?.type == LocationType.gps) {
+      _locationMonitor = ServiceLocator().get<LocationMonitorService>();
+
+      _locationMonitor?.onLocationChanged.listen((newLocation) async {
+        final logger = AppLogger();
+        logger.info('🔄 GPS location changed, refreshing prayer times...');
+
+        final locationRepository = ServiceLocator().get<LocationRepository>();
+        await locationRepository.setActiveLocation(newLocation);
+        appState.setActiveLocation(newLocation);
+
+        await _loadInitialData();
+      });
+
+      await _locationMonitor?.startMonitoring();
+    }
+  }
+
+  Future<void> _manualGpsRefresh() async {
+    if (_isRefreshingGps) return;
+
+    setState(() => _isRefreshingGps = true);
+
+    final logger = AppLogger();
+    final appState = context.read<AppState>();
+
+    try {
+      logger.info('🔄 Manual GPS refresh triggered');
+
+      final hasPermission = await Geolocator.checkPermission();
+      if (hasPermission != LocationPermission.always &&
+          hasPermission != LocationPermission.whileInUse) {
+        throw Exception('Konum izni gerekli');
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      final placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      if (placemarks.isEmpty) {
+        throw Exception('Konum bilgisi alınamadı');
+      }
+
+      final placemark = placemarks.first;
+      final province = placemark.administrativeArea ?? '';
+      final district =
+          placemark.subAdministrativeArea ?? placemark.locality ?? '';
+
+      if (province.isEmpty || district.isEmpty) {
+        throw Exception('İl veya ilçe bilgisi bulunamadı');
+      }
+
+      final matchedLocation = _findMatchingLocation(province, district);
+      if (matchedLocation != null) {
+        final gpsLocation = matchedLocation.copyWith(
+          type: LocationType.gps,
+          latitude: position.latitude,
+          longitude: position.longitude,
+        );
+
+        final locationRepository = ServiceLocator().get<LocationRepository>();
+        final savedLocation = await locationRepository.saveOrUpdateGpsLocation(
+          gpsLocation,
+        );
+        await locationRepository.setActiveLocation(savedLocation);
+        appState.setActiveLocation(savedLocation);
+
+        await _loadInitialData();
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'GPS konumu güncellendi: ${gpsLocation.displayName}',
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+
+        logger.info('✅ Manual GPS refresh completed');
+      } else {
+        throw Exception('$province/$district için veri bulunamadı');
+      }
+    } catch (e) {
+      logger.error('❌ Manual GPS refresh failed', e);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'GPS yenileme hatası: ${e.toString().replaceAll('Exception: ', '')}',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isRefreshingGps = false);
+      }
+    }
+  }
+
+  Location? _findMatchingLocation(String province, String district) {
+    final locationRepository = ServiceLocator().get<LocationRepository>();
+    final allProvinces = locationRepository.getAllProvinces();
+
+    String? matchedProvince;
+    for (final p in allProvinces) {
+      if (p.toLowerCase().contains(province.toLowerCase()) ||
+          province.toLowerCase().contains(p.toLowerCase())) {
+        matchedProvince = p;
+        break;
+      }
+    }
+
+    if (matchedProvince == null) return null;
+
+    final districts = locationRepository.getDistrictsByProvince(
+      matchedProvince,
+    );
+    for (final d in districts) {
+      if (d.district.toLowerCase().contains(district.toLowerCase()) ||
+          district.toLowerCase().contains(d.district.toLowerCase())) {
+        return d;
+      }
+    }
+
+    return districts.isNotEmpty ? districts.first : null;
   }
 
   Future<void> _loadInitialData() async {
@@ -187,6 +340,7 @@ class _HomePageState extends State<HomePage> {
             final service = ServiceLocator().get<NotificationService>();
             final granted = await service.requestPermission();
             appState.setNotificationPermission(granted);
+            return granted;
           },
         ),
       ),
@@ -220,12 +374,55 @@ class _HomePageState extends State<HomePage> {
       MaterialPageRoute(
         builder: (context) => SettingsScreen(
           currentLocation: appState.activeLocation!,
-          onChangeLocation: () {
-            // TODO: Implement location change
+          onChangeLocation: _navigateToLocationList,
+        ),
+      ),
+    );
+  }
+
+  void _navigateToLocationList() async {
+    final appState = context.read<AppState>();
+    final locationRepository = ServiceLocator().get<LocationRepository>();
+
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => LocationListScreen(
+          locationRepository: locationRepository,
+          currentLocation: appState.activeLocation,
+          onLocationSelected: (location) async {
+            await _switchLocation(location);
           },
         ),
       ),
     );
+  }
+
+  Future<void> _switchLocation(Location newLocation) async {
+    final logger = AppLogger();
+    final appState = context.read<AppState>();
+    final locationRepository = ServiceLocator().get<LocationRepository>();
+
+    logger.info('🔄 Switching location to: ${newLocation.displayName}');
+
+    try {
+      await locationRepository.setActiveLocation(newLocation);
+      appState.setActiveLocation(newLocation);
+
+      appState.clearPrayerTimes();
+      appState.setTodaysPrayerTime(null);
+      appState.setTomorrowsPrayerTime(null);
+
+      await _loadInitialData();
+
+      logger.info('✅ Location switched successfully');
+    } catch (e) {
+      logger.error('❌ Failed to switch location', e);
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Konum değiştirilemedi: $e')));
+      }
+    }
   }
 
   @override
@@ -240,6 +437,7 @@ class _HomePageState extends State<HomePage> {
           isLoading: appState.isLoading,
           errorMessage: appState.errorMessage,
           onRefresh: _refreshData,
+          onGpsRefresh: _manualGpsRefresh,
           onCalendarTap: _navigateToCalendar,
           onNotificationSettingsTap: _navigateToNotificationSettings,
           onSettingsTap: _navigateToSettings,

@@ -410,8 +410,9 @@ void main() {
             hasPermission: false,
             onSettingToggled: (_) {},
             onOffsetChanged: (_, __) {},
-            onRequestPermission: () {
+            onRequestPermission: () async {
               requestCalled = true;
+              return true;
             },
           ),
         ),

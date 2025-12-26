@@ -5,6 +5,7 @@ import '../../features/prayer_times/domain/prayer_times_repository.dart';
 import '../../features/prayer_times/domain/offline_state_manager.dart';
 import '../../features/location/domain/location_repository.dart';
 import '../../features/location/domain/location_service.dart';
+import '../../features/location/domain/location_monitor_service.dart';
 import '../../features/notifications/data/flutter_local_notification_service.dart';
 import '../../features/notifications/domain/notification_scheduler.dart';
 import '../../features/notifications/domain/notification_settings_manager.dart';
@@ -94,6 +95,11 @@ class ServiceLocator {
       storage: localStorage,
     );
     register<NotificationSettingsManager>(notificationSettingsManager);
+
+    final locationMonitorService = LocationMonitorService(
+      locationRepository: locationRepository,
+    );
+    register<LocationMonitorService>(locationMonitorService);
   }
 
   Future<void> dispose() async {

@@ -21,7 +21,12 @@ class SqliteStorage implements LocalStorage {
     final databasesPath = await getDatabasesPath();
     final path = join(databasesPath, 'ezanvakti.db');
 
-    return await openDatabase(path, version: 1, onCreate: _onCreate);
+    return await openDatabase(
+      path,
+      version: 2,
+      onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
+    );
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -57,9 +62,39 @@ class SqliteStorage implements LocalStorage {
     ''');
 
     await db.execute('''
+      CREATE TABLE locations (
+        id TEXT PRIMARY KEY,
+        province TEXT NOT NULL,
+        district TEXT NOT NULL,
+        latitude REAL,
+        longitude REAL,
+        type TEXT NOT NULL,
+        custom_name TEXT,
+        created_at TEXT NOT NULL
+      )
+    ''');
+
+    await db.execute('''
       CREATE INDEX idx_prayer_times_location_date 
       ON prayer_times(location_id, date)
     ''');
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('''
+        CREATE TABLE locations (
+          id TEXT PRIMARY KEY,
+          province TEXT NOT NULL,
+          district TEXT NOT NULL,
+          latitude REAL,
+          longitude REAL,
+          type TEXT NOT NULL,
+          custom_name TEXT,
+          created_at TEXT NOT NULL
+        )
+      ''');
+    }
   }
 
   @override
@@ -272,5 +307,65 @@ class SqliteStorage implements LocalStorage {
 
     if (results.isEmpty) return null;
     return DateTime.parse(results.first['value'] as String);
+  }
+
+  @override
+  Future<List<Location>> getSavedLocations() async {
+    final db = await database;
+    final results = await db.query('locations', orderBy: 'created_at DESC');
+
+    return results.map((row) {
+      return Location(
+        id: row['id'] as String,
+        province: row['province'] as String,
+        district: row['district'] as String,
+        latitude: row['latitude'] as double?,
+        longitude: row['longitude'] as double?,
+        type: LocationType.values.firstWhere(
+          (e) => e.name == row['type'],
+          orElse: () => LocationType.manual,
+        ),
+        customName: row['custom_name'] as String?,
+      );
+    }).toList();
+  }
+
+  @override
+  Future<void> saveLocation(Location location) async {
+    final db = await database;
+    await db.insert('locations', {
+      'id': location.id,
+      'province': location.province,
+      'district': location.district,
+      'latitude': location.latitude,
+      'longitude': location.longitude,
+      'type': location.type.name,
+      'custom_name': location.customName,
+      'created_at': DateTime.now().toIso8601String(),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  @override
+  Future<void> updateLocation(Location location) async {
+    final db = await database;
+    await db.update(
+      'locations',
+      {
+        'province': location.province,
+        'district': location.district,
+        'latitude': location.latitude,
+        'longitude': location.longitude,
+        'type': location.type.name,
+        'custom_name': location.customName,
+      },
+      where: 'id = ?',
+      whereArgs: [location.id],
+    );
+  }
+
+  @override
+  Future<void> deleteLocation(String locationId) async {
+    final db = await database;
+    await db.delete('locations', where: 'id = ?', whereArgs: [locationId]);
   }
 }

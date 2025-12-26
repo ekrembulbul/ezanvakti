@@ -3,17 +3,18 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart' hide Location;
 import '../../core/models/location.dart' as AppLocation;
 import '../../features/location/data/turkey_locations_data.dart';
+import '../../features/location/domain/location_repository.dart';
 
-class OnboardingScreen extends StatefulWidget {
-  final Function(AppLocation.Location) onLocationSelected;
+class LocationAddScreen extends StatefulWidget {
+  final LocationRepository locationRepository;
 
-  const OnboardingScreen({super.key, required this.onLocationSelected});
+  const LocationAddScreen({super.key, required this.locationRepository});
 
   @override
-  State<OnboardingScreen> createState() => _OnboardingScreenState();
+  State<LocationAddScreen> createState() => _LocationAddScreenState();
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen> {
+class _LocationAddScreenState extends State<LocationAddScreen> {
   bool _showManualSelection = false;
   String? selectedProvince;
   AppLocation.Location? selectedDistrict;
@@ -21,11 +22,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   List<AppLocation.Location> districts = [];
   bool _isLoadingLocation = false;
   String? _locationError;
+  final _customNameController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     provinces = TurkeyLocationsData.getAllProvinces();
+  }
+
+  @override
+  void dispose() {
+    _customNameController.dispose();
+    super.dispose();
   }
 
   void _onProvinceSelected(String? province) {
@@ -105,9 +113,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           latitude: position.latitude,
           longitude: position.longitude,
         );
-        widget.onLocationSelected(gpsLocation);
+        await _saveAndReturn(gpsLocation);
       } else {
-        throw Exception('$province/$district için veri bulunamadı. Manuel seçim yapın.');
+        throw Exception(
+          '$province/$district için veri bulunamadı. Manuel seçim yapın.',
+        );
       }
     } catch (e) {
       setState(() {
@@ -177,7 +187,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     return result ?? false;
   }
 
-  void _onContinue() {
+  Future<void> _saveAndReturn(AppLocation.Location location) async {
+    try {
+      if (location.type == AppLocation.LocationType.gps) {
+        await widget.locationRepository.saveOrUpdateGpsLocation(location);
+      } else {
+        await widget.locationRepository.saveLocation(location);
+      }
+      if (mounted) {
+        Navigator.pop(context, true);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Hata: $e')));
+      }
+    }
+  }
+
+  Future<void> _onManualSave() async {
     if (selectedDistrict == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Lütfen il ve ilçe seçiniz')),
@@ -185,13 +214,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       return;
     }
 
-    widget.onLocationSelected(selectedDistrict!);
+    final customName = _customNameController.text.trim();
+    final locationToSave = selectedDistrict!.copyWith(
+      type: AppLocation.LocationType.manual,
+      customName: customName.isEmpty ? null : customName,
+    );
+
+    await _saveAndReturn(locationToSave);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Hoş Geldiniz')),
+      appBar: AppBar(title: const Text('Yeni Konum Ekle')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: _showManualSelection
@@ -206,22 +241,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const Spacer(),
-        const Icon(Icons.mosque, size: 80, color: Colors.teal),
+        const Icon(Icons.add_location, size: 80, color: Colors.teal),
         const SizedBox(height: 24),
         const Text(
-          'Lokasyon Seçimi',
+          'Yeni Konum Ekle',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 8),
         const Text(
-          'Namaz vakitlerini görmek için lokasyonunuzu belirleyin.',
+          'GPS ile otomatik bul veya manuel seç',
           style: TextStyle(fontSize: 16),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 48),
         ElevatedButton.icon(
-          key: const Key('auto_detect_button'),
           onPressed: _isLoadingLocation ? null : _detectLocation,
           icon: _isLoadingLocation
               ? const SizedBox(
@@ -233,9 +267,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                 )
               : const Icon(Icons.my_location),
-          label: Text(
-            _isLoadingLocation ? 'Konum Alınıyor...' : 'Konumu Otomatik Bul',
-          ),
+          label: Text(_isLoadingLocation ? 'Konum Alınıyor...' : 'GPS ile Bul'),
           style: ElevatedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 16),
             textStyle: const TextStyle(fontSize: 16),
@@ -258,7 +290,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ],
         const SizedBox(height: 16),
         OutlinedButton.icon(
-          key: const Key('manual_select_button'),
           onPressed: () {
             setState(() {
               _showManualSelection = true;
@@ -282,17 +313,26 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const Text(
-          'Manuel Seçim',
+          'Manuel Konum Ekle',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         const Text(
-          'Lütfen il ve ilçe seçiniz.',
+          'İl ve ilçe seçerek yeni konum ekleyin.',
           style: TextStyle(fontSize: 16),
         ),
-        const SizedBox(height: 32),
+        const SizedBox(height: 24),
+        TextField(
+          controller: _customNameController,
+          decoration: const InputDecoration(
+            labelText: 'Özel İsim (Opsiyonel)',
+            hintText: 'Örn: Ev, İş, Anne Evi',
+            border: OutlineInputBorder(),
+            prefixIcon: Icon(Icons.label_outline),
+          ),
+        ),
+        const SizedBox(height: 16),
         DropdownButtonFormField<String>(
-          key: const Key('province_dropdown'),
           value: selectedProvince,
           decoration: const InputDecoration(
             labelText: 'İl',
@@ -308,7 +348,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         ),
         const SizedBox(height: 16),
         DropdownButtonFormField<AppLocation.Location>(
-          key: const Key('district_dropdown'),
           value: selectedDistrict,
           decoration: const InputDecoration(
             labelText: 'İlçe',
@@ -335,6 +374,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     selectedProvince = null;
                     selectedDistrict = null;
                     districts = [];
+                    _customNameController.clear();
                   });
                 },
                 child: const Text('Geri'),
@@ -344,9 +384,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             Expanded(
               flex: 2,
               child: ElevatedButton(
-                key: const Key('continue_button'),
-                onPressed: _onContinue,
-                child: const Text('Devam Et'),
+                onPressed: _onManualSave,
+                child: const Text('Kaydet'),
               ),
             ),
           ],
