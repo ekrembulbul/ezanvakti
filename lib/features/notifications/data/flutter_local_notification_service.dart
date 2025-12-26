@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import '../../../core/interfaces/notification_service.dart';
@@ -101,16 +102,35 @@ class FlutterLocalNotificationService implements NotificationService {
       iOS: iosDetails,
     );
 
-    await _plugin.zonedSchedule(
-      id.hashCode,
-      title,
-      body,
-      tz.TZDateTime.from(scheduledTime, tz.local),
-      details,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-    );
+    // Android 12+ can throw exact_alarms_not_permitted when exact scheduling
+    // is not allowed. Fall back to inexact scheduling instead of crashing.
+    try {
+      await _plugin.zonedSchedule(
+        id.hashCode,
+        title,
+        body,
+        tz.TZDateTime.from(scheduledTime, tz.local),
+        details,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+      );
+    } on PlatformException catch (e) {
+      if (e.code == 'exact_alarms_not_permitted') {
+        await _plugin.zonedSchedule(
+          id.hashCode,
+          title,
+          body,
+          tz.TZDateTime.from(scheduledTime, tz.local),
+          details,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+        );
+      } else {
+        rethrow;
+      }
+    }
   }
 
   @override

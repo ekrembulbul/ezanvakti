@@ -315,12 +315,16 @@ class _HomePageState extends State<HomePage> {
 
   void _navigateToNotificationSettings() async {
     final appState = context.read<AppState>();
+    final prayerTime =
+        appState.todaysPrayerTime ??
+        (appState.prayerTimes.isNotEmpty ? appState.prayerTimes.first : null);
 
     final result = await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => NotificationSettingsScreen(
           settings: appState.notificationSettings,
           hasPermission: appState.hasNotificationPermission,
+          prayerTime: prayerTime,
           onSettingToggled: (setting) async {
             final manager = ServiceLocator().get<NotificationSettingsManager>();
             await manager.updateSetting(setting);
@@ -341,6 +345,14 @@ class _HomePageState extends State<HomePage> {
             final granted = await service.requestPermission();
             appState.setNotificationPermission(granted);
             return granted;
+          },
+          onDeleteSetting: (prayer, minutesBefore) async {
+            final manager = ServiceLocator().get<NotificationSettingsManager>();
+            await manager.removeSetting(
+              prayerType: prayer,
+              minutesBefore: minutesBefore,
+            );
+            await _reloadNotificationSettings();
           },
         ),
       ),
