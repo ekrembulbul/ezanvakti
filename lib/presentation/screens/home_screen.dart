@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../widgets/date_card.dart';
 import '../../core/models/prayer_time.dart';
 import '../../core/models/location.dart';
 import '../../core/models/notification_setting.dart';
@@ -250,6 +251,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      DateCard(date: widget.todaysPrayerTime!.date),
+                      const SizedBox(height: 16),
                       _buildCountdownCard(),
                       const SizedBox(height: 16),
                       _buildPrayerTimesList(widget.todaysPrayerTime!),
@@ -339,36 +342,72 @@ class _HomeScreenState extends State<HomeScreen> {
     final currentPrayer = _getCurrentPrayer(prayerTime);
 
     return Card(
-      child: Column(
-        children: prayers.map((prayer) {
-          final prayerDateTime = _getPrayerTime(prayerTime, prayer);
-          final timeFormat = DateFormat('HH:mm');
-          final isCurrent = prayer == currentPrayer;
+      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+        child: Column(
+          children: [
+            for (int i = 0; i < prayers.length; i++) ...[
+              _buildPrayerRow(
+                prayers[i],
+                _getPrayerTime(prayerTime, prayers[i]),
+                isCurrent: prayers[i] == currentPrayer,
+              ),
+              if (i != prayers.length - 1)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Divider(
+                    color: Colors.blueGrey.shade100,
+                    height: 2,
+                    thickness: 1,
+                  ),
+                ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
 
-          return ListTile(
-            key: Key('prayer_${prayer.name}'),
-            tileColor: isCurrent ? Colors.blue.shade50 : null,
-            leading: Icon(
-              Icons.access_time,
-              color: isCurrent ? Colors.blue : null,
-            ),
-            title: Text(
+  Widget _buildPrayerRow(
+    PrayerType prayer,
+    DateTime prayerDateTime, {
+    required bool isCurrent,
+  }) {
+    final timeFormat = DateFormat('HH:mm');
+
+    return Container(
+      decoration: BoxDecoration(
+        color: isCurrent ? Colors.blue.shade50 : null,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
               _getPrayerName(prayer),
               style: TextStyle(
-                fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
-                color: isCurrent ? Colors.blue : null,
+                fontSize: 16,
+                fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w600,
+                color: isCurrent
+                    ? Colors.blue.shade800
+                    : Colors.blueGrey.shade900,
               ),
             ),
-            trailing: Text(
-              timeFormat.format(prayerDateTime),
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
-                color: isCurrent ? Colors.blue : null,
-              ),
+          ),
+          Text(
+            timeFormat.format(prayerDateTime),
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: isCurrent
+                  ? Colors.blue.shade800
+                  : Colors.blueGrey.shade900,
             ),
-          );
-        }).toList(),
+          ),
+        ],
       ),
     );
   }

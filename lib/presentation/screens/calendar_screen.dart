@@ -123,16 +123,19 @@ class CalendarScreen extends StatelessWidget {
 
     return Card(
       key: Key('day_card_${prayerTime.date.toIso8601String()}'),
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      color: isToday ? Colors.blue.shade50 : null,
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      color: isToday ? Colors.blue.shade50 : Colors.grey.shade50,
       child: ExpansionTile(
-        tilePadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        tilePadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+        childrenPadding: const EdgeInsets.fromLTRB(32, 0, 32, 14),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
           side: BorderSide.none,
         ),
         collapsedShape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(12),
           side: BorderSide.none,
         ),
         initiallyExpanded: isToday,
@@ -140,10 +143,20 @@ class CalendarScreen extends StatelessWidget {
           children: [
             if (isToday)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.blue,
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(6),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.blue.shade200,
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
                 child: const Text(
                   'BUGÜN',
@@ -154,34 +167,64 @@ class CalendarScreen extends StatelessWidget {
                   ),
                 ),
               ),
-            if (isToday) const SizedBox(width: 8),
+            if (isToday) const SizedBox(width: 10),
             Expanded(
               child: Text(
                 dateFormat.format(prayerTime.date),
                 style: TextStyle(
-                  fontWeight: isToday ? FontWeight.bold : FontWeight.normal,
+                  fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
+                  fontSize: 15,
+                  color: Colors.blueGrey.shade900,
                 ),
               ),
             ),
           ],
         ),
         children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Table(
-              border: TableBorder.all(color: Colors.transparent, width: 0),
-              columnWidths: const {
-                0: FlexColumnWidth(1),
-                1: FlexColumnWidth(1),
-              },
-              children: [
-                _buildPrayerRow(PrayerType.fajr, prayerTime, timeFormat),
-                _buildPrayerRow(PrayerType.sunrise, prayerTime, timeFormat),
-                _buildPrayerRow(PrayerType.dhuhr, prayerTime, timeFormat),
-                _buildPrayerRow(PrayerType.asr, prayerTime, timeFormat),
-                _buildPrayerRow(PrayerType.maghrib, prayerTime, timeFormat),
-                _buildPrayerRow(PrayerType.isha, prayerTime, timeFormat),
-              ],
+          Column(
+            children: [
+              _buildPrayerRow(PrayerType.fajr, prayerTime, timeFormat),
+              _buildDivider(),
+              _buildPrayerRow(PrayerType.sunrise, prayerTime, timeFormat),
+              _buildDivider(),
+              _buildPrayerRow(PrayerType.dhuhr, prayerTime, timeFormat),
+              _buildDivider(),
+              _buildPrayerRow(PrayerType.asr, prayerTime, timeFormat),
+              _buildDivider(),
+              _buildPrayerRow(PrayerType.maghrib, prayerTime, timeFormat),
+              _buildDivider(),
+              _buildPrayerRow(PrayerType.isha, prayerTime, timeFormat),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPrayerRow(
+    PrayerType type,
+    PrayerTime prayerTime,
+    DateFormat timeFormat,
+  ) {
+    final prayerDateTime = _getPrayerTime(prayerTime, type);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              _getPrayerName(type),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+            ),
+          ),
+          Text(
+            timeFormat.format(prayerDateTime),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              fontFeatures: const [FontFeature.tabularFigures()],
+              color: Colors.blueGrey.shade900,
             ),
           ),
         ],
@@ -189,31 +232,10 @@ class CalendarScreen extends StatelessWidget {
     );
   }
 
-  TableRow _buildPrayerRow(
-    PrayerType type,
-    PrayerTime prayerTime,
-    DateFormat timeFormat,
-  ) {
-    final prayerDateTime = _getPrayerTime(prayerTime, type);
-
-    return TableRow(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: Text(
-            _getPrayerName(type),
-            style: const TextStyle(fontSize: 16),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8.0),
-          child: Text(
-            timeFormat.format(prayerDateTime),
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-            textAlign: TextAlign.right,
-          ),
-        ),
-      ],
+  Widget _buildDivider() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      child: Divider(color: Colors.blueGrey.shade100, height: 2, thickness: 1),
     );
   }
 }
