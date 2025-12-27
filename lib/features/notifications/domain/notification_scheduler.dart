@@ -125,7 +125,7 @@ class NotificationScheduler {
     if (setting.minutesBefore == 0) {
       return _getPrayerName(setting.prayerType);
     } else {
-      return '${_getPrayerName(setting.prayerType)} Yaklaşıyor';
+      return '${_getPrayerName(setting.prayerType)} yaklaşıyor';
     }
   }
 
