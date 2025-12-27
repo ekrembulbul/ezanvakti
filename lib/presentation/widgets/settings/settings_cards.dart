@@ -16,7 +16,7 @@ class SettingsSectionTitle extends StatelessWidget {
         style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w700,
-          color: AppTheme.gold.withOpacity(0.8),
+          color: AppTheme.gold.withValues(alpha: 0.8),
           letterSpacing: 1.2,
         ),
       ),
@@ -44,8 +44,8 @@ class LocationSettingsCard extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    AppTheme.gold.withOpacity(0.3),
-                    AppTheme.gold.withOpacity(0.1),
+                    AppTheme.gold.withValues(alpha: 0.3),
+                    AppTheme.gold.withValues(alpha: 0.1),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(14),
@@ -83,7 +83,7 @@ class LocationSettingsCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(
@@ -109,7 +109,7 @@ class _GpsBadge extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         decoration: BoxDecoration(
-          color: AppTheme.gold.withOpacity(0.2),
+          color: AppTheme.gold.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(6),
         ),
         child: const Row(
@@ -150,7 +150,7 @@ class DataSourceCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.1),
+                  color: Colors.white.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: const Icon(
@@ -186,7 +186,7 @@ class DataSourceCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: AppTheme.gold.withOpacity(0.1),
+              color: AppTheme.gold.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -194,7 +194,7 @@ class DataSourceCard extends StatelessWidget {
                 Icon(
                   Icons.info_outline_rounded,
                   size: 18,
-                  color: AppTheme.gold.withOpacity(0.8),
+                  color: AppTheme.gold.withValues(alpha: 0.8),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -202,7 +202,7 @@ class DataSourceCard extends StatelessWidget {
                     'Türkiye için Diyanet İşleri Başkanlığı verileri kullanılmaktadır.',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.white.withOpacity(0.7),
+                      color: Colors.white.withValues(alpha: 0.7),
                     ),
                   ),
                 ),
@@ -230,7 +230,7 @@ class AppInfoCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(14),
             ),
             child: const Icon(
@@ -278,19 +278,19 @@ class AboutCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppTheme.gold.withOpacity(0.15),
-            AppTheme.gold.withOpacity(0.05),
+            AppTheme.gold.withValues(alpha: 0.15),
+            AppTheme.gold.withValues(alpha: 0.05),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppTheme.gold.withOpacity(0.3), width: 1),
+        border: Border.all(color: AppTheme.gold.withValues(alpha: 0.3), width: 1),
       ),
       child: Column(
         children: [
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppTheme.gold.withOpacity(0.2),
+              color: AppTheme.gold.withValues(alpha: 0.2),
               shape: BoxShape.circle,
             ),
             child: const Icon(
@@ -314,7 +314,7 @@ class AboutCard extends StatelessWidget {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
-              color: Colors.white.withOpacity(0.7),
+              color: Colors.white.withValues(alpha: 0.7),
               height: 1.5,
             ),
           ),
@@ -349,7 +349,7 @@ class FeatureChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(

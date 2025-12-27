@@ -259,8 +259,8 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                AppTheme.gold.withOpacity(0.2),
-                AppTheme.gold.withOpacity(0.05),
+                AppTheme.gold.withValues(alpha: 0.2),
+                AppTheme.gold.withValues(alpha: 0.05),
               ],
             ),
             shape: BoxShape.circle,
@@ -285,7 +285,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
           'GPS ile otomatik tespit edin veya\nmanuel olarak konum seçin',
           style: TextStyle(
             fontSize: 15,
-            color: Colors.white.withOpacity(0.6),
+            color: Colors.white.withValues(alpha: 0.6),
             height: 1.5,
           ),
           textAlign: TextAlign.center,
@@ -325,7 +325,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
         const SizedBox(height: 8),
         Text(
           'İl ve ilçe seçerek yeni konum ekleyin',
-          style: TextStyle(fontSize: 14, color: Colors.white.withOpacity(0.6)),
+          style: TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: 0.6)),
         ),
         const SizedBox(height: 32),
         _buildTextField(),
@@ -346,23 +346,23 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
   Widget _buildTextField() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.08),
+        color: Colors.white.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: TextField(
         controller: _customNameController,
         style: const TextStyle(color: Colors.white),
         decoration: InputDecoration(
           labelText: 'Özel İsim (Opsiyonel)',
-          labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+          labelStyle: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
           hintText: 'Örn: Ev, İş, Anne Evi',
-          hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+          hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.all(20),
           prefixIcon: Icon(
             Icons.label_outline_rounded,
-            color: Colors.white.withOpacity(0.5),
+            color: Colors.white.withValues(alpha: 0.5),
           ),
         ),
       ),
@@ -373,22 +373,22 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.08),
+        color: Colors.white.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: selectedProvince,
           hint: Text(
             'İl Seçiniz',
-            style: TextStyle(color: Colors.white.withOpacity(0.5)),
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
           ),
           isExpanded: true,
           dropdownColor: AppTheme.primaryMedium,
           icon: Icon(
             Icons.keyboard_arrow_down_rounded,
-            color: Colors.white.withOpacity(0.5),
+            color: Colors.white.withValues(alpha: 0.5),
           ),
           style: const TextStyle(color: Colors.white, fontSize: 16),
           items: provinces.map((province) {
@@ -404,22 +404,22 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.08),
+        color: Colors.white.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<AppLocation.Location>(
           value: selectedDistrict,
           hint: Text(
             'İlçe Seçiniz',
-            style: TextStyle(color: Colors.white.withOpacity(0.5)),
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
           ),
           isExpanded: true,
           dropdownColor: AppTheme.primaryMedium,
           icon: Icon(
             Icons.keyboard_arrow_down_rounded,
-            color: Colors.white.withOpacity(0.5),
+            color: Colors.white.withValues(alpha: 0.5),
           ),
           style: const TextStyle(color: Colors.white, fontSize: 16),
           items: districts.map((district) {
@@ -450,7 +450,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
             },
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.white70,
-              side: BorderSide(color: Colors.white.withOpacity(0.2)),
+              side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
@@ -467,8 +467,8 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.gold,
               foregroundColor: AppTheme.primaryDark,
-              disabledBackgroundColor: Colors.white.withOpacity(0.1),
-              disabledForegroundColor: Colors.white.withOpacity(0.3),
+              disabledBackgroundColor: Colors.white.withValues(alpha: 0.1),
+              disabledForegroundColor: Colors.white.withValues(alpha: 0.3),
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),

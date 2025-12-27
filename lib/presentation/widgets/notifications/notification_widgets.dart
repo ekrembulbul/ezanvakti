@@ -16,19 +16,19 @@ class PermissionWarningCard extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Colors.orange.withOpacity(0.2),
-            Colors.orange.withOpacity(0.1),
+            Colors.orange.withValues(alpha: 0.2),
+            Colors.orange.withValues(alpha: 0.1),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.orange.withOpacity(0.3)),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.orange.withOpacity(0.2),
+              color: Colors.orange.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
@@ -55,7 +55,7 @@ class PermissionWarningCard extends StatelessWidget {
                   'Bildirimleri almak için izin vermeniz gerekiyor.',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withValues(alpha: 0.7),
                   ),
                 ),
               ],
@@ -114,7 +114,7 @@ class NotificationTile extends StatelessWidget {
       background: Container(
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          color: Colors.red.withOpacity(0.2),
+          color: Colors.red.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(16),
         ),
         alignment: Alignment.centerRight,
@@ -125,12 +125,12 @@ class NotificationTile extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(setting.isActive ? 0.12 : 0.06),
+          color: Colors.white.withValues(alpha: setting.isActive ? 0.12 : 0.06),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: setting.isActive
-                ? AppTheme.gold.withOpacity(0.3)
-                : Colors.white.withOpacity(0.1),
+                ? AppTheme.gold.withValues(alpha: 0.3)
+                : Colors.white.withValues(alpha: 0.1),
           ),
         ),
         child: Row(
@@ -139,8 +139,8 @@ class NotificationTile extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: setting.isActive
-                    ? AppTheme.gold.withOpacity(0.2)
-                    : Colors.white.withOpacity(0.1),
+                    ? AppTheme.gold.withValues(alpha: 0.2)
+                    : Colors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -170,8 +170,8 @@ class NotificationTile extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       color: setting.isActive
-                          ? AppTheme.gold.withOpacity(0.15)
-                          : Colors.white.withOpacity(0.05),
+                          ? AppTheme.gold.withValues(alpha: 0.15)
+                          : Colors.white.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
@@ -181,7 +181,7 @@ class NotificationTile extends StatelessWidget {
                         fontWeight: FontWeight.w500,
                         color: setting.isActive
                             ? AppTheme.gold
-                            : Colors.white.withOpacity(0.5),
+                            : Colors.white.withValues(alpha: 0.5),
                       ),
                     ),
                   ),
@@ -251,7 +251,7 @@ class _AddNotificationBottomSheetState
           const SizedBox(height: 8),
           Text(
             'Hangi vakitte bildirim almak istiyorsunuz?',
-            style: TextStyle(color: Colors.white.withOpacity(0.6)),
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.6)),
           ),
           const SizedBox(height: 24),
           _buildSectionLabel('Namaz Vakti'),
@@ -295,7 +295,7 @@ class _AddNotificationBottomSheetState
       style: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w600,
-        color: AppTheme.gold.withOpacity(0.8),
+        color: AppTheme.gold.withValues(alpha: 0.8),
         letterSpacing: 1,
       ),
     );
@@ -313,13 +313,13 @@ class _AddNotificationBottomSheetState
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: isSelected
-                  ? AppTheme.gold.withOpacity(0.2)
-                  : Colors.white.withOpacity(0.1),
+                  ? AppTheme.gold.withValues(alpha: 0.2)
+                  : Colors.white.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: isSelected
                     ? AppTheme.gold
-                    : Colors.white.withOpacity(0.1),
+                    : Colors.white.withValues(alpha: 0.1),
               ),
             ),
             child: Row(
@@ -360,13 +360,13 @@ class _AddNotificationBottomSheetState
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: isSelected
-                  ? AppTheme.gold.withOpacity(0.2)
-                  : Colors.white.withOpacity(0.1),
+                  ? AppTheme.gold.withValues(alpha: 0.2)
+                  : Colors.white.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: isSelected
                     ? AppTheme.gold
-                    : Colors.white.withOpacity(0.1),
+                    : Colors.white.withValues(alpha: 0.1),
               ),
             ),
             child: Text(

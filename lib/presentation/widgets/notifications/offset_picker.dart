@@ -26,12 +26,12 @@ class OffsetPicker extends StatelessWidget {
           children: [
             Text(
               'Dakika',
-              style: TextStyle(color: Colors.white.withOpacity(0.7)),
+              style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: AppTheme.gold.withOpacity(0.2),
+                color: AppTheme.gold.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -48,9 +48,9 @@ class OffsetPicker extends StatelessWidget {
         SliderTheme(
           data: SliderTheme.of(context).copyWith(
             activeTrackColor: AppTheme.gold,
-            inactiveTrackColor: Colors.white.withOpacity(0.1),
+            inactiveTrackColor: Colors.white.withValues(alpha: 0.1),
             thumbColor: AppTheme.gold,
-            overlayColor: AppTheme.gold.withOpacity(0.2),
+            overlayColor: AppTheme.gold.withValues(alpha: 0.2),
             valueIndicatorColor: AppTheme.gold,
             valueIndicatorTextStyle: const TextStyle(
               color: AppTheme.primaryDark,
@@ -71,7 +71,7 @@ class OffsetPicker extends StatelessWidget {
           maxOffset == null
               ? 'Önerilen aralık: 1-$max dk'
               : 'En fazla $maxOffset dk önce',
-          style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.5)),
+          style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.5)),
         ),
       ],
     );

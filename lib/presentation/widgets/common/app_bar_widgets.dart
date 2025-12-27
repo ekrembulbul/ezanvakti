@@ -19,7 +19,7 @@ class SimpleAppBar extends StatelessWidget implements PreferredSizeWidget {
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
@@ -69,8 +69,8 @@ class AppBarActionButton extends StatelessWidget {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: highlighted
-                    ? AppTheme.gold.withOpacity(0.2)
-                    : Colors.white.withOpacity(0.1),
+                    ? AppTheme.gold.withValues(alpha: 0.2)
+                    : Colors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(

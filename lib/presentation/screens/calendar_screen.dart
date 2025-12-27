@@ -144,7 +144,7 @@ class _CalendarAppBar extends StatelessWidget implements PreferredSizeWidget {
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
@@ -165,7 +165,7 @@ class _CalendarAppBar extends StatelessWidget implements PreferredSizeWidget {
             '${location.district}, ${location.province}',
             style: TextStyle(
               fontSize: 12,
-              color: Colors.white.withOpacity(0.7),
+              color: Colors.white.withValues(alpha: 0.7),
             ),
           ),
         ],
@@ -177,7 +177,7 @@ class _CalendarAppBar extends StatelessWidget implements PreferredSizeWidget {
             icon: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppTheme.gold.withOpacity(0.2),
+                color: AppTheme.gold.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(

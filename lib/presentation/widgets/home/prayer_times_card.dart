@@ -40,7 +40,7 @@ class PrayerTimesCard extends StatelessWidget {
                   isCurrent: isCurrent,
                 ),
                 if (index < prayers.length - 1)
-                  Divider(color: Colors.white.withOpacity(0.1), height: 1),
+                  Divider(color: Colors.white.withValues(alpha: 0.1), height: 1),
               ],
             );
           }),
@@ -69,7 +69,7 @@ class PrayerTimesCard extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: AppTheme.gold.withOpacity(0.2),
+                color: AppTheme.gold.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: const Row(
@@ -119,7 +119,7 @@ class PrayerTimeRow extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
       decoration: BoxDecoration(
-        color: isCurrent ? AppTheme.gold.withOpacity(0.15) : Colors.transparent,
+        color: isCurrent ? AppTheme.gold.withValues(alpha: 0.15) : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -129,13 +129,13 @@ class PrayerTimeRow extends StatelessWidget {
             height: 40,
             decoration: BoxDecoration(
               color: isCurrent
-                  ? AppTheme.gold.withOpacity(0.3)
-                  : Colors.white.withOpacity(0.05),
+                  ? AppTheme.gold.withValues(alpha: 0.3)
+                  : Colors.white.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(
               icon,
-              color: isCurrent ? AppTheme.gold : Colors.white.withOpacity(0.7),
+              color: isCurrent ? AppTheme.gold : Colors.white.withValues(alpha: 0.7),
               size: 20,
             ),
           ),

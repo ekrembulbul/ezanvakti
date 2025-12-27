@@ -15,13 +15,13 @@ class NotificationEmptyState extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(28),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.08),
+                color: Colors.white.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 Icons.notifications_none_rounded,
                 size: 56,
-                color: Colors.white.withOpacity(0.4),
+                color: Colors.white.withValues(alpha: 0.4),
               ),
             ),
             const SizedBox(height: 28),
@@ -39,7 +39,7 @@ class NotificationEmptyState extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 15,
-                color: Colors.white.withOpacity(0.6),
+                color: Colors.white.withValues(alpha: 0.6),
                 height: 1.5,
               ),
             ),
@@ -47,9 +47,9 @@ class NotificationEmptyState extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               decoration: BoxDecoration(
-                color: AppTheme.gold.withOpacity(0.15),
+                color: AppTheme.gold.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppTheme.gold.withOpacity(0.3)),
+                border: Border.all(color: AppTheme.gold.withValues(alpha: 0.3)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -57,14 +57,14 @@ class NotificationEmptyState extends StatelessWidget {
                   Icon(
                     Icons.touch_app_rounded,
                     size: 18,
-                    color: AppTheme.gold.withOpacity(0.8),
+                    color: AppTheme.gold.withValues(alpha: 0.8),
                   ),
                   const SizedBox(width: 10),
                   Text(
                     'Aşağıdaki butona basın',
                     style: TextStyle(
                       fontSize: 13,
-                      color: AppTheme.gold.withOpacity(0.9),
+                      color: AppTheme.gold.withValues(alpha: 0.9),
                       fontWeight: FontWeight.w500,
                     ),
                   ),

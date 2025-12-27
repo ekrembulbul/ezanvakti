@@ -14,7 +14,7 @@ class LoadingState extends StatelessWidget {
         children: [
           const CircularProgressIndicator(color: AppTheme.gold),
           const SizedBox(height: 20),
-          Text(message, style: TextStyle(color: Colors.white.withOpacity(0.7))),
+          Text(message, style: TextStyle(color: Colors.white.withValues(alpha: 0.7))),
         ],
       ),
     );
@@ -38,7 +38,7 @@ class ErrorState extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.2),
+                color: Colors.red.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -96,10 +96,10 @@ class EmptyState extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: 56, color: Colors.white.withOpacity(0.4)),
+              child: Icon(icon, size: 56, color: Colors.white.withValues(alpha: 0.4)),
             ),
             const SizedBox(height: 24),
             Text(
@@ -117,7 +117,7 @@ class EmptyState extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.white.withOpacity(0.6),
+                  color: Colors.white.withValues(alpha: 0.6),
                   height: 1.5,
                 ),
               ),

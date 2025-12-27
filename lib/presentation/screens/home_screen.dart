@@ -192,7 +192,7 @@ class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.1),
+              color: Colors.white.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
@@ -219,7 +219,7 @@ class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
                 location.province,
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.white.withOpacity(0.7),
+                  color: Colors.white.withValues(alpha: 0.7),
                 ),
               ),
             ],
@@ -270,7 +270,7 @@ class _AppBarAction extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: Colors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: Colors.white, size: 20),

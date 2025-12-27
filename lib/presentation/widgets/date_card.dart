@@ -23,8 +23,8 @@ class DateCard extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppTheme.gold.withOpacity(0.3),
-                  AppTheme.gold.withOpacity(0.1),
+                  AppTheme.gold.withValues(alpha: 0.3),
+                  AppTheme.gold.withValues(alpha: 0.1),
                 ],
               ),
               borderRadius: BorderRadius.circular(12),
@@ -53,7 +53,7 @@ class DateCard extends StatelessWidget {
                   hijri,
                   style: TextStyle(
                     fontSize: 13,
-                    color: AppTheme.gold.withOpacity(0.9),
+                    color: AppTheme.gold.withValues(alpha: 0.9),
                     fontWeight: FontWeight.w500,
                   ),
                 ),

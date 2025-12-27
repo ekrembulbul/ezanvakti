@@ -42,17 +42,17 @@ class AppTheme {
     Color? borderColor,
   }) {
     return BoxDecoration(
-      color: Colors.white.withOpacity(opacity),
+      color: Colors.white.withValues(alpha: opacity),
       borderRadius: BorderRadius.circular(borderRadius),
       border: Border.all(
-        color: borderColor ?? Colors.white.withOpacity(0.2),
+        color: borderColor ?? Colors.white.withValues(alpha: 0.2),
         width: 1,
       ),
     );
   }
 
   static BoxShadow softShadow = BoxShadow(
-    color: Colors.black.withOpacity(0.2),
+    color: Colors.black.withValues(alpha: 0.2),
     blurRadius: 20,
     offset: const Offset(0, 10),
   );
@@ -139,15 +139,15 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: Colors.white.withOpacity(0.1),
+        fillColor: Colors.white.withValues(alpha: 0.1),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
-        hintStyle: TextStyle(color: grey.withOpacity(0.7)),
+        hintStyle: TextStyle(color: grey.withValues(alpha: 0.7)),
       ),
       dividerTheme: DividerThemeData(
-        color: Colors.white.withOpacity(0.1),
+        color: Colors.white.withValues(alpha: 0.1),
         thickness: 1,
       ),
       listTileTheme: const ListTileThemeData(iconColor: gold, textColor: white),
@@ -160,9 +160,9 @@ class AppTheme {
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return gold.withOpacity(0.3);
+            return gold.withValues(alpha: 0.3);
           }
-          return grey.withOpacity(0.3);
+          return grey.withValues(alpha: 0.3);
         }),
       ),
     );

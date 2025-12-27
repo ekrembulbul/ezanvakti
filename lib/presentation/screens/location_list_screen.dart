@@ -222,17 +222,17 @@ class _LocationTileWithDelete extends StatelessWidget {
           gradient: isActive
               ? LinearGradient(
                   colors: [
-                    AppTheme.gold.withOpacity(0.2),
-                    AppTheme.gold.withOpacity(0.05),
+                    AppTheme.gold.withValues(alpha: 0.2),
+                    AppTheme.gold.withValues(alpha: 0.05),
                   ],
                 )
               : null,
-          color: isActive ? null : Colors.white.withOpacity(0.08),
+          color: isActive ? null : Colors.white.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isActive
-                ? AppTheme.gold.withOpacity(0.5)
-                : Colors.white.withOpacity(0.1),
+                ? AppTheme.gold.withValues(alpha: 0.5)
+                : Colors.white.withValues(alpha: 0.1),
             width: isActive ? 1.5 : 1,
           ),
         ),
@@ -242,8 +242,8 @@ class _LocationTileWithDelete extends StatelessWidget {
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: isActive
-                    ? AppTheme.gold.withOpacity(0.3)
-                    : Colors.white.withOpacity(0.1),
+                    ? AppTheme.gold.withValues(alpha: 0.3)
+                    : Colors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(
@@ -300,8 +300,8 @@ class _LocationTileWithDelete extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 13,
                       color: isActive
-                          ? AppTheme.gold.withOpacity(0.7)
-                          : Colors.white.withOpacity(0.5),
+                          ? AppTheme.gold.withValues(alpha: 0.7)
+                          : Colors.white.withValues(alpha: 0.5),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -314,8 +314,8 @@ class _LocationTileWithDelete extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: isActive
-                              ? AppTheme.gold.withOpacity(0.15)
-                              : Colors.white.withOpacity(0.05),
+                              ? AppTheme.gold.withValues(alpha: 0.15)
+                              : Colors.white.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Row(
@@ -328,7 +328,7 @@ class _LocationTileWithDelete extends StatelessWidget {
                               size: 12,
                               color: isActive
                                   ? AppTheme.gold
-                                  : Colors.white.withOpacity(0.5),
+                                  : Colors.white.withValues(alpha: 0.5),
                             ),
                             const SizedBox(width: 4),
                             Text(
@@ -338,7 +338,7 @@ class _LocationTileWithDelete extends StatelessWidget {
                                 fontWeight: FontWeight.w500,
                                 color: isActive
                                     ? AppTheme.gold
-                                    : Colors.white.withOpacity(0.5),
+                                    : Colors.white.withValues(alpha: 0.5),
                               ),
                             ),
                           ],
@@ -351,7 +351,7 @@ class _LocationTileWithDelete extends StatelessWidget {
                           child: Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: Colors.red.withOpacity(0.15),
+                              color: Colors.red.withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(

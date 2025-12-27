@@ -27,17 +27,17 @@ class LocationTile extends StatelessWidget {
           gradient: isActive
               ? LinearGradient(
                   colors: [
-                    AppTheme.gold.withOpacity(0.2),
-                    AppTheme.gold.withOpacity(0.05),
+                    AppTheme.gold.withValues(alpha: 0.2),
+                    AppTheme.gold.withValues(alpha: 0.05),
                   ],
                 )
               : null,
-          color: isActive ? null : Colors.white.withOpacity(0.08),
+          color: isActive ? null : Colors.white.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isActive
-                ? AppTheme.gold.withOpacity(0.5)
-                : Colors.white.withOpacity(0.1),
+                ? AppTheme.gold.withValues(alpha: 0.5)
+                : Colors.white.withValues(alpha: 0.1),
             width: isActive ? 1.5 : 1,
           ),
         ),
@@ -67,8 +67,8 @@ class _LocationIcon extends StatelessWidget {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: isActive
-            ? AppTheme.gold.withOpacity(0.3)
-            : Colors.white.withOpacity(0.1),
+            ? AppTheme.gold.withValues(alpha: 0.3)
+            : Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Icon(
@@ -114,8 +114,8 @@ class _LocationInfo extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             color: isActive
-                ? AppTheme.gold.withOpacity(0.7)
-                : Colors.white.withOpacity(0.5),
+                ? AppTheme.gold.withValues(alpha: 0.7)
+                : Colors.white.withValues(alpha: 0.5),
           ),
         ),
         const SizedBox(height: 8),
@@ -160,8 +160,8 @@ class _LocationTypeBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: isActive
-            ? AppTheme.gold.withOpacity(0.15)
-            : Colors.white.withOpacity(0.05),
+            ? AppTheme.gold.withValues(alpha: 0.15)
+            : Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
@@ -172,7 +172,7 @@ class _LocationTypeBadge extends StatelessWidget {
                 ? Icons.gps_fixed_rounded
                 : Icons.edit_location_rounded,
             size: 12,
-            color: isActive ? AppTheme.gold : Colors.white.withOpacity(0.5),
+            color: isActive ? AppTheme.gold : Colors.white.withValues(alpha: 0.5),
           ),
           const SizedBox(width: 4),
           Text(
@@ -180,7 +180,7 @@ class _LocationTypeBadge extends StatelessWidget {
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w500,
-              color: isActive ? AppTheme.gold : Colors.white.withOpacity(0.5),
+              color: isActive ? AppTheme.gold : Colors.white.withValues(alpha: 0.5),
             ),
           ),
         ],
@@ -217,17 +217,17 @@ class LocationChoiceButton extends StatelessWidget {
           gradient: isHighlighted
               ? LinearGradient(
                   colors: [
-                    AppTheme.gold.withOpacity(0.2),
-                    AppTheme.gold.withOpacity(0.1),
+                    AppTheme.gold.withValues(alpha: 0.2),
+                    AppTheme.gold.withValues(alpha: 0.1),
                   ],
                 )
               : null,
-          color: isHighlighted ? null : Colors.white.withOpacity(0.08),
+          color: isHighlighted ? null : Colors.white.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isHighlighted
-                ? AppTheme.gold.withOpacity(0.3)
-                : Colors.white.withOpacity(0.1),
+                ? AppTheme.gold.withValues(alpha: 0.3)
+                : Colors.white.withValues(alpha: 0.1),
           ),
         ),
         child: Row(
@@ -236,8 +236,8 @@ class LocationChoiceButton extends StatelessWidget {
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: isHighlighted
-                    ? AppTheme.gold.withOpacity(0.3)
-                    : Colors.white.withOpacity(0.1),
+                    ? AppTheme.gold.withValues(alpha: 0.3)
+                    : Colors.white.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: isLoading
@@ -273,7 +273,7 @@ class LocationChoiceButton extends StatelessWidget {
                     subtitle,
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.white.withOpacity(0.5),
+                      color: Colors.white.withValues(alpha: 0.5),
                     ),
                   ),
                 ],
@@ -282,8 +282,8 @@ class LocationChoiceButton extends StatelessWidget {
             Icon(
               Icons.arrow_forward_ios_rounded,
               color: isHighlighted
-                  ? AppTheme.gold.withOpacity(0.5)
-                  : Colors.white.withOpacity(0.3),
+                  ? AppTheme.gold.withValues(alpha: 0.5)
+                  : Colors.white.withValues(alpha: 0.3),
               size: 18,
             ),
           ],
@@ -303,9 +303,9 @@ class LocationErrorCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.red.withOpacity(0.15),
+        color: Colors.red.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.red.withOpacity(0.3)),
+        border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -333,9 +333,9 @@ class LocationSelectionConfirm extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.gold.withOpacity(0.1),
+        color: AppTheme.gold.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.gold.withOpacity(0.3)),
+        border: Border.all(color: AppTheme.gold.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [

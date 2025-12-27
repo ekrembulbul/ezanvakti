@@ -30,16 +30,16 @@ class CalendarDayCard extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  AppTheme.gold.withOpacity(0.2),
-                  AppTheme.gold.withOpacity(0.05),
+                  AppTheme.gold.withValues(alpha: 0.2),
+                  AppTheme.gold.withValues(alpha: 0.05),
                 ],
               )
             : null,
-        color: isToday ? null : Colors.white.withOpacity(0.08),
+        color: isToday ? null : Colors.white.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(20),
         border: isToday
-            ? Border.all(color: AppTheme.gold.withOpacity(0.5), width: 1.5)
-            : Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+            ? Border.all(color: AppTheme.gold.withValues(alpha: 0.5), width: 1.5)
+            : Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1),
       ),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
@@ -59,10 +59,10 @@ class CalendarDayCard extends StatelessWidget {
             isToday: isToday,
           ),
           subtitle: _HijriSubtitle(hijri: hijri, isToday: isToday),
-          iconColor: isToday ? AppTheme.gold : Colors.white.withOpacity(0.5),
+          iconColor: isToday ? AppTheme.gold : Colors.white.withValues(alpha: 0.5),
           collapsedIconColor: isToday
               ? AppTheme.gold
-              : Colors.white.withOpacity(0.5),
+              : Colors.white.withValues(alpha: 0.5),
           children: [
             CalendarPrayerTimesGrid(prayerTime: prayerTime, isToday: isToday),
           ],
@@ -85,8 +85,8 @@ class _DateBadge extends StatelessWidget {
       height: 56,
       decoration: BoxDecoration(
         color: isToday
-            ? AppTheme.gold.withOpacity(0.3)
-            : Colors.white.withOpacity(0.1),
+            ? AppTheme.gold.withValues(alpha: 0.3)
+            : Colors.white.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -105,7 +105,7 @@ class _DateBadge extends StatelessWidget {
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w600,
-              color: isToday ? AppTheme.gold : Colors.white.withOpacity(0.7),
+              color: isToday ? AppTheme.gold : Colors.white.withValues(alpha: 0.7),
             ),
           ),
         ],
@@ -171,8 +171,8 @@ class _HijriSubtitle extends StatelessWidget {
         style: TextStyle(
           fontSize: 12,
           color: isToday
-              ? AppTheme.gold.withOpacity(0.8)
-              : Colors.white.withOpacity(0.5),
+              ? AppTheme.gold.withValues(alpha: 0.8)
+              : Colors.white.withValues(alpha: 0.5),
         ),
       ),
     );
@@ -231,8 +231,8 @@ class CalendarPrayerTimeCell extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
       decoration: BoxDecoration(
         color: isToday
-            ? AppTheme.gold.withOpacity(0.15)
-            : Colors.white.withOpacity(0.05),
+            ? AppTheme.gold.withValues(alpha: 0.15)
+            : Colors.white.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -240,7 +240,7 @@ class CalendarPrayerTimeCell extends StatelessWidget {
           Icon(
             PrayerUtils.getPrayerIcon(type),
             size: 20,
-            color: isToday ? AppTheme.gold : Colors.white.withOpacity(0.7),
+            color: isToday ? AppTheme.gold : Colors.white.withValues(alpha: 0.7),
           ),
           const SizedBox(height: 6),
           Text(
@@ -248,7 +248,7 @@ class CalendarPrayerTimeCell extends StatelessWidget {
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w500,
-              color: isToday ? AppTheme.gold : Colors.white.withOpacity(0.7),
+              color: isToday ? AppTheme.gold : Colors.white.withValues(alpha: 0.7),
             ),
           ),
           const SizedBox(height: 4),

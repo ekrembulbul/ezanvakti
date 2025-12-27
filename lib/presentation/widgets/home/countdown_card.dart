@@ -30,15 +30,15 @@ class CountdownCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppTheme.gold.withOpacity(0.2),
-            AppTheme.gold.withOpacity(0.05),
+            AppTheme.gold.withValues(alpha: 0.2),
+            AppTheme.gold.withValues(alpha: 0.05),
           ],
         ),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppTheme.gold.withOpacity(0.3), width: 2),
+        border: Border.all(color: AppTheme.gold.withValues(alpha: 0.3), width: 2),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.gold.withOpacity(0.2),
+            color: AppTheme.gold.withValues(alpha: 0.2),
             blurRadius: 30,
             spreadRadius: 0,
           ),
@@ -60,7 +60,7 @@ class CountdownCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w500,
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                 ),
               ),
             ],
@@ -87,7 +87,7 @@ class CountdownCard extends StatelessWidget {
             DateFormat('HH:mm').format(nextPrayerTime),
             style: TextStyle(
               fontSize: 16,
-              color: Colors.white.withOpacity(0.6),
+              color: Colors.white.withValues(alpha: 0.6),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -115,7 +115,7 @@ class _TimeUnit extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.1),
+            color: Colors.white.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
@@ -133,7 +133,7 @@ class _TimeUnit extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 11,
-            color: Colors.white.withOpacity(0.6),
+            color: Colors.white.withValues(alpha: 0.6),
             fontWeight: FontWeight.w500,
           ),
         ),
@@ -156,7 +156,7 @@ class _TimeSeparator extends StatelessWidget {
             style: TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.bold,
-              color: AppTheme.gold.withOpacity(0.7),
+              color: AppTheme.gold.withValues(alpha: 0.7),
             ),
           ),
           const SizedBox(height: 24),

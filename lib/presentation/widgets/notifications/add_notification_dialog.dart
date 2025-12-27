@@ -92,16 +92,16 @@ class _AddNotificationDialogState extends State<AddNotificationDialog> {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: AppTheme.gold.withOpacity(0.8),
+              color: AppTheme.gold.withValues(alpha: 0.8),
             ),
           ),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.08),
+              color: Colors.white.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withOpacity(0.1)),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<PrayerType>(
@@ -109,13 +109,13 @@ class _AddNotificationDialogState extends State<AddNotificationDialog> {
                 value: _selectedPrayer,
                 hint: Text(
                   'Vakit seçiniz',
-                  style: TextStyle(color: Colors.white.withOpacity(0.5)),
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
                 ),
                 isExpanded: true,
                 dropdownColor: AppTheme.primaryMedium,
                 icon: Icon(
                   Icons.keyboard_arrow_down_rounded,
-                  color: Colors.white.withOpacity(0.5),
+                  color: Colors.white.withValues(alpha: 0.5),
                 ),
                 style: const TextStyle(color: Colors.white, fontSize: 16),
                 items: PrayerType.values.map((prayer) {
@@ -144,7 +144,7 @@ class _AddNotificationDialogState extends State<AddNotificationDialog> {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: AppTheme.gold.withOpacity(0.8),
+              color: AppTheme.gold.withValues(alpha: 0.8),
             ),
           ),
           const SizedBox(height: 8),
@@ -195,7 +195,7 @@ class _AddNotificationDialogState extends State<AddNotificationDialog> {
           style: ElevatedButton.styleFrom(
             backgroundColor: AppTheme.gold,
             foregroundColor: AppTheme.primaryDark,
-            disabledBackgroundColor: Colors.white.withOpacity(0.1),
+            disabledBackgroundColor: Colors.white.withValues(alpha: 0.1),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
@@ -220,11 +220,13 @@ class _AddNotificationDialogState extends State<AddNotificationDialog> {
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppTheme.gold.withOpacity(0.2)
-              : Colors.white.withOpacity(0.08),
+              ? AppTheme.gold.withValues(alpha: 0.2)
+              : Colors.white.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? AppTheme.gold : Colors.white.withOpacity(0.1),
+            color: isSelected
+                ? AppTheme.gold
+                : Colors.white.withValues(alpha: 0.1),
           ),
         ),
         child: Center(
@@ -258,6 +260,7 @@ class _AddNotificationDialogState extends State<AddNotificationDialog> {
       return;
     }
     await widget.onAdd(_selectedPrayer!, _isBefore ? _selectedOffset : 0);
-    if (context.mounted) Navigator.of(context).pop();
+    if (!mounted) return;
+    Navigator.of(context).pop();
   }
 }

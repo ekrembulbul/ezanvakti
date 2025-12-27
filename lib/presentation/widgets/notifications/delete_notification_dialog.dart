@@ -18,7 +18,7 @@ class DeleteNotificationDialog extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.red.withOpacity(0.2),
+              color: Colors.red.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(
@@ -36,7 +36,7 @@ class DeleteNotificationDialog extends StatelessWidget {
       ),
       content: RichText(
         text: TextSpan(
-          style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 15),
+          style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 15),
           children: [
             TextSpan(
               text: PrayerUtils.getPrayerName(setting.prayerType),

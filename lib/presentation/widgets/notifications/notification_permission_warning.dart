@@ -18,19 +18,19 @@ class NotificationPermissionWarning extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Colors.orange.withOpacity(0.2),
-            Colors.orange.withOpacity(0.1),
+            Colors.orange.withValues(alpha: 0.2),
+            Colors.orange.withValues(alpha: 0.1),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.orange.withOpacity(0.3)),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.orange.withOpacity(0.2),
+              color: Colors.orange.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
@@ -57,7 +57,7 @@ class NotificationPermissionWarning extends StatelessWidget {
                   'Bildirimleri almak için izin vermeniz gerekiyor.',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withValues(alpha: 0.7),
                   ),
                 ),
               ],

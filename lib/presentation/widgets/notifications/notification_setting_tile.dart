@@ -31,12 +31,12 @@ class NotificationSettingTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(isActive ? 0.12 : 0.06),
+        color: Colors.white.withValues(alpha: isActive ? 0.12 : 0.06),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isActive
-              ? AppTheme.gold.withOpacity(0.3)
-              : Colors.white.withOpacity(0.1),
+              ? AppTheme.gold.withValues(alpha: 0.3)
+              : Colors.white.withValues(alpha: 0.1),
         ),
       ),
       child: Row(
@@ -45,8 +45,8 @@ class NotificationSettingTile extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: isActive
-                  ? AppTheme.gold.withOpacity(0.2)
-                  : Colors.white.withOpacity(0.1),
+                  ? AppTheme.gold.withValues(alpha: 0.2)
+                  : Colors.white.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
@@ -76,8 +76,8 @@ class NotificationSettingTile extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: isActive
-                        ? AppTheme.gold.withOpacity(0.15)
-                        : Colors.white.withOpacity(0.05),
+                        ? AppTheme.gold.withValues(alpha: 0.15)
+                        : Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
@@ -87,7 +87,7 @@ class NotificationSettingTile extends StatelessWidget {
                       fontWeight: FontWeight.w500,
                       color: isActive
                           ? AppTheme.gold
-                          : Colors.white.withOpacity(0.5),
+                          : Colors.white.withValues(alpha: 0.5),
                     ),
                   ),
                 ),
@@ -100,7 +100,8 @@ class NotificationSettingTile extends StatelessWidget {
             ),
             value: setting.isActive,
             onChanged: hasPermission ? (_) => onToggle() : null,
-            activeColor: AppTheme.gold,
+            activeThumbColor: AppTheme.gold,
+            activeTrackColor: AppTheme.gold.withValues(alpha: 0.3),
             inactiveThumbColor: Colors.white38,
             inactiveTrackColor: Colors.white12,
           ),
@@ -110,7 +111,7 @@ class NotificationSettingTile extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.15),
+                color: Colors.red.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Icon(
