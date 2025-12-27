@@ -16,7 +16,7 @@ import '../interfaces/notification_service.dart';
 import '../services/timezone_service.dart';
 import '../utils/app_logger.dart';
 
-const bool useTestPrayerTimes = true;
+const bool useTestPrayerTimes = false;
 
 class ServiceLocator {
   static final ServiceLocator _instance = ServiceLocator._internal();

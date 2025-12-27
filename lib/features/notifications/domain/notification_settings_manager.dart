@@ -145,7 +145,7 @@ class NotificationSettingsManager {
       const NotificationSetting(
         prayerType: PrayerType.fajr,
         isActive: true,
-        minutesBefore: 13,
+        minutesBefore: 5,
       ),
       // const NotificationSetting(
       //   prayerType: PrayerType.sunrise,
