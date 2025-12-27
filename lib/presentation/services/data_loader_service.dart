@@ -52,7 +52,7 @@ class DataLoaderService {
     return {
       'todayPrayer': todayPrayer,
       'tomorrowPrayer': tomorrowPrayer,
-      'prayerTimes': todayPrayer != null ? [todayPrayer] : <PrayerTime>[],
+      'prayerTimes': <PrayerTime>[],
       'lastUpdate': lastUpdate,
       'hasPermission': hasPermission,
       'settings': settings,
@@ -63,12 +63,14 @@ class DataLoaderService {
     Location location,
     DateTime startDate,
   ) async {
-    _logger.info('🔄 Loading background data for next 30 days');
+    _logger.info(
+      '🔄 Loading background data: 1 week before + 3 weeks after (28 days total)',
+    );
     try {
       final prayerTimes = await _prayerTimesRepository.getPrayerTimes(
         location: location,
-        startDate: startDate.add(const Duration(days: 1)),
-        endDate: startDate.add(const Duration(days: 30)),
+        startDate: startDate.subtract(const Duration(days: 7)),
+        endDate: startDate.add(const Duration(days: 21)),
         forceRefresh: false,
       );
       _logger.info('✅ Background load completed: ${prayerTimes.length} days');

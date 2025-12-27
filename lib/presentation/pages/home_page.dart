@@ -180,8 +180,7 @@ class _HomePageState extends State<HomePage> {
 
     if (mounted && prayerTimes.isNotEmpty) {
       final appState = context.read<AppState>();
-      final existingTimes = appState.prayerTimes;
-      appState.setPrayerTimes([...existingTimes, ...prayerTimes]);
+      appState.setPrayerTimes(prayerTimes);
     }
   }
 
