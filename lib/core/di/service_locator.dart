@@ -1,5 +1,6 @@
 import 'package:http/http.dart' as http;
 import '../../features/prayer_times/data/awqat_salah_provider.dart';
+import '../../features/prayer_times/data/test_prayer_time_provider.dart';
 import '../../features/prayer_times/data/sqlite_storage.dart';
 import '../../features/prayer_times/domain/prayer_times_repository.dart';
 import '../../features/prayer_times/domain/offline_state_manager.dart';
@@ -14,6 +15,8 @@ import '../interfaces/local_storage.dart';
 import '../interfaces/notification_service.dart';
 import '../services/timezone_service.dart';
 import '../utils/app_logger.dart';
+
+const bool useTestPrayerTimes = true;
 
 class ServiceLocator {
   static final ServiceLocator _instance = ServiceLocator._internal();
@@ -52,10 +55,17 @@ class ServiceLocator {
     register<http.Client>(httpClient);
     logger.info('✅ HTTP Client registered');
 
-    logger.info('🕌 Initializing Prayer Time Provider (Awqat Salah)...');
-    final prayerTimeProvider = AwqatSalahProvider(httpClient: httpClient);
+    final PrayerTimeProvider prayerTimeProvider;
+    if (useTestPrayerTimes) {
+      logger.info('🧪 Initializing TEST Prayer Time Provider (Hard-coded)...');
+      prayerTimeProvider = TestPrayerTimeProvider();
+      logger.info('✅ TEST Prayer Time Provider registered');
+    } else {
+      logger.info('🕌 Initializing Prayer Time Provider (Awqat Salah)...');
+      prayerTimeProvider = AwqatSalahProvider(httpClient: httpClient);
+      logger.info('✅ Prayer Time Provider registered');
+    }
     register<PrayerTimeProvider>(prayerTimeProvider);
-    logger.info('✅ Prayer Time Provider registered');
 
     logger.info('💾 Initializing Local Storage (SQLite)...');
     final localStorage = SqliteStorage();

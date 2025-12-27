@@ -74,6 +74,10 @@ class NotificationScheduler {
           body: body,
         );
 
+        logger.info(
+          '🕰️ ${_formatTime(prayerDateTime)} için bildirim planlandı -> ${_formatTime(notificationTime)} (${setting.minutesBefore} dk önce)',
+        );
+
         scheduledIds.add(notificationId);
       }
     }
@@ -166,6 +170,13 @@ class NotificationScheduler {
 
   Future<bool> hasPermission() async {
     return await notificationService.isPermissionGranted();
+  }
+
+  String _formatTime(DateTime time) {
+    final hh = time.hour.toString().padLeft(2, '0');
+    final mm = time.minute.toString().padLeft(2, '0');
+    final ss = time.second.toString().padLeft(2, '0');
+    return '$hh:$mm:$ss';
   }
 
   Future<bool> requestPermission() async {

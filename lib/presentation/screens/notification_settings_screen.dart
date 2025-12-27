@@ -6,8 +6,11 @@ import '../../core/models/notification_setting.dart';
 import '../../core/models/prayer_time.dart';
 import '../../core/utils/prayer_utils.dart';
 import '../../features/notifications/domain/notification_settings_manager.dart';
+import '../../features/notifications/domain/notification_scheduler.dart';
 import '../../core/di/service_locator.dart';
 import '../../core/interfaces/notification_service.dart';
+import '../../core/providers/app_state.dart';
+import 'package:provider/provider.dart';
 import '../../core/services/exact_alarm_service.dart';
 import '../utils/prayer_name_helper.dart';
 import '../widgets/common/app_bar_widgets.dart';
@@ -119,6 +122,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
 
       await _manager.addSetting(newSetting);
       await _loadSettings();
+      await _rescheduleNotifications();
       _showSnackBar('Bildirim eklendi');
     } catch (e) {
       _showSnackBar('Bildirim eklenemedi: $e', isError: true);
@@ -135,6 +139,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
         minutesBefore: minutesBefore,
       );
       await _loadSettings();
+      await _rescheduleNotifications();
       _showSnackBar('Bildirim silindi');
     } catch (e) {
       _showSnackBar('Bildirim silinemedi: $e', isError: true);
@@ -180,6 +185,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       }
 
       await _loadSettings();
+      await _rescheduleNotifications();
       _showSnackBar('Bildirim güncellendi');
     } catch (e) {
       _showSnackBar('Bildirim güncellenemedi: $e', isError: true);
@@ -192,6 +198,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
         setting.copyWith(isActive: !setting.isActive),
       );
       await _loadSettings();
+      await _rescheduleNotifications();
     } catch (e) {
       _showSnackBar('Bildirim güncellenemedi: $e', isError: true);
     }
@@ -222,6 +229,24 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     if (!Platform.isAndroid) return;
     final allowed = await _exactAlarmService.isExactAlarmAllowed();
     if (mounted) setState(() => _hideExactAlarmCard = allowed);
+  }
+
+  Future<void> _rescheduleNotifications() async {
+    try {
+      final appState = context.read<AppState>();
+      final location = appState.activeLocation;
+      final prayerTimes = appState.prayerTimes;
+
+      if (location != null && prayerTimes.isNotEmpty) {
+        final scheduler = ServiceLocator().get<NotificationScheduler>();
+        await scheduler.scheduleNotifications(
+          location: location,
+          prayerTimes: prayerTimes,
+        );
+      }
+    } catch (e) {
+      _showSnackBar('Bildirimler güncellenemedi: $e', isError: true);
+    }
   }
 
   void _showSnackBar(String message, {bool isError = false}) {

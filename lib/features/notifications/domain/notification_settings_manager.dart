@@ -145,33 +145,33 @@ class NotificationSettingsManager {
       const NotificationSetting(
         prayerType: PrayerType.fajr,
         isActive: true,
-        minutesBefore: 0,
+        minutesBefore: 13,
       ),
-      const NotificationSetting(
-        prayerType: PrayerType.sunrise,
-        isActive: false,
-        minutesBefore: 0,
-      ),
-      const NotificationSetting(
-        prayerType: PrayerType.dhuhr,
-        isActive: true,
-        minutesBefore: 0,
-      ),
-      const NotificationSetting(
-        prayerType: PrayerType.asr,
-        isActive: true,
-        minutesBefore: 0,
-      ),
-      const NotificationSetting(
-        prayerType: PrayerType.maghrib,
-        isActive: true,
-        minutesBefore: 0,
-      ),
-      const NotificationSetting(
-        prayerType: PrayerType.isha,
-        isActive: true,
-        minutesBefore: 0,
-      ),
+      // const NotificationSetting(
+      //   prayerType: PrayerType.sunrise,
+      //   isActive: false,
+      //   minutesBefore: 0,
+      // ),
+      // const NotificationSetting(
+      //   prayerType: PrayerType.dhuhr,
+      //   isActive: true,
+      //   minutesBefore: 0,
+      // ),
+      // const NotificationSetting(
+      //   prayerType: PrayerType.asr,
+      //   isActive: true,
+      //   minutesBefore: 0,
+      // ),
+      // const NotificationSetting(
+      //   prayerType: PrayerType.maghrib,
+      //   isActive: true,
+      //   minutesBefore: 0,
+      // ),
+      // const NotificationSetting(
+      //   prayerType: PrayerType.isha,
+      //   isActive: true,
+      //   minutesBefore: 0,
+      // ),
     ];
 
     await saveSettings(defaultSettings);

@@ -138,6 +138,10 @@ class FlutterLocalNotificationService implements NotificationService {
 
     // Android 12+ can throw exact_alarms_not_permitted when exact scheduling
     // is not allowed. Fall back to inexact scheduling instead of crashing.
+    final logTime =
+        '${scheduledTime.hour.toString().padLeft(2, '0')}:${scheduledTime.minute.toString().padLeft(2, '0')}:${scheduledTime.second.toString().padLeft(2, '0')}';
+    _logger.info('📆 Scheduling notification $id for $logTime (title: $title)');
+
     try {
       await _plugin.zonedSchedule(
         id.hashCode,
@@ -149,9 +153,7 @@ class FlutterLocalNotificationService implements NotificationService {
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
       );
-      _logger.info(
-        '⏱️ Scheduled notification $id at $scheduledTime (title: $title)',
-      );
+      _logger.info('⏱️ Scheduled notification $id at $logTime (title: $title)');
     } on PlatformException catch (e) {
       if (e.code == 'exact_alarms_not_permitted') {
         await _plugin.zonedSchedule(
@@ -165,7 +167,7 @@ class FlutterLocalNotificationService implements NotificationService {
               UILocalNotificationDateInterpretation.absoluteTime,
         );
         _logger.warning(
-          '⚠️ exact alarms not permitted; scheduled inexact for $id at $scheduledTime',
+          '⚠️ exact alarms not permitted; scheduled inexact for $id at $logTime',
         );
       } else {
         _logger.error('❌ Failed to schedule notification $id', e);
