@@ -250,6 +250,8 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
       extendBodyBehindAppBar: true,
       appBar: SimpleAppBar(
         title: _showManualSelection ? 'Manuel Konum' : 'Yeni Konum',
+        // İlk kurulumda geri yok, Ayarlar'dan gelince sadece ana seçim ekranında göster
+        showBack: widget.fromLocationList && !_showManualSelection,
       ),
       body: Container(
         decoration: const BoxDecoration(gradient: AppTheme.nightGradient),

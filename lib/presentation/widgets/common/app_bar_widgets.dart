@@ -4,8 +4,14 @@ import '../../../core/theme/app_theme.dart';
 class SimpleAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final List<Widget>? actions;
+  final bool showBack;
 
-  const SimpleAppBar({super.key, required this.title, this.actions});
+  const SimpleAppBar({
+    super.key,
+    required this.title,
+    this.actions,
+    this.showBack = true,
+  });
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -15,17 +21,20 @@ class SimpleAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      leading: IconButton(
-        icon: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
-        ),
-        onPressed: () => Navigator.of(context).pop(),
-      ),
+      automaticallyImplyLeading: false,
+      leading: showBack
+          ? IconButton(
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+              ),
+              onPressed: () => Navigator.of(context).pop(),
+            )
+          : null,
       title: Text(
         title,
         style: const TextStyle(
