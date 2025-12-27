@@ -13,6 +13,7 @@ import '../utils/prayer_name_helper.dart';
 import '../widgets/common/app_bar_widgets.dart';
 import '../widgets/common/state_widgets.dart';
 import '../widgets/notifications/notification_widgets.dart';
+import '../widgets/notifications/notification_permission_warning.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
   final bool hasPermission;
@@ -37,8 +38,8 @@ class NotificationSettingsScreen extends StatefulWidget {
       _NotificationSettingsScreenState();
 }
 
-class _NotificationSettingsScreenState
-    extends State<NotificationSettingsScreen> {
+class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
+    with WidgetsBindingObserver {
   late final NotificationSettingsManager _manager;
   late final ExactAlarmService _exactAlarmService;
   List<NotificationSetting> _settings = [];
@@ -49,11 +50,25 @@ class _NotificationSettingsScreenState
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _manager = ServiceLocator().get<NotificationSettingsManager>();
     _exactAlarmService = ExactAlarmService();
     _hasPermission = widget.hasPermission;
     _checkExactAlarmPermission();
     _loadSettings();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _checkExactAlarmPermission();
+    }
   }
 
   @override
@@ -315,59 +330,8 @@ class _NotificationSettingsScreenState
               if (!_hasPermission)
                 PermissionWarningCard(onRequestPermission: _requestPermission),
               if (Platform.isAndroid && !_hideExactAlarmCard)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Container(
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: Colors.orange.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.alarm_rounded, color: Colors.orange),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Kesin alarm izni',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Android 12+ için hassas bildirim zamanlaması. İzni açmanız önerilir.',
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.7),
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        ElevatedButton(
-                          onPressed: _openExactAlarmSettings,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 20,
-                              vertical: 12,
-                            ),
-                          ),
-                          child: const Text('İzni Aç'),
-                        ),
-                      ],
-                    ),
-                  ),
+                ExactAlarmPermissionWarning(
+                  onOpenExactAlarmSettings: _openExactAlarmSettings,
                 ),
               Expanded(child: _buildBody()),
             ],
