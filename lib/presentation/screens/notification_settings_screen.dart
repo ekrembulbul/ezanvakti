@@ -209,7 +209,10 @@ class _NotificationSettingsScreenState
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => AddNotificationBottomSheet(onAdd: _addNotification),
+      builder: (context) => AddNotificationBottomSheet(
+        onAdd: _addNotification,
+        prayerTime: widget.prayerTime,
+      ),
     );
   }
 

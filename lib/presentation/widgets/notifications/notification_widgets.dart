@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/models/prayer_time.dart';
 import '../../../core/models/notification_setting.dart';
 import '../../../core/utils/prayer_utils.dart';
 
@@ -204,8 +206,13 @@ class NotificationTile extends StatelessWidget {
 
 class AddNotificationBottomSheet extends StatefulWidget {
   final void Function(PrayerType prayerType, int minutesBefore) onAdd;
+  final PrayerTime? prayerTime;
 
-  const AddNotificationBottomSheet({super.key, required this.onAdd});
+  const AddNotificationBottomSheet({
+    super.key,
+    required this.onAdd,
+    this.prayerTime,
+  });
 
   @override
   State<AddNotificationBottomSheet> createState() =>
@@ -215,7 +222,95 @@ class AddNotificationBottomSheet extends StatefulWidget {
 class _AddNotificationBottomSheetState
     extends State<AddNotificationBottomSheet> {
   PrayerType _selectedType = PrayerType.fajr;
-  int _selectedMinutes = 0;
+  bool _isBefore = false;
+  final TextEditingController _minutesController = TextEditingController(
+    text: '5',
+  );
+  String? _errorText;
+
+  PrayerType? _previousPrayer(PrayerType prayer) {
+    switch (prayer) {
+      case PrayerType.fajr:
+        return null;
+      case PrayerType.sunrise:
+        return PrayerType.fajr;
+      case PrayerType.dhuhr:
+        return PrayerType.sunrise;
+      case PrayerType.asr:
+        return PrayerType.dhuhr;
+      case PrayerType.maghrib:
+        return PrayerType.asr;
+      case PrayerType.isha:
+        return PrayerType.maghrib;
+    }
+  }
+
+  DateTime? _timeFor(PrayerType prayer) {
+    final pt = widget.prayerTime;
+    if (pt == null) return null;
+    switch (prayer) {
+      case PrayerType.fajr:
+        return pt.fajr;
+      case PrayerType.sunrise:
+        return pt.sunrise;
+      case PrayerType.dhuhr:
+        return pt.dhuhr;
+      case PrayerType.asr:
+        return pt.asr;
+      case PrayerType.maghrib:
+        return pt.maghrib;
+      case PrayerType.isha:
+        return pt.isha;
+    }
+  }
+
+  int? _maxOffsetFor(PrayerType? prayer) {
+    if (prayer == null || widget.prayerTime == null) return null;
+    final previous = _previousPrayer(prayer);
+    if (previous == null) return null;
+
+    final currentTime = _timeFor(prayer);
+    final previousTime = _timeFor(previous);
+    if (currentTime == null || previousTime == null) return null;
+
+    final diff = currentTime.difference(previousTime).inMinutes;
+    final maxOffset = diff - 1;
+    return maxOffset < 1 ? 1 : maxOffset;
+  }
+
+  void _onSave() {
+    final maxOffset = _maxOffsetFor(_selectedType);
+    int minutes = 0;
+
+    if (_isBefore) {
+      final parsed = int.tryParse(_minutesController.text.trim());
+
+      if (parsed == null) {
+        setState(() => _errorText = 'Dakika giriniz');
+        return;
+      }
+
+      if (parsed < 0) {
+        setState(() => _errorText = '0 veya üzeri olmalı');
+        return;
+      }
+
+      if (maxOffset != null && parsed > maxOffset) {
+        setState(() {
+          _errorText =
+              'Bu vakitten en fazla $maxOffset dk önce bildirim ekleyebilirsin.';
+        });
+        return;
+      }
+
+      minutes = parsed;
+    }
+
+    setState(() => _errorText = null);
+
+    Navigator.of(context).pop();
+    widget.onAdd(_selectedType, minutes);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -265,10 +360,7 @@ class _AddNotificationBottomSheetState
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                widget.onAdd(_selectedType, _selectedMinutes);
-              },
+              onPressed: _onSave,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.gold,
                 foregroundColor: AppTheme.primaryDark,
@@ -347,38 +439,162 @@ class _AddNotificationBottomSheetState
   }
 
   Widget _buildTimeSelector() {
-    const times = [0, 5, 10, 15, 30, 45, 60];
-    return Wrap(
-      spacing: 10,
-      runSpacing: 10,
-      children: times.map((minutes) {
-        final isSelected = minutes == _selectedMinutes;
-        final text = minutes == 0 ? 'Tam vaktinde' : '$minutes dk önce';
-        return GestureDetector(
-          onTap: () => setState(() => _selectedMinutes = minutes),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    final maxOffset = _maxOffsetFor(_selectedType);
+    final hint = maxOffset != null ? 'Maks $maxOffset dk' : 'Dakika (örn. 5)';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            _buildTimeChip(
+              label: 'Tam vaktinde',
+              isSelected: !_isBefore,
+              onTap: () {
+                setState(() {
+                  _isBefore = false;
+                  _errorText = null;
+                });
+              },
+            ),
+            _buildTimeChip(
+              label: 'Öncesinde',
+              isSelected: _isBefore,
+              onTap: () {
+                setState(() {
+                  _isBefore = true;
+                  if (_minutesController.text.isEmpty) {
+                    _minutesController.text = '5';
+                  }
+                  _errorText = null;
+                });
+              },
+            ),
+          ],
+        ),
+        if (_isBefore) ...[
+          const SizedBox(height: 12),
+          Container(
+            constraints: const BoxConstraints(maxWidth: 260),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: isSelected
-                  ? AppTheme.gold.withValues(alpha: 0.2)
-                  : Colors.white.withValues(alpha: 0.1),
+              color: Colors.white.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: isSelected
-                    ? AppTheme.gold
-                    : Colors.white.withValues(alpha: 0.1),
+                color: _errorText != null
+                    ? Colors.red.withValues(alpha: 0.6)
+                    : AppTheme.gold.withValues(alpha: 0.4),
+                width: 1.2,
               ),
             ),
-            child: Text(
-              text,
-              style: TextStyle(
-                color: isSelected ? AppTheme.gold : Colors.white,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-              ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppTheme.gold.withValues(alpha: 0.18),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.access_time_rounded,
+                    color: AppTheme.gold,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextField(
+                        controller: _minutesController,
+                        keyboardType: TextInputType.number,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                        ],
+                        decoration: InputDecoration(
+                          isCollapsed: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 10,
+                          ),
+                          border: InputBorder.none,
+                          hintText: hint,
+                          hintStyle: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.4),
+                          ),
+                          suffixText: 'dk',
+                          suffixStyle: const TextStyle(
+                            color: AppTheme.gold,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          helperText:
+                              'Maksimum: ${maxOffset ?? 'belirtilmedi'}.',
+                          helperStyle: TextStyle(
+                            fontSize: 10.5,
+                            color: Colors.white.withValues(alpha: 0.55),
+                          ),
+                          errorText: _errorText,
+                          errorStyle: TextStyle(
+                            fontSize: 11,
+                            color: Colors.red.withValues(alpha: 0.9),
+                            fontWeight: FontWeight.w600,
+                            height: 1.1,
+                          ),
+                        ),
+                        onChanged: (_) => setState(() => _errorText = null),
+                        onSubmitted: (_) => _onSave(),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
-        );
-      }).toList(),
+        ],
+      ],
     );
+  }
+
+  Widget _buildTimeChip({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppTheme.gold.withValues(alpha: 0.2)
+              : Colors.white.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? AppTheme.gold
+                : Colors.white.withValues(alpha: 0.1),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? AppTheme.gold : Colors.white,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _minutesController.dispose();
+    super.dispose();
   }
 }
