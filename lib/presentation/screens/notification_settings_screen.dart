@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/models/notification_setting.dart';
@@ -8,15 +6,12 @@ import '../../core/utils/prayer_utils.dart';
 import '../../features/notifications/domain/notification_settings_manager.dart';
 import '../../features/notifications/domain/notification_scheduler.dart';
 import '../../core/di/service_locator.dart';
-import '../../core/interfaces/notification_service.dart';
 import '../../core/providers/app_state.dart';
 import 'package:provider/provider.dart';
-import '../../core/services/exact_alarm_service.dart';
 import '../utils/prayer_name_helper.dart';
 import '../widgets/common/app_bar_widgets.dart';
 import '../widgets/common/state_widgets.dart';
 import '../widgets/notifications/notification_widgets.dart';
-import '../widgets/notifications/notification_permission_warning.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
   final bool hasPermission;
@@ -44,20 +39,16 @@ class NotificationSettingsScreen extends StatefulWidget {
 class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     with WidgetsBindingObserver {
   late final NotificationSettingsManager _manager;
-  late final ExactAlarmService _exactAlarmService;
   List<NotificationSetting> _settings = [];
   bool _isLoading = true;
   bool _hasPermission = false;
-  bool _hideExactAlarmCard = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _manager = ServiceLocator().get<NotificationSettingsManager>();
-    _exactAlarmService = ExactAlarmService();
     _hasPermission = widget.hasPermission;
-    _checkExactAlarmPermission();
     _loadSettings();
   }
 
@@ -65,13 +56,6 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _checkExactAlarmPermission();
-    }
   }
 
   @override
@@ -214,23 +198,6 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     }
   }
 
-  Future<void> _openExactAlarmSettings() async {
-    try {
-      final service = ServiceLocator().get<NotificationService>();
-      await service.openExactAlarmSettings();
-      _showSnackBar('Kesin alarm ayarları açılıyor...');
-      await _checkExactAlarmPermission();
-    } catch (e) {
-      _showSnackBar('Ayar açılamadı: $e', isError: true);
-    }
-  }
-
-  Future<void> _checkExactAlarmPermission() async {
-    if (!Platform.isAndroid) return;
-    final allowed = await _exactAlarmService.isExactAlarmAllowed();
-    if (mounted) setState(() => _hideExactAlarmCard = allowed);
-  }
-
   Future<void> _rescheduleNotifications() async {
     try {
       final appState = context.read<AppState>();
@@ -354,10 +321,6 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
             children: [
               if (!_hasPermission)
                 PermissionWarningCard(onRequestPermission: _requestPermission),
-              if (Platform.isAndroid && !_hideExactAlarmCard)
-                ExactAlarmPermissionWarning(
-                  onOpenExactAlarmSettings: _openExactAlarmSettings,
-                ),
               Expanded(child: _buildBody()),
             ],
           ),
