@@ -6,7 +6,6 @@ import '../../core/models/location.dart';
 import '../../core/utils/prayer_utils.dart';
 import '../widgets/home/countdown_card.dart';
 import '../widgets/home/prayer_times_card.dart';
-import '../widgets/home/quick_action_card.dart';
 import '../widgets/home/home_date_card.dart';
 import '../widgets/common/state_widgets.dart';
 
@@ -118,11 +117,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Column(
             children: [
-              const SizedBox(height: 8),
-              HomeDateCard(date: widget.todaysPrayerTime!.date),
-              const SizedBox(height: 24),
+              const SizedBox(height: 6),
+              HomeDateCard(
+                date: widget.todaysPrayerTime!.date,
+                location: widget.location,
+              ),
+              const SizedBox(height: 18),
               _buildCountdown(),
-              const SizedBox(height: 28),
+              const SizedBox(height: 22),
               PrayerTimesCard(
                 prayerTime: widget.todaysPrayerTime!,
                 currentPrayer: PrayerUtils.getCurrentPrayer(
@@ -130,13 +132,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ),
                 onCalendarTap: widget.onCalendarTap,
               ),
-              const SizedBox(height: 20),
-              QuickActionsRow(
-                onCalendarTap: widget.onCalendarTap,
-                onNotificationsTap: widget.onNotificationSettingsTap,
-                onSettingsTap: widget.onSettingsTap,
-              ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
             ],
           ),
         ),
@@ -186,43 +182,26 @@ class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
+      centerTitle: false,
       title: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
+              color: Colors.white.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(
-              location.type == LocationType.gps
-                  ? Icons.my_location_rounded
-                  : Icons.location_on_rounded,
-              color: AppTheme.gold,
-              size: 18,
-            ),
+            child: Icon(Icons.bedtime, color: AppTheme.gold, size: 18),
           ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                location.district,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-              Text(
-                location.province,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.white.withValues(alpha: 0.7),
-                ),
-              ),
-            ],
+          const SizedBox(width: 10),
+          const Text(
+            'Ezan Vakti',
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
           ),
         ],
       ),

@@ -22,12 +22,12 @@ class PrayerTimesCard extends StatelessWidget {
     final prayers = PrayerType.values;
 
     return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: AppTheme.glassDecoration(opacity: 0.1, borderRadius: 24),
+      padding: const EdgeInsets.fromLTRB(24, 18, 24, 10),
+      decoration: AppTheme.glassDecoration(opacity: 0.1, borderRadius: 18),
       child: Column(
         children: [
           _buildHeader(),
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
           ...prayers.asMap().entries.map((entry) {
             final index = entry.key;
             final type = entry.value;
@@ -40,7 +40,12 @@ class PrayerTimesCard extends StatelessWidget {
                   isCurrent: isCurrent,
                 ),
                 if (index < prayers.length - 1)
-                  Divider(color: Colors.white.withValues(alpha: 0.1), height: 1),
+                  Divider(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    height: 1,
+                    indent: 12,
+                    endIndent: 12,
+                  ),
               ],
             );
           }),
@@ -52,44 +57,51 @@ class PrayerTimesCard extends StatelessWidget {
   Widget _buildHeader() {
     return Row(
       children: [
-        const Icon(Icons.schedule_rounded, color: AppTheme.gold, size: 22),
-        const SizedBox(width: 10),
+        const Icon(Icons.schedule_rounded, color: AppTheme.gold, size: 20),
+        const SizedBox(width: 8),
         const Text(
           'Namaz Vakitleri',
           style: TextStyle(
-            fontSize: 18,
+            fontSize: 17,
             fontWeight: FontWeight.w600,
             color: Colors.white,
           ),
         ),
         const Spacer(),
         if (onCalendarTap != null)
-          GestureDetector(
-            onTap: onCalendarTap,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppTheme.gold.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.calendar_month_rounded,
-                    color: AppTheme.gold,
-                    size: 16,
-                  ),
-                  SizedBox(width: 6),
-                  Text(
-                    'Takvim',
-                    style: TextStyle(
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onCalendarTap,
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.gold.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.calendar_month_rounded,
                       color: AppTheme.gold,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                      size: 16,
                     ),
-                  ),
-                ],
+                    SizedBox(width: 6),
+                    Text(
+                      'Takvim',
+                      style: TextStyle(
+                        color: AppTheme.gold,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -117,9 +129,11 @@ class PrayerTimeRow extends StatelessWidget {
     final timeStr = DateFormat('HH:mm').format(time);
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
       decoration: BoxDecoration(
-        color: isCurrent ? AppTheme.gold.withValues(alpha: 0.15) : Colors.transparent,
+        color: isCurrent
+            ? AppTheme.gold.withValues(alpha: 0.15)
+            : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -135,11 +149,13 @@ class PrayerTimeRow extends StatelessWidget {
             ),
             child: Icon(
               icon,
-              color: isCurrent ? AppTheme.gold : Colors.white.withValues(alpha: 0.7),
+              color: isCurrent
+                  ? AppTheme.gold
+                  : Colors.white.withValues(alpha: 0.7),
               size: 20,
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               name,
@@ -152,7 +168,7 @@ class PrayerTimeRow extends StatelessWidget {
           ),
           if (isCurrent)
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               margin: const EdgeInsets.only(right: 12),
               decoration: BoxDecoration(
                 color: AppTheme.gold,

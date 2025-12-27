@@ -24,7 +24,7 @@ class CountdownCard extends StatelessWidget {
     final seconds = difference.inSeconds.remainder(60);
 
     final content = Container(
-      padding: const EdgeInsets.all(28),
+      padding: const EdgeInsets.fromLTRB(22, 16, 22, 16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -35,7 +35,10 @@ class CountdownCard extends StatelessWidget {
           ],
         ),
         borderRadius: BorderRadius.circular(28),
-        border: Border.all(color: AppTheme.gold.withValues(alpha: 0.3), width: 2),
+        border: Border.all(
+          color: AppTheme.gold.withValues(alpha: 0.3),
+          width: 2,
+        ),
         boxShadow: [
           BoxShadow(
             color: AppTheme.gold.withValues(alpha: 0.2),
@@ -65,24 +68,30 @@ class CountdownCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _TimeUnit(value: hours.toString().padLeft(2, '0'), label: 'Saat'),
-              const _TimeSeparator(),
-              _TimeUnit(
-                value: minutes.toString().padLeft(2, '0'),
-                label: 'Dakika',
-              ),
-              const _TimeSeparator(),
-              _TimeUnit(
-                value: seconds.toString().padLeft(2, '0'),
-                label: 'Saniye',
-              ),
-            ],
-          ),
           const SizedBox(height: 16),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _TimeUnit(
+                  value: hours.toString().padLeft(2, '0'),
+                  label: 'Saat',
+                ),
+                const _TimeSeparator(),
+                _TimeUnit(
+                  value: minutes.toString().padLeft(2, '0'),
+                  label: 'Dakika',
+                ),
+                const _TimeSeparator(),
+                _TimeUnit(
+                  value: seconds.toString().padLeft(2, '0'),
+                  label: 'Saniye',
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
           Text(
             DateFormat('HH:mm').format(nextPrayerTime),
             style: TextStyle(
