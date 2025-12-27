@@ -34,12 +34,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _loadVersion() async {
-    final packageInfo = await PackageInfo.fromPlatform();
-    if (mounted) {
-      setState(() {
-        _version = packageInfo.version;
-        _buildNumber = packageInfo.buildNumber;
-      });
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      if (mounted) {
+        setState(() {
+          _version = packageInfo.version;
+          _buildNumber = packageInfo.buildNumber;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _version = 'Bilinmiyor';
+          _buildNumber = '';
+        });
+      }
     }
   }
 
@@ -52,7 +61,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         width: double.infinity,
         height: double.infinity,
         decoration: const BoxDecoration(gradient: AppTheme.nightGradient),
-        child: const SafeArea(top: true, bottom: true, child: _SettingsBody()),
+        child: SafeArea(top: true, bottom: true, child: _SettingsBody()),
       ),
     );
   }
@@ -84,11 +93,7 @@ class _SettingsBody extends StatelessWidget {
           const SizedBox(height: 28),
           const SettingsSectionTitle(title: 'Uygulama'),
           const SizedBox(height: 12),
-          AppInfoCard(
-            version: state._version.isEmpty
-                ? ''
-                : '${state._version} (${state._buildNumber})',
-          ),
+          AppInfoCard(version: state._version),
         ],
       ),
     );
