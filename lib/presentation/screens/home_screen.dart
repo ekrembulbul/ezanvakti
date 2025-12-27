@@ -6,7 +6,8 @@ import '../../core/models/location.dart';
 import '../../core/utils/prayer_utils.dart';
 import '../widgets/home/countdown_card.dart';
 import '../widgets/home/prayer_times_card.dart';
-import '../widgets/home/home_date_card.dart';
+import '../widgets/home/location_header.dart';
+import '../widgets/home/date_widget.dart';
 import '../widgets/common/state_widgets.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -20,6 +21,7 @@ class HomeScreen extends StatefulWidget {
   final VoidCallback? onNotificationSettingsTap;
   final VoidCallback? onRefresh;
   final VoidCallback? onGpsRefresh;
+  final VoidCallback? onLocationTap;
   final bool isLoading;
   final String? errorMessage;
 
@@ -35,6 +37,7 @@ class HomeScreen extends StatefulWidget {
     this.onNotificationSettingsTap,
     this.onRefresh,
     this.onGpsRefresh,
+    this.onLocationTap,
     this.isLoading = false,
     this.errorMessage,
   });
@@ -120,9 +123,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           child: Column(
             children: [
               const SizedBox(height: 6),
-              HomeDateCard(
-                date: widget.todaysPrayerTime!.date,
-                location: widget.location,
+              Row(
+                children: [
+                  LocationWidget(
+                    location: widget.location,
+                    onTap: widget.onLocationTap,
+                  ),
+                  const Spacer(),
+                  DateWidget(date: widget.todaysPrayerTime!.date),
+                ],
               ),
               const SizedBox(height: 18),
               _buildCountdown(),

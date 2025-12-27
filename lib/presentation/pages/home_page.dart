@@ -337,6 +337,7 @@ class _HomePageState extends State<HomePage> {
           onCalendarTap: _navigateToCalendar,
           onNotificationSettingsTap: _navigateToNotificationSettings,
           onSettingsTap: _navigateToSettings,
+          onLocationTap: _navigateToLocationList,
         );
       },
     );

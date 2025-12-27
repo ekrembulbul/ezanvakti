@@ -1,24 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/hijri_formatter.dart';
 import '../../../core/models/location.dart';
 
-class HomeDateCard extends StatelessWidget {
-  final DateTime date;
+class LocationWidget extends StatelessWidget {
   final Location location;
+  final VoidCallback? onTap;
 
-  const HomeDateCard({super.key, required this.date, required this.location});
+  const LocationWidget({super.key, required this.location, this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final miladi = DateFormat('EEEE, d MMMM yyyy', 'tr_TR').format(date);
-    final hijri = HijriFormatter.format(date);
-
-    return Row(
-      children: [
-        Expanded(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        splashColor: AppTheme.gold.withValues(alpha: 0.2),
+        highlightColor: AppTheme.gold.withValues(alpha: 0.1),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Container(
                 padding: const EdgeInsets.all(6),
@@ -58,32 +60,7 @@ class HomeDateCard extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(width: 10),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              miladi,
-              style: const TextStyle(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-              textAlign: TextAlign.right,
-            ),
-            const SizedBox(height: 1),
-            Text(
-              hijri,
-              style: TextStyle(
-                fontSize: 11.5,
-                color: AppTheme.gold.withValues(alpha: 0.85),
-                fontWeight: FontWeight.w500,
-              ),
-              textAlign: TextAlign.right,
-            ),
-          ],
-        ),
-      ],
+      ),
     );
   }
 }
