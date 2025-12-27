@@ -1,11 +1,15 @@
+import 'package:android_intent_plus/android_intent.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import '../../../core/interfaces/notification_service.dart';
 import '../../../core/models/notification_setting.dart';
+import '../../../core/utils/app_logger.dart';
 
 class FlutterLocalNotificationService implements NotificationService {
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
+  final AppLogger _logger = AppLogger();
+  bool _requestedExactAlarmIntent = false;
 
   @override
   Future<void> init() async {
@@ -24,6 +28,22 @@ class FlutterLocalNotificationService implements NotificationService {
     );
 
     await _plugin.initialize(initSettings);
+    final androidPlugin = _plugin
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
+    if (androidPlugin != null) {
+      const androidChannel = AndroidNotificationChannel(
+        'ezan_vakti_channel',
+        'Ezan Vakti Bildirimleri',
+        description: 'Namaz vakitlerini bildiren bildirimler',
+        importance: Importance.high,
+      );
+      await androidPlugin.createNotificationChannel(androidChannel);
+      _logger.info(
+        '📢 Android notification channel ensured (ezan_vakti_channel)',
+      );
+    }
   }
 
   @override
@@ -135,5 +155,20 @@ class FlutterLocalNotificationService implements NotificationService {
         minutesBefore: 0,
       );
     }).toList();
+  }
+
+  @override
+  Future<void> openExactAlarmSettings() async {
+    if (_requestedExactAlarmIntent) return;
+    _requestedExactAlarmIntent = true;
+    try {
+      const intent = AndroidIntent(
+        action: 'android.settings.REQUEST_SCHEDULE_EXACT_ALARM',
+      );
+      await intent.launch();
+      _logger.info('⏱️ Launched exact alarm settings intent');
+    } catch (e) {
+      _logger.warning('⚠️ Could not open exact alarm settings', e);
+    }
   }
 }

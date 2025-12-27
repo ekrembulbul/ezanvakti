@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/models/notification_setting.dart';
@@ -5,6 +7,8 @@ import '../../core/models/prayer_time.dart';
 import '../../core/utils/prayer_utils.dart';
 import '../../features/notifications/domain/notification_settings_manager.dart';
 import '../../core/di/service_locator.dart';
+import '../../core/interfaces/notification_service.dart';
+import '../../core/services/exact_alarm_service.dart';
 import '../utils/prayer_name_helper.dart';
 import '../widgets/common/app_bar_widgets.dart';
 import '../widgets/common/state_widgets.dart';
@@ -36,15 +40,19 @@ class NotificationSettingsScreen extends StatefulWidget {
 class _NotificationSettingsScreenState
     extends State<NotificationSettingsScreen> {
   late final NotificationSettingsManager _manager;
+  late final ExactAlarmService _exactAlarmService;
   List<NotificationSetting> _settings = [];
   bool _isLoading = true;
   bool _hasPermission = false;
+  bool _hideExactAlarmCard = false;
 
   @override
   void initState() {
     super.initState();
     _manager = ServiceLocator().get<NotificationSettingsManager>();
+    _exactAlarmService = ExactAlarmService();
     _hasPermission = widget.hasPermission;
+    _checkExactAlarmPermission();
     _loadSettings();
   }
 
@@ -184,6 +192,23 @@ class _NotificationSettingsScreenState
     }
   }
 
+  Future<void> _openExactAlarmSettings() async {
+    try {
+      final service = ServiceLocator().get<NotificationService>();
+      await service.openExactAlarmSettings();
+      _showSnackBar('Kesin alarm ayarları açılıyor...');
+      await _checkExactAlarmPermission();
+    } catch (e) {
+      _showSnackBar('Ayar açılamadı: $e', isError: true);
+    }
+  }
+
+  Future<void> _checkExactAlarmPermission() async {
+    if (!Platform.isAndroid) return;
+    final allowed = await _exactAlarmService.isExactAlarmAllowed();
+    if (mounted) setState(() => _hideExactAlarmCard = allowed);
+  }
+
   void _showSnackBar(String message, {bool isError = false}) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -289,6 +314,61 @@ class _NotificationSettingsScreenState
             children: [
               if (!_hasPermission)
                 PermissionWarningCard(onRequestPermission: _requestPermission),
+              if (Platform.isAndroid && !_hideExactAlarmCard)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: Colors.orange.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.alarm_rounded, color: Colors.orange),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Kesin alarm izni',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Android 12+ için hassas bildirim zamanlaması. İzni açmanız önerilir.',
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.7),
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        ElevatedButton(
+                          onPressed: _openExactAlarmSettings,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
+                            ),
+                          ),
+                          child: const Text('İzni Aç'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               Expanded(child: _buildBody()),
             ],
           ),

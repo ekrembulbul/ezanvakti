@@ -181,6 +181,13 @@ class _HomePageState extends State<HomePage> {
     if (mounted && prayerTimes.isNotEmpty) {
       final appState = context.read<AppState>();
       appState.setPrayerTimes(prayerTimes);
+
+      // Prayer times are available only after background load; schedule notifications now.
+      final scheduler = ServiceLocator().get<NotificationScheduler>();
+      await scheduler.scheduleNotifications(
+        location: location,
+        prayerTimes: prayerTimes,
+      );
     }
   }
 

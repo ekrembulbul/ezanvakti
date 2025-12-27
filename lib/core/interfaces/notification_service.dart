@@ -33,4 +33,8 @@ abstract class NotificationService {
   Future<void> cancelAllNotifications();
 
   Future<List<ScheduledNotification>> getPendingNotifications();
+
+  /// Android-specific: opens exact alarm settings if available.
+  /// No-op on other platforms.
+  Future<void> openExactAlarmSettings();
 }

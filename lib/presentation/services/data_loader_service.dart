@@ -47,7 +47,16 @@ class DataLoaderService {
 
     final lastUpdate = await _prayerTimesRepository.getLastUpdateTime();
     final hasPermission = await _notificationService.isPermissionGranted();
-    final settings = await _settingsManager.getSettings();
+
+    var settings = await _settingsManager.getSettings();
+    if (settings.isEmpty) {
+      _logger.warning('⚠️ No notification settings found; creating defaults');
+      await _settingsManager.createDefaultSettings();
+      settings = await _settingsManager.getSettings();
+      _logger.info(
+        '✅ Default notification settings created: ${settings.length}',
+      );
+    }
 
     return {
       'todayPrayer': todayPrayer,

@@ -97,6 +97,9 @@ class MockNotificationService implements NotificationService {
   final List<ScheduledNotification> _scheduledNotifications = [];
   bool _permissionGranted = true;
   int scheduleCallCount = 0;
+
+  @override
+  Future<void> openExactAlarmSettings() async {}
   int cancelAllCallCount = 0;
 
   @override
