@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/models/prayer_time.dart';
 import '../../core/models/location.dart';
-import '../../core/models/notification_setting.dart';
+import '../widgets/calendar/calendar_day_card.dart';
+import '../widgets/common/state_widgets.dart';
 
-class CalendarScreen extends StatelessWidget {
+class CalendarScreen extends StatefulWidget {
   final Location location;
   final List<PrayerTime> prayerTimes;
   final VoidCallback? onRefresh;
@@ -20,37 +21,35 @@ class CalendarScreen extends StatelessWidget {
     this.errorMessage,
   });
 
-  String _getPrayerName(PrayerType type) {
-    switch (type) {
-      case PrayerType.fajr:
-        return 'İmsak';
-      case PrayerType.sunrise:
-        return 'Güneş';
-      case PrayerType.dhuhr:
-        return 'Öğle';
-      case PrayerType.asr:
-        return 'İkindi';
-      case PrayerType.maghrib:
-        return 'Akşam';
-      case PrayerType.isha:
-        return 'Yatsı';
-    }
+  @override
+  State<CalendarScreen> createState() => _CalendarScreenState();
+}
+
+class _CalendarScreenState extends State<CalendarScreen> {
+  final ScrollController _scrollController = ScrollController();
+  int? _todayIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToToday());
   }
 
-  DateTime _getPrayerTime(PrayerTime prayerTime, PrayerType type) {
-    switch (type) {
-      case PrayerType.fajr:
-        return prayerTime.fajr;
-      case PrayerType.sunrise:
-        return prayerTime.sunrise;
-      case PrayerType.dhuhr:
-        return prayerTime.dhuhr;
-      case PrayerType.asr:
-        return prayerTime.asr;
-      case PrayerType.maghrib:
-        return prayerTime.maghrib;
-      case PrayerType.isha:
-        return prayerTime.isha;
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToToday() {
+    if (_todayIndex != null && _scrollController.hasClients) {
+      const itemHeight = 180.0;
+      final offset = (_todayIndex! * itemHeight) - 100;
+      _scrollController.animateTo(
+        offset.clamp(0, _scrollController.position.maxScrollExtent),
+        duration: const Duration(milliseconds: 500),
+        curve: Curves.easeOutCubic,
+      );
     }
   }
 
@@ -63,179 +62,135 @@ class CalendarScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    for (int i = 0; i < widget.prayerTimes.length; i++) {
+      if (_isToday(widget.prayerTimes[i].date)) {
+        _todayIndex = i;
+        break;
+      }
+    }
+
     return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Vakit Takvimi'),
-            Text(
-              '${location.province} / ${location.district}',
-              style: const TextStyle(fontSize: 12),
-            ),
-          ],
-        ),
+      extendBodyBehindAppBar: true,
+      appBar: _CalendarAppBar(
+        location: widget.location,
+        showTodayButton: _todayIndex != null,
+        onTodayTap: _scrollToToday,
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : errorMessage != null
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 64, color: Colors.red),
-                  const SizedBox(height: 16),
-                  Text(
-                    errorMessage!,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                  const SizedBox(height: 16),
-                  if (onRefresh != null)
-                    ElevatedButton(
-                      onPressed: onRefresh,
-                      child: const Text('Yeniden Dene'),
-                    ),
-                ],
-              ),
-            )
-          : prayerTimes.isEmpty
-          ? const Center(child: Text('Veri bulunamadı'))
-          : RefreshIndicator(
-              onRefresh: () async {
-                onRefresh?.call();
-              },
-              child: ListView.builder(
-                itemCount: prayerTimes.length,
-                itemBuilder: (context, index) {
-                  final prayerTime = prayerTimes[index];
-                  return _buildDayCard(prayerTime);
-                },
-              ),
-            ),
+      body: Container(
+        decoration: const BoxDecoration(gradient: AppTheme.nightGradient),
+        child: SafeArea(child: _buildBody()),
+      ),
     );
   }
 
-  Widget _buildDayCard(PrayerTime prayerTime) {
-    final dateFormat = DateFormat('dd MMMM yyyy EEEE', 'tr_TR');
-    final timeFormat = DateFormat('HH:mm');
-    final isToday = _isToday(prayerTime.date);
+  Widget _buildBody() {
+    if (widget.isLoading) {
+      return const LoadingState(message: 'Takvim yükleniyor...');
+    }
 
-    return Card(
-      key: Key('day_card_${prayerTime.date.toIso8601String()}'),
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      color: isToday ? Colors.blue.shade50 : Colors.grey.shade50,
-      child: ExpansionTile(
-        tilePadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
-        childrenPadding: const EdgeInsets.fromLTRB(32, 0, 32, 14),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide.none,
-        ),
-        collapsedShape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide.none,
-        ),
-        initiallyExpanded: isToday,
-        title: Row(
-          children: [
-            if (isToday)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                  borderRadius: BorderRadius.circular(6),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.blue.shade200,
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: const Text(
-                  'BUGÜN',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            if (isToday) const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                dateFormat.format(prayerTime.date),
-                style: TextStyle(
-                  fontWeight: isToday ? FontWeight.w700 : FontWeight.w500,
-                  fontSize: 15,
-                  color: Colors.blueGrey.shade900,
-                ),
-              ),
-            ),
-          ],
-        ),
-        children: [
-          Column(
-            children: [
-              _buildPrayerRow(PrayerType.fajr, prayerTime, timeFormat),
-              _buildDivider(),
-              _buildPrayerRow(PrayerType.sunrise, prayerTime, timeFormat),
-              _buildDivider(),
-              _buildPrayerRow(PrayerType.dhuhr, prayerTime, timeFormat),
-              _buildDivider(),
-              _buildPrayerRow(PrayerType.asr, prayerTime, timeFormat),
-              _buildDivider(),
-              _buildPrayerRow(PrayerType.maghrib, prayerTime, timeFormat),
-              _buildDivider(),
-              _buildPrayerRow(PrayerType.isha, prayerTime, timeFormat),
-            ],
+    if (widget.errorMessage != null) {
+      return ErrorState(
+        message: widget.errorMessage!,
+        onRetry: widget.onRefresh,
+      );
+    }
+
+    if (widget.prayerTimes.isEmpty) {
+      return const EmptyState(
+        icon: Icons.calendar_month_outlined,
+        message: 'Takvim verisi bulunamadı',
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: () async => widget.onRefresh?.call(),
+      color: AppTheme.gold,
+      child: ListView.builder(
+        controller: _scrollController,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        itemCount: widget.prayerTimes.length,
+        itemBuilder: (context, index) {
+          final prayerTime = widget.prayerTimes[index];
+          return CalendarDayCard(
+            prayerTime: prayerTime,
+            isToday: _isToday(prayerTime.date),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _CalendarAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final Location location;
+  final bool showTodayButton;
+  final VoidCallback? onTodayTap;
+
+  const _CalendarAppBar({
+    required this.location,
+    required this.showTodayButton,
+    this.onTodayTap,
+  });
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      leading: IconButton(
+        icon: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
           ),
-        ],
+          child: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+        ),
+        onPressed: () => Navigator.of(context).pop(),
       ),
-    );
-  }
-
-  Widget _buildPrayerRow(
-    PrayerType type,
-    PrayerTime prayerTime,
-    DateFormat timeFormat,
-  ) {
-    final prayerDateTime = _getPrayerTime(prayerTime, type);
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
-      child: Row(
+      title: Column(
         children: [
-          Expanded(
-            child: Text(
-              _getPrayerName(type),
-              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+          const Text(
+            'Vakit Takvimi',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
             ),
           ),
           Text(
-            timeFormat.format(prayerDateTime),
+            '${location.district}, ${location.province}',
             style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              fontFeatures: const [FontFeature.tabularFigures()],
-              color: Colors.blueGrey.shade900,
+              fontSize: 12,
+              color: Colors.white.withOpacity(0.7),
             ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildDivider() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2),
-      child: Divider(color: Colors.blueGrey.shade100, height: 2, thickness: 1),
+      centerTitle: true,
+      actions: [
+        if (showTodayButton)
+          IconButton(
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppTheme.gold.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.today_rounded,
+                size: 18,
+                color: AppTheme.gold,
+              ),
+            ),
+            onPressed: onTodayTap,
+            tooltip: 'Bugüne Git',
+          ),
+        const SizedBox(width: 8),
+      ],
     );
   }
 }

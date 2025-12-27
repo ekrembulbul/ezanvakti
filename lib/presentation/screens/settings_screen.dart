@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/models/location.dart';
+import '../widgets/settings/settings_cards.dart';
+import '../widgets/common/app_bar_widgets.dart';
 
 class SettingsScreen extends StatefulWidget {
   final Location currentLocation;
@@ -21,7 +24,8 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  String _version = 'Yükleniyor...';
+  String _version = '';
+  String _buildNumber = '';
 
   @override
   void initState() {
@@ -34,6 +38,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (mounted) {
       setState(() {
         _version = packageInfo.version;
+        _buildNumber = packageInfo.buildNumber;
       });
     }
   }
@@ -41,92 +46,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Ayarlar')),
-      body: ListView(
-        children: [
-          _buildSection(
-            title: 'Konum',
-            children: [
-              ListTile(
-                key: const Key('location_tile'),
-                leading: Icon(
-                  widget.currentLocation.type == LocationType.gps
-                      ? Icons.my_location
-                      : Icons.location_on,
+      extendBodyBehindAppBar: true,
+      appBar: const SimpleAppBar(title: 'Ayarlar'),
+      body: Container(
+        decoration: const BoxDecoration(gradient: AppTheme.nightGradient),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SettingsSectionTitle(title: 'Konum'),
+                const SizedBox(height: 12),
+                LocationSettingsCard(
+                  location: widget.currentLocation,
+                  onTap: widget.onChangeLocation,
                 ),
-                title: const Text('Konumlar'),
-                subtitle: Text(widget.currentLocation.displayName),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: widget.onChangeLocation,
-              ),
-            ],
-          ),
-          _buildSection(
-            title: 'Veri Kaynağı',
-            children: [
-              ListTile(
-                key: const Key('data_source_tile'),
-                leading: const Icon(Icons.source),
-                title: const Text('Kaynak'),
-                subtitle: Text(widget.dataSource),
-                enabled: false,
-              ),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Text(
-                  'Türkiye için Diyanet İşleri Başkanlığı verileri kullanılmaktadır.',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                const SizedBox(height: 28),
+                const SettingsSectionTitle(title: 'Veri Kaynağı'),
+                const SizedBox(height: 12),
+                DataSourceCard(dataSource: widget.dataSource),
+                const SizedBox(height: 28),
+                const SettingsSectionTitle(title: 'Uygulama'),
+                const SizedBox(height: 12),
+                AppInfoCard(
+                  version: _version.isEmpty ? '' : '$_version ($_buildNumber)',
                 ),
-              ),
-            ],
-          ),
-          _buildSection(
-            title: 'Uygulama',
-            children: [
-              ListTile(
-                key: const Key('version_tile'),
-                leading: const Icon(Icons.info_outline),
-                title: const Text('Versiyon'),
-                subtitle: Text(_version),
-              ),
-              if (widget.onAbout != null)
-                ListTile(
-                  key: const Key('about_tile'),
-                  leading: const Icon(Icons.help_outline),
-                  title: const Text('Hakkında'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: widget.onAbout,
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSection({
-    required String title,
-    required List<Widget> children,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Text(
-            title,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey,
+                const SizedBox(height: 28),
+                const AboutCard(),
+              ],
             ),
           ),
         ),
-        Card(
-          margin: const EdgeInsets.symmetric(horizontal: 8),
-          child: Column(children: children),
-        ),
-      ],
+      ),
     );
   }
 }

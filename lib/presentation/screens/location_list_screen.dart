@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/models/location.dart';
 import '../../features/location/domain/location_repository.dart';
+import '../widgets/common/app_bar_widgets.dart';
+import '../widgets/common/state_widgets.dart';
 import 'location_add_screen.dart';
 
 class LocationListScreen extends StatefulWidget {
@@ -39,11 +42,7 @@ class _LocationListScreenState extends State<LocationListScreen> {
       });
     } catch (e) {
       setState(() => _isLoading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Konumlar yüklenemedi: $e')));
-      }
+      _showSnackBar('Konumlar yüklenemedi: $e', isError: true);
     }
   }
 
@@ -64,18 +63,24 @@ class _LocationListScreenState extends State<LocationListScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Konumu Sil'),
+        backgroundColor: AppTheme.primaryMedium,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Konumu Sil', style: TextStyle(color: Colors.white)),
         content: Text(
           '${location.displayName} konumunu silmek istediğinize emin misiniz?',
+          style: const TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('İptal'),
+            child: const Text('İptal', style: TextStyle(color: Colors.white54)),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
             child: const Text('Sil'),
           ),
         ],
@@ -86,141 +91,283 @@ class _LocationListScreenState extends State<LocationListScreen> {
       try {
         await widget.locationRepository.deleteLocation(location.id);
         _loadLocations();
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Konum silindi')));
-        }
+        _showSnackBar('Konum silindi');
       } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Hata: $e')));
-        }
+        _showSnackBar('Hata: $e', isError: true);
       }
+    }
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: isError ? Colors.red.shade700 : AppTheme.gold,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Konumlar'),
+      extendBodyBehindAppBar: true,
+      appBar: SimpleAppBar(
+        title: 'Konumlar',
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: _addNewLocation,
+          AppBarActionButton(
+            icon: Icons.add_rounded,
+            onTap: _addNewLocation,
             tooltip: 'Yeni Konum Ekle',
+            highlighted: true,
           ),
+          const SizedBox(width: 8),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _locations.isEmpty
-          ? _buildEmptyState()
-          : ListView.builder(
-              itemCount: _locations.length,
-              itemBuilder: (context, index) {
-                final location = _locations[index];
-                final isActive = widget.currentLocation?.id == location.id;
-                return _buildLocationTile(location, isActive);
-              },
-            ),
+      body: Container(
+        decoration: const BoxDecoration(gradient: AppTheme.nightGradient),
+        child: SafeArea(child: _buildBody()),
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _addNewLocation,
-        icon: const Icon(Icons.add_location),
-        label: const Text('Yeni Konum'),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.location_off, size: 80, color: Colors.grey.shade400),
-            const SizedBox(height: 16),
-            Text(
-              'Henüz konum eklenmedi',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey.shade600,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Yeni konum eklemek için + butonuna basın',
-              style: TextStyle(color: Colors.grey.shade500),
-              textAlign: TextAlign.center,
-            ),
-          ],
+        backgroundColor: AppTheme.gold,
+        foregroundColor: AppTheme.primaryDark,
+        icon: const Icon(Icons.add_location_alt_rounded),
+        label: const Text(
+          'Yeni Konum',
+          style: TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
     );
   }
 
-  Widget _buildLocationTile(Location location, bool isActive) {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: isActive ? Colors.teal : Colors.grey.shade300,
-          child: Icon(
-            location.type == LocationType.gps
-                ? Icons.my_location
-                : Icons.location_on,
-            color: isActive ? Colors.white : Colors.grey.shade600,
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const LoadingState(message: 'Konumlar yükleniyor...');
+    }
+
+    if (_locations.isEmpty) {
+      return EmptyState(
+        icon: Icons.location_off_rounded,
+        message: 'Henüz konum eklenmedi',
+        subtitle:
+            'GPS ile otomatik tespit edin veya\nmanuel olarak konum ekleyin.',
+        action: ElevatedButton.icon(
+          onPressed: _addNewLocation,
+          icon: const Icon(Icons.add_location_alt_rounded),
+          label: const Text('Konum Ekle'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppTheme.gold,
+            foregroundColor: AppTheme.primaryDark,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
           ),
         ),
-        title: Text(
-          location.displayName,
-          style: TextStyle(
-            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadLocations,
+      color: AppTheme.gold,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(20),
+        itemCount: _locations.length,
+        itemBuilder: (context, index) {
+          final location = _locations[index];
+          final isActive = widget.currentLocation?.id == location.id;
+          return _LocationTileWithDelete(
+            location: location,
+            isActive: isActive,
+            onTap: () {
+              widget.onLocationSelected(location);
+              Navigator.popUntil(context, (route) => route.isFirst);
+            },
+            onDelete: () => _deleteLocation(location),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _LocationTileWithDelete extends StatelessWidget {
+  final Location location;
+  final bool isActive;
+  final VoidCallback? onTap;
+  final VoidCallback? onDelete;
+
+  const _LocationTileWithDelete({
+    required this.location,
+    required this.isActive,
+    this.onTap,
+    this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: isActive ? null : onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: isActive
+              ? LinearGradient(
+                  colors: [
+                    AppTheme.gold.withOpacity(0.2),
+                    AppTheme.gold.withOpacity(0.05),
+                  ],
+                )
+              : null,
+          color: isActive ? null : Colors.white.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isActive
+                ? AppTheme.gold.withOpacity(0.5)
+                : Colors.white.withOpacity(0.1),
+            width: isActive ? 1.5 : 1,
           ),
         ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            Text('${location.province} / ${location.district}'),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Icon(
-                  location.type == LocationType.gps
-                      ? Icons.gps_fixed
-                      : Icons.edit_location,
-                  size: 14,
-                  color: Colors.grey,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  location.type.displayName,
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                ),
-              ],
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: isActive
+                    ? AppTheme.gold.withOpacity(0.3)
+                    : Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(
+                location.type == LocationType.gps
+                    ? Icons.my_location_rounded
+                    : Icons.location_on_rounded,
+                color: isActive ? AppTheme.gold : Colors.white70,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          location.displayName,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: isActive
+                                ? FontWeight.w700
+                                : FontWeight.w600,
+                            color: isActive ? AppTheme.gold : Colors.white,
+                          ),
+                        ),
+                      ),
+                      if (isActive)
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppTheme.gold,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            'AKTİF',
+                            style: TextStyle(
+                              color: AppTheme.primaryDark,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '${location.province} / ${location.district}',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: isActive
+                          ? AppTheme.gold.withOpacity(0.7)
+                          : Colors.white.withOpacity(0.5),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isActive
+                              ? AppTheme.gold.withOpacity(0.15)
+                              : Colors.white.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              location.type == LocationType.gps
+                                  ? Icons.gps_fixed_rounded
+                                  : Icons.edit_location_rounded,
+                              size: 12,
+                              color: isActive
+                                  ? AppTheme.gold
+                                  : Colors.white.withOpacity(0.5),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              location.type.displayName,
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                                color: isActive
+                                    ? AppTheme.gold
+                                    : Colors.white.withOpacity(0.5),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Spacer(),
+                      if (!isActive)
+                        GestureDetector(
+                          onTap: onDelete,
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.delete_outline_rounded,
+                              size: 18,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
         ),
-        trailing: isActive
-            ? const Chip(
-                label: Text('Aktif', style: TextStyle(fontSize: 12)),
-                backgroundColor: Colors.teal,
-                labelStyle: TextStyle(color: Colors.white),
-              )
-            : IconButton(
-                icon: const Icon(Icons.delete_outline, color: Colors.red),
-                onPressed: () => _deleteLocation(location),
-              ),
-        onTap: isActive
-            ? null
-            : () {
-                widget.onLocationSelected(location);
-                Navigator.popUntil(context, (route) => route.isFirst);
-              },
       ),
     );
   }

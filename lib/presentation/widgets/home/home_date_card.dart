@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../core/theme/app_theme.dart';
-import '../../core/utils/hijri_formatter.dart';
+import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/hijri_formatter.dart';
 
-class DateCard extends StatelessWidget {
+class HomeDateCard extends StatelessWidget {
   final DateTime date;
 
-  const DateCard({super.key, required this.date});
+  const HomeDateCard({super.key, required this.date});
 
   @override
   Widget build(BuildContext context) {

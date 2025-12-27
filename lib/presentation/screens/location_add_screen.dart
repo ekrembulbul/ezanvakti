@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart' hide Location;
+import '../../core/theme/app_theme.dart';
 import '../../core/models/location.dart' as AppLocation;
 import '../../features/location/data/turkey_locations_data.dart';
 import '../../features/location/domain/location_repository.dart';
+import '../widgets/common/app_bar_widgets.dart';
+import '../widgets/location/location_widgets.dart';
 
 class LocationAddScreen extends StatefulWidget {
   final LocationRepository locationRepository;
@@ -38,7 +41,6 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
 
   void _onProvinceSelected(String? province) {
     if (province == null) return;
-
     setState(() {
       selectedProvince = province;
       selectedDistrict = null;
@@ -48,10 +50,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
 
   void _onDistrictSelected(AppLocation.Location? district) {
     if (district == null) return;
-
-    setState(() {
-      selectedDistrict = district;
-    });
+    setState(() => selectedDistrict = district);
   }
 
   Future<void> _detectLocation() async {
@@ -69,9 +68,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
       LocationPermission permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         final shouldRequest = await _showLocationRationale();
-        if (!shouldRequest) {
-          throw Exception('Konum izni gerekli.');
-        }
+        if (!shouldRequest) throw Exception('Konum izni gerekli.');
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
           throw Exception('Konum izni reddedildi.');
@@ -93,9 +90,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
         position.longitude,
       );
 
-      if (placemarks.isEmpty) {
-        throw Exception('Konum bilgisi alınamadı.');
-      }
+      if (placemarks.isEmpty) throw Exception('Konum bilgisi alınamadı.');
 
       final placemark = placemarks.first;
       final province = placemark.administrativeArea ?? '';
@@ -120,13 +115,11 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
         );
       }
     } catch (e) {
-      setState(() {
-        _locationError = e.toString().replaceAll('Exception: ', '');
-      });
+      setState(
+        () => _locationError = e.toString().replaceAll('Exception: ', ''),
+      );
     } finally {
-      setState(() {
-        _isLoadingLocation = false;
-      });
+      setState(() => _isLoadingLocation = false);
     }
   }
 
@@ -163,27 +156,31 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
   Future<bool> _showLocationRationale() async {
     final result = await showDialog<bool>(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Konum İzni'),
-          content: const Text(
-            'Namaz vakitlerini bulunduğunuz konuma göre gösterebilmek için konum iznine ihtiyaç var. '
-            'İzni vererek bulunduğunuz il/ilçe otomatik seçilecektir.',
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.primaryMedium,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Konum İzni', style: TextStyle(color: Colors.white)),
+        content: const Text(
+          'Namaz vakitlerini bulunduğunuz konuma göre gösterebilmek için konum iznine ihtiyaç var. '
+          'İzni vererek bulunduğunuz il/ilçe otomatik seçilecektir.',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('İptal', style: TextStyle(color: Colors.white54)),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('İptal'),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.gold,
+              foregroundColor: AppTheme.primaryDark,
             ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('İzin Ver'),
-            ),
-          ],
-        );
-      },
+            child: const Text('İzin Ver'),
+          ),
+        ],
+      ),
     );
-
     return result ?? false;
   }
 
@@ -194,23 +191,16 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
       } else {
         await widget.locationRepository.saveLocation(location);
       }
-      if (mounted) {
-        Navigator.pop(context, true);
-      }
+      await widget.locationRepository.setActiveLocation(location);
+      if (mounted) Navigator.pop(context, true);
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Hata: $e')));
-      }
+      _showSnackBar('Hata: $e', isError: true);
     }
   }
 
   Future<void> _onManualSave() async {
     if (selectedDistrict == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Lütfen il ve ilçe seçiniz')),
-      );
+      _showSnackBar('Lütfen il ve ilçe seçiniz', isError: true);
       return;
     }
 
@@ -223,85 +213,105 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
     await _saveAndReturn(locationToSave);
   }
 
+  void _showSnackBar(String message, {bool isError = false}) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: isError ? Colors.red.shade700 : AppTheme.gold,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Yeni Konum Ekle')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: _showManualSelection
-            ? _buildManualSelection()
-            : _buildChoiceScreen(),
+      extendBodyBehindAppBar: true,
+      appBar: SimpleAppBar(
+        title: _showManualSelection ? 'Manuel Konum' : 'Yeni Konum',
+      ),
+      body: Container(
+        decoration: const BoxDecoration(gradient: AppTheme.nightGradient),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: _showManualSelection
+                ? _buildManualSelection()
+                : _buildChoiceScreen(),
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildChoiceScreen() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const Spacer(),
-        const Icon(Icons.add_location, size: 80, color: Colors.teal),
-        const SizedBox(height: 24),
+        Container(
+          padding: const EdgeInsets.all(28),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppTheme.gold.withOpacity(0.2),
+                AppTheme.gold.withOpacity(0.05),
+              ],
+            ),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            Icons.add_location_alt_rounded,
+            size: 64,
+            color: AppTheme.gold,
+          ),
+        ),
+        const SizedBox(height: 32),
         const Text(
           'Yeni Konum Ekle',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 26,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
-        const SizedBox(height: 8),
-        const Text(
-          'GPS ile otomatik bul veya manuel seç',
-          style: TextStyle(fontSize: 16),
+        const SizedBox(height: 12),
+        Text(
+          'GPS ile otomatik tespit edin veya\nmanuel olarak konum seçin',
+          style: TextStyle(
+            fontSize: 15,
+            color: Colors.white.withOpacity(0.6),
+            height: 1.5,
+          ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 48),
-        ElevatedButton.icon(
-          onPressed: _isLoadingLocation ? null : _detectLocation,
-          icon: _isLoadingLocation
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
-                  ),
-                )
-              : const Icon(Icons.my_location),
-          label: Text(_isLoadingLocation ? 'Konum Alınıyor...' : 'GPS ile Bul'),
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            textStyle: const TextStyle(fontSize: 16),
-          ),
+        LocationChoiceButton(
+          icon: Icons.my_location_rounded,
+          title: _isLoadingLocation ? 'Konum Alınıyor...' : 'GPS ile Bul',
+          subtitle: 'Otomatik konum tespiti',
+          isLoading: _isLoadingLocation,
+          isHighlighted: true,
+          onTap: _detectLocation,
         ),
         if (_locationError != null) ...[
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.red.shade50,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              _locationError!,
-              style: const TextStyle(color: Colors.red, fontSize: 13),
-              textAlign: TextAlign.center,
-            ),
-          ),
+          const SizedBox(height: 16),
+          LocationErrorCard(error: _locationError!),
         ],
         const SizedBox(height: 16),
-        OutlinedButton.icon(
-          onPressed: () {
-            setState(() {
-              _showManualSelection = true;
-              _locationError = null;
-            });
-          },
-          icon: const Icon(Icons.edit_location_alt),
-          label: const Text('Manuel Seç'),
-          style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            textStyle: const TextStyle(fontSize: 16),
-          ),
+        LocationChoiceButton(
+          icon: Icons.edit_location_alt_rounded,
+          title: 'Manuel Seç',
+          subtitle: 'İl ve ilçe seçerek ekle',
+          onTap: () => setState(() {
+            _showManualSelection = true;
+            _locationError = null;
+          }),
         ),
         const Spacer(flex: 2),
       ],
@@ -312,83 +322,163 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text(
-          'Manuel Konum Ekle',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-        ),
         const SizedBox(height: 8),
-        const Text(
-          'İl ve ilçe seçerek yeni konum ekleyin.',
-          style: TextStyle(fontSize: 16),
+        Text(
+          'İl ve ilçe seçerek yeni konum ekleyin',
+          style: TextStyle(fontSize: 14, color: Colors.white.withOpacity(0.6)),
         ),
-        const SizedBox(height: 24),
-        TextField(
-          controller: _customNameController,
-          decoration: const InputDecoration(
-            labelText: 'Özel İsim (Opsiyonel)',
-            hintText: 'Örn: Ev, İş, Anne Evi',
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.label_outline),
-          ),
-        ),
+        const SizedBox(height: 32),
+        _buildTextField(),
         const SizedBox(height: 16),
-        DropdownButtonFormField<String>(
-          value: selectedProvince,
-          decoration: const InputDecoration(
-            labelText: 'İl',
-            border: OutlineInputBorder(),
+        _buildProvinceDropdown(),
+        const SizedBox(height: 16),
+        _buildDistrictDropdown(),
+        if (selectedDistrict != null) ...[
+          const SizedBox(height: 24),
+          LocationSelectionConfirm(location: selectedDistrict!),
+        ],
+        const Spacer(),
+        _buildActionButtons(),
+      ],
+    );
+  }
+
+  Widget _buildTextField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
+      ),
+      child: TextField(
+        controller: _customNameController,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          labelText: 'Özel İsim (Opsiyonel)',
+          labelStyle: TextStyle(color: Colors.white.withOpacity(0.5)),
+          hintText: 'Örn: Ev, İş, Anne Evi',
+          hintStyle: TextStyle(color: Colors.white.withOpacity(0.3)),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.all(20),
+          prefixIcon: Icon(
+            Icons.label_outline_rounded,
+            color: Colors.white.withOpacity(0.5),
           ),
-          items: provinces
-              .map(
-                (province) =>
-                    DropdownMenuItem(value: province, child: Text(province)),
-              )
-              .toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProvinceDropdown() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: selectedProvince,
+          hint: Text(
+            'İl Seçiniz',
+            style: TextStyle(color: Colors.white.withOpacity(0.5)),
+          ),
+          isExpanded: true,
+          dropdownColor: AppTheme.primaryMedium,
+          icon: Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: Colors.white.withOpacity(0.5),
+          ),
+          style: const TextStyle(color: Colors.white, fontSize: 16),
+          items: provinces.map((province) {
+            return DropdownMenuItem(value: province, child: Text(province));
+          }).toList(),
           onChanged: _onProvinceSelected,
         ),
-        const SizedBox(height: 16),
-        DropdownButtonFormField<AppLocation.Location>(
+      ),
+    );
+  }
+
+  Widget _buildDistrictDropdown() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.1)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<AppLocation.Location>(
           value: selectedDistrict,
-          decoration: const InputDecoration(
-            labelText: 'İlçe',
-            border: OutlineInputBorder(),
+          hint: Text(
+            'İlçe Seçiniz',
+            style: TextStyle(color: Colors.white.withOpacity(0.5)),
           ),
-          items: districts
-              .map(
-                (district) => DropdownMenuItem<AppLocation.Location>(
-                  value: district,
-                  child: Text(district.district),
-                ),
-              )
-              .toList(),
+          isExpanded: true,
+          dropdownColor: AppTheme.primaryMedium,
+          icon: Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: Colors.white.withOpacity(0.5),
+          ),
+          style: const TextStyle(color: Colors.white, fontSize: 16),
+          items: districts.map((district) {
+            return DropdownMenuItem<AppLocation.Location>(
+              value: district,
+              child: Text(district.district),
+            );
+          }).toList(),
           onChanged: _onDistrictSelected,
         ),
-        const Spacer(),
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: () {
-                  setState(() {
-                    _showManualSelection = false;
-                    selectedProvince = null;
-                    selectedDistrict = null;
-                    districts = [];
-                    _customNameController.clear();
-                  });
-                },
-                child: const Text('Geri'),
+      ),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            onPressed: () {
+              setState(() {
+                _showManualSelection = false;
+                selectedProvince = null;
+                selectedDistrict = null;
+                districts = [];
+                _customNameController.clear();
+              });
+            },
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.white70,
+              side: BorderSide(color: Colors.white.withOpacity(0.2)),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              flex: 2,
-              child: ElevatedButton(
-                onPressed: _onManualSave,
-                child: const Text('Kaydet'),
+            child: const Text('Geri'),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          flex: 2,
+          child: ElevatedButton(
+            onPressed: selectedDistrict != null ? _onManualSave : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.gold,
+              foregroundColor: AppTheme.primaryDark,
+              disabledBackgroundColor: Colors.white.withOpacity(0.1),
+              disabledForegroundColor: Colors.white.withOpacity(0.3),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
               ),
             ),
-          ],
+            child: const Text(
+              'Kaydet',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+            ),
+          ),
         ),
       ],
     );

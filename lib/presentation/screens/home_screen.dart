@@ -1,10 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import '../widgets/date_card.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/models/prayer_time.dart';
 import '../../core/models/location.dart';
-import '../../core/models/notification_setting.dart';
+import '../../core/utils/prayer_utils.dart';
+import '../widgets/home/countdown_card.dart';
+import '../widgets/home/prayer_times_card.dart';
+import '../widgets/home/quick_action_card.dart';
+import '../widgets/home/home_date_card.dart';
+import '../widgets/common/state_widgets.dart';
 
 class HomeScreen extends StatefulWidget {
   final Location location;
@@ -40,410 +44,240 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Timer? _timer;
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (mounted) {
-        setState(() {});
-      }
+      if (mounted) setState(() {});
     });
+
+    _pulseController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _pulseController.dispose();
     super.dispose();
-  }
-
-  PrayerType? _getCurrentPrayer(PrayerTime prayerTime) {
-    final now = DateTime.now();
-    final midnight = DateTime(now.year, now.month, now.day);
-
-    if (now.isBefore(prayerTime.fajr) ||
-        now.isBefore(midnight.add(const Duration(hours: 0)))) {
-      return null;
-    }
-    if (now.isBefore(prayerTime.sunrise)) return PrayerType.fajr;
-    if (now.isBefore(prayerTime.dhuhr)) return PrayerType.sunrise;
-    if (now.isBefore(prayerTime.asr)) return PrayerType.dhuhr;
-    if (now.isBefore(prayerTime.maghrib)) return PrayerType.asr;
-    if (now.isBefore(prayerTime.isha)) return PrayerType.maghrib;
-
-    final todayMidnight = DateTime(
-      now.year,
-      now.month,
-      now.day,
-    ).add(const Duration(days: 1));
-    if (now.isBefore(todayMidnight)) {
-      return PrayerType.isha;
-    }
-
-    return null;
-  }
-
-  DateTime? _getNextPrayerTime() {
-    if (widget.todaysPrayerTime == null) return null;
-
-    final now = DateTime.now();
-    final prayerTime = widget.todaysPrayerTime!;
-
-    if (now.isBefore(prayerTime.fajr)) return prayerTime.fajr;
-    if (now.isBefore(prayerTime.sunrise)) return prayerTime.sunrise;
-    if (now.isBefore(prayerTime.dhuhr)) return prayerTime.dhuhr;
-    if (now.isBefore(prayerTime.asr)) return prayerTime.asr;
-    if (now.isBefore(prayerTime.maghrib)) return prayerTime.maghrib;
-    if (now.isBefore(prayerTime.isha)) return prayerTime.isha;
-
-    if (widget.tomorrowsPrayerTime != null) {
-      return widget.tomorrowsPrayerTime!.fajr;
-    }
-
-    return null;
-  }
-
-  String? _getNextPrayerName() {
-    if (widget.todaysPrayerTime == null) return null;
-
-    final now = DateTime.now();
-    final prayerTime = widget.todaysPrayerTime!;
-
-    if (now.isBefore(prayerTime.fajr)) return 'İmsak';
-    if (now.isBefore(prayerTime.sunrise)) return 'Güneş';
-    if (now.isBefore(prayerTime.dhuhr)) return 'Öğle';
-    if (now.isBefore(prayerTime.asr)) return 'İkindi';
-    if (now.isBefore(prayerTime.maghrib)) return 'Akşam';
-    if (now.isBefore(prayerTime.isha)) return 'Yatsı';
-
-    if (widget.tomorrowsPrayerTime != null) {
-      return 'İmsak';
-    }
-
-    return null;
-  }
-
-  String _getPrayerName(PrayerType type) {
-    switch (type) {
-      case PrayerType.fajr:
-        return 'İmsak';
-      case PrayerType.sunrise:
-        return 'Güneş';
-      case PrayerType.dhuhr:
-        return 'Öğle';
-      case PrayerType.asr:
-        return 'İkindi';
-      case PrayerType.maghrib:
-        return 'Akşam';
-      case PrayerType.isha:
-        return 'Yatsı';
-    }
-  }
-
-  DateTime _getPrayerTime(PrayerTime prayerTime, PrayerType type) {
-    switch (type) {
-      case PrayerType.fajr:
-        return prayerTime.fajr;
-      case PrayerType.sunrise:
-        return prayerTime.sunrise;
-      case PrayerType.dhuhr:
-        return prayerTime.dhuhr;
-      case PrayerType.asr:
-        return prayerTime.asr;
-      case PrayerType.maghrib:
-        return prayerTime.maghrib;
-      case PrayerType.isha:
-        return prayerTime.isha;
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Ezan Vakti'),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  widget.location.type == LocationType.gps
-                      ? Icons.my_location
-                      : Icons.location_on,
-                  size: 14,
-                ),
-                const SizedBox(width: 4),
-                Flexible(
-                  child: Text(
-                    '${widget.location.province} / ${widget.location.district}',
-                    style: const TextStyle(fontSize: 12),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-        actions: [
-          if (widget.location.type == LocationType.gps &&
-              widget.onGpsRefresh != null)
-            IconButton(
-              key: const Key('gps_refresh_button'),
-              icon: const Icon(Icons.gps_fixed),
-              onPressed: widget.onGpsRefresh,
-              tooltip: 'GPS Konumunu Yenile',
-            ),
-          if (widget.onNotificationSettingsTap != null)
-            IconButton(
-              key: const Key('notification_settings_button'),
-              icon: const Icon(Icons.notifications),
-              onPressed: widget.onNotificationSettingsTap,
-            ),
-          if (widget.onSettingsTap != null)
-            IconButton(
-              key: const Key('settings_button'),
-              icon: const Icon(Icons.settings),
-              onPressed: widget.onSettingsTap,
-            ),
-        ],
+      extendBodyBehindAppBar: true,
+      appBar: _HomeAppBar(
+        location: widget.location,
+        onGpsRefresh: widget.onGpsRefresh,
+        onNotificationsTap: widget.onNotificationSettingsTap,
+        onSettingsTap: widget.onSettingsTap,
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          widget.onRefresh?.call();
-        },
-        child: widget.isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : widget.errorMessage != null
-            ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: Colors.red,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      widget.errorMessage!,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                    const SizedBox(height: 16),
-                    if (widget.onRefresh != null)
-                      ElevatedButton(
-                        onPressed: widget.onRefresh,
-                        child: const Text('Yeniden Dene'),
-                      ),
-                  ],
-                ),
-              )
-            : widget.todaysPrayerTime == null
-            ? const Center(child: Text('Veri bulunamadı'))
-            : SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      DateCard(date: widget.todaysPrayerTime!.date),
-                      const SizedBox(height: 16),
-                      _buildCountdownCard(),
-                      const SizedBox(height: 16),
-                      _buildPrayerTimesList(widget.todaysPrayerTime!),
-                      const SizedBox(height: 16),
-                      _buildInfoSection(),
-                      const SizedBox(height: 16),
-                      if (widget.onCalendarTap != null)
-                        OutlinedButton.icon(
-                          key: const Key('calendar_button'),
-                          onPressed: widget.onCalendarTap,
-                          icon: const Icon(Icons.calendar_month),
-                          label: const Text('Vakit Takvimi'),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
+      body: Container(
+        decoration: const BoxDecoration(gradient: AppTheme.nightGradient),
+        child: SafeArea(child: _buildBody()),
       ),
     );
   }
 
-  Widget _buildCountdownCard() {
-    final nextPrayerTime = _getNextPrayerTime();
-    final nextPrayerName = _getNextPrayerName();
+  Widget _buildBody() {
+    if (widget.isLoading) {
+      return const LoadingState();
+    }
+
+    if (widget.errorMessage != null) {
+      return ErrorState(
+        message: widget.errorMessage!,
+        onRetry: widget.onRefresh,
+      );
+    }
+
+    if (widget.todaysPrayerTime == null) {
+      return const EmptyState(
+        icon: Icons.hourglass_empty_rounded,
+        message: 'Veri bulunamadı',
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: () async => widget.onRefresh?.call(),
+      color: AppTheme.gold,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            children: [
+              const SizedBox(height: 8),
+              HomeDateCard(date: widget.todaysPrayerTime!.date),
+              const SizedBox(height: 24),
+              _buildCountdown(),
+              const SizedBox(height: 28),
+              PrayerTimesCard(
+                prayerTime: widget.todaysPrayerTime!,
+                currentPrayer: PrayerUtils.getCurrentPrayer(
+                  widget.todaysPrayerTime!,
+                ),
+                onCalendarTap: widget.onCalendarTap,
+              ),
+              const SizedBox(height: 20),
+              QuickActionsRow(
+                onCalendarTap: widget.onCalendarTap,
+                onNotificationsTap: widget.onNotificationSettingsTap,
+                onSettingsTap: widget.onSettingsTap,
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCountdown() {
+    final nextPrayerTime = PrayerUtils.getNextPrayerTime(
+      widget.todaysPrayerTime,
+      widget.tomorrowsPrayerTime,
+    );
+    final nextPrayerName = PrayerUtils.getNextPrayerName(
+      widget.todaysPrayerTime,
+    );
 
     if (nextPrayerTime == null || nextPrayerName == null) {
       return const SizedBox.shrink();
     }
 
-    final now = DateTime.now();
-    final difference = nextPrayerTime.difference(now);
-
-    final hours = difference.inHours;
-    final minutes = difference.inMinutes.remainder(60);
-    final seconds = difference.inSeconds.remainder(60);
-
-    String countdownText;
-    if (hours > 0) {
-      countdownText =
-          '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-    } else {
-      countdownText =
-          '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-    }
-
-    return Card(
-      key: const Key('countdown_card'),
-      color: Colors.blue.shade50,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            const Text(
-              'Sonraki Vakte Kalan Süre',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              nextPrayerName,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              countdownText,
-              style: const TextStyle(
-                fontSize: 36,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue,
-              ),
-            ),
-          ],
-        ),
-      ),
+    return CountdownCard(
+      nextPrayerTime: nextPrayerTime,
+      nextPrayerName: nextPrayerName,
+      pulseAnimation: _pulseAnimation,
     );
   }
+}
 
-  Widget _buildPrayerTimesList(PrayerTime prayerTime) {
-    final prayers = [
-      PrayerType.fajr,
-      PrayerType.sunrise,
-      PrayerType.dhuhr,
-      PrayerType.asr,
-      PrayerType.maghrib,
-      PrayerType.isha,
-    ];
+class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final Location location;
+  final VoidCallback? onGpsRefresh;
+  final VoidCallback? onNotificationsTap;
+  final VoidCallback? onSettingsTap;
 
-    final currentPrayer = _getCurrentPrayer(prayerTime);
+  const _HomeAppBar({
+    required this.location,
+    this.onGpsRefresh,
+    this.onNotificationsTap,
+    this.onSettingsTap,
+  });
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-        child: Column(
-          children: [
-            for (int i = 0; i < prayers.length; i++) ...[
-              _buildPrayerRow(
-                prayers[i],
-                _getPrayerTime(prayerTime, prayers[i]),
-                isCurrent: prayers[i] == currentPrayer,
-              ),
-              if (i != prayers.length - 1)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 6),
-                  child: Divider(
-                    color: Colors.blueGrey.shade100,
-                    height: 2,
-                    thickness: 1,
-                  ),
-                ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 
-  Widget _buildPrayerRow(
-    PrayerType prayer,
-    DateTime prayerDateTime, {
-    required bool isCurrent,
-  }) {
-    final timeFormat = DateFormat('HH:mm');
-
-    return Container(
-      decoration: BoxDecoration(
-        color: isCurrent ? Colors.blue.shade50 : null,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
-      child: Row(
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      title: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            child: Text(
-              _getPrayerName(prayer),
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: isCurrent ? FontWeight.w700 : FontWeight.w600,
-                color: isCurrent
-                    ? Colors.blue.shade800
-                    : Colors.blueGrey.shade900,
-              ),
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              location.type == LocationType.gps
+                  ? Icons.my_location_rounded
+                  : Icons.location_on_rounded,
+              color: AppTheme.gold,
+              size: 18,
             ),
           ),
-          Text(
-            timeFormat.format(prayerDateTime),
-            style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w700,
-              color: isCurrent
-                  ? Colors.blue.shade800
-                  : Colors.blueGrey.shade900,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoSection() {
-    final dateFormat = DateFormat('dd.MM.yyyy HH:mm');
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            const Icon(Icons.info_outline, size: 16),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Kaynak: ${widget.dataSource}',
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
-              ),
-            ),
-          ],
-        ),
-        if (widget.lastUpdateTime != null) ...[
-          const SizedBox(height: 4),
-          Row(
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.update, size: 16),
-              const SizedBox(width: 8),
               Text(
-                'Son Güncelleme: ${dateFormat.format(widget.lastUpdateTime!)}',
-                style: const TextStyle(fontSize: 12, color: Colors.grey),
+                location.district,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+              Text(
+                location.province,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.white.withOpacity(0.7),
+                ),
               ),
             ],
           ),
         ],
+      ),
+      actions: [
+        if (location.type == LocationType.gps && onGpsRefresh != null)
+          _AppBarAction(
+            icon: Icons.gps_fixed_rounded,
+            onTap: onGpsRefresh!,
+            tooltip: 'GPS Yenile',
+          ),
+        _AppBarAction(
+          icon: Icons.notifications_rounded,
+          onTap: onNotificationsTap ?? () {},
+          tooltip: 'Bildirimler',
+        ),
+        _AppBarAction(
+          icon: Icons.settings_rounded,
+          onTap: onSettingsTap ?? () {},
+          tooltip: 'Ayarlar',
+        ),
+        const SizedBox(width: 8),
       ],
+    );
+  }
+}
+
+class _AppBarAction extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  final String? tooltip;
+
+  const _AppBarAction({required this.icon, required this.onTap, this.tooltip});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          child: Tooltip(
+            message: tooltip ?? '',
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: Colors.white, size: 20),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

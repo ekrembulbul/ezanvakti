@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/models/notification_setting.dart';
 import '../../core/models/prayer_time.dart';
+import '../../core/utils/prayer_utils.dart';
 import '../../features/notifications/domain/notification_settings_manager.dart';
 import '../../core/di/service_locator.dart';
 import '../utils/prayer_name_helper.dart';
-import '../widgets/add_notification_dialog.dart';
-import '../widgets/notification_setting_tile.dart';
-import '../widgets/notification_permission_warning.dart';
-import '../widgets/notification_empty_state.dart';
-import '../widgets/delete_notification_dialog.dart';
+import '../widgets/common/app_bar_widgets.dart';
+import '../widgets/common/state_widgets.dart';
+import '../widgets/notifications/notification_widgets.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
   final bool hasPermission;
@@ -52,9 +52,7 @@ class _NotificationSettingsScreenState
   void didUpdateWidget(NotificationSettingsScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.hasPermission != widget.hasPermission) {
-      setState(() {
-        _hasPermission = widget.hasPermission;
-      });
+      setState(() => _hasPermission = widget.hasPermission);
     }
   }
 
@@ -71,9 +69,7 @@ class _NotificationSettingsScreenState
     } catch (e) {
       if (mounted) {
         setState(() => _isLoading = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Ayarlar yüklenemedi: $e')));
+        _showSnackBar('Ayarlar yüklenemedi: $e', isError: true);
       }
     }
   }
@@ -94,28 +90,15 @@ class _NotificationSettingsScreenState
       );
 
       if (exists) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Bu bildirim zaten mevcut')),
-          );
-        }
+        _showSnackBar('Bu bildirim zaten mevcut', isError: true);
         return;
       }
 
       await _manager.addSetting(newSetting);
       await _loadSettings();
-
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Bildirim eklendi')));
-      }
+      _showSnackBar('Bildirim eklendi');
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Bildirim eklenemedi: $e')));
-      }
+      _showSnackBar('Bildirim eklenemedi: $e', isError: true);
     }
   }
 
@@ -129,18 +112,9 @@ class _NotificationSettingsScreenState
         minutesBefore: minutesBefore,
       );
       await _loadSettings();
-
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Bildirim silindi')));
-      }
+      _showSnackBar('Bildirim silindi');
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Bildirim silinemedi: $e')));
-      }
+      _showSnackBar('Bildirim silinemedi: $e', isError: true);
     }
   }
 
@@ -151,11 +125,7 @@ class _NotificationSettingsScreenState
       );
       await _loadSettings();
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Bildirim güncellenemedi: $e')));
-      }
+      _showSnackBar('Bildirim güncellenemedi: $e', isError: true);
     }
   }
 
@@ -163,15 +133,25 @@ class _NotificationSettingsScreenState
     if (widget.onRequestPermission != null) {
       final granted = await widget.onRequestPermission!();
       if (mounted) {
-        setState(() {
-          _hasPermission = granted;
-        });
-        if (granted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Bildirim izni verildi')),
-          );
-        }
+        setState(() => _hasPermission = granted);
+        if (granted) _showSnackBar('Bildirim izni verildi');
       }
+    }
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: isError ? Colors.red.shade700 : AppTheme.gold,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
     }
   }
 
@@ -187,74 +167,110 @@ class _NotificationSettingsScreenState
     return sorted;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Bildirim Ayarları'),
+  Future<bool> _confirmDelete(NotificationSetting setting) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppTheme.primaryMedium,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text(
+          'Bildirimi Sil',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: Text(
+          '${PrayerUtils.getPrayerName(setting.prayerType)} bildirimi silinsin mi?',
+          style: const TextStyle(color: Colors.white70),
+        ),
         actions: [
-          if (!_hasPermission)
-            IconButton(
-              icon: const Icon(Icons.notifications_off),
-              onPressed: _requestPermission,
-              tooltip: 'Bildirim izni iste',
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('İptal', style: TextStyle(color: Colors.white54)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
             ),
-        ],
-      ),
-      body: Column(
-        children: [
-          if (!_hasPermission)
-            NotificationPermissionWarning(
-              onRequestPermission: _requestPermission,
-              onOpenAppSettings: widget.onOpenAppSettings,
-            ),
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : _settings.isEmpty
-                ? const NotificationEmptyState()
-                : RefreshIndicator(
-                    onRefresh: _loadSettings,
-                    child: ListView.builder(
-                      itemCount: _sortedSettings().length,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      itemBuilder: (context, index) {
-                        final setting = _sortedSettings()[index];
-                        return NotificationSettingTile(
-                          setting: setting,
-                          hasPermission: _hasPermission,
-                          onToggle: () => _toggleNotification(setting),
-                          onDelete: () => _confirmDelete(setting),
-                        );
-                      },
-                    ),
-                  ),
+            child: const Text('Sil'),
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
+    );
+
+    if (confirmed == true) {
+      await _deleteNotification(setting.prayerType, setting.minutesBefore);
+    }
+    return false;
+  }
+
+  void _showAddDialog() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => AddNotificationBottomSheet(onAdd: _addNotification),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      extendBodyBehindAppBar: true,
+      appBar: const SimpleAppBar(title: 'Bildirimler'),
+      body: Container(
+        decoration: const BoxDecoration(gradient: AppTheme.nightGradient),
+        child: SafeArea(
+          child: Column(
+            children: [
+              if (!_hasPermission)
+                PermissionWarningCard(onRequestPermission: _requestPermission),
+              Expanded(child: _buildBody()),
+            ],
+          ),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
         key: const Key('add_notification_button'),
         onPressed: _showAddDialog,
-        child: const Icon(Icons.add),
-        tooltip: 'Bildirim Ekle',
+        backgroundColor: AppTheme.gold,
+        foregroundColor: AppTheme.primaryDark,
+        icon: const Icon(Icons.add_rounded),
+        label: const Text(
+          'Bildirim Ekle',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
       ),
     );
   }
 
-  Future<void> _confirmDelete(NotificationSetting setting) async {
-    final confirmed = await DeleteNotificationDialog.show(context, setting);
-    if (confirmed) {
-      await _deleteNotification(setting.prayerType, setting.minutesBefore);
+  Widget _buildBody() {
+    if (_isLoading) {
+      return const LoadingState();
     }
-  }
 
-  void _showAddDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AddNotificationDialog(
-        prayerTime: widget.prayerTime,
-        onAdd: (prayerType, minutesBefore) async {
-          await _addNotification(prayerType, minutesBefore);
+    if (_settings.isEmpty) {
+      return const EmptyState(
+        icon: Icons.notifications_none_rounded,
+        message: 'Henüz bildirim yok',
+        subtitle: 'Namaz vakitlerinde hatırlatma almak için\nbildirim ekleyin.',
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadSettings,
+      color: AppTheme.gold,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(20),
+        itemCount: _sortedSettings().length,
+        itemBuilder: (context, index) {
+          final setting = _sortedSettings()[index];
+          return NotificationTile(
+            setting: setting,
+            hasPermission: _hasPermission,
+            onToggle: () => _toggleNotification(setting),
+            onDismiss: () => _confirmDelete(setting),
+          );
         },
       ),
     );
