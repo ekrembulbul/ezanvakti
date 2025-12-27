@@ -27,7 +27,9 @@ class CalendarScreen extends StatefulWidget {
 
 class _CalendarScreenState extends State<CalendarScreen> {
   final ScrollController _scrollController = ScrollController();
+  final Map<int, GlobalKey> _itemKeys = {};
   int? _todayIndex;
+  bool _didAutoScroll = false;
 
   @override
   void initState() {
@@ -42,14 +44,37 @@ class _CalendarScreenState extends State<CalendarScreen> {
   }
 
   void _scrollToToday() {
-    if (_todayIndex != null && _scrollController.hasClients) {
-      const itemHeight = 180.0;
-      final offset = (_todayIndex! * itemHeight) - 100;
-      _scrollController.animateTo(
-        offset.clamp(0, _scrollController.position.maxScrollExtent),
+    if (_todayIndex == null || !_scrollController.hasClients) return;
+
+    final key = _itemKeys[_todayIndex];
+
+    if (key?.currentContext != null) {
+      Scrollable.ensureVisible(
+        key!.currentContext!,
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeOutCubic,
+        alignment: 0.225,
+        alignmentPolicy: ScrollPositionAlignmentPolicy.explicit,
       );
+    } else {
+      const itemHeight = 180.0;
+      final offset = (_todayIndex! * itemHeight) - 32;
+      _scrollController.jumpTo(
+        offset.clamp(0, _scrollController.position.maxScrollExtent),
+      );
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final key = _itemKeys[_todayIndex];
+        if (key?.currentContext != null) {
+          Scrollable.ensureVisible(
+            key!.currentContext!,
+            duration: const Duration(milliseconds: 500),
+            curve: Curves.easeOutCubic,
+            alignment: 0.22,
+            alignmentPolicy: ScrollPositionAlignmentPolicy.explicit,
+          );
+        }
+      });
     }
   }
 
@@ -65,6 +90,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
     for (int i = 0; i < widget.prayerTimes.length; i++) {
       if (_isToday(widget.prayerTimes[i].date)) {
         _todayIndex = i;
+        if (!_didAutoScroll) {
+          WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToToday());
+          _didAutoScroll = true;
+        }
         break;
       }
     }
@@ -112,6 +141,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
         itemBuilder: (context, index) {
           final prayerTime = widget.prayerTimes[index];
           return CalendarDayCard(
+            key: _itemKeys.putIfAbsent(index, () => GlobalKey()),
             prayerTime: prayerTime,
             isToday: _isToday(prayerTime.date),
           );
