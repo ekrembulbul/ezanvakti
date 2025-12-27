@@ -55,7 +55,7 @@ class _AppRootState extends State<AppRoot> {
     return Consumer<AppState>(
       builder: (context, appState, child) {
         if (appState.hasActiveLocation) {
-          return const HomePage();
+          return HomePage(key: ValueKey(appState.activeLocation?.id));
         } else {
           final locationRepository = ServiceLocator().get<LocationRepository>();
           return LocationAddScreen(locationRepository: locationRepository);

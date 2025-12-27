@@ -7,6 +7,8 @@ import '../../features/location/data/turkey_locations_data.dart';
 import '../../features/location/domain/location_repository.dart';
 import '../widgets/common/app_bar_widgets.dart';
 import '../widgets/location/location_widgets.dart';
+import '../../core/providers/app_state.dart';
+import 'package:provider/provider.dart';
 
 class LocationAddScreen extends StatefulWidget {
   final LocationRepository locationRepository;
@@ -192,7 +194,9 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
         await widget.locationRepository.saveLocation(location);
       }
       await widget.locationRepository.setActiveLocation(location);
-      if (mounted) Navigator.pop(context, true);
+      if (mounted) {
+        context.read<AppState>().setActiveLocation(location);
+      }
     } catch (e) {
       _showSnackBar('Hata: $e', isError: true);
     }
@@ -325,7 +329,10 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
         const SizedBox(height: 8),
         Text(
           'İl ve ilçe seçerek yeni konum ekleyin',
-          style: TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: 0.6)),
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.white.withValues(alpha: 0.6),
+          ),
         ),
         const SizedBox(height: 32),
         _buildTextField(),

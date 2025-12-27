@@ -35,8 +35,11 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    final logger = AppLogger();
+    logger.info('🔵 HomePage initState called');
     _initializeServices();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      logger.info('🔵 PostFrameCallback executing');
       _loadInitialData();
       _startLocationMonitoring();
     });
@@ -140,12 +143,20 @@ class _HomePageState extends State<HomePage> {
     try {
       final data = await _dataLoaderService.loadInitialData(location);
 
+      logger.info(
+        '📊 Data received - todayPrayer: ${data['todayPrayer'] != null ? "YES" : "NULL"}, prayerTimes count: ${(data['prayerTimes'] as List).length}',
+      );
+
       appState.setTodaysPrayerTime(data['todayPrayer']);
       appState.setTomorrowsPrayerTime(data['tomorrowPrayer']);
       appState.setPrayerTimes(data['prayerTimes']);
       appState.setLastUpdateTime(data['lastUpdate']);
       appState.setNotificationPermission(data['hasPermission']);
       appState.setNotificationSettings(data['settings']);
+
+      logger.info(
+        '📊 AppState updated - todaysPrayerTime: ${appState.todaysPrayerTime != null ? "YES" : "NULL"}',
+      );
 
       appState.setLoading(false);
       logger.info('✅ Initial data loaded successfully');

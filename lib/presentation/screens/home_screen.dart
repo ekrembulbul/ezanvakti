@@ -83,8 +83,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         onSettingsTap: widget.onSettingsTap,
       ),
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: const BoxDecoration(gradient: AppTheme.nightGradient),
-        child: SafeArea(child: _buildBody()),
+        child: SafeArea(top: true, bottom: true, child: _buildBody()),
       ),
     );
   }
