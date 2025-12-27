@@ -6,20 +6,21 @@ class HijriFormatter {
   static String format(DateTime date) {
     final hijri = HijriCalendar.fromDate(date);
     const monthTr = {
-      'Muharram': 'Muharrem',
-      'Safar': 'Safer',
-      "Rabi' al-awwal": 'Rebiülevvel',
-      "Rabi' al-thani": 'Rebiülahir',
-      'Jumada al-awwal': 'Cemaziyülevvel',
-      'Jumada al-thani': 'Cemaziyülahir',
-      'Rajab': 'Recep',
-      "Sha'aban": 'Şaban',
-      'Ramadan': 'Ramazan',
-      'Shawwal': 'Şevval',
-      "Dhu al-Qi'dah": 'Zilkade',
-      'Dhu al-Hijjah': 'Zilhicce',
+      'muharram': 'Muharrem',
+      'safar': 'Safer',
+      "rabi' al-awwal": 'Rebiülevvel',
+      "rabi' al-thani": 'Rebiülahir',
+      'jumada al-awwal': 'Cemaziyülevvel',
+      'jumada al-thani': 'Cemaziyülahir',
+      'rajab': 'Recep',
+      "sha'aban": 'Şaban',
+      'ramadan': 'Ramazan',
+      'shawwal': 'Şevval',
+      "dhu al-qi'dah": 'Zilkade',
+      'dhu al-hijjah': 'Zilhicce',
     };
-    final monthName = monthTr[hijri.longMonthName] ?? hijri.longMonthName;
+    final monthKey = hijri.longMonthName.toLowerCase();
+    final monthName = monthTr[monthKey] ?? hijri.longMonthName;
     return '${hijri.hDay} $monthName ${hijri.hYear}';
   }
 }
