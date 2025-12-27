@@ -91,14 +91,16 @@ class NotificationTile extends StatelessWidget {
   final NotificationSetting setting;
   final bool hasPermission;
   final VoidCallback? onToggle;
-  final Future<bool> Function()? onDismiss;
+  final Future<void> Function()? onDelete;
+  final VoidCallback? onTap;
 
   const NotificationTile({
     super.key,
     required this.setting,
     required this.hasPermission,
     this.onToggle,
-    this.onDismiss,
+    this.onDelete,
+    this.onTap,
   });
 
   @override
@@ -109,20 +111,8 @@ class NotificationTile extends StatelessWidget {
         ? 'Tam vaktinde'
         : '${setting.minutesBefore} dk önce';
 
-    return Dismissible(
-      key: Key('${setting.prayerType}_${setting.minutesBefore}'),
-      direction: DismissDirection.endToStart,
-      confirmDismiss: (_) => onDismiss?.call() ?? Future.value(false),
-      background: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        decoration: BoxDecoration(
-          color: Colors.red.withValues(alpha: 0.2),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        child: const Icon(Icons.delete_rounded, color: Colors.red),
-      ),
+    return GestureDetector(
+      onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
@@ -197,6 +187,22 @@ class NotificationTile extends StatelessWidget {
               inactiveThumbColor: Colors.white38,
               inactiveTrackColor: Colors.white12,
             ),
+            const SizedBox(width: 8),
+            GestureDetector(
+              onTap: onDelete,
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.delete_outline_rounded,
+                  size: 18,
+                  color: Colors.red,
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -207,11 +213,17 @@ class NotificationTile extends StatelessWidget {
 class AddNotificationBottomSheet extends StatefulWidget {
   final void Function(PrayerType prayerType, int minutesBefore) onAdd;
   final PrayerTime? prayerTime;
+  final NotificationSetting? initialSetting;
+  final String? submitLabel;
+  final String? title;
 
   const AddNotificationBottomSheet({
     super.key,
     required this.onAdd,
     this.prayerTime,
+    this.initialSetting,
+    this.submitLabel,
+    this.title,
   });
 
   @override
@@ -221,12 +233,21 @@ class AddNotificationBottomSheet extends StatefulWidget {
 
 class _AddNotificationBottomSheetState
     extends State<AddNotificationBottomSheet> {
-  PrayerType _selectedType = PrayerType.fajr;
+  late PrayerType _selectedType;
   bool _isBefore = false;
-  final TextEditingController _minutesController = TextEditingController(
-    text: '5',
-  );
+  final TextEditingController _minutesController = TextEditingController();
   String? _errorText;
+
+  @override
+  void initState() {
+    super.initState();
+    final initial = widget.initialSetting;
+    _selectedType = initial?.prayerType ?? PrayerType.fajr;
+    _isBefore = (initial?.minutesBefore ?? 0) > 0;
+    _minutesController.text = _isBefore
+        ? (initial?.minutesBefore ?? 5).toString()
+        : '5';
+  }
 
   PrayerType? _previousPrayer(PrayerType prayer) {
     switch (prayer) {
@@ -314,6 +335,9 @@ class _AddNotificationBottomSheetState
 
   @override
   Widget build(BuildContext context) {
+    final title = widget.title ?? 'Yeni Bildirim Ekle';
+    final submitLabel = widget.submitLabel ?? 'Bildirim Ekle';
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: const BoxDecoration(
@@ -335,9 +359,9 @@ class _AddNotificationBottomSheetState
             ),
           ),
           const SizedBox(height: 24),
-          const Text(
-            'Yeni Bildirim Ekle',
-            style: TextStyle(
+          Text(
+            title,
+            style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
               color: Colors.white,
@@ -369,9 +393,12 @@ class _AddNotificationBottomSheetState
                   borderRadius: BorderRadius.circular(14),
                 ),
               ),
-              child: const Text(
-                'Bildirim Ekle',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              child: Text(
+                submitLabel,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),

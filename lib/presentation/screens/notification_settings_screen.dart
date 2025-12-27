@@ -118,6 +118,51 @@ class _NotificationSettingsScreenState
     }
   }
 
+  Future<void> _updateNotification(
+    NotificationSetting original,
+    PrayerType prayerType,
+    int minutesBefore,
+  ) async {
+    try {
+      final duplicateExists = _settings.any(
+        (s) =>
+            s.prayerType == prayerType &&
+            s.minutesBefore == minutesBefore &&
+            !(s.prayerType == original.prayerType &&
+                s.minutesBefore == original.minutesBefore),
+      );
+
+      if (duplicateExists) {
+        _showSnackBar('Bu bildirim zaten mevcut', isError: true);
+        return;
+      }
+
+      final updated = original.copyWith(
+        prayerType: prayerType,
+        minutesBefore: minutesBefore,
+      );
+
+      final keyChanged =
+          prayerType != original.prayerType ||
+          minutesBefore != original.minutesBefore;
+
+      if (keyChanged) {
+        await _manager.removeSetting(
+          prayerType: original.prayerType,
+          minutesBefore: original.minutesBefore,
+        );
+        await _manager.addSetting(updated);
+      } else {
+        await _manager.updateSetting(updated);
+      }
+
+      await _loadSettings();
+      _showSnackBar('Bildirim güncellendi');
+    } catch (e) {
+      _showSnackBar('Bildirim güncellenemedi: $e', isError: true);
+    }
+  }
+
   Future<void> _toggleNotification(NotificationSetting setting) async {
     try {
       await _manager.updateSetting(
@@ -216,6 +261,22 @@ class _NotificationSettingsScreenState
     );
   }
 
+  void _showEditDialog(NotificationSetting setting) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => AddNotificationBottomSheet(
+        prayerTime: widget.prayerTime,
+        initialSetting: setting,
+        submitLabel: 'Güncelle',
+        title: 'Bildirimi Güncelle',
+        onAdd: (prayerType, minutesBefore) =>
+            _updateNotification(setting, prayerType, minutesBefore),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -272,7 +333,8 @@ class _NotificationSettingsScreenState
             setting: setting,
             hasPermission: _hasPermission,
             onToggle: () => _toggleNotification(setting),
-            onDismiss: () => _confirmDelete(setting),
+            onDelete: () => _confirmDelete(setting),
+            onTap: () => _showEditDialog(setting),
           );
         },
       ),
