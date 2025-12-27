@@ -50,11 +50,16 @@ class _LocationListScreenState extends State<LocationListScreen> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            LocationAddScreen(locationRepository: widget.locationRepository),
+        builder: (context) => LocationAddScreen(
+          locationRepository: widget.locationRepository,
+          fromLocationList: true,
+        ),
       ),
     );
-    if (result == true) {
+    if (result is Location) {
+      widget.onLocationSelected(result);
+      Navigator.popUntil(context, (route) => route.isFirst);
+    } else if (result == true) {
       _loadLocations();
     }
   }
@@ -118,18 +123,7 @@ class _LocationListScreenState extends State<LocationListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      appBar: SimpleAppBar(
-        title: 'Konumlar',
-        actions: [
-          AppBarActionButton(
-            icon: Icons.add_rounded,
-            onTap: _addNewLocation,
-            tooltip: 'Yeni Konum Ekle',
-            highlighted: true,
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
+      appBar: SimpleAppBar(title: 'Konumlar'),
       body: Container(
         decoration: const BoxDecoration(gradient: AppTheme.nightGradient),
         child: SafeArea(child: _buildBody()),

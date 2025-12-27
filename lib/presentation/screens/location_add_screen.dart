@@ -12,8 +12,13 @@ import 'package:provider/provider.dart';
 
 class LocationAddScreen extends StatefulWidget {
   final LocationRepository locationRepository;
+  final bool fromLocationList;
 
-  const LocationAddScreen({super.key, required this.locationRepository});
+  const LocationAddScreen({
+    super.key,
+    required this.locationRepository,
+    this.fromLocationList = false,
+  });
 
   @override
   State<LocationAddScreen> createState() => _LocationAddScreenState();
@@ -195,7 +200,13 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
       }
       await widget.locationRepository.setActiveLocation(location);
       if (mounted) {
-        context.read<AppState>().setActiveLocation(location);
+        if (widget.fromLocationList) {
+          // LocationListScreen'den çağrıldı - location'ı döndür
+          Navigator.of(context).pop(location);
+        } else {
+          // İlk kurulum - AppState'i güncelle, AppRoot otomatik geçiş yapar
+          context.read<AppState>().setActiveLocation(location);
+        }
       }
     } catch (e) {
       _showSnackBar('Hata: $e', isError: true);
