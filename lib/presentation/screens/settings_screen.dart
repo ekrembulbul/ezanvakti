@@ -49,35 +49,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
       extendBodyBehindAppBar: true,
       appBar: const SimpleAppBar(title: 'Ayarlar'),
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: const BoxDecoration(gradient: AppTheme.nightGradient),
-        child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SettingsSectionTitle(title: 'Konum'),
-                const SizedBox(height: 12),
-                LocationSettingsCard(
-                  location: widget.currentLocation,
-                  onTap: widget.onChangeLocation,
-                ),
-                const SizedBox(height: 28),
-                const SettingsSectionTitle(title: 'Veri Kaynağı'),
-                const SizedBox(height: 12),
-                DataSourceCard(dataSource: widget.dataSource),
-                const SizedBox(height: 28),
-                const SettingsSectionTitle(title: 'Uygulama'),
-                const SizedBox(height: 12),
-                AppInfoCard(
-                  version: _version.isEmpty ? '' : '$_version ($_buildNumber)',
-                ),
-                const SizedBox(height: 28),
-                const AboutCard(),
-              ],
-            ),
+        child: const SafeArea(top: true, bottom: true, child: _SettingsBody()),
+      ),
+    );
+  }
+}
+
+class _SettingsBody extends StatelessWidget {
+  const _SettingsBody();
+
+  @override
+  Widget build(BuildContext context) {
+    final state = context.findAncestorStateOfType<_SettingsScreenState>();
+    if (state == null) return const SizedBox.shrink();
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SettingsSectionTitle(title: 'Konum'),
+          const SizedBox(height: 12),
+          LocationSettingsCard(
+            location: state.widget.currentLocation,
+            onTap: state.widget.onChangeLocation,
           ),
-        ),
+          const SizedBox(height: 28),
+          const SettingsSectionTitle(title: 'Veri Kaynağı'),
+          const SizedBox(height: 12),
+          DataSourceCard(dataSource: state.widget.dataSource),
+          const SizedBox(height: 28),
+          const SettingsSectionTitle(title: 'Uygulama'),
+          const SizedBox(height: 12),
+          AppInfoCard(
+            version: state._version.isEmpty
+                ? ''
+                : '${state._version} (${state._buildNumber})',
+          ),
+        ],
       ),
     );
   }
