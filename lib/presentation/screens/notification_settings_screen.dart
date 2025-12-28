@@ -11,7 +11,9 @@ import 'package:provider/provider.dart';
 import '../utils/prayer_name_helper.dart';
 import '../widgets/common/app_bar_widgets.dart';
 import '../widgets/common/state_widgets.dart';
-import '../widgets/notifications/notification_widgets.dart';
+import '../widgets/notifications/permission_warning_card.dart';
+import '../widgets/notifications/notification_tile.dart';
+import '../widgets/notifications/add_notification_bottom_sheet.dart';
 
 class NotificationSettingsScreen extends StatefulWidget {
   final bool hasPermission;
@@ -188,16 +190,6 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     }
   }
 
-  Future<void> _requestPermission() async {
-    if (widget.onRequestPermission != null) {
-      final granted = await widget.onRequestPermission!();
-      if (mounted) {
-        setState(() => _hasPermission = granted);
-        if (granted) _showSnackBar('Bildirim izni verildi');
-      }
-    }
-  }
-
   Future<void> _rescheduleNotifications() async {
     try {
       final appState = context.read<AppState>();
@@ -320,7 +312,16 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           child: Column(
             children: [
               if (!_hasPermission)
-                PermissionWarningCard(onRequestPermission: _requestPermission),
+                PermissionWarningCard(
+                  onRequestPermission: widget.onRequestPermission,
+                  onOpenAppSettings: widget.onOpenAppSettings,
+                  onPermissionGranted: (granted) {
+                    if (mounted) {
+                      setState(() => _hasPermission = granted);
+                      if (granted) _showSnackBar('Bildirim izni verildi');
+                    }
+                  },
+                ),
               Expanded(child: _buildBody()),
             ],
           ),

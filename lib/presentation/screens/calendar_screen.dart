@@ -53,12 +53,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
         key!.currentContext!,
         duration: const Duration(milliseconds: 500),
         curve: Curves.easeOutCubic,
-        alignment: 0.225,
+        alignment: 0.5,
         alignmentPolicy: ScrollPositionAlignmentPolicy.explicit,
       );
     } else {
-      const itemHeight = 180.0;
-      final offset = (_todayIndex! * itemHeight) - 32;
+      const itemHeight = 0.0;
+      final offset = (_todayIndex! * itemHeight);
       _scrollController.jumpTo(
         offset.clamp(0, _scrollController.position.maxScrollExtent),
       );
@@ -70,7 +70,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
             key!.currentContext!,
             duration: const Duration(milliseconds: 500),
             curve: Curves.easeOutCubic,
-            alignment: 0.22,
+            alignment: 0.5,
             alignmentPolicy: ScrollPositionAlignmentPolicy.explicit,
           );
         }
