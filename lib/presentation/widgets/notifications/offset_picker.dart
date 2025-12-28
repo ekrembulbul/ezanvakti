@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/constants/notification_constants.dart';
 
 class OffsetPicker extends StatefulWidget {
   final int value;
@@ -60,7 +61,7 @@ class _OffsetPickerState extends State<OffsetPicker> {
       return;
     }
 
-    const maxCap = 300;
+    final maxCap = NotificationConstants.defaultMaxMinutesBefore;
     final max = (widget.maxOffset ?? maxCap).clamp(1, maxCap);
     if (value > max) {
       setState(() {

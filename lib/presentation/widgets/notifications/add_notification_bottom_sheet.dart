@@ -4,6 +4,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/models/prayer_time.dart';
 import '../../../core/models/notification_setting.dart';
 import '../../../core/utils/prayer_utils.dart';
+import '../../../core/constants/notification_constants.dart';
 
 class AddNotificationBottomSheet extends StatefulWidget {
   final void Function(PrayerType prayerType, int minutesBefore) onAdd;
@@ -42,61 +43,8 @@ class _AddNotificationBottomSheetState
     _selectedOffset = initial?.minutesBefore ?? 5;
   }
 
-  PrayerType? _previousPrayer(PrayerType prayer) {
-    switch (prayer) {
-      case PrayerType.fajr:
-        return null;
-      case PrayerType.sunrise:
-        return PrayerType.fajr;
-      case PrayerType.dhuhr:
-        return PrayerType.sunrise;
-      case PrayerType.asr:
-        return PrayerType.dhuhr;
-      case PrayerType.maghrib:
-        return PrayerType.asr;
-      case PrayerType.isha:
-        return PrayerType.maghrib;
-    }
-  }
-
-  DateTime? _timeFor(PrayerType prayer) {
-    final pt = widget.prayerTime;
-    if (pt == null) return null;
-    switch (prayer) {
-      case PrayerType.fajr:
-        return pt.fajr;
-      case PrayerType.sunrise:
-        return pt.sunrise;
-      case PrayerType.dhuhr:
-        return pt.dhuhr;
-      case PrayerType.asr:
-        return pt.asr;
-      case PrayerType.maghrib:
-        return pt.maghrib;
-      case PrayerType.isha:
-        return pt.isha;
-    }
-  }
-
   int _maxOffsetFor(PrayerType prayer) {
-    if (prayer == PrayerType.fajr) return 300;
-    if (widget.prayerTime == null) return 300;
-    final previous = _previousPrayer(prayer);
-    if (previous == null) return 300;
-
-    final currentTime = _timeFor(prayer);
-    final previousTime = _timeFor(previous);
-    if (currentTime == null || previousTime == null) return 300;
-
-    final diff = currentTime.difference(previousTime).inMinutes;
-    final maxOffset = diff - 1;
-    return maxOffset < 1 ? 1 : maxOffset;
-  }
-
-  void _ensureOffsetWithinMax() {
-    final maxOffset = _maxOffsetFor(_selectedType);
-    if (_selectedOffset < 1) _selectedOffset = 1;
-    if (_selectedOffset > maxOffset) _selectedOffset = maxOffset;
+    return NotificationConstants.getMaxMinutesBefore(prayer);
   }
 
   void _onSave() {
@@ -227,7 +175,6 @@ class _AddNotificationBottomSheetState
           return GestureDetector(
             onTap: () => setState(() {
               _selectedType = type;
-              _ensureOffsetWithinMax();
             }),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -300,7 +247,6 @@ class _AddNotificationBottomSheetState
                     if (_selectedOffset <= 0) {
                       _selectedOffset = 5;
                     }
-                    _ensureOffsetWithinMax();
                     _errorText = null;
                   });
                 },
@@ -312,7 +258,7 @@ class _AddNotificationBottomSheetState
           const SizedBox(height: 12),
           Center(
             child: Container(
-              constraints: const BoxConstraints(maxWidth: 240),
+              constraints: const BoxConstraints(maxWidth: 200),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.08),
@@ -355,7 +301,7 @@ class _AddNotificationBottomSheetState
                             ),
                           ),
                           Text(
-                            '1 - $maxOffset dk (İmsak için 300)',
+                            '1 - $maxOffset dk',
                             style: TextStyle(
                               color: Colors.white.withValues(alpha: 0.55),
                               fontSize: 11,

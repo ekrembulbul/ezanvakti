@@ -3,6 +3,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/models/prayer_time.dart';
 import '../../../core/models/notification_setting.dart';
 import '../../../core/utils/prayer_utils.dart';
+import '../../../core/constants/notification_constants.dart';
 import 'offset_picker.dart';
 
 class AddNotificationDialog extends StatefulWidget {
@@ -25,56 +26,8 @@ class _AddNotificationDialogState extends State<AddNotificationDialog> {
   int _selectedOffset = 5;
 
   int? _maxOffsetFor(PrayerType? prayer) {
-    if (prayer == null || widget.prayerTime == null) return null;
-    final previous = _previousPrayer(prayer);
-    if (previous == null) return null;
-
-    final currentTime = _timeFor(prayer);
-    final previousTime = _timeFor(previous);
-    if (currentTime == null || previousTime == null) return null;
-
-    final diff = currentTime.difference(previousTime).inMinutes;
-    final maxOffset = diff - 1;
-    final capped = prayer == PrayerType.fajr
-        ? maxOffset.clamp(1, 300)
-        : maxOffset;
-    return capped < 1 ? 1 : capped;
-  }
-
-  PrayerType? _previousPrayer(PrayerType prayer) {
-    switch (prayer) {
-      case PrayerType.fajr:
-        return null;
-      case PrayerType.sunrise:
-        return PrayerType.fajr;
-      case PrayerType.dhuhr:
-        return PrayerType.sunrise;
-      case PrayerType.asr:
-        return PrayerType.dhuhr;
-      case PrayerType.maghrib:
-        return PrayerType.asr;
-      case PrayerType.isha:
-        return PrayerType.maghrib;
-    }
-  }
-
-  DateTime? _timeFor(PrayerType prayer) {
-    final pt = widget.prayerTime;
-    if (pt == null) return null;
-    switch (prayer) {
-      case PrayerType.fajr:
-        return pt.fajr;
-      case PrayerType.sunrise:
-        return pt.sunrise;
-      case PrayerType.dhuhr:
-        return pt.dhuhr;
-      case PrayerType.asr:
-        return pt.asr;
-      case PrayerType.maghrib:
-        return pt.maghrib;
-      case PrayerType.isha:
-        return pt.isha;
-    }
+    if (prayer == null) return null;
+    return NotificationConstants.getMaxMinutesBefore(prayer);
   }
 
   @override

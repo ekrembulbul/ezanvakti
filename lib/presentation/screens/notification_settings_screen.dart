@@ -358,7 +358,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       onRefresh: _loadSettings,
       color: AppTheme.gold,
       child: ListView.builder(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
         itemCount: _sortedSettings().length,
         itemBuilder: (context, index) {
           final setting = _sortedSettings()[index];
