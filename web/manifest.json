@@ -1,6 +1,6 @@
 {
-    "name": "ezanvakti",
-    "short_name": "ezanvakti",
+    "name": "Ezan Vakti - Hatırlatıcı",
+    "short_name": "Ezan Vakti",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

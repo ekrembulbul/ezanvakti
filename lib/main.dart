@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'core/constants/app_constants.dart';
 import 'core/di/service_locator.dart';
 import 'core/providers/app_state.dart';
 import 'core/theme/app_theme.dart';
@@ -36,7 +37,7 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => AppState(),
       child: MaterialApp(
-        title: 'Ezan Vakti',
+        title: AppConstants.appTitle,
         theme: AppTheme.darkTheme,
         home: const AppRoot(),
         debugShowCheckedModeBanner: false,

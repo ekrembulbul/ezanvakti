@@ -4,6 +4,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/models/prayer_time.dart';
 import '../../core/models/location.dart';
 import '../../core/utils/prayer_utils.dart';
+import '../../core/constants/app_constants.dart';
 import '../widgets/home/countdown_card.dart';
 import '../widgets/home/prayer_times_card.dart';
 import '../widgets/home/location_header.dart';
@@ -206,12 +207,16 @@ class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
             child: Icon(Icons.bedtime, color: AppTheme.gold, size: 18),
           ),
           const SizedBox(width: 10),
-          const Text(
-            'Ezan Vakti',
-            style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
+          const Flexible(
+            child: Text(
+              AppConstants.appTitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
             ),
           ),
         ],
