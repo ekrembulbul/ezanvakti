@@ -1,6 +1,7 @@
 import '../../../core/interfaces/local_storage.dart';
 import '../../../core/models/notification_setting.dart';
 import '../../../core/utils/app_logger.dart';
+import 'default_notification_settings.dart';
 import '../../prayer_times/data/sqlite_storage.dart';
 
 class NotificationSettingsManager {
@@ -141,40 +142,7 @@ class NotificationSettingsManager {
   }
 
   Future<void> createDefaultSettings() async {
-    final defaultSettings = [
-      const NotificationSetting(
-        prayerType: PrayerType.fajr,
-        isActive: true,
-        minutesBefore: 5,
-      ),
-      // const NotificationSetting(
-      //   prayerType: PrayerType.sunrise,
-      //   isActive: false,
-      //   minutesBefore: 0,
-      // ),
-      // const NotificationSetting(
-      //   prayerType: PrayerType.dhuhr,
-      //   isActive: true,
-      //   minutesBefore: 0,
-      // ),
-      // const NotificationSetting(
-      //   prayerType: PrayerType.asr,
-      //   isActive: true,
-      //   minutesBefore: 0,
-      // ),
-      // const NotificationSetting(
-      //   prayerType: PrayerType.maghrib,
-      //   isActive: true,
-      //   minutesBefore: 0,
-      // ),
-      // const NotificationSetting(
-      //   prayerType: PrayerType.isha,
-      //   isActive: true,
-      //   minutesBefore: 0,
-      // ),
-    ];
-
-    await saveSettings(defaultSettings);
+    await saveSettings(defaultNotificationSettings);
   }
 
   Future<void> removeSetting({
