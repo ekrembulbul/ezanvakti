@@ -60,7 +60,8 @@ class _OffsetPickerState extends State<OffsetPicker> {
       return;
     }
 
-    final max = (widget.maxOffset ?? 240).clamp(1, 240);
+    const maxCap = 300;
+    final max = (widget.maxOffset ?? maxCap).clamp(1, maxCap);
     if (value > max) {
       setState(() {
         _errorText = widget.maxOffset != null
@@ -76,9 +77,6 @@ class _OffsetPickerState extends State<OffsetPicker> {
 
   @override
   Widget build(BuildContext context) {
-    final max = (widget.maxOffset ?? 120).clamp(1, 240);
-    final displayValue = widget.value.clamp(1, max);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -194,7 +192,7 @@ class _OffsetPickerState extends State<OffsetPicker> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    '$displayValue',
+                    '${widget.value}',
                     style: const TextStyle(
                       color: AppTheme.gold,
                       fontSize: 20,
@@ -210,88 +208,6 @@ class _OffsetPickerState extends State<OffsetPicker> {
                     ),
                   ),
                 ],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        SliderTheme(
-          data: SliderTheme.of(context).copyWith(
-            activeTrackColor: AppTheme.gold,
-            inactiveTrackColor: Colors.white.withValues(alpha: 0.1),
-            thumbColor: AppTheme.gold,
-            overlayColor: AppTheme.gold.withValues(alpha: 0.2),
-            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
-            trackHeight: 4,
-          ),
-          child: Slider(
-            value: displayValue.toDouble(),
-            min: 1,
-            max: max.toDouble(),
-            divisions: max,
-            onChanged: (v) {
-              final rounded = v.round();
-              _controller.text = rounded.toString();
-              setState(() => _errorText = null);
-              widget.onChanged(rounded);
-            },
-          ),
-        ),
-        const SizedBox(height: 4),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              '1 dk',
-              style: TextStyle(
-                fontSize: 11,
-                color: Colors.white.withValues(alpha: 0.4),
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: widget.maxOffset != null
-                    ? Colors.orange.withValues(alpha: 0.15)
-                    : Colors.white.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(
-                  color: widget.maxOffset != null
-                      ? Colors.orange.withValues(alpha: 0.3)
-                      : Colors.white.withValues(alpha: 0.1),
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (widget.maxOffset != null) ...[
-                    Icon(
-                      Icons.warning_amber_rounded,
-                      size: 12,
-                      color: Colors.orange.withValues(alpha: 0.8),
-                    ),
-                    const SizedBox(width: 4),
-                  ],
-                  Text(
-                    widget.maxOffset != null
-                        ? 'Maksimum ${widget.maxOffset} dk'
-                        : 'Önerilen: 1-$max dk',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: widget.maxOffset != null
-                          ? Colors.orange.withValues(alpha: 0.9)
-                          : Colors.white.withValues(alpha: 0.5),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Text(
-              '$max dk',
-              style: TextStyle(
-                fontSize: 11,
-                color: Colors.white.withValues(alpha: 0.4),
               ),
             ),
           ],

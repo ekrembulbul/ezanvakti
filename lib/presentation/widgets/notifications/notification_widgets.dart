@@ -286,7 +286,10 @@ class _AddNotificationBottomSheetState
   }
 
   int? _maxOffsetFor(PrayerType? prayer) {
-    if (prayer == null || widget.prayerTime == null) return null;
+    if (prayer == null) return null;
+    // İmsak (fajr) için sabit üst sınır: 300 dk
+    if (prayer == PrayerType.fajr) return 300;
+    if (widget.prayerTime == null) return null;
     final previous = _previousPrayer(prayer);
     if (previous == null) return null;
 
@@ -311,8 +314,8 @@ class _AddNotificationBottomSheetState
         return;
       }
 
-      if (parsed < 0) {
-        setState(() => _errorText = '0 veya üzeri olmalı');
+      if (parsed <= 0) {
+        setState(() => _errorText = 'En az 1 dk önce olabilir');
         return;
       }
 

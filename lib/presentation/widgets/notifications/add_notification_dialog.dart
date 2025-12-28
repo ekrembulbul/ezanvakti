@@ -35,7 +35,10 @@ class _AddNotificationDialogState extends State<AddNotificationDialog> {
 
     final diff = currentTime.difference(previousTime).inMinutes;
     final maxOffset = diff - 1;
-    return maxOffset < 1 ? 1 : maxOffset;
+    final capped = prayer == PrayerType.fajr
+        ? maxOffset.clamp(1, 300)
+        : maxOffset;
+    return capped < 1 ? 1 : capped;
   }
 
   PrayerType? _previousPrayer(PrayerType prayer) {
