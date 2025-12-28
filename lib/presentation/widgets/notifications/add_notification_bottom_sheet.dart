@@ -30,8 +30,9 @@ class AddNotificationBottomSheet extends StatefulWidget {
 class _AddNotificationBottomSheetState
     extends State<AddNotificationBottomSheet> {
   late PrayerType _selectedType;
+  static const int _defaultOffset = 15;
   bool _isBefore = false;
-  int _selectedOffset = 5;
+  int _selectedOffset = _defaultOffset;
   String? _errorText;
 
   @override
@@ -40,7 +41,7 @@ class _AddNotificationBottomSheetState
     final initial = widget.initialSetting;
     _selectedType = initial?.prayerType ?? PrayerType.fajr;
     _isBefore = (initial?.minutesBefore ?? 0) > 0;
-    _selectedOffset = initial?.minutesBefore ?? 5;
+    _selectedOffset = initial?.minutesBefore ?? _defaultOffset;
   }
 
   int _maxOffsetFor(PrayerType prayer) {
@@ -74,77 +75,93 @@ class _AddNotificationBottomSheetState
     widget.onAdd(_selectedType, minutes);
   }
 
+  int _normalizedOffset(int value) {
+    if (value <= 0) return _defaultOffset;
+    final max = _maxOffsetFor(_selectedType);
+    return value > max ? max : value;
+  }
+
   @override
   Widget build(BuildContext context) {
     final title = widget.title ?? 'Yeni Bildirim Ekle';
     final submitLabel = widget.submitLabel ?? 'Bildirim Ekle';
 
+    final viewInsets = MediaQuery.of(context).viewInsets.bottom;
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.only(
+        left: 24,
+        right: 24,
+        top: 24,
+        bottom: 16 + viewInsets,
+      ),
       decoration: const BoxDecoration(
         gradient: AppTheme.nightGradient,
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.white24,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Hangi vakitte bildirim almak istiyorsunuz?',
-            style: TextStyle(color: Colors.white.withValues(alpha: 0.6)),
-          ),
-          const SizedBox(height: 24),
-          _buildSectionLabel('Namaz Vakti'),
-          const SizedBox(height: 12),
-          _buildPrayerTypeSelector(),
-          const SizedBox(height: 24),
-          _buildSectionLabel('Bildirim Zamanı'),
-          const SizedBox(height: 12),
-          _buildTimeSelector(),
-          const SizedBox(height: 32),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: _onSave,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppTheme.gold,
-                foregroundColor: AppTheme.primaryDark,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+      child: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
-              child: Text(
-                submitLabel,
+              const SizedBox(height: 24),
+              Text(
+                title,
                 style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
               ),
-            ),
+              const SizedBox(height: 8),
+              Text(
+                'Hangi vakitte bildirim almak istiyorsunuz?',
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.6)),
+              ),
+              const SizedBox(height: 24),
+              _buildSectionLabel('Namaz Vakti'),
+              const SizedBox(height: 12),
+              _buildPrayerTypeSelector(),
+              const SizedBox(height: 24),
+              _buildSectionLabel('Bildirim Zamanı'),
+              const SizedBox(height: 12),
+              _buildTimeSelector(),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _onSave,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.gold,
+                    foregroundColor: AppTheme.primaryDark,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: Text(
+                    submitLabel,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-          SizedBox(height: MediaQuery.of(context).viewInsets.bottom + 16),
-        ],
+        ),
       ),
     );
   }
@@ -234,6 +251,7 @@ class _AddNotificationBottomSheetState
                 onTap: () {
                   setState(() {
                     _isBefore = false;
+                    _selectedOffset = 0;
                     _errorText = null;
                   });
                 },
@@ -244,9 +262,7 @@ class _AddNotificationBottomSheetState
                 onTap: () {
                   setState(() {
                     _isBefore = true;
-                    if (_selectedOffset <= 0) {
-                      _selectedOffset = 5;
-                    }
+                    _selectedOffset = _normalizedOffset(_selectedOffset);
                     _errorText = null;
                   });
                 },
