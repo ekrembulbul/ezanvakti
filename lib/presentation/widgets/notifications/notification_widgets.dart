@@ -1,5 +1,5 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/models/prayer_time.dart';
 import '../../../core/models/notification_setting.dart';
@@ -235,7 +235,7 @@ class _AddNotificationBottomSheetState
     extends State<AddNotificationBottomSheet> {
   late PrayerType _selectedType;
   bool _isBefore = false;
-  final TextEditingController _minutesController = TextEditingController();
+  int _selectedOffset = 5;
   String? _errorText;
 
   @override
@@ -244,9 +244,7 @@ class _AddNotificationBottomSheetState
     final initial = widget.initialSetting;
     _selectedType = initial?.prayerType ?? PrayerType.fajr;
     _isBefore = (initial?.minutesBefore ?? 0) > 0;
-    _minutesController.text = _isBefore
-        ? (initial?.minutesBefore ?? 5).toString()
-        : '5';
+    _selectedOffset = initial?.minutesBefore ?? 5;
   }
 
   PrayerType? _previousPrayer(PrayerType prayer) {
@@ -285,21 +283,26 @@ class _AddNotificationBottomSheetState
     }
   }
 
-  int? _maxOffsetFor(PrayerType? prayer) {
-    if (prayer == null) return null;
+  int _maxOffsetFor(PrayerType prayer) {
     // İmsak (fajr) için sabit üst sınır: 300 dk
     if (prayer == PrayerType.fajr) return 300;
-    if (widget.prayerTime == null) return null;
+    if (widget.prayerTime == null) return 300;
     final previous = _previousPrayer(prayer);
-    if (previous == null) return null;
+    if (previous == null) return 300;
 
     final currentTime = _timeFor(prayer);
     final previousTime = _timeFor(previous);
-    if (currentTime == null || previousTime == null) return null;
+    if (currentTime == null || previousTime == null) return 300;
 
     final diff = currentTime.difference(previousTime).inMinutes;
     final maxOffset = diff - 1;
     return maxOffset < 1 ? 1 : maxOffset;
+  }
+
+  void _ensureOffsetWithinMax() {
+    final maxOffset = _maxOffsetFor(_selectedType);
+    if (_selectedOffset < 1) _selectedOffset = 1;
+    if (_selectedOffset > maxOffset) _selectedOffset = maxOffset;
   }
 
   void _onSave() {
@@ -307,19 +310,12 @@ class _AddNotificationBottomSheetState
     int minutes = 0;
 
     if (_isBefore) {
-      final parsed = int.tryParse(_minutesController.text.trim());
-
-      if (parsed == null) {
-        setState(() => _errorText = 'Dakika giriniz');
-        return;
-      }
-
-      if (parsed <= 0) {
+      if (_selectedOffset <= 0) {
         setState(() => _errorText = 'En az 1 dk önce olabilir');
         return;
       }
 
-      if (maxOffset != null && parsed > maxOffset) {
+      if (_selectedOffset > maxOffset) {
         setState(() {
           _errorText =
               'Bu vakitten en fazla $maxOffset dk önce bildirim ekleyebilirsin.';
@@ -327,7 +323,7 @@ class _AddNotificationBottomSheetState
         return;
       }
 
-      minutes = parsed;
+      minutes = _selectedOffset;
     }
 
     setState(() => _errorText = null);
@@ -412,178 +408,220 @@ class _AddNotificationBottomSheetState
   }
 
   Widget _buildSectionLabel(String label) {
-    return Text(
-      label,
-      style: TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
-        color: AppTheme.gold.withValues(alpha: 0.8),
-        letterSpacing: 1,
+    return Center(
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: AppTheme.gold.withValues(alpha: 0.8),
+          letterSpacing: 1,
+        ),
       ),
     );
   }
 
   Widget _buildPrayerTypeSelector() {
-    return Wrap(
-      spacing: 10,
-      runSpacing: 10,
-      children: PrayerType.values.map((type) {
-        final isSelected = type == _selectedType;
-        return GestureDetector(
-          onTap: () => setState(() => _selectedType = type),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? AppTheme.gold.withValues(alpha: 0.2)
-                  : Colors.white.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
+    return Center(
+      child: Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        alignment: WrapAlignment.center,
+        runAlignment: WrapAlignment.center,
+        children: PrayerType.values.map((type) {
+          final isSelected = type == _selectedType;
+          return GestureDetector(
+            onTap: () => setState(() {
+              _selectedType = type;
+              _ensureOffsetWithinMax();
+            }),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
                 color: isSelected
-                    ? AppTheme.gold
+                    ? AppTheme.gold.withValues(alpha: 0.2)
                     : Colors.white.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isSelected
+                      ? AppTheme.gold
+                      : Colors.white.withValues(alpha: 0.1),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    PrayerUtils.getPrayerIcon(type),
+                    size: 18,
+                    color: isSelected ? AppTheme.gold : Colors.white54,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    PrayerUtils.getPrayerName(type),
+                    style: TextStyle(
+                      color: isSelected ? AppTheme.gold : Colors.white,
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.w400,
+                    ),
+                  ),
+                ],
               ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  PrayerUtils.getPrayerIcon(type),
-                  size: 18,
-                  color: isSelected ? AppTheme.gold : Colors.white54,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  PrayerUtils.getPrayerName(type),
-                  style: TextStyle(
-                    color: isSelected ? AppTheme.gold : Colors.white,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
+          );
+        }).toList(),
+      ),
     );
   }
 
   Widget _buildTimeSelector() {
     final maxOffset = _maxOffsetFor(_selectedType);
-    final hint = maxOffset != null ? 'Maks $maxOffset dk' : 'Dakika (örn. 5)';
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: [
-            _buildTimeChip(
-              label: 'Tam vaktinde',
-              isSelected: !_isBefore,
-              onTap: () {
-                setState(() {
-                  _isBefore = false;
-                  _errorText = null;
-                });
-              },
-            ),
-            _buildTimeChip(
-              label: 'Öncesinde',
-              isSelected: _isBefore,
-              onTap: () {
-                setState(() {
-                  _isBefore = true;
-                  if (_minutesController.text.isEmpty) {
-                    _minutesController.text = '5';
-                  }
-                  _errorText = null;
-                });
-              },
-            ),
-          ],
+        Center(
+          child: Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            alignment: WrapAlignment.center,
+            runAlignment: WrapAlignment.center,
+            children: [
+              _buildTimeChip(
+                label: 'Tam vaktinde',
+                isSelected: !_isBefore,
+                onTap: () {
+                  setState(() {
+                    _isBefore = false;
+                    _errorText = null;
+                  });
+                },
+              ),
+              _buildTimeChip(
+                label: 'Öncesinde',
+                isSelected: _isBefore,
+                onTap: () {
+                  setState(() {
+                    _isBefore = true;
+                    if (_selectedOffset <= 0) {
+                      _selectedOffset = 5;
+                    }
+                    _ensureOffsetWithinMax();
+                    _errorText = null;
+                  });
+                },
+              ),
+            ],
+          ),
         ),
         if (_isBefore) ...[
           const SizedBox(height: 12),
-          Container(
-            constraints: const BoxConstraints(maxWidth: 260),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: _errorText != null
-                    ? Colors.red.withValues(alpha: 0.6)
-                    : AppTheme.gold.withValues(alpha: 0.4),
-                width: 1.2,
-              ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppTheme.gold.withValues(alpha: 0.18),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(
-                    Icons.access_time_rounded,
-                    color: AppTheme.gold,
-                    size: 20,
-                  ),
+          Center(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 240),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: _errorText != null
+                      ? Colors.red.withValues(alpha: 0.6)
+                      : AppTheme.gold.withValues(alpha: 0.4),
+                  width: 1.2,
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      TextField(
-                        controller: _minutesController,
-                        keyboardType: TextInputType.number,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: AppTheme.gold.withValues(alpha: 0.18),
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
+                        child: const Icon(
+                          Icons.access_time_rounded,
+                          color: AppTheme.gold,
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Dakika seçin',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.8),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                          Text(
+                            '1 - $maxOffset dk (İmsak için 300)',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.55),
+                              fontSize: 11,
+                            ),
+                          ),
                         ],
-                        decoration: InputDecoration(
-                          isCollapsed: true,
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 10,
-                          ),
-                          border: InputBorder.none,
-                          hintText: hint,
-                          hintStyle: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.4),
-                          ),
-                          suffixText: 'dk',
-                          suffixStyle: const TextStyle(
-                            color: AppTheme.gold,
-                            fontWeight: FontWeight.w700,
-                          ),
-                          helperText:
-                              'Maksimum: ${maxOffset ?? 'belirtilmedi'}.',
-                          helperStyle: TextStyle(
-                            fontSize: 10.5,
-                            color: Colors.white.withValues(alpha: 0.55),
-                          ),
-                          errorText: _errorText,
-                          errorStyle: TextStyle(
-                            fontSize: 11,
-                            color: Colors.red.withValues(alpha: 0.9),
-                            fontWeight: FontWeight.w600,
-                            height: 1.1,
-                          ),
-                        ),
-                        onChanged: (_) => setState(() => _errorText = null),
-                        onSubmitted: (_) => _onSave(),
                       ),
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    height: 140,
+                    child: CupertinoPicker(
+                      scrollController: FixedExtentScrollController(
+                        initialItem: (_selectedOffset - 1).clamp(
+                          0,
+                          maxOffset - 1,
+                        ),
+                      ),
+                      magnification: 1.1,
+                      squeeze: 1.05,
+                      useMagnifier: true,
+                      itemExtent: 36,
+                      selectionOverlay: CupertinoPickerDefaultSelectionOverlay(
+                        background: Colors.white.withValues(alpha: 0.08),
+                      ),
+                      onSelectedItemChanged: (index) {
+                        setState(() {
+                          _selectedOffset = index + 1;
+                          _errorText = null;
+                        });
+                      },
+                      children: List.generate(
+                        maxOffset,
+                        (i) => Center(
+                          child: Text(
+                            '${i + 1} dk',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (_errorText != null) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      _errorText!,
+                      style: TextStyle(
+                        color: Colors.red.withValues(alpha: 0.9),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
           ),
         ],
@@ -624,7 +662,6 @@ class _AddNotificationBottomSheetState
 
   @override
   void dispose() {
-    _minutesController.dispose();
     super.dispose();
   }
 }
