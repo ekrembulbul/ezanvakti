@@ -198,22 +198,15 @@ class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(Icons.bedtime, color: AppTheme.gold, size: 18),
-          ),
-          const SizedBox(width: 10),
+          Image.asset('assets/icon/app_icon.png', width: 58, height: 58),
+          // const SizedBox(width: 10),
           const Flexible(
             child: Text(
               AppConstants.appTitle,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                fontSize: 17,
+                fontSize: 15,
                 fontWeight: FontWeight.w700,
                 color: Colors.white,
               ),
