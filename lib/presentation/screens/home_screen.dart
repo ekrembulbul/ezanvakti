@@ -108,6 +108,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     }
 
     if (widget.todaysPrayerTime == null) {
+      // İlk yüklemede veri henüz gelmediyse boş ekran yerine yükleniyor göster
+      if (widget.lastUpdateTime == null) {
+        return const LoadingState();
+      }
       return const EmptyState(
         icon: Icons.hourglass_empty_rounded,
         message: 'Veri bulunamadı',
