@@ -118,39 +118,35 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       );
     }
 
-    return RefreshIndicator(
-      onRefresh: () async => widget.onRefresh?.call(),
-      color: AppTheme.gold,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            children: [
-              const SizedBox(height: 6),
-              Row(
-                children: [
-                  LocationWidget(
-                    location: widget.location,
-                    onTap: widget.onLocationTap,
-                  ),
-                  const Spacer(),
-                  DateWidget(date: widget.todaysPrayerTime!.date),
-                ],
-              ),
-              const SizedBox(height: 18),
-              _buildCountdown(),
-              const SizedBox(height: 22),
-              PrayerTimesCard(
-                prayerTime: widget.todaysPrayerTime!,
-                currentPrayer: PrayerUtils.getCurrentPrayer(
-                  widget.todaysPrayerTime!,
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          children: [
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                LocationWidget(
+                  location: widget.location,
+                  onTap: widget.onLocationTap,
                 ),
-                onCalendarTap: widget.onCalendarTap,
+                const Spacer(),
+                DateWidget(date: widget.todaysPrayerTime!.date),
+              ],
+            ),
+            const SizedBox(height: 18),
+            _buildCountdown(),
+            const SizedBox(height: 22),
+            PrayerTimesCard(
+              prayerTime: widget.todaysPrayerTime!,
+              currentPrayer: PrayerUtils.getCurrentPrayer(
+                widget.todaysPrayerTime!,
               ),
-              const SizedBox(height: 12),
-            ],
-          ),
+              onCalendarTap: widget.onCalendarTap,
+            ),
+            const SizedBox(height: 12),
+          ],
         ),
       ),
     );

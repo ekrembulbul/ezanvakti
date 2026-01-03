@@ -168,26 +168,22 @@ class _LocationListScreenState extends State<LocationListScreen> {
       );
     }
 
-    return RefreshIndicator(
-      onRefresh: _loadLocations,
-      color: AppTheme.gold,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(20),
-        itemCount: _locations.length,
-        itemBuilder: (context, index) {
-          final location = _locations[index];
-          final isActive = widget.currentLocation?.id == location.id;
-          return _LocationTileWithDelete(
-            location: location,
-            isActive: isActive,
-            onTap: () {
-              widget.onLocationSelected(location);
-              Navigator.popUntil(context, (route) => route.isFirst);
-            },
-            onDelete: () => _deleteLocation(location),
-          );
-        },
-      ),
+    return ListView.builder(
+      padding: const EdgeInsets.all(20),
+      itemCount: _locations.length,
+      itemBuilder: (context, index) {
+        final location = _locations[index];
+        final isActive = widget.currentLocation?.id == location.id;
+        return _LocationTileWithDelete(
+          location: location,
+          isActive: isActive,
+          onTap: () {
+            widget.onLocationSelected(location);
+            Navigator.popUntil(context, (route) => route.isFirst);
+          },
+          onDelete: () => _deleteLocation(location),
+        );
+      },
     );
   }
 }

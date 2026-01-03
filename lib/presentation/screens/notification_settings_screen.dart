@@ -354,23 +354,19 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       );
     }
 
-    return RefreshIndicator(
-      onRefresh: _loadSettings,
-      color: AppTheme.gold,
-      child: ListView.builder(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
-        itemCount: _sortedSettings().length,
-        itemBuilder: (context, index) {
-          final setting = _sortedSettings()[index];
-          return NotificationTile(
-            setting: setting,
-            hasPermission: _hasPermission,
-            onToggle: () => _toggleNotification(setting),
-            onDelete: () => _confirmDelete(setting),
-            onTap: () => _showEditDialog(setting),
-          );
-        },
-      ),
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
+      itemCount: _sortedSettings().length,
+      itemBuilder: (context, index) {
+        final setting = _sortedSettings()[index];
+        return NotificationTile(
+          setting: setting,
+          hasPermission: _hasPermission,
+          onToggle: () => _toggleNotification(setting),
+          onDelete: () => _confirmDelete(setting),
+          onTap: () => _showEditDialog(setting),
+        );
+      },
     );
   }
 }

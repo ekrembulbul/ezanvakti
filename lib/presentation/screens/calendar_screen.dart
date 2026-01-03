@@ -131,22 +131,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
       );
     }
 
-    return RefreshIndicator(
-      onRefresh: () async => widget.onRefresh?.call(),
-      color: AppTheme.gold,
-      child: ListView.builder(
-        controller: _scrollController,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        itemCount: widget.prayerTimes.length,
-        itemBuilder: (context, index) {
-          final prayerTime = widget.prayerTimes[index];
-          return CalendarDayCard(
-            key: _itemKeys.putIfAbsent(index, () => GlobalKey()),
-            prayerTime: prayerTime,
-            isToday: _isToday(prayerTime.date),
-          );
-        },
-      ),
+    return ListView.builder(
+      controller: _scrollController,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      itemCount: widget.prayerTimes.length,
+      itemBuilder: (context, index) {
+        final prayerTime = widget.prayerTimes[index];
+        return CalendarDayCard(
+          key: _itemKeys.putIfAbsent(index, () => GlobalKey()),
+          prayerTime: prayerTime,
+          isToday: _isToday(prayerTime.date),
+        );
+      },
     );
   }
 }
