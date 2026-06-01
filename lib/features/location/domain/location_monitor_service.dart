@@ -23,20 +23,18 @@ class LocationMonitorService {
   LocationMonitorService({required this.locationRepository});
 
   Future<void> startMonitoring() async {
-    logger.info('📍 Starting GPS location monitoring...');
+    logger.debug('Starting GPS location monitoring');
 
     try {
       final hasPermission = await _checkPermissions();
       if (!hasPermission) {
-        logger.warning(
-          '⚠️ Location permission not granted, monitoring disabled',
-        );
+        logger.warning('Location permission not granted, monitoring disabled');
         return;
       }
 
       final gpsLocation = await locationRepository.getGpsLocation();
       if (gpsLocation == null) {
-        logger.info('ℹ️ No GPS location saved, monitoring disabled');
+        logger.debug('No GPS location saved, monitoring disabled');
         return;
       }
 
@@ -49,13 +47,13 @@ class LocationMonitorService {
           ).listen(
             _onPositionChanged,
             onError: (error) {
-              logger.error('❌ Location stream error', error);
+              logger.error('Location stream error', error);
             },
           );
 
-      logger.info('✅ GPS location monitoring started');
+      logger.debug('GPS location monitoring started');
     } catch (e) {
-      logger.error('❌ Failed to start location monitoring', e);
+      logger.error('Failed to start location monitoring', e);
     }
   }
 
@@ -71,9 +69,8 @@ class LocationMonitorService {
         return;
       }
 
-      logger.info(
-        '📍 Significant location change detected: ${position.latitude}, ${position.longitude}',
-      );
+      // Note: GPS coordinates are intentionally not logged (privacy).
+      logger.debug('Significant location change detected');
 
       final newLocation = await _getLocationFromCoordinates(
         position.latitude,
@@ -86,7 +83,7 @@ class LocationMonitorService {
         if (existingGpsLocation != null &&
             existingGpsLocation.province == newLocation.province &&
             existingGpsLocation.district == newLocation.district) {
-          logger.info('ℹ️ GPS location unchanged, skipping update');
+          logger.debug('GPS location unchanged, skipping update');
           _lastPosition = position;
           _lastUpdateTime = DateTime.now();
           return;
@@ -105,10 +102,10 @@ class LocationMonitorService {
 
         _locationChangeController.add(gpsLocation);
 
-        logger.info('✅ GPS location updated: ${gpsLocation.displayName}');
+        logger.debug('GPS location updated: ${gpsLocation.displayName}');
       }
     } catch (e) {
-      logger.error('❌ Failed to process location change', e);
+      logger.error('Failed to process location change', e);
     }
   }
 
@@ -153,44 +150,17 @@ class LocationMonitorService {
 
       if (province.isEmpty || district.isEmpty) return null;
 
-      return _findMatchingLocation(province, district);
+      return TurkeyLocationsData.findMatchingLocation(province, district);
     } catch (e) {
-      logger.error('❌ Reverse geocoding failed', e);
+      logger.error('Reverse geocoding failed', e);
       return null;
     }
-  }
-
-  Location? _findMatchingLocation(String province, String district) {
-    final allProvinces = TurkeyLocationsData.getAllProvinces();
-
-    String? matchedProvince;
-    for (final p in allProvinces) {
-      if (p.toLowerCase().contains(province.toLowerCase()) ||
-          province.toLowerCase().contains(p.toLowerCase())) {
-        matchedProvince = p;
-        break;
-      }
-    }
-
-    if (matchedProvince == null) return null;
-
-    final districts = TurkeyLocationsData.getDistrictsByProvince(
-      matchedProvince,
-    );
-    for (final d in districts) {
-      if (d.district.toLowerCase().contains(district.toLowerCase()) ||
-          district.toLowerCase().contains(d.district.toLowerCase())) {
-        return d;
-      }
-    }
-
-    return districts.isNotEmpty ? districts.first : null;
   }
 
   void stopMonitoring() {
     _positionStreamSubscription?.cancel();
     _positionStreamSubscription = null;
-    logger.info('🛑 GPS location monitoring stopped');
+    logger.debug('GPS location monitoring stopped');
   }
 
   void dispose() {

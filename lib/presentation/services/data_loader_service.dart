@@ -22,8 +22,8 @@ class DataLoaderService {
        _logger = logger;
 
   Future<Map<String, dynamic>> loadInitialData(Location location) async {
-    _logger.info(
-      '🏠 Loading initial data for ${location.province}/${location.district}',
+    _logger.debug(
+      'Loading initial data for ${location.province}/${location.district}',
     );
 
     final today = DateTime.now();
@@ -37,7 +37,7 @@ class DataLoaderService {
     PrayerTime? tomorrowPrayer;
     final now = DateTime.now();
     if (todayPrayer != null && now.isAfter(todayPrayer.isha)) {
-      _logger.info('⏰ After Isha, fetching tomorrow\'s prayer times');
+      _logger.debug('After Isha, fetching tomorrow\'s prayer times');
       final tomorrow = todayNormalized.add(const Duration(days: 1));
       tomorrowPrayer = await _prayerTimesRepository.getDailyPrayerTime(
         location: location,
@@ -50,11 +50,11 @@ class DataLoaderService {
 
     var settings = await _settingsManager.getSettings();
     if (settings.isEmpty) {
-      _logger.warning('⚠️ No notification settings found; creating defaults');
+      _logger.warning('No notification settings found; creating defaults');
       await _settingsManager.createDefaultSettings();
       settings = await _settingsManager.getSettings();
-      _logger.info(
-        '✅ Default notification settings created: ${settings.length}',
+      _logger.debug(
+        'Default notification settings created: ${settings.length}',
       );
     }
 
@@ -72,8 +72,8 @@ class DataLoaderService {
     Location location,
     DateTime startDate,
   ) async {
-    _logger.info(
-      '🔄 Loading background data: 1 week before + 3 weeks after (28 days total)',
+    _logger.debug(
+      'Loading background data: 1 week before + 3 weeks after (28 days total)',
     );
     try {
       final prayerTimes = await _prayerTimesRepository.getPrayerTimes(
@@ -82,10 +82,10 @@ class DataLoaderService {
         endDate: startDate.add(const Duration(days: 21)),
         forceRefresh: false,
       );
-      _logger.info('✅ Background load completed: ${prayerTimes.length} days');
+      _logger.debug('Background load completed: ${prayerTimes.length} days');
       return prayerTimes;
     } catch (e) {
-      _logger.warning('⚠️ Background loading failed (ignored)', e);
+      _logger.warning('Background loading failed (ignored)', e);
       return [];
     }
   }

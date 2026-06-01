@@ -34,8 +34,8 @@ void main() {
       final mockClient = MockHttpClient(responseBody: '{invalid json}');
       final provider = AwqatSalahProvider(httpClient: mockClient);
 
-      expect(
-        () => provider.fetchDailyPrayerTime(
+      await expectLater(
+        provider.fetchDailyPrayerTime(
           location: testLocation,
           date: testDate,
         ),
@@ -49,8 +49,8 @@ void main() {
       );
       final provider = AwqatSalahProvider(httpClient: mockClient);
 
-      expect(
-        () => provider.fetchDailyPrayerTime(
+      await expectLater(
+        provider.fetchDailyPrayerTime(
           location: testLocation,
           date: testDate,
         ),
@@ -64,8 +64,8 @@ void main() {
       );
       final provider = AwqatSalahProvider(httpClient: mockClient);
 
-      expect(
-        () => provider.fetchDailyPrayerTime(
+      await expectLater(
+        provider.fetchDailyPrayerTime(
           location: testLocation,
           date: testDate,
         ),
@@ -94,8 +94,8 @@ void main() {
       );
       final provider = AwqatSalahProvider(httpClient: mockClient);
 
-      expect(
-        () => provider.fetchDailyPrayerTime(
+      await expectLater(
+        provider.fetchDailyPrayerTime(
           location: testLocation,
           date: testDate,
         ),
@@ -124,8 +124,8 @@ void main() {
       );
       final provider = AwqatSalahProvider(httpClient: mockClient);
 
-      expect(
-        () => provider.fetchDailyPrayerTime(
+      await expectLater(
+        provider.fetchDailyPrayerTime(
           location: testLocation,
           date: testDate,
         ),

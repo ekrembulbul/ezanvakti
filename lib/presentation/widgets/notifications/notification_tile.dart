@@ -99,7 +99,7 @@ class NotificationTile extends StatelessWidget {
             Switch(
               value: setting.isActive,
               onChanged: hasPermission ? (_) => onToggle?.call() : null,
-              activeColor: AppTheme.gold,
+              activeThumbColor: AppTheme.gold,
               inactiveThumbColor: Colors.white38,
               inactiveTrackColor: Colors.white12,
             ),

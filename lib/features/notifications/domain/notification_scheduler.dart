@@ -21,20 +21,20 @@ class NotificationScheduler {
     required List<PrayerTime> prayerTimes,
   }) async {
     final logger = AppLogger();
-    logger.info(
-      '🔔 Scheduling notifications for ${location.province}/${location.district} (${prayerTimes.length} days)',
+    logger.debug(
+      'Scheduling notifications for ${location.province}/${location.district} (${prayerTimes.length} days)',
     );
 
     final settings = await storage.getNotificationSettings();
 
     if (settings.isEmpty) {
-      logger.warning('⚠️ No notification settings found, skipping');
+      logger.warning('No notification settings found, skipping');
       return;
     }
 
-    logger.info('📋 Found ${settings.length} notification settings');
+    logger.debug('Found ${settings.length} notification settings');
     await notificationService.cancelAllNotifications();
-    logger.info('🗑️ Cancelled all existing notifications');
+    logger.debug('Cancelled all existing notifications');
 
     final scheduledIds = <String>{};
 
@@ -74,15 +74,15 @@ class NotificationScheduler {
           body: body,
         );
 
-        logger.info(
-          '🕰️ ${_formatTime(prayerDateTime)} için bildirim planlandı -> ${_formatTime(notificationTime)} (${setting.minutesBefore} dk önce)',
+        logger.debug(
+          '${_formatTime(prayerDateTime)} için bildirim planlandı -> ${_formatTime(notificationTime)} (${setting.minutesBefore} dk önce)',
         );
 
         scheduledIds.add(notificationId);
       }
     }
 
-    logger.info('✅ Scheduled ${scheduledIds.length} notifications');
+    logger.debug('Scheduled ${scheduledIds.length} notifications');
   }
 
   Future<void> rescheduleNotifications({

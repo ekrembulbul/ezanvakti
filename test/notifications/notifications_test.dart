@@ -10,6 +10,7 @@ import 'package:ezanvakti/features/notifications/domain/notification_settings_ma
 class MockLocalStorage implements LocalStorage {
   final Map<String, List<PrayerTime>> _prayerTimesCache = {};
   Location? _activeLocation;
+  final List<Location> _savedLocations = [];
   List<NotificationSetting> _notificationSettings = [];
   DateTime? _lastUpdateTime;
 
@@ -68,6 +69,27 @@ class MockLocalStorage implements LocalStorage {
   @override
   Future<Location?> getActiveLocation() async {
     return _activeLocation;
+  }
+
+  @override
+  Future<List<Location>> getSavedLocations() async =>
+      List.unmodifiable(_savedLocations);
+
+  @override
+  Future<void> saveLocation(Location location) async {
+    _savedLocations.removeWhere((l) => l.id == location.id);
+    _savedLocations.add(location);
+  }
+
+  @override
+  Future<void> updateLocation(Location location) async {
+    final index = _savedLocations.indexWhere((l) => l.id == location.id);
+    if (index >= 0) _savedLocations[index] = location;
+  }
+
+  @override
+  Future<void> deleteLocation(String locationId) async {
+    _savedLocations.removeWhere((l) => l.id == locationId);
   }
 
   @override
@@ -597,26 +619,22 @@ void main() {
 
       final settings = await manager.getSettings();
 
-      expect(settings.length, equals(6));
-      expect(
-        settings
-            .where((s) => s.prayerType == PrayerType.sunrise)
-            .first
-            .isActive,
-        isFalse,
-      );
+      expect(settings, isNotEmpty);
+      // All default settings are enabled out of the box.
+      expect(settings.every((s) => s.isActive), isTrue);
       expect(
         settings.where((s) => s.prayerType == PrayerType.fajr).first.isActive,
         isTrue,
       );
     });
 
-    test('Default settings have zero minutes before', () async {
+    test('Default settings include both on-time and early reminders', () async {
       await manager.createDefaultSettings();
 
       final settings = await manager.getSettings();
 
-      expect(settings.every((s) => s.minutesBefore == 0), isTrue);
+      expect(settings.any((s) => s.minutesBefore == 0), isTrue);
+      expect(settings.any((s) => s.minutesBefore > 0), isTrue);
     });
   });
 

@@ -55,7 +55,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    // Coarse refresh for the "current prayer" highlight as prayer times pass.
+    // The per-second countdown ticks inside CountdownCard itself, so the whole
+    // screen no longer rebuilds every second.
+    _timer = Timer.periodic(const Duration(seconds: 10), (timer) {
       if (mounted) setState(() {});
     });
 

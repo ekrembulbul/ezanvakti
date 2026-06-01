@@ -18,7 +18,7 @@ class NotificationSettingsManager {
 
   Future<void> saveSettings(List<NotificationSetting> settings) async {
     await storage.saveNotificationSettings(settings);
-    _logger.info('💾 Saved notification settings (${settings.length} items)');
+    _logger.debug('Saved notification settings (${settings.length} items)');
   }
 
   Future<void> updateSetting(NotificationSetting setting) async {
@@ -37,8 +37,8 @@ class NotificationSettingsManager {
     }
 
     await saveSettings(settings);
-    _logger.info(
-      '✏️ Updated setting ${setting.prayerType.name} (${setting.minutesBefore} dk) active=${setting.isActive}',
+    _logger.debug(
+      'Updated setting ${setting.prayerType.name} (${setting.minutesBefore} dk) active=${setting.isActive}',
     );
   }
 
@@ -57,8 +57,8 @@ class NotificationSettingsManager {
         isActive: !settings[index].isActive,
       );
       await saveSettings(settings);
-      _logger.info(
-        '🔀 Toggled setting $prayerType ($minutesBefore dk) -> active=${settings[index].isActive}',
+      _logger.debug(
+        'Toggled setting $prayerType ($minutesBefore dk) -> active=${settings[index].isActive}',
       );
     }
   }
@@ -74,7 +74,7 @@ class NotificationSettingsManager {
     }).toList();
 
     await saveSettings(updated);
-    _logger.info('✅ Enabled all settings for $prayerType');
+    _logger.debug('Enabled all settings for $prayerType');
   }
 
   Future<void> disableAllForPrayer(PrayerType prayerType) async {
@@ -88,7 +88,7 @@ class NotificationSettingsManager {
     }).toList();
 
     await saveSettings(updated);
-    _logger.info('🚫 Disabled all settings for $prayerType');
+    _logger.debug('Disabled all settings for $prayerType');
   }
 
   Future<void> enableAll() async {
@@ -97,7 +97,7 @@ class NotificationSettingsManager {
     final updated = settings.map((s) => s.copyWith(isActive: true)).toList();
 
     await saveSettings(updated);
-    _logger.info('✅ Enabled all notification settings (${updated.length})');
+    _logger.debug('Enabled all notification settings (${updated.length})');
   }
 
   Future<void> disableAll() async {
@@ -106,7 +106,7 @@ class NotificationSettingsManager {
     final updated = settings.map((s) => s.copyWith(isActive: false)).toList();
 
     await saveSettings(updated);
-    _logger.info('🚫 Disabled all notification settings (${updated.length})');
+    _logger.debug('Disabled all notification settings (${updated.length})');
   }
 
   Future<List<NotificationSetting>> getActiveSettings() async {
@@ -166,7 +166,7 @@ class NotificationSettingsManager {
           .toList();
       await saveSettings(updated);
     }
-    _logger.info('🗑️ Removed setting $prayerType ($minutesBefore dk)');
+    _logger.debug('Removed setting $prayerType ($minutesBefore dk)');
   }
 
   Future<void> addSetting(NotificationSetting setting) async {
@@ -178,8 +178,8 @@ class NotificationSettingsManager {
       settings.add(setting);
       await saveSettings(settings);
     }
-    _logger.info(
-      '➕ Added setting ${setting.prayerType.name} (${setting.minutesBefore} dk) active=${setting.isActive}',
+    _logger.debug(
+      'Added setting ${setting.prayerType.name} (${setting.minutesBefore} dk) active=${setting.isActive}',
     );
   }
 

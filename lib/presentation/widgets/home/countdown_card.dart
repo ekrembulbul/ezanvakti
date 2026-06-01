@@ -1,9 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/prayer_utils.dart';
 
-class CountdownCard extends StatelessWidget {
+class CountdownCard extends StatefulWidget {
   final DateTime nextPrayerTime;
   final String nextPrayerName;
   final Animation<double>? pulseAnimation;
@@ -16,12 +17,39 @@ class CountdownCard extends StatelessWidget {
   });
 
   @override
+  State<CountdownCard> createState() => _CountdownCardState();
+}
+
+class _CountdownCardState extends State<CountdownCard> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Self-contained per-second tick so only this card rebuilds, not the
+    // whole home screen.
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final now = DateTime.now();
-    final difference = nextPrayerTime.difference(now);
+    final rawDifference = widget.nextPrayerTime.difference(now);
+    // Clamp to zero: when the prayer time passes, the parent recomputes the
+    // next prayer shortly after; never show negative values in between.
+    final difference = rawDifference.isNegative ? Duration.zero : rawDifference;
     final hours = difference.inHours;
     final minutes = difference.inMinutes.remainder(60);
     final seconds = difference.inSeconds.remainder(60);
+    final nextPrayerName = widget.nextPrayerName;
 
     final content = Container(
       padding: const EdgeInsets.fromLTRB(22, 16, 22, 16),
@@ -93,7 +121,7 @@ class CountdownCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            DateFormat('HH:mm').format(nextPrayerTime),
+            DateFormat('HH:mm').format(widget.nextPrayerTime),
             style: TextStyle(
               fontSize: 16,
               color: Colors.white.withValues(alpha: 0.6),
@@ -104,8 +132,8 @@ class CountdownCard extends StatelessWidget {
       ),
     );
 
-    if (pulseAnimation != null) {
-      return ScaleTransition(scale: pulseAnimation!, child: content);
+    if (widget.pulseAnimation != null) {
+      return ScaleTransition(scale: widget.pulseAnimation!, child: content);
     }
     return content;
   }

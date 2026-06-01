@@ -9,6 +9,7 @@ import '../../../core/utils/app_logger.dart';
 class AwqatSalahProvider implements PrayerTimeProvider {
   final http.Client httpClient;
   static const String baseUrl = 'https://api.aladhan.com/v1';
+  static const Duration _requestTimeout = Duration(seconds: 15);
 
   AwqatSalahProvider({http.Client? httpClient})
     : httpClient = httpClient ?? http.Client();
@@ -64,8 +65,8 @@ class AwqatSalahProvider implements PrayerTimeProvider {
   }) async {
     final logger = AppLogger();
     final dayCount = endDate.difference(startDate).inDays + 1;
-    logger.info(
-      '📅 Fetching $dayCount days using DAILY endpoint (${startDate.toIso8601String().split('T')[0]} to ${endDate.toIso8601String().split('T')[0]})',
+    logger.debug(
+      'Fetching $dayCount days using DAILY endpoint (${startDate.toIso8601String().split('T')[0]} to ${endDate.toIso8601String().split('T')[0]})',
     );
 
     final List<PrayerTime> prayerTimes = [];
@@ -102,8 +103,8 @@ class AwqatSalahProvider implements PrayerTimeProvider {
       currentDate = currentDate.add(const Duration(days: 1));
     }
 
-    logger.info(
-      '✅ Daily fetch completed: ${prayerTimes.length} days retrieved',
+    logger.debug(
+      'Daily fetch completed: ${prayerTimes.length} days retrieved',
     );
     return prayerTimes;
   }
@@ -115,8 +116,8 @@ class AwqatSalahProvider implements PrayerTimeProvider {
   }) async {
     final logger = AppLogger();
     final dayCount = endDate.difference(startDate).inDays + 1;
-    logger.info(
-      '📅 Fetching $dayCount days using CALENDAR endpoint (${startDate.toIso8601String().split('T')[0]} to ${endDate.toIso8601String().split('T')[0]})',
+    logger.debug(
+      'Fetching $dayCount days using CALENDAR endpoint (${startDate.toIso8601String().split('T')[0]} to ${endDate.toIso8601String().split('T')[0]})',
     );
 
     final List<PrayerTime> allPrayerTimes = [];
@@ -131,7 +132,7 @@ class AwqatSalahProvider implements PrayerTimeProvider {
           '$baseUrl/calendar?latitude=${location.latitude}&longitude=${location.longitude}&method=13&month=${currentMonth.month}&year=${currentMonth.year}',
         );
 
-        final response = await httpClient.get(uri);
+        final response = await httpClient.get(uri).timeout(_requestTimeout);
 
         if (response.statusCode != 200) {
           throw Exception('API error: ${response.statusCode}');
@@ -205,8 +206,8 @@ class AwqatSalahProvider implements PrayerTimeProvider {
       currentMonth = DateTime(currentMonth.year, currentMonth.month + 1, 1);
     }
 
-    logger.info(
-      '✅ Calendar fetch completed: ${allPrayerTimes.length} days retrieved',
+    logger.debug(
+      'Calendar fetch completed: ${allPrayerTimes.length} days retrieved',
     );
     return allPrayerTimes;
   }
@@ -217,8 +218,8 @@ class AwqatSalahProvider implements PrayerTimeProvider {
     required DateTime date,
   }) async {
     final logger = AppLogger();
-    logger.info(
-      '📅 Fetching single day via DAILY endpoint for ${date.toIso8601String().split('T')[0]}',
+    logger.debug(
+      'Fetching single day via DAILY endpoint for ${date.toIso8601String().split('T')[0]}',
     );
     try {
       final timestamp = date.millisecondsSinceEpoch ~/ 1000;
@@ -227,14 +228,20 @@ class AwqatSalahProvider implements PrayerTimeProvider {
         '$baseUrl/timings/$timestamp?latitude=${location.latitude}&longitude=${location.longitude}&method=13',
       );
 
-      final response = await httpClient.get(uri);
+      final response = await httpClient.get(uri).timeout(_requestTimeout);
 
       if (response.statusCode != 200) {
         throw Exception('API error: ${response.statusCode}');
       }
 
       final data = json.decode(response.body) as Map<String, dynamic>;
-      final timings = data['data']['timings'] as Map<String, dynamic>;
+      final dataField = data['data'] as Map<String, dynamic>?;
+      final timings = dataField?['timings'] as Map<String, dynamic>?;
+      if (timings == null) {
+        throw const FormatException(
+          'Missing "data.timings" field in API response',
+        );
+      }
 
       final normalizedDate = DateTime(date.year, date.month, date.day);
 
@@ -279,9 +286,15 @@ class AwqatSalahProvider implements PrayerTimeProvider {
         stackTrace: stackTrace,
         context: 'AwqatSalahProvider.fetchDailyPrayerTime',
       );
+    } on ParseException {
+      // Parse failures (e.g. from _parseTime) must surface so the batch fetch
+      // can skip the day; never swallowed into a null result.
+      rethrow;
     } catch (e, stackTrace) {
+      // Network/timeout/HTTP errors return null so the repository can fall
+      // back to cached data instead of crashing.
       logger.error(
-        'Unexpected error in AwqatSalahProvider.fetchDailyPrayerTime',
+        'Network error in AwqatSalahProvider.fetchDailyPrayerTime',
         e,
         stackTrace,
       );

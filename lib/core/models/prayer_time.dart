@@ -40,4 +40,41 @@ class PrayerTime {
       date: DateTime.parse(json['date'] as String),
     );
   }
+
+  PrayerTime copyWith({
+    DateTime? fajr,
+    DateTime? sunrise,
+    DateTime? dhuhr,
+    DateTime? asr,
+    DateTime? maghrib,
+    DateTime? isha,
+    DateTime? date,
+  }) {
+    return PrayerTime(
+      fajr: fajr ?? this.fajr,
+      sunrise: sunrise ?? this.sunrise,
+      dhuhr: dhuhr ?? this.dhuhr,
+      asr: asr ?? this.asr,
+      maghrib: maghrib ?? this.maghrib,
+      isha: isha ?? this.isha,
+      date: date ?? this.date,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is PrayerTime &&
+          runtimeType == other.runtimeType &&
+          fajr == other.fajr &&
+          sunrise == other.sunrise &&
+          dhuhr == other.dhuhr &&
+          asr == other.asr &&
+          maghrib == other.maghrib &&
+          isha == other.isha &&
+          date == other.date;
+
+  @override
+  int get hashCode =>
+      Object.hash(fajr, sunrise, dhuhr, asr, maghrib, isha, date);
 }

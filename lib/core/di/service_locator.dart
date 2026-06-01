@@ -39,28 +39,28 @@ class ServiceLocator {
 
   Future<void> initialize() async {
     final logger = AppLogger();
-    logger.info('🚀 ServiceLocator: Starting initialization...');
+    logger.debug('ServiceLocator: Starting initialization');
 
-    logger.info('⏰ Initializing TimezoneService...');
+    logger.debug('Initializing TimezoneService');
     final timezoneService = TimezoneService.instance;
     await timezoneService.initialize();
     register<TimezoneService>(timezoneService);
-    logger.info('✅ TimezoneService registered');
+    logger.debug('TimezoneService registered');
 
-    logger.info('🌐 Initializing HTTP Client...');
+    logger.debug('Initializing HTTP Client');
     final httpClient = http.Client();
     register<http.Client>(httpClient);
-    logger.info('✅ HTTP Client registered');
+    logger.debug('HTTP Client registered');
 
-    logger.info('🕌 Initializing Prayer Time Provider (Awqat Salah)...');
+    logger.debug('Initializing Prayer Time Provider (Awqat Salah)');
     final prayerTimeProvider = AwqatSalahProvider(httpClient: httpClient);
-    logger.info('✅ Prayer Time Provider registered');
+    logger.debug('Prayer Time Provider registered');
     register<PrayerTimeProvider>(prayerTimeProvider);
 
-    logger.info('💾 Initializing Local Storage (SQLite)...');
+    logger.debug('Initializing Local Storage (SQLite)');
     final localStorage = SqliteStorage();
     register<LocalStorage>(localStorage);
-    logger.info('✅ Local Storage registered');
+    logger.debug('Local Storage registered');
 
     final prayerTimesRepository = PrayerTimesRepository(
       provider: prayerTimeProvider,

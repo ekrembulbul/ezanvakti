@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart' hide Location;
 import '../../core/theme/app_theme.dart';
-import '../../core/models/location.dart' as AppLocation;
+import '../../core/models/location.dart' as app_location;
 import '../../features/location/data/turkey_locations_data.dart';
 import '../../features/location/domain/location_repository.dart';
 import '../widgets/common/app_bar_widgets.dart';
@@ -27,9 +27,9 @@ class LocationAddScreen extends StatefulWidget {
 class _LocationAddScreenState extends State<LocationAddScreen> {
   bool _showManualSelection = false;
   String? selectedProvince;
-  AppLocation.Location? selectedDistrict;
+  app_location.Location? selectedDistrict;
   List<String> provinces = [];
-  List<AppLocation.Location> districts = [];
+  List<app_location.Location> districts = [];
   bool _isLoadingLocation = false;
   String? _locationError;
   final _customNameController = TextEditingController();
@@ -55,7 +55,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
     });
   }
 
-  void _onDistrictSelected(AppLocation.Location? district) {
+  void _onDistrictSelected(app_location.Location? district) {
     if (district == null) return;
     setState(() => selectedDistrict = district);
   }
@@ -89,7 +89,9 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
       }
 
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
 
       List<Placemark> placemarks = await placemarkFromCoordinates(
@@ -111,7 +113,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
       final matchedLocation = _findMatchingLocation(province, district);
       if (matchedLocation != null) {
         final gpsLocation = matchedLocation.copyWith(
-          type: AppLocation.LocationType.gps,
+          type: app_location.LocationType.gps,
           latitude: position.latitude,
           longitude: position.longitude,
         );
@@ -130,7 +132,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
     }
   }
 
-  AppLocation.Location? _findMatchingLocation(
+  app_location.Location? _findMatchingLocation(
     String province,
     String district,
   ) {
@@ -191,9 +193,9 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
     return result ?? false;
   }
 
-  Future<void> _saveAndReturn(AppLocation.Location location) async {
+  Future<void> _saveAndReturn(app_location.Location location) async {
     try {
-      if (location.type == AppLocation.LocationType.gps) {
+      if (location.type == app_location.LocationType.gps) {
         await widget.locationRepository.saveOrUpdateGpsLocation(location);
       } else {
         await widget.locationRepository.saveLocation(location);
@@ -221,7 +223,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
 
     final customName = _customNameController.text.trim();
     final locationToSave = selectedDistrict!.copyWith(
-      type: AppLocation.LocationType.manual,
+      type: app_location.LocationType.manual,
       customName: customName.isEmpty ? null : customName,
     );
 
@@ -430,7 +432,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
         border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
       child: DropdownButtonHideUnderline(
-        child: DropdownButton<AppLocation.Location>(
+        child: DropdownButton<app_location.Location>(
           value: selectedDistrict,
           hint: Text(
             'İlçe Seçiniz',
@@ -444,7 +446,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
           ),
           style: const TextStyle(color: Colors.white, fontSize: 16),
           items: districts.map((district) {
-            return DropdownMenuItem<AppLocation.Location>(
+            return DropdownMenuItem<app_location.Location>(
               value: district,
               child: Text(district.district),
             );

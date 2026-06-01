@@ -56,6 +56,7 @@ class _LocationListScreenState extends State<LocationListScreen> {
         ),
       ),
     );
+    if (!mounted) return;
     if (result is Location) {
       widget.onLocationSelected(result);
       Navigator.popUntil(context, (route) => route.isFirst);

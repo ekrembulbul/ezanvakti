@@ -21,8 +21,13 @@ linter:
   # `// ignore_for_file: name_of_lint` syntax on the line or in the file
   # producing the lint.
   rules:
-    # avoid_print: false  # Uncomment to disable the `avoid_print` rule
-    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+    # Enforce the project's logging discipline: use AppLogger, never print().
+    - avoid_print
+    #
+    # Additional style rules (prefer_single_quotes, prefer_final_locals,
+    # directives_ordering, avoid_redundant_argument_values) are worth enabling
+    # but currently flag many pre-existing spots. Enable them and run
+    # `dart fix --apply` in a dedicated cleanup commit.
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

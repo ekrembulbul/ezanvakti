@@ -270,18 +270,22 @@ class SqliteStorage implements LocalStorage {
     List<NotificationSetting> settings,
   ) async {
     final db = await database;
-    await db.delete('notification_settings');
+    // Atomic replace: deleting the old rows and inserting the new ones must
+    // not be interrupted, otherwise settings could be lost on a crash.
+    await db.transaction((txn) async {
+      await txn.delete('notification_settings');
 
-    final batch = db.batch();
-    for (final setting in settings) {
-      batch.insert('notification_settings', {
-        'prayer_type': setting.prayerType.name,
-        'is_active': setting.isActive ? 1 : 0,
-        'minutes_before': setting.minutesBefore,
-      });
-    }
+      final batch = txn.batch();
+      for (final setting in settings) {
+        batch.insert('notification_settings', {
+          'prayer_type': setting.prayerType.name,
+          'is_active': setting.isActive ? 1 : 0,
+          'minutes_before': setting.minutesBefore,
+        });
+      }
 
-    await batch.commit(noResult: true);
+      await batch.commit(noResult: true);
+    });
   }
 
   Future<void> addNotificationSetting(NotificationSetting setting) async {
@@ -320,15 +324,20 @@ class SqliteStorage implements LocalStorage {
     final db = await database;
     final results = await db.query('notification_settings');
 
-    return results.map((row) {
-      return NotificationSetting(
-        prayerType: PrayerType.values.firstWhere(
-          (e) => e.name == row['prayer_type'],
+    final settings = <NotificationSetting>[];
+    for (final row in results) {
+      final typeName = row['prayer_type'] as String;
+      final matches = PrayerType.values.where((e) => e.name == typeName);
+      if (matches.isEmpty) continue; // Skip unknown prayer types (enum drift).
+      settings.add(
+        NotificationSetting(
+          prayerType: matches.first,
+          isActive: (row['is_active'] as int) == 1,
+          minutesBefore: row['minutes_before'] as int,
         ),
-        isActive: (row['is_active'] as int) == 1,
-        minutesBefore: row['minutes_before'] as int,
       );
-    }).toList();
+    }
+    return settings;
   }
 
   @override
@@ -351,7 +360,13 @@ class SqliteStorage implements LocalStorage {
     );
 
     if (results.isEmpty) return null;
-    return DateTime.parse(results.first['value'] as String);
+    final value = results.first['value'] as String;
+    try {
+      return DateTime.parse(value);
+    } on FormatException catch (e) {
+      AppLogger().warning('Invalid last_update_time in storage, ignoring', e);
+      return null;
+    }
   }
 
   @override

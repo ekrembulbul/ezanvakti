@@ -50,6 +50,7 @@ class MockPrayerTimeProvider implements PrayerTimeProvider {
 class MockLocalStorage implements LocalStorage {
   final Map<String, List<PrayerTime>> _prayerTimesCache = {};
   Location? _activeLocation;
+  final List<Location> _savedLocations = [];
   List<NotificationSetting> _notificationSettings = [];
   DateTime? _lastUpdateTime;
 
@@ -112,6 +113,27 @@ class MockLocalStorage implements LocalStorage {
   @override
   Future<Location?> getActiveLocation() async {
     return _activeLocation;
+  }
+
+  @override
+  Future<List<Location>> getSavedLocations() async =>
+      List.unmodifiable(_savedLocations);
+
+  @override
+  Future<void> saveLocation(Location location) async {
+    _savedLocations.removeWhere((l) => l.id == location.id);
+    _savedLocations.add(location);
+  }
+
+  @override
+  Future<void> updateLocation(Location location) async {
+    final index = _savedLocations.indexWhere((l) => l.id == location.id);
+    if (index >= 0) _savedLocations[index] = location;
+  }
+
+  @override
+  Future<void> deleteLocation(String locationId) async {
+    _savedLocations.removeWhere((l) => l.id == locationId);
   }
 
   @override

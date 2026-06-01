@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import '../../core/models/location.dart';
 import '../../features/location/domain/location_monitor_service.dart';
 import '../../features/location/domain/location_repository.dart';
@@ -8,6 +10,8 @@ class LocationMonitorController {
   final LocationRepository _locationRepository;
   final AppLogger _logger;
   final Function(Location) _onLocationChanged;
+
+  StreamSubscription<Location>? _locationSubscription;
 
   LocationMonitorController({
     required LocationMonitorService monitorService,
@@ -20,18 +24,24 @@ class LocationMonitorController {
        _onLocationChanged = onLocationChanged;
 
   Future<void> startMonitoring(Location? activeLocation) async {
-    if (activeLocation?.type == LocationType.gps) {
-      _monitorService.onLocationChanged.listen((newLocation) async {
-        _logger.info('🔄 GPS location changed, refreshing prayer times...');
-        await _locationRepository.setActiveLocation(newLocation);
-        _onLocationChanged(newLocation);
-      });
+    if (activeLocation?.type != LocationType.gps) return;
 
-      await _monitorService.startMonitoring();
-    }
+    // Avoid stacking subscriptions if monitoring is started more than once.
+    await _locationSubscription?.cancel();
+    _locationSubscription = _monitorService.onLocationChanged.listen((
+      newLocation,
+    ) async {
+      _logger.debug('GPS location changed, refreshing prayer times');
+      await _locationRepository.setActiveLocation(newLocation);
+      _onLocationChanged(newLocation);
+    });
+
+    await _monitorService.startMonitoring();
   }
 
-  void stopMonitoring() {
+  Future<void> stopMonitoring() async {
+    await _locationSubscription?.cancel();
+    _locationSubscription = null;
     _monitorService.stopMonitoring();
   }
 }

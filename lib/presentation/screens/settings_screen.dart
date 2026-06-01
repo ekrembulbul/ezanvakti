@@ -25,7 +25,6 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   String _version = '';
-  String _buildNumber = '';
 
   @override
   void initState() {
@@ -39,14 +38,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
       if (mounted) {
         setState(() {
           _version = packageInfo.version;
-          _buildNumber = packageInfo.buildNumber;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _version = 'Bilinmiyor';
-          _buildNumber = '';
         });
       }
     }

@@ -40,4 +40,16 @@ class NotificationSetting {
       minutesBefore: minutesBefore ?? this.minutesBefore,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is NotificationSetting &&
+          runtimeType == other.runtimeType &&
+          prayerType == other.prayerType &&
+          isActive == other.isActive &&
+          minutesBefore == other.minutesBefore;
+
+  @override
+  int get hashCode => Object.hash(prayerType, isActive, minutesBefore);
 }

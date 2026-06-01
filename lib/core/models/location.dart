@@ -86,5 +86,29 @@ class Location {
   }
 
   @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Location &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          province == other.province &&
+          district == other.district &&
+          latitude == other.latitude &&
+          longitude == other.longitude &&
+          type == other.type &&
+          customName == other.customName;
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    province,
+    district,
+    latitude,
+    longitude,
+    type,
+    customName,
+  );
+
+  @override
   String toString() => displayName;
 }

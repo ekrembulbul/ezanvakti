@@ -29,25 +29,24 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   LocationMonitorController? _locationMonitorController;
   bool _isRefreshingGps = false;
-  late final LocationService _locationService;
+  late final GpsLocationService _locationService;
   late final DataLoaderService _dataLoaderService;
 
   @override
   void initState() {
     super.initState();
     final logger = AppLogger();
-    logger.info('🔵 HomePage initState called');
+    logger.debug('HomePage initState called');
     _initializeServices();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      logger.info('🔵 PostFrameCallback executing');
+      logger.debug('PostFrameCallback executing');
       _loadInitialData();
       _startLocationMonitoring();
     });
   }
 
   void _initializeServices() {
-    final locationRepository = ServiceLocator().get<LocationRepository>();
-    _locationService = LocationService(locationRepository);
+    _locationService = GpsLocationService();
     _dataLoaderService = DataLoaderService(
       prayerTimesRepository: ServiceLocator().get<PrayerTimesRepository>(),
       notificationService: ServiceLocator().get<NotificationService>(),
@@ -85,7 +84,7 @@ class _HomePageState extends State<HomePage> {
     final appState = context.read<AppState>();
 
     try {
-      logger.info('🔄 Manual GPS refresh triggered');
+      logger.debug('Manual GPS refresh triggered');
 
       final gpsLocation = await _locationService.getCurrentGpsLocation();
 
@@ -107,9 +106,9 @@ class _HomePageState extends State<HomePage> {
         );
       }
 
-      logger.info('✅ Manual GPS refresh completed');
+      logger.debug('Manual GPS refresh completed');
     } catch (e) {
-      logger.error('❌ Manual GPS refresh failed', e);
+      logger.error('Manual GPS refresh failed', e);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -133,7 +132,7 @@ class _HomePageState extends State<HomePage> {
     final location = appState.activeLocation;
 
     if (location == null) {
-      logger.warning('⚠️ No active location found, skipping initial data load');
+      logger.warning('No active location found, skipping initial data load');
       return;
     }
 
@@ -143,8 +142,8 @@ class _HomePageState extends State<HomePage> {
     try {
       final data = await _dataLoaderService.loadInitialData(location);
 
-      logger.info(
-        '📊 Data received - todayPrayer: ${data['todayPrayer'] != null ? "YES" : "NULL"}, prayerTimes count: ${(data['prayerTimes'] as List).length}',
+      logger.debug(
+        'Data received - todayPrayer: ${data['todayPrayer'] != null ? "YES" : "NULL"}, prayerTimes count: ${(data['prayerTimes'] as List).length}',
       );
 
       appState.setTodaysPrayerTime(data['todayPrayer']);
@@ -154,16 +153,16 @@ class _HomePageState extends State<HomePage> {
       appState.setNotificationPermission(data['hasPermission']);
       appState.setNotificationSettings(data['settings']);
 
-      logger.info(
-        '📊 AppState updated - todaysPrayerTime: ${appState.todaysPrayerTime != null ? "YES" : "NULL"}',
+      logger.debug(
+        'AppState updated - todaysPrayerTime: ${appState.todaysPrayerTime != null ? "YES" : "NULL"}',
       );
 
       appState.setLoading(false);
-      logger.info('✅ Initial data loaded successfully');
+      logger.debug('Initial data loaded successfully');
 
       _loadMoreDataInBackground(location);
     } catch (e) {
-      logger.error('❌ Failed to load initial data', e);
+      logger.error('Failed to load initial data', e);
       appState.setError('Veri yüklenirken hata oluştu: $e');
       appState.setLoading(false);
     }
@@ -193,12 +192,12 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _refreshData() async {
     final logger = AppLogger();
-    logger.info('🔄 User triggered refresh');
+    logger.debug('User triggered refresh');
     final appState = context.read<AppState>();
     final location = appState.activeLocation;
 
     if (location == null) {
-      logger.warning('⚠️ No location for refresh');
+      logger.warning('No location for refresh');
       return;
     }
 
@@ -304,7 +303,7 @@ class _HomePageState extends State<HomePage> {
     final appState = context.read<AppState>();
     final locationRepository = ServiceLocator().get<LocationRepository>();
 
-    logger.info('🔄 Switching location to: ${newLocation.displayName}');
+    logger.debug('Switching location to: ${newLocation.displayName}');
 
     try {
       await locationRepository.setActiveLocation(newLocation);
@@ -314,11 +313,15 @@ class _HomePageState extends State<HomePage> {
       appState.setTodaysPrayerTime(null);
       appState.setTomorrowsPrayerTime(null);
 
+      // Clear the previous location's notifications up front so they don't
+      // linger if the new location's prayer times can't be loaded (offline).
+      await ServiceLocator().get<NotificationService>().cancelAllNotifications();
+
       await _loadInitialData();
 
-      logger.info('✅ Location switched successfully');
+      logger.debug('Location switched successfully');
     } catch (e) {
-      logger.error('❌ Failed to switch location', e);
+      logger.error('Failed to switch location', e);
       if (mounted) {
         ScaffoldMessenger.of(
           context,

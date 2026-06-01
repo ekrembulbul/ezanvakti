@@ -1499,4 +1499,33 @@ class TurkeyLocationsData {
           loc.district.toLowerCase().contains(lowerQuery);
     }).toList();
   }
+
+  /// Resolves a free-form province/district (e.g. from reverse geocoding) to a
+  /// known location using fuzzy substring matching. Returns null if the
+  /// province cannot be matched; falls back to the first district of the
+  /// matched province when the district has no close match.
+  static Location? findMatchingLocation(String province, String district) {
+    final lowerProvince = province.toLowerCase();
+    String? matchedProvince;
+    for (final p in getAllProvinces()) {
+      final lowerP = p.toLowerCase();
+      if (lowerP.contains(lowerProvince) || lowerProvince.contains(lowerP)) {
+        matchedProvince = p;
+        break;
+      }
+    }
+
+    if (matchedProvince == null) return null;
+
+    final districts = getDistrictsByProvince(matchedProvince);
+    final lowerDistrict = district.toLowerCase();
+    for (final d in districts) {
+      final lowerD = d.district.toLowerCase();
+      if (lowerD.contains(lowerDistrict) || lowerDistrict.contains(lowerD)) {
+        return d;
+      }
+    }
+
+    return districts.isNotEmpty ? districts.first : null;
+  }
 }

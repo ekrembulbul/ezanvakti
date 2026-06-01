@@ -31,7 +31,7 @@ class FlutterLocalNotificationService implements NotificationService {
     );
 
     await _plugin.initialize(initSettings);
-    _logger.info('🔔 Notifications plugin initialized');
+    _logger.debug('Notifications plugin initialized');
 
     // Ensure notification channel exists upfront so it appears under system settings
     final androidPlugin = _plugin
@@ -46,8 +46,8 @@ class FlutterLocalNotificationService implements NotificationService {
         importance: Importance.high,
       );
       await androidPlugin.createNotificationChannel(androidChannel);
-      _logger.info(
-        '📢 Android notification channel ensured (ezan_vakti_channel)',
+      _logger.debug(
+        'Android notification channel ensured (ezan_vakti_channel)',
       );
     }
   }
@@ -67,14 +67,14 @@ class FlutterLocalNotificationService implements NotificationService {
 
     if (android != null) {
       granted = await android.requestNotificationsPermission() ?? false;
-      _logger.info('🔒 Android notification permission result: $granted');
+      _logger.info('Android notification permission result: $granted');
     }
 
     if (ios != null) {
       granted =
           await ios.requestPermissions(alert: true, badge: true, sound: true) ??
           false;
-      _logger.info('🔒 iOS notification permission result: $granted');
+      _logger.info('iOS notification permission result: $granted');
     }
 
     return granted;
@@ -93,19 +93,19 @@ class FlutterLocalNotificationService implements NotificationService {
 
     if (android != null) {
       final enabled = await android.areNotificationsEnabled() ?? false;
-      _logger.info('🔎 Android notification permission check: $enabled');
+      _logger.debug('Android notification permission check: $enabled');
       return enabled;
     }
 
     if (ios != null) {
       final settings = await ios.checkPermissions();
       final enabled = settings?.isEnabled ?? false;
-      _logger.info('🔎 iOS notification permission check: $enabled');
+      _logger.debug('iOS notification permission check: $enabled');
       return enabled;
     }
 
     _logger.warning(
-      '⚠️ Notification permission check: platform plugin missing',
+      'Notification permission check: platform plugin missing',
     );
     return false;
   }
@@ -140,7 +140,7 @@ class FlutterLocalNotificationService implements NotificationService {
     // is not allowed. Fall back to inexact scheduling instead of crashing.
     final logTime =
         '${scheduledTime.hour.toString().padLeft(2, '0')}:${scheduledTime.minute.toString().padLeft(2, '0')}:${scheduledTime.second.toString().padLeft(2, '0')}';
-    _logger.info('📆 Scheduling notification $id for $logTime (title: $title)');
+    _logger.debug('Scheduling notification $id for $logTime (title: $title)');
 
     try {
       await _plugin.zonedSchedule(
@@ -153,7 +153,7 @@ class FlutterLocalNotificationService implements NotificationService {
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
       );
-      _logger.info('⏱️ Scheduled notification $id at $logTime (title: $title)');
+      _logger.debug('Scheduled notification $id at $logTime (title: $title)');
     } on PlatformException catch (e) {
       if (e.code == 'exact_alarms_not_permitted') {
         await _plugin.zonedSchedule(
@@ -167,10 +167,10 @@ class FlutterLocalNotificationService implements NotificationService {
               UILocalNotificationDateInterpretation.absoluteTime,
         );
         _logger.warning(
-          '⚠️ exact alarms not permitted; scheduled inexact for $id at $logTime',
+          'exact alarms not permitted; scheduled inexact for $id at $logTime',
         );
       } else {
-        _logger.error('❌ Failed to schedule notification $id', e);
+        _logger.error('Failed to schedule notification $id', e);
         rethrow;
       }
     }
@@ -179,19 +179,19 @@ class FlutterLocalNotificationService implements NotificationService {
   @override
   Future<void> cancelNotification(String id) async {
     await _plugin.cancel(id.hashCode);
-    _logger.info('🗑️ Cancelled notification $id');
+    _logger.debug('Cancelled notification $id');
   }
 
   @override
   Future<void> cancelAllNotifications() async {
     await _plugin.cancelAll();
-    _logger.info('🧹 Cancelled all notifications');
+    _logger.debug('Cancelled all notifications');
   }
 
   @override
   Future<List<ScheduledNotification>> getPendingNotifications() async {
     final pending = await _plugin.pendingNotificationRequests();
-    _logger.info('📋 Pending notifications count: ${pending.length}');
+    _logger.debug('Pending notifications count: ${pending.length}');
 
     return pending.map((notification) {
       return ScheduledNotification(
@@ -217,9 +217,9 @@ class FlutterLocalNotificationService implements NotificationService {
         action: 'android.settings.REQUEST_SCHEDULE_EXACT_ALARM',
       );
       await intent.launch();
-      _logger.info('⏱️ Launched exact alarm settings intent');
+      _logger.debug('Launched exact alarm settings intent');
     } catch (e) {
-      _logger.warning('⚠️ Could not open exact alarm settings', e);
+      _logger.warning('Could not open exact alarm settings', e);
     }
   }
 }
