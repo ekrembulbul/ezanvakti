@@ -95,7 +95,7 @@ void main() {
   });
 
   group('Location calculation params', () {
-    test('Defaults to Diyanet method and Hanafi school', () {
+    test('Defaults to Diyanet method and standard (Shafi) Asr school', () {
       const location = Location(
         id: '1',
         province: 'İstanbul',
@@ -104,7 +104,16 @@ void main() {
 
       expect(location.method, equals(CalculationDefaults.method));
       expect(location.school, equals(CalculationDefaults.school));
+      // Diyanet İkindi'yi asr-ı evvel (standart/Şafi = 0) ile hesaplar.
+      expect(CalculationDefaults.school, equals(0));
       expect(location.latitudeAdjustmentMethod, isNull);
+    });
+
+    test('schoolForMethod maps regional Asr defaults', () {
+      // Diyanet ve çoğu otorite standart/Şafi (0); Güney Asya Karachi (5) Hanefi.
+      expect(CalculationDefaults.schoolForMethod(13), equals(0));
+      expect(CalculationDefaults.schoolForMethod(1), equals(0));
+      expect(CalculationDefaults.schoolForMethod(5), equals(1));
     });
 
     test('fromJson without calc fields falls back to safe defaults', () {

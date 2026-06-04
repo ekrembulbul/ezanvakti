@@ -26,7 +26,7 @@ void main() {
   final date = DateTime(2024, 6, 15);
 
   group('AwqatSalahProvider passes per-location calculation params', () {
-    test('Default location sends Diyanet method and Hanafi school', () async {
+    test('Default location sends Diyanet method and standard Asr school', () async {
       final client = CapturingHttpClient(validBody);
       final provider = AwqatSalahProvider(httpClient: client);
 
@@ -43,7 +43,8 @@ void main() {
 
       final query = client.lastUrl!.queryParameters;
       expect(query['method'], equals('13'));
-      expect(query['school'], equals('1'));
+      // Diyanet İkindi'yi asr-ı evvel (standart/Şafi = 0) ile hesaplar.
+      expect(query['school'], equals('0'));
       expect(query.containsKey('latitudeAdjustmentMethod'), isFalse);
     });
 

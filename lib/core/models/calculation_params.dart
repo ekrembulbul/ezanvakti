@@ -7,16 +7,29 @@ library;
 
 /// Yeni bir konum için varsayılan hesaplama parametreleri.
 ///
-/// Türkiye odaklı varsayılan: Diyanet + Hanefi. Kullanıcı konum başına
-/// değiştirebilir.
+/// Türkiye odaklı varsayılan: Diyanet + standart (Şafi) İkindi. Kullanıcı konum
+/// başına değiştirebilir.
 class CalculationDefaults {
   const CalculationDefaults._();
 
   /// Diyanet İşleri Başkanlığı (Aladhan method=13).
   static const int method = 13;
 
-  /// İkindi için Hanefi mezhebi (Aladhan school=1). Türkiye ağırlıklı Hanefi.
-  static const int school = 1;
+  /// Standart/Şafi İkindi (Aladhan school=0). Diyanet takvimi İkindi'yi
+  /// **asr-ı evvel**'e göre (gölge = cisim boyu) hazırlar; bu Aladhan'da
+  /// school=0'a karşılık gelir. Hanefi (asr-ı sani) school=1'dir.
+  static const int school = 0;
+
+  // Hanefi İkindi'nin (asr-ı sani) yerleşik bölgesel norm olduğu yöntemler.
+  // Güney Asya (Pakistan/Hindistan/Bangladeş) için Karachi yöntemi (5).
+  static const Set<int> _hanafiAsrMethods = {5};
+
+  /// Seçilen yönteme göre bölgesel olarak uygun varsayılan İkindi mezhebini
+  /// döner. Çoğu otorite (Diyanet dahil) standart/Şafi İkindi kullanır; yalnızca
+  /// Hanefi İkindi'nin norm olduğu bölgelerde 1 (Hanefi) döner.
+  static int schoolForMethod(int method) {
+    return _hanafiAsrMethods.contains(method) ? 1 : 0;
+  }
 }
 
 /// Aladhan hesaplama yöntemi: namaz açılarını belirleyen otorite.
