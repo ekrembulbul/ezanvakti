@@ -5,7 +5,6 @@ import 'package:ezanvakti/core/interfaces/prayer_time_provider.dart';
 import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart';
-import 'package:ezanvakti/features/location/data/turkey_locations_data.dart';
 import 'package:ezanvakti/features/location/domain/location_repository.dart';
 import 'package:ezanvakti/features/location/domain/location_service.dart';
 import 'package:ezanvakti/features/prayer_times/domain/prayer_times_repository.dart';
@@ -81,6 +80,11 @@ class MockLocalStorage implements LocalStorage {
     } catch (_) {
       return null;
     }
+  }
+
+  @override
+  Future<void> deletePrayerTimesForLocation(String locationId) async {
+    _prayerTimesCache.remove(locationId);
   }
 
   @override
@@ -347,95 +351,6 @@ class MockNotificationService implements NotificationService {
 }
 
 void main() {
-  group('Location Feature - Turkey Locations Data', () {
-    test('Turkey locations data contains valid locations', () {
-      final locations = TurkeyLocationsData.getAllLocations();
-
-      expect(locations, isNotEmpty);
-      expect(locations.first, isA<Location>());
-      expect(locations.first.latitude, isNotNull);
-      expect(locations.first.longitude, isNotNull);
-    });
-
-    test('Can get all provinces', () {
-      final provinces = TurkeyLocationsData.getAllProvinces();
-
-      expect(provinces, isNotEmpty);
-      expect(provinces, contains('İstanbul'));
-      expect(provinces, contains('Ankara'));
-      expect(provinces, contains('İzmir'));
-    });
-
-    test('Provinces are sorted alphabetically', () {
-      final provinces = TurkeyLocationsData.getAllProvinces();
-
-      final sortedProvinces = List<String>.from(provinces)..sort();
-      expect(provinces, equals(sortedProvinces));
-    });
-
-    test('Can get districts by province', () {
-      final istanbulDistricts = TurkeyLocationsData.getDistrictsByProvince(
-        'İstanbul',
-      );
-
-      expect(istanbulDistricts, isNotEmpty);
-      expect(
-        istanbulDistricts.every((loc) => loc.province == 'İstanbul'),
-        isTrue,
-      );
-    });
-
-    test('Districts are sorted alphabetically', () {
-      final districts = TurkeyLocationsData.getDistrictsByProvince('İstanbul');
-
-      final districtNames = districts.map((d) => d.district).toList();
-      final sortedNames = List<String>.from(districtNames)..sort();
-      expect(districtNames, equals(sortedNames));
-    });
-
-    test('Can get location by ID', () {
-      final location = TurkeyLocationsData.getLocationById('9635');
-
-      expect(location, isNotNull);
-      expect(location!.province, equals('İstanbul'));
-      expect(location.district, equals('Kadıköy'));
-    });
-
-    test('Returns null for invalid location ID', () {
-      final location = TurkeyLocationsData.getLocationById('invalid_id');
-
-      expect(location, isNull);
-    });
-
-    test('Can search locations by province name', () {
-      final results = TurkeyLocationsData.searchLocations('İstanbul');
-
-      expect(results, isNotEmpty);
-      expect(results.every((loc) => loc.province == 'İstanbul'), isTrue);
-    });
-
-    test('Can search locations by district name', () {
-      final results = TurkeyLocationsData.searchLocations('Kadıköy');
-
-      expect(results, isNotEmpty);
-      expect(results.any((loc) => loc.district == 'Kadıköy'), isTrue);
-    });
-
-    test('Search is case-insensitive', () {
-      final results1 = TurkeyLocationsData.searchLocations('istanbul');
-      final results2 = TurkeyLocationsData.searchLocations('İSTANBUL');
-
-      expect(results1, isNotEmpty);
-      expect(results2, isNotEmpty);
-    });
-
-    test('Empty search query returns empty list', () {
-      final results = TurkeyLocationsData.searchLocations('');
-
-      expect(results, isEmpty);
-    });
-  });
-
   group('Location Feature - Location Repository', () {
     late MockLocalStorage storage;
     late LocationRepository repository;
@@ -469,32 +384,23 @@ void main() {
       expect(location, isNull);
     });
 
-    test('Repository can get all provinces', () {
-      final provinces = repository.getAllProvinces();
+    test('clearPrayerTimeCache removes cached times for a location', () async {
+      await storage.savePrayerTimes([
+        PrayerTime(
+          fajr: DateTime(2024, 1, 1, 5, 30),
+          sunrise: DateTime(2024, 1, 1, 7, 0),
+          dhuhr: DateTime(2024, 1, 1, 13, 15),
+          asr: DateTime(2024, 1, 1, 16, 30),
+          maghrib: DateTime(2024, 1, 1, 19, 0),
+          isha: DateTime(2024, 1, 1, 20, 30),
+          date: DateTime(2024, 1, 1),
+        ),
+      ], 'loc1');
+      expect(storage.cacheForTesting.containsKey('loc1'), isTrue);
 
-      expect(provinces, isNotEmpty);
-      expect(provinces, contains('İstanbul'));
-    });
+      await repository.clearPrayerTimeCache('loc1');
 
-    test('Repository can get districts by province', () {
-      final districts = repository.getDistrictsByProvince('Ankara');
-
-      expect(districts, isNotEmpty);
-      expect(districts.every((d) => d.province == 'Ankara'), isTrue);
-    });
-
-    test('Repository can get location by ID', () {
-      final location = repository.getLocationById('9206');
-
-      expect(location, isNotNull);
-      expect(location!.province, equals('Ankara'));
-    });
-
-    test('Repository can search locations', () {
-      final results = repository.searchLocations('Bursa');
-
-      expect(results, isNotEmpty);
-      expect(results.every((loc) => loc.province == 'Bursa'), isTrue);
+      expect(storage.cacheForTesting.containsKey('loc1'), isFalse);
     });
   });
 
@@ -622,6 +528,33 @@ void main() {
     });
 
     test(
+      'Same location with changed calc params refetches and reschedules',
+      () async {
+        const base = Location(
+          id: '9635',
+          province: 'İstanbul',
+          district: 'Kadıköy',
+          latitude: 40.9828,
+          longitude: 29.0227,
+        );
+
+        await locationService.changeLocation(base);
+        provider.fetchCallCount = 0;
+        notificationService.cancelAllCallCount = 0;
+
+        // Aynı konum, farklı hesaplama yöntemi/mezhebi.
+        final changed = base.copyWith(method: 3, school: 0);
+        await locationService.changeLocation(changed);
+
+        expect(provider.fetchCallCount, greaterThan(0));
+        expect(notificationService.cancelAllCallCount, equals(1));
+        final active = await locationService.getActiveLocation();
+        expect(active!.method, equals(3));
+        expect(active.school, equals(0));
+      },
+    );
+
+    test(
       'Location service without notification service works correctly',
       () async {
         final serviceWithoutNotifications = LocationService(
@@ -657,34 +590,6 @@ void main() {
 
       final cached = storage.cacheForTesting[location.id]!;
       expect(cached.length, greaterThanOrEqualTo(30));
-    });
-
-    test('Location service can search locations', () {
-      final results = locationService.searchLocations('Antalya');
-
-      expect(results, isNotEmpty);
-      expect(results.every((loc) => loc.province == 'Antalya'), isTrue);
-    });
-
-    test('Location service can get provinces', () {
-      final provinces = locationService.getAllProvinces();
-
-      expect(provinces, isNotEmpty);
-      expect(provinces, contains('İzmir'));
-    });
-
-    test('Location service can get districts by province', () {
-      final districts = locationService.getDistrictsByProvince('Konya');
-
-      expect(districts, isNotEmpty);
-      expect(districts.every((d) => d.province == 'Konya'), isTrue);
-    });
-
-    test('Location service can get location by ID', () {
-      final location = locationService.getLocationById('9045');
-
-      expect(location, isNotNull);
-      expect(location!.province, equals('Adana'));
     });
   });
 
@@ -772,34 +677,6 @@ void main() {
 
       final cached = storage.cacheForTesting[location.id]!;
       expect(cached.length, greaterThanOrEqualTo(30));
-    });
-
-    test('Location service can search locations', () {
-      final results = locationService.searchLocations('Antalya');
-
-      expect(results, isNotEmpty);
-      expect(results.every((loc) => loc.province == 'Antalya'), isTrue);
-    });
-
-    test('Location service can get provinces', () {
-      final provinces = locationService.getAllProvinces();
-
-      expect(provinces, isNotEmpty);
-      expect(provinces, contains('İzmir'));
-    });
-
-    test('Location service can get districts by province', () {
-      final districts = locationService.getDistrictsByProvince('Konya');
-
-      expect(districts, isNotEmpty);
-      expect(districts.every((d) => d.province == 'Konya'), isTrue);
-    });
-
-    test('Location service can get location by ID', () {
-      final location = locationService.getLocationById('9045');
-
-      expect(location, isNotNull);
-      expect(location!.province, equals('Adana'));
     });
   });
 

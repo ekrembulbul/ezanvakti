@@ -21,8 +21,18 @@ class LocationService {
   Future<void> changeLocation(Location newLocation) async {
     final oldLocation = await locationRepository.getActiveLocation();
 
-    if (oldLocation?.id == newLocation.id) {
+    final sameLocation = oldLocation?.id == newLocation.id;
+    final calcParamsChanged =
+        oldLocation != null && _calcParamsChanged(oldLocation, newLocation);
+
+    // Konum ve hesaplama parametreleri aynıysa yapılacak iş yok.
+    if (sameLocation && !calcParamsChanged) {
       return;
+    }
+
+    // Aynı konum ama farklı method/school: önbellekteki vakitler geçersizdir.
+    if (sameLocation && calcParamsChanged) {
+      await prayerTimesRepository.clearCacheForLocation(newLocation.id);
     }
 
     await locationRepository.setActiveLocation(newLocation);
@@ -32,6 +42,12 @@ class LocationService {
     if (notificationService != null) {
       await _rescheduleNotifications(oldLocation, newLocation);
     }
+  }
+
+  bool _calcParamsChanged(Location a, Location b) {
+    return a.method != b.method ||
+        a.school != b.school ||
+        a.latitudeAdjustmentMethod != b.latitudeAdjustmentMethod;
   }
 
   Future<void> _updateCacheForNewLocation(Location location) async {
@@ -49,21 +65,5 @@ class LocationService {
     if (notificationService == null) return;
 
     await notificationService!.cancelAllNotifications();
-  }
-
-  List<String> getAllProvinces() {
-    return locationRepository.getAllProvinces();
-  }
-
-  List<Location> getDistrictsByProvince(String province) {
-    return locationRepository.getDistrictsByProvince(province);
-  }
-
-  Location? getLocationById(String id) {
-    return locationRepository.getLocationById(id);
-  }
-
-  List<Location> searchLocations(String query) {
-    return locationRepository.searchLocations(query);
   }
 }

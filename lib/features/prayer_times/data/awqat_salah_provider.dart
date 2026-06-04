@@ -17,6 +17,19 @@ class AwqatSalahProvider implements PrayerTimeProvider {
   @override
   String get providerName => 'Diyanet (Awqat Salah)';
 
+  /// Konuma özel hesaplama parametrelerini Aladhan sorgu parçasına çevirir:
+  /// method (otorite), school (İkindi mezhebi) ve varsa yüksek enlem düzeltmesi.
+  String _calculationParams(Location location) {
+    final buffer = StringBuffer(
+      'method=${location.method}&school=${location.school}',
+    );
+    final latitudeAdjustment = location.latitudeAdjustmentMethod;
+    if (latitudeAdjustment != null) {
+      buffer.write('&latitudeAdjustmentMethod=$latitudeAdjustment');
+    }
+    return buffer.toString();
+  }
+
   @override
   Future<List<PrayerTime>> fetchPrayerTimes({
     required Location location,
@@ -103,9 +116,7 @@ class AwqatSalahProvider implements PrayerTimeProvider {
       currentDate = currentDate.add(const Duration(days: 1));
     }
 
-    logger.debug(
-      'Daily fetch completed: ${prayerTimes.length} days retrieved',
-    );
+    logger.debug('Daily fetch completed: ${prayerTimes.length} days retrieved');
     return prayerTimes;
   }
 
@@ -129,7 +140,7 @@ class AwqatSalahProvider implements PrayerTimeProvider {
         currentMonth.isAtSameMomentAs(endMonth)) {
       try {
         final uri = Uri.parse(
-          '$baseUrl/calendar?latitude=${location.latitude}&longitude=${location.longitude}&method=13&month=${currentMonth.month}&year=${currentMonth.year}',
+          '$baseUrl/calendar?latitude=${location.latitude}&longitude=${location.longitude}&${_calculationParams(location)}&month=${currentMonth.month}&year=${currentMonth.year}',
         );
 
         final response = await httpClient.get(uri).timeout(_requestTimeout);
@@ -225,7 +236,7 @@ class AwqatSalahProvider implements PrayerTimeProvider {
       final timestamp = date.millisecondsSinceEpoch ~/ 1000;
 
       final uri = Uri.parse(
-        '$baseUrl/timings/$timestamp?latitude=${location.latitude}&longitude=${location.longitude}&method=13',
+        '$baseUrl/timings/$timestamp?latitude=${location.latitude}&longitude=${location.longitude}&${_calculationParams(location)}',
       );
 
       final response = await httpClient.get(uri).timeout(_requestTimeout);

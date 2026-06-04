@@ -1,3 +1,5 @@
+import 'calculation_params.dart';
+
 enum LocationType {
   gps,
   manual;
@@ -21,6 +23,15 @@ class Location {
   final LocationType type;
   final String? customName;
 
+  /// Aladhan hesaplama yöntemi (otorite) — konuma özel.
+  final int method;
+
+  /// Aladhan İkindi mezhebi (0=Şafi, 1=Hanefi) — konuma özel.
+  final int school;
+
+  /// Yüksek enlem düzeltmesi (1/2/3) veya API varsayılanı için null.
+  final int? latitudeAdjustmentMethod;
+
   const Location({
     required this.id,
     required this.province,
@@ -29,6 +40,9 @@ class Location {
     this.longitude,
     this.type = LocationType.manual,
     this.customName,
+    this.method = CalculationDefaults.method,
+    this.school = CalculationDefaults.school,
+    this.latitudeAdjustmentMethod,
   });
 
   String get displayName {
@@ -47,6 +61,9 @@ class Location {
       'longitude': longitude,
       'type': type.name,
       'customName': customName,
+      'method': method,
+      'school': school,
+      'latitudeAdjustmentMethod': latitudeAdjustmentMethod,
     };
   }
 
@@ -62,6 +79,10 @@ class Location {
         orElse: () => LocationType.manual,
       ),
       customName: json['customName'] as String?,
+      // Eski kayıtlarda bu alanlar yoktur; güvenli varsayılana düşülür.
+      method: json['method'] as int? ?? CalculationDefaults.method,
+      school: json['school'] as int? ?? CalculationDefaults.school,
+      latitudeAdjustmentMethod: json['latitudeAdjustmentMethod'] as int?,
     );
   }
 
@@ -73,6 +94,9 @@ class Location {
     double? longitude,
     LocationType? type,
     String? customName,
+    int? method,
+    int? school,
+    int? latitudeAdjustmentMethod,
   }) {
     return Location(
       id: id ?? this.id,
@@ -82,6 +106,10 @@ class Location {
       longitude: longitude ?? this.longitude,
       type: type ?? this.type,
       customName: customName ?? this.customName,
+      method: method ?? this.method,
+      school: school ?? this.school,
+      latitudeAdjustmentMethod:
+          latitudeAdjustmentMethod ?? this.latitudeAdjustmentMethod,
     );
   }
 
@@ -96,7 +124,10 @@ class Location {
           latitude == other.latitude &&
           longitude == other.longitude &&
           type == other.type &&
-          customName == other.customName;
+          customName == other.customName &&
+          method == other.method &&
+          school == other.school &&
+          latitudeAdjustmentMethod == other.latitudeAdjustmentMethod;
 
   @override
   int get hashCode => Object.hash(
@@ -107,6 +138,9 @@ class Location {
     longitude,
     type,
     customName,
+    method,
+    school,
+    latitudeAdjustmentMethod,
   );
 
   @override

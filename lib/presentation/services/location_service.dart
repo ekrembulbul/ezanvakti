@@ -1,10 +1,14 @@
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart' hide Location;
 import '../../core/models/location.dart';
-import '../../features/location/data/turkey_locations_data.dart';
+import '../../features/location/data/gps_label.dart';
 
-/// Resolves the device's current GPS position to a known Turkey location.
+/// Cihazın mevcut GPS konumunu ham koordinat + okunur il/ilçe etiketine çözer.
+/// Namaz vakti koordinattan hesaplandığı için adres yalnızca etikettir.
 class GpsLocationService {
+  // GPS konumu tek satır olarak saklanır; sabit kimlik yeterli.
+  static const String _gpsLocationId = 'gps';
+
   Future<Location> getCurrentGpsLocation() async {
     final hasPermission = await Geolocator.checkPermission();
     if (hasPermission != LocationPermission.always &&
@@ -13,9 +17,7 @@ class GpsLocationService {
     }
 
     final position = await Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-      ),
+      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
     );
 
     final placemarks = await placemarkFromCoordinates(
@@ -23,31 +25,22 @@ class GpsLocationService {
       position.longitude,
     );
 
-    if (placemarks.isEmpty) {
-      throw Exception('Konum bilgisi alınamadı');
-    }
+    final label = placemarks.isNotEmpty
+        ? resolveGpsLabel(placemarks.first)
+        : (
+            province: 'GPS Konumu',
+            district:
+                '${position.latitude.toStringAsFixed(3)}, '
+                '${position.longitude.toStringAsFixed(3)}',
+          );
 
-    final placemark = placemarks.first;
-    final province = placemark.administrativeArea ?? '';
-    final district =
-        placemark.subAdministrativeArea ?? placemark.locality ?? '';
-
-    if (province.isEmpty || district.isEmpty) {
-      throw Exception('İl veya ilçe bilgisi bulunamadı');
-    }
-
-    final matchedLocation = TurkeyLocationsData.findMatchingLocation(
-      province,
-      district,
-    );
-    if (matchedLocation == null) {
-      throw Exception('$province/$district için veri bulunamadı');
-    }
-
-    return matchedLocation.copyWith(
-      type: LocationType.gps,
+    return Location(
+      id: _gpsLocationId,
+      province: label.province,
+      district: label.district,
       latitude: position.latitude,
       longitude: position.longitude,
+      type: LocationType.gps,
     );
   }
 }

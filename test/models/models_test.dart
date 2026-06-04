@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
+import 'package:ezanvakti/core/models/calculation_params.dart';
 
 void main() {
   group('Location equality', () {
@@ -38,8 +39,14 @@ void main() {
 
   group('NotificationSetting equality', () {
     test('Identical settings are equal', () {
-      const a = NotificationSetting(prayerType: PrayerType.fajr, isActive: true);
-      const b = NotificationSetting(prayerType: PrayerType.fajr, isActive: true);
+      const a = NotificationSetting(
+        prayerType: PrayerType.fajr,
+        isActive: true,
+      );
+      const b = NotificationSetting(
+        prayerType: PrayerType.fajr,
+        isActive: true,
+      );
 
       expect(a, equals(b));
       expect(a.hashCode, equals(b.hashCode));
@@ -84,6 +91,85 @@ void main() {
       expect(updated.fajr, equals(DateTime(2024, 1, 1, 6, 0)));
       expect(updated.dhuhr, equals(sample().dhuhr));
       expect(updated, isNot(equals(sample())));
+    });
+  });
+
+  group('Location calculation params', () {
+    test('Defaults to Diyanet method and Hanafi school', () {
+      const location = Location(
+        id: '1',
+        province: 'İstanbul',
+        district: 'Fatih',
+      );
+
+      expect(location.method, equals(CalculationDefaults.method));
+      expect(location.school, equals(CalculationDefaults.school));
+      expect(location.latitudeAdjustmentMethod, isNull);
+    });
+
+    test('fromJson without calc fields falls back to safe defaults', () {
+      // Eski kayıtlarda method/school yoktu; migration sonrası okuma bozulmamalı.
+      final location = Location.fromJson({
+        'id': '1',
+        'province': 'İstanbul',
+        'district': 'Fatih',
+        'type': 'manual',
+      });
+
+      expect(location.method, equals(CalculationDefaults.method));
+      expect(location.school, equals(CalculationDefaults.school));
+      expect(location.latitudeAdjustmentMethod, isNull);
+    });
+
+    test('toJson/fromJson round-trips calculation params', () {
+      const original = Location(
+        id: '1',
+        province: 'İstanbul',
+        district: 'Fatih',
+        method: 3,
+        school: 0,
+        latitudeAdjustmentMethod: 3,
+      );
+
+      final restored = Location.fromJson(original.toJson());
+
+      expect(restored, equals(original));
+      expect(restored.method, equals(3));
+      expect(restored.school, equals(0));
+      expect(restored.latitudeAdjustmentMethod, equals(3));
+    });
+
+    test('copyWith overrides method and school independently', () {
+      const original = Location(
+        id: '1',
+        province: 'İstanbul',
+        district: 'Fatih',
+      );
+
+      final updated = original.copyWith(method: 2, school: 0);
+
+      expect(updated.method, equals(2));
+      expect(updated.school, equals(0));
+      expect(original.method, equals(CalculationDefaults.method));
+      expect(updated, isNot(equals(original)));
+    });
+  });
+
+  group('CalculationMethods catalog', () {
+    test('byId returns the matching method', () {
+      expect(CalculationMethods.byId(13).name, contains('Diyanet'));
+    });
+
+    test('byId falls back to Diyanet for unknown ids', () {
+      expect(
+        CalculationMethods.byId(999).id,
+        equals(CalculationDefaults.method),
+      );
+    });
+
+    test('AsrSchool.fromValue maps API values', () {
+      expect(AsrSchool.fromValue(0), equals(AsrSchool.shafi));
+      expect(AsrSchool.fromValue(1), equals(AsrSchool.hanafi));
     });
   });
 }

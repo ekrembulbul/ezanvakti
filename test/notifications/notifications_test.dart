@@ -53,6 +53,11 @@ class MockLocalStorage implements LocalStorage {
   }
 
   @override
+  Future<void> deletePrayerTimesForLocation(String locationId) async {
+    _prayerTimesCache.remove(locationId);
+  }
+
+  @override
   Future<void> deleteOldPrayerTimes(DateTime cutoffDate) async {
     for (var key in _prayerTimesCache.keys) {
       _prayerTimesCache[key] = _prayerTimesCache[key]!

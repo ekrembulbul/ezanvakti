@@ -1,14 +1,20 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart' hide Location;
+import 'package:provider/provider.dart';
+
 import '../../core/theme/app_theme.dart';
 import '../../core/models/location.dart' as app_location;
-import '../../features/location/data/turkey_locations_data.dart';
+import '../../core/models/calculation_params.dart';
+import '../../core/providers/app_state.dart';
+import '../../features/location/data/gps_label.dart';
+import '../../features/location/data/photon_geocoding_service.dart';
+import '../../features/location/data/place_suggestion.dart';
 import '../../features/location/domain/location_repository.dart';
 import '../widgets/common/app_bar_widgets.dart';
 import '../widgets/location/location_widgets.dart';
-import '../../core/providers/app_state.dart';
-import 'package:provider/provider.dart';
 
 class LocationAddScreen extends StatefulWidget {
   final LocationRepository locationRepository;
@@ -25,39 +31,105 @@ class LocationAddScreen extends StatefulWidget {
 }
 
 class _LocationAddScreenState extends State<LocationAddScreen> {
+  static const Duration _searchDebounce = Duration(milliseconds: 300);
+  static const int _minQueryLength = 2;
+
+  // GPS konumu tek satır olarak saklanır; saveOrUpdateGpsLocation aynı kaydı
+  // günceller, bu yüzden sabit bir kimlik yeterli.
+  static const String _gpsLocationId = 'gps';
+
+  final PhotonGeocodingService _geocodingService = PhotonGeocodingService();
+  final _searchController = TextEditingController();
+  final _customNameController = TextEditingController();
+
   bool _showManualSelection = false;
-  String? selectedProvince;
-  app_location.Location? selectedDistrict;
-  List<String> provinces = [];
-  List<app_location.Location> districts = [];
   bool _isLoadingLocation = false;
   String? _locationError;
-  final _customNameController = TextEditingController();
+
+  Timer? _searchTimer;
+  List<PlaceSuggestion> _searchResults = [];
+  bool _isSearching = false;
+  bool _searchAttempted = false;
+
+  app_location.Location? _selectedPlace;
+  int _method = CalculationDefaults.method;
+  AsrSchool _school = AsrSchool.fromValue(CalculationDefaults.school);
+  LatitudeAdjustment _latitudeAdjustment = LatitudeAdjustment.auto;
+
+  // Sonuçları kullanıcının yakınına önceleyen opsiyonel bias.
+  double? _biasLatitude;
+  double? _biasLongitude;
 
   @override
   void initState() {
     super.initState();
-    provinces = TurkeyLocationsData.getAllProvinces();
+    _loadBiasLocation();
   }
 
   @override
   void dispose() {
+    _searchTimer?.cancel();
+    _searchController.dispose();
     _customNameController.dispose();
     super.dispose();
   }
 
-  void _onProvinceSelected(String? province) {
-    if (province == null) return;
+  Future<void> _loadBiasLocation() async {
+    try {
+      final position = await Geolocator.getLastKnownPosition();
+      if (position != null && mounted) {
+        setState(() {
+          _biasLatitude = position.latitude;
+          _biasLongitude = position.longitude;
+        });
+      }
+    } catch (_) {
+      // Bias en iyi çaba; alınamazsa arama yine global çalışır.
+    }
+  }
+
+  void _onSearchChanged(String value) {
+    _searchTimer?.cancel();
+    setState(() => _selectedPlace = null);
+
+    final query = value.trim();
+    if (query.length < _minQueryLength) {
+      setState(() {
+        _searchResults = [];
+        _isSearching = false;
+        _searchAttempted = false;
+      });
+      return;
+    }
+
+    setState(() => _isSearching = true);
+    _searchTimer = Timer(_searchDebounce, () => _performSearch(query));
+  }
+
+  Future<void> _performSearch(String query) async {
+    final results = await _geocodingService.search(
+      query,
+      biasLatitude: _biasLatitude,
+      biasLongitude: _biasLongitude,
+    );
+    if (!mounted) return;
     setState(() {
-      selectedProvince = province;
-      selectedDistrict = null;
-      districts = TurkeyLocationsData.getDistrictsByProvince(province);
+      _searchResults = results;
+      _isSearching = false;
+      _searchAttempted = true;
     });
   }
 
-  void _onDistrictSelected(app_location.Location? district) {
-    if (district == null) return;
-    setState(() => selectedDistrict = district);
+  void _onSuggestionSelected(PlaceSuggestion suggestion) {
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _selectedPlace = suggestion.toLocation();
+      _searchResults = [];
+    });
+  }
+
+  void _clearSelection() {
+    setState(() => _selectedPlace = null);
   }
 
   Future<void> _detectLocation() async {
@@ -67,12 +139,12 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
     });
 
     try {
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         throw Exception('Konum servisleri kapalı. Lütfen açın.');
       }
 
-      LocationPermission permission = await Geolocator.checkPermission();
+      var permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         final shouldRequest = await _showLocationRationale();
         if (!shouldRequest) throw Exception('Konum izni gerekli.');
@@ -88,78 +160,53 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
         );
       }
 
-      Position position = await Geolocator.getCurrentPosition(
+      final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
         ),
       );
 
-      List<Placemark> placemarks = await placemarkFromCoordinates(
+      final label = await _reverseGeocodeLabel(
         position.latitude,
         position.longitude,
       );
 
-      if (placemarks.isEmpty) throw Exception('Konum bilgisi alınamadı.');
-
-      final placemark = placemarks.first;
-      final province = placemark.administrativeArea ?? '';
-      final district =
-          placemark.subAdministrativeArea ?? placemark.locality ?? '';
-
-      if (province.isEmpty || district.isEmpty) {
-        throw Exception('İl veya ilçe bilgisi bulunamadı.');
-      }
-
-      final matchedLocation = _findMatchingLocation(province, district);
-      if (matchedLocation != null) {
-        final gpsLocation = matchedLocation.copyWith(
-          type: app_location.LocationType.gps,
-          latitude: position.latitude,
-          longitude: position.longitude,
-        );
-        await _saveAndReturn(gpsLocation);
-      } else {
-        throw Exception(
-          '$province/$district için veri bulunamadı. Manuel seçim yapın.',
-        );
-      }
+      // Ham GPS koordinatı doğrudan kullanılır; il/ilçe yalnızca etikettir.
+      final gpsLocation = app_location.Location(
+        id: _gpsLocationId,
+        province: label.province,
+        district: label.district,
+        latitude: position.latitude,
+        longitude: position.longitude,
+        type: app_location.LocationType.gps,
+      );
+      await _saveAndReturn(gpsLocation);
     } catch (e) {
       setState(
         () => _locationError = e.toString().replaceAll('Exception: ', ''),
       );
     } finally {
-      setState(() => _isLoadingLocation = false);
+      if (mounted) setState(() => _isLoadingLocation = false);
     }
   }
 
-  app_location.Location? _findMatchingLocation(
-    String province,
-    String district,
-  ) {
-    final allProvinces = TurkeyLocationsData.getAllProvinces();
-
-    String? matchedProvince;
-    for (final p in allProvinces) {
-      if (p.toLowerCase().contains(province.toLowerCase()) ||
-          province.toLowerCase().contains(p.toLowerCase())) {
-        matchedProvince = p;
-        break;
+  /// GPS koordinatından okunur il/ilçe etiketi üretir. Adres bulunamazsa
+  /// koordinata düşer; namaz vakti yine ham koordinattan hesaplanır.
+  Future<({String province, String district})> _reverseGeocodeLabel(
+    double latitude,
+    double longitude,
+  ) async {
+    try {
+      final placemarks = await placemarkFromCoordinates(latitude, longitude);
+      if (placemarks.isNotEmpty) {
+        return resolveGpsLabel(placemarks.first);
       }
+    } catch (_) {
+      // Reverse geocode başarısızsa koordinat etiketine düşülür.
     }
-
-    if (matchedProvince == null) return null;
-
-    final districts = TurkeyLocationsData.getDistrictsByProvince(
-      matchedProvince,
-    );
-    for (final d in districts) {
-      if (d.district.toLowerCase().contains(district.toLowerCase()) ||
-          district.toLowerCase().contains(d.district.toLowerCase())) {
-        return d;
-      }
-    }
-
-    return districts.isNotEmpty ? districts.first : null;
+    final coordsLabel =
+        '${latitude.toStringAsFixed(3)}, ${longitude.toStringAsFixed(3)}';
+    return (province: 'GPS Konumu', district: coordsLabel);
   }
 
   Future<bool> _showLocationRationale() async {
@@ -195,6 +242,11 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
 
   Future<void> _saveAndReturn(app_location.Location location) async {
     try {
+      // Seçilen hesaplama parametreleriyle taze veri çekilsin diye, bu kimliğe
+      // ait eski (olası geçersiz) önbellek temizlenir. Silinip yeniden eklenen
+      // bir yerin vakit kayıtları konumla birlikte silinmediğinden bu gerekli.
+      await widget.locationRepository.clearPrayerTimeCache(location.id);
+
       if (location.type == app_location.LocationType.gps) {
         await widget.locationRepository.saveOrUpdateGpsLocation(location);
       } else {
@@ -203,10 +255,8 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
       await widget.locationRepository.setActiveLocation(location);
       if (mounted) {
         if (widget.fromLocationList) {
-          // LocationListScreen'den çağrıldı - location'ı döndür
           Navigator.of(context).pop(location);
         } else {
-          // İlk kurulum - AppState'i güncelle, AppRoot otomatik geçiş yapar
           context.read<AppState>().setActiveLocation(location);
         }
       }
@@ -216,18 +266,37 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
   }
 
   Future<void> _onManualSave() async {
-    if (selectedDistrict == null) {
-      _showSnackBar('Lütfen il ve ilçe seçiniz', isError: true);
+    final place = _selectedPlace;
+    if (place == null) {
+      _showSnackBar('Lütfen bir konum seçin', isError: true);
       return;
     }
 
     final customName = _customNameController.text.trim();
-    final locationToSave = selectedDistrict!.copyWith(
+    final location = place.copyWith(
       type: app_location.LocationType.manual,
+      method: _method,
+      school: _school.value,
+      latitudeAdjustmentMethod: _latitudeAdjustment.value,
       customName: customName.isEmpty ? null : customName,
     );
 
-    await _saveAndReturn(locationToSave);
+    await _saveAndReturn(location);
+  }
+
+  void _resetManualSelection() {
+    setState(() {
+      _showManualSelection = false;
+      _selectedPlace = null;
+      _searchResults = [];
+      _isSearching = false;
+      _searchAttempted = false;
+      _searchController.clear();
+      _customNameController.clear();
+      _method = CalculationDefaults.method;
+      _school = AsrSchool.fromValue(CalculationDefaults.school);
+      _latitudeAdjustment = LatitudeAdjustment.auto;
+    });
   }
 
   void _showSnackBar(String message, {bool isError = false}) {
@@ -251,8 +320,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: SimpleAppBar(
-        title: _showManualSelection ? 'Manuel Konum' : 'Yeni Konum',
-        // İlk kurulumda geri yok, Ayarlar'dan gelince sadece ana seçim ekranında göster
+        title: _showManualSelection ? 'Konum Ara' : 'Yeni Konum',
         showBack: widget.fromLocationList && !_showManualSelection,
       ),
       body: Container(
@@ -301,7 +369,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
         ),
         const SizedBox(height: 12),
         Text(
-          'GPS ile otomatik tespit edin veya\nmanuel olarak konum seçin',
+          'GPS ile otomatik tespit edin veya\nadres arayarak konum seçin',
           style: TextStyle(
             fontSize: 15,
             color: Colors.white.withValues(alpha: 0.6),
@@ -324,9 +392,9 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
         ],
         const SizedBox(height: 16),
         LocationChoiceButton(
-          icon: Icons.edit_location_alt_rounded,
-          title: 'Manuel Seç',
-          subtitle: 'İl ve ilçe seçerek ekle',
+          icon: Icons.search_rounded,
+          title: 'Adres Ara',
+          subtitle: 'Şehir, ilçe veya yer adıyla ara',
           onTap: () => setState(() {
             _showManualSelection = true;
             _locationError = null;
@@ -342,30 +410,167 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: 8),
-        Text(
-          'İl ve ilçe seçerek yeni konum ekleyin',
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.white.withValues(alpha: 0.6),
-          ),
+        _buildSearchField(),
+        const SizedBox(height: 16),
+        Expanded(
+          child: _selectedPlace == null
+              ? _buildResults()
+              : _buildConfigSection(),
         ),
-        const SizedBox(height: 32),
-        _buildTextField(),
-        const SizedBox(height: 16),
-        _buildProvinceDropdown(),
-        const SizedBox(height: 16),
-        _buildDistrictDropdown(),
-        if (selectedDistrict != null) ...[
-          const SizedBox(height: 24),
-          LocationSelectionConfirm(location: selectedDistrict!),
-        ],
-        const Spacer(),
+        const SizedBox(height: 8),
+        _buildAttribution(),
+        const SizedBox(height: 12),
         _buildActionButtons(),
       ],
     );
   }
 
-  Widget _buildTextField() {
+  Widget _buildSearchField() {
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+      ),
+      child: TextField(
+        controller: _searchController,
+        autofocus: true,
+        style: const TextStyle(color: Colors.white),
+        onChanged: _onSearchChanged,
+        decoration: InputDecoration(
+          hintText: 'Şehir, ilçe veya yer ara...',
+          hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4)),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 18,
+          ),
+          prefixIcon: Icon(
+            Icons.search_rounded,
+            color: Colors.white.withValues(alpha: 0.5),
+          ),
+          suffixIcon: _buildSearchSuffix(),
+        ),
+      ),
+    );
+  }
+
+  Widget? _buildSearchSuffix() {
+    if (_isSearching) {
+      return const Padding(
+        padding: EdgeInsets.all(14),
+        child: SizedBox(
+          width: 18,
+          height: 18,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: AppTheme.gold,
+          ),
+        ),
+      );
+    }
+    if (_searchController.text.isNotEmpty) {
+      return IconButton(
+        icon: Icon(
+          Icons.close_rounded,
+          color: Colors.white.withValues(alpha: 0.5),
+        ),
+        onPressed: () {
+          _searchController.clear();
+          _onSearchChanged('');
+        },
+      );
+    }
+    return null;
+  }
+
+  Widget _buildResults() {
+    if (_searchResults.isEmpty) {
+      final message = _searchAttempted
+          ? 'Sonuç bulunamadı.\nFarklı bir arama deneyin veya bağlantınızı kontrol edin.'
+          : 'Aramak için yazmaya başlayın.';
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            message,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.4),
+              fontSize: 14,
+              height: 1.5,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.only(top: 4),
+      itemCount: _searchResults.length,
+      itemBuilder: (context, index) => _buildResultTile(_searchResults[index]),
+    );
+  }
+
+  Widget _buildResultTile(PlaceSuggestion suggestion) {
+    return GestureDetector(
+      onTap: () => _onSuggestionSelected(suggestion),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.location_on_outlined,
+              color: Colors.white.withValues(alpha: 0.5),
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                suggestion.displayLabel,
+                style: const TextStyle(color: Colors.white, fontSize: 15),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildConfigSection() {
+    return ListView(
+      padding: const EdgeInsets.only(top: 4),
+      children: [
+        LocationSelectionConfirm(location: _selectedPlace!),
+        Align(
+          alignment: Alignment.centerRight,
+          child: TextButton.icon(
+            onPressed: _clearSelection,
+            icon: const Icon(Icons.search_rounded, size: 16),
+            label: const Text('Değiştir'),
+            style: TextButton.styleFrom(foregroundColor: AppTheme.gold),
+          ),
+        ),
+        const SizedBox(height: 8),
+        _buildCustomNameField(),
+        const SizedBox(height: 20),
+        _buildMethodDropdown(),
+        const SizedBox(height: 16),
+        _buildSchoolDropdown(),
+        const SizedBox(height: 16),
+        _buildAdvancedSection(),
+      ],
+    );
+  }
+
+  Widget _buildCustomNameField() {
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
@@ -392,67 +597,122 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
     );
   }
 
-  Widget _buildProvinceDropdown() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: selectedProvince,
-          hint: Text(
-            'İl Seçiniz',
-            style: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
+  Widget _buildMethodDropdown() {
+    return _buildLabeledDropdown<int>(
+      label: 'Hesaplama Yöntemi',
+      value: _method,
+      items: [
+        for (final method in CalculationMethods.all)
+          DropdownMenuItem(value: method.id, child: Text(method.name)),
+      ],
+      onChanged: (value) {
+        if (value != null) setState(() => _method = value);
+      },
+    );
+  }
+
+  Widget _buildSchoolDropdown() {
+    return _buildLabeledDropdown<AsrSchool>(
+      label: 'İkindi (Mezhep)',
+      value: _school,
+      items: [
+        for (final school in AsrSchool.values)
+          DropdownMenuItem(value: school, child: Text(school.label)),
+      ],
+      onChanged: (value) {
+        if (value != null) setState(() => _school = value);
+      },
+    );
+  }
+
+  Widget _buildAdvancedSection() {
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        tilePadding: EdgeInsets.zero,
+        childrenPadding: const EdgeInsets.only(top: 8),
+        iconColor: AppTheme.gold,
+        collapsedIconColor: Colors.white.withValues(alpha: 0.5),
+        title: Text(
+          'Gelişmiş',
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.7),
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
           ),
-          isExpanded: true,
-          dropdownColor: AppTheme.primaryMedium,
-          icon: Icon(
-            Icons.keyboard_arrow_down_rounded,
-            color: Colors.white.withValues(alpha: 0.5),
-          ),
-          style: const TextStyle(color: Colors.white, fontSize: 16),
-          items: provinces.map((province) {
-            return DropdownMenuItem(value: province, child: Text(province));
-          }).toList(),
-          onChanged: _onProvinceSelected,
         ),
+        children: [
+          _buildLabeledDropdown<LatitudeAdjustment>(
+            label: 'Yüksek Enlem Düzeltmesi',
+            value: _latitudeAdjustment,
+            items: [
+              for (final adjustment in LatitudeAdjustment.values)
+                DropdownMenuItem(
+                  value: adjustment,
+                  child: Text(adjustment.label),
+                ),
+            ],
+            onChanged: (value) {
+              if (value != null) {
+                setState(() => _latitudeAdjustment = value);
+              }
+            },
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildDistrictDropdown() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<app_location.Location>(
-          value: selectedDistrict,
-          hint: Text(
-            'İlçe Seçiniz',
-            style: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
+  Widget _buildLabeledDropdown<T>({
+    required String label,
+    required T value,
+    required List<DropdownMenuItem<T>> items,
+    required ValueChanged<T?> onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.6),
+            fontSize: 13,
           ),
-          isExpanded: true,
-          dropdownColor: AppTheme.primaryMedium,
-          icon: Icon(
-            Icons.keyboard_arrow_down_rounded,
-            color: Colors.white.withValues(alpha: 0.5),
-          ),
-          style: const TextStyle(color: Colors.white, fontSize: 16),
-          items: districts.map((district) {
-            return DropdownMenuItem<app_location.Location>(
-              value: district,
-              child: Text(district.district),
-            );
-          }).toList(),
-          onChanged: _onDistrictSelected,
         ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<T>(
+              value: value,
+              isExpanded: true,
+              dropdownColor: AppTheme.primaryMedium,
+              icon: Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: Colors.white.withValues(alpha: 0.5),
+              ),
+              style: const TextStyle(color: Colors.white, fontSize: 15),
+              items: items,
+              onChanged: onChanged,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAttribution() {
+    return Text(
+      '© OpenStreetMap katkıcıları',
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        color: Colors.white.withValues(alpha: 0.3),
+        fontSize: 11,
       ),
     );
   }
@@ -462,15 +722,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
       children: [
         Expanded(
           child: OutlinedButton(
-            onPressed: () {
-              setState(() {
-                _showManualSelection = false;
-                selectedProvince = null;
-                selectedDistrict = null;
-                districts = [];
-                _customNameController.clear();
-              });
-            },
+            onPressed: _resetManualSelection,
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.white70,
               side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
@@ -486,7 +738,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
         Expanded(
           flex: 2,
           child: ElevatedButton(
-            onPressed: selectedDistrict != null ? _onManualSave : null,
+            onPressed: _selectedPlace != null ? _onManualSave : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.gold,
               foregroundColor: AppTheme.primaryDark,

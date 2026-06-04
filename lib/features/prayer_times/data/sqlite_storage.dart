@@ -5,6 +5,7 @@ import '../../../core/interfaces/local_storage.dart';
 import '../../../core/models/prayer_time.dart';
 import '../../../core/models/location.dart';
 import '../../../core/models/notification_setting.dart';
+import '../../../core/models/calculation_params.dart';
 import '../../../core/exceptions/parse_exception.dart';
 import '../../../core/utils/app_logger.dart';
 
@@ -23,7 +24,7 @@ class SqliteStorage implements LocalStorage {
 
     return await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -71,12 +72,15 @@ class SqliteStorage implements LocalStorage {
         longitude REAL,
         type TEXT NOT NULL,
         custom_name TEXT,
-        created_at TEXT NOT NULL
+        created_at TEXT NOT NULL,
+        method INTEGER NOT NULL DEFAULT ${CalculationDefaults.method},
+        school INTEGER NOT NULL DEFAULT ${CalculationDefaults.school},
+        latitude_adjustment INTEGER
       )
     ''');
 
     await db.execute('''
-      CREATE INDEX idx_prayer_times_location_date 
+      CREATE INDEX idx_prayer_times_location_date
       ON prayer_times(location_id, date)
     ''');
   }
@@ -107,6 +111,21 @@ class SqliteStorage implements LocalStorage {
           UNIQUE(prayer_type, minutes_before)
         )
       ''');
+    }
+    if (oldVersion < 4) {
+      // Konuma özel hesaplama parametreleri. Mevcut kayıtlar güvenli
+      // varsayılana (Diyanet + Hanefi) düşer; veri kaybı yok.
+      await db.execute(
+        'ALTER TABLE locations ADD COLUMN method INTEGER NOT NULL '
+        'DEFAULT ${CalculationDefaults.method}',
+      );
+      await db.execute(
+        'ALTER TABLE locations ADD COLUMN school INTEGER NOT NULL '
+        'DEFAULT ${CalculationDefaults.school}',
+      );
+      await db.execute(
+        'ALTER TABLE locations ADD COLUMN latitude_adjustment INTEGER',
+      );
     }
   }
 
@@ -237,6 +256,16 @@ class SqliteStorage implements LocalStorage {
       'prayer_times',
       where: 'date < ?',
       whereArgs: [cutoffDate.toIso8601String()],
+    );
+  }
+
+  @override
+  Future<void> deletePrayerTimesForLocation(String locationId) async {
+    final db = await database;
+    await db.delete(
+      'prayer_times',
+      where: 'location_id = ?',
+      whereArgs: [locationId],
     );
   }
 
@@ -386,6 +415,9 @@ class SqliteStorage implements LocalStorage {
           orElse: () => LocationType.manual,
         ),
         customName: row['custom_name'] as String?,
+        method: row['method'] as int? ?? CalculationDefaults.method,
+        school: row['school'] as int? ?? CalculationDefaults.school,
+        latitudeAdjustmentMethod: row['latitude_adjustment'] as int?,
       );
     }).toList();
   }
@@ -402,6 +434,9 @@ class SqliteStorage implements LocalStorage {
       'type': location.type.name,
       'custom_name': location.customName,
       'created_at': DateTime.now().toIso8601String(),
+      'method': location.method,
+      'school': location.school,
+      'latitude_adjustment': location.latitudeAdjustmentMethod,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
@@ -417,6 +452,9 @@ class SqliteStorage implements LocalStorage {
         'longitude': location.longitude,
         'type': location.type.name,
         'custom_name': location.customName,
+        'method': location.method,
+        'school': location.school,
+        'latitude_adjustment': location.latitudeAdjustmentMethod,
       },
       where: 'id = ?',
       whereArgs: [location.id],

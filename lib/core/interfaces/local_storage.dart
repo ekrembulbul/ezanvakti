@@ -20,6 +20,10 @@ abstract class LocalStorage {
 
   Future<void> deleteOldPrayerTimes(DateTime cutoffDate);
 
+  /// Belirli bir konumun önbellekteki tüm vakitlerini siler. Hesaplama
+  /// yöntemi/mezhebi değişince eski (artık geçersiz) vakitleri temizlemek için.
+  Future<void> deletePrayerTimesForLocation(String locationId);
+
   Future<void> saveActiveLocation(Location location);
 
   Future<Location?> getActiveLocation();

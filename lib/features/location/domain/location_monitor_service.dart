@@ -3,12 +3,16 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart' hide Location;
 import '../../../core/models/location.dart';
 import '../../../core/utils/app_logger.dart';
-import '../data/turkey_locations_data.dart';
+import '../data/gps_label.dart';
 import 'location_repository.dart';
 
 class LocationMonitorService {
   final LocationRepository locationRepository;
   final AppLogger logger = AppLogger();
+
+  // GPS konumu tek satır olarak saklanır; saveOrUpdateGpsLocation aynı kaydı
+  // günceller, bu yüzden sabit bir kimlik yeterli.
+  static const String _gpsLocationId = 'gps';
 
   StreamSubscription<Position>? _positionStreamSubscription;
   Position? _lastPosition;
@@ -143,14 +147,17 @@ class LocationMonitorService {
 
       if (placemarks.isEmpty) return null;
 
-      final placemark = placemarks.first;
-      final province = placemark.administrativeArea ?? '';
-      final district =
-          placemark.subAdministrativeArea ?? placemark.locality ?? '';
+      final label = resolveGpsLabel(placemarks.first);
 
-      if (province.isEmpty || district.isEmpty) return null;
-
-      return TurkeyLocationsData.findMatchingLocation(province, district);
+      // Ham GPS koordinatı doğrudan kullanılır; il/ilçe yalnızca etikettir.
+      return Location(
+        id: _gpsLocationId,
+        province: label.province,
+        district: label.district,
+        latitude: latitude,
+        longitude: longitude,
+        type: LocationType.gps,
+      );
     } catch (e) {
       logger.error('Reverse geocoding failed', e);
       return null;

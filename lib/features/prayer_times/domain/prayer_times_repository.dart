@@ -73,9 +73,7 @@ class PrayerTimesRepository {
         rethrow;
       }
 
-      logger.info(
-        'Fallback successful: ${cachedTimes.length} days from cache',
-      );
+      logger.info('Fallback successful: ${cachedTimes.length} days from cache');
       return cachedTimes;
     }
   }
@@ -154,6 +152,13 @@ class PrayerTimesRepository {
       Duration(days: cacheCleanupDaysOld),
     );
     await storage.deleteOldPrayerTimes(cutoffDate);
+  }
+
+  /// Bir konumun önbellekteki vakitlerini siler. Hesaplama parametreleri
+  /// (method/school) değişince eski vakitler geçersiz olur; bir sonraki okuma
+  /// güncel parametrelerle yeniden çeker.
+  Future<void> clearCacheForLocation(String locationId) async {
+    await storage.deletePrayerTimesForLocation(locationId);
   }
 
   Future<DateTime?> getLastUpdateTime() async {

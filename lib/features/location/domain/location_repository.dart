@@ -1,6 +1,5 @@
 import '../../../core/interfaces/local_storage.dart';
 import '../../../core/models/location.dart';
-import '../data/turkey_locations_data.dart';
 
 class LocationRepository {
   final LocalStorage storage;
@@ -27,6 +26,13 @@ class LocationRepository {
     await storage.deleteLocation(locationId);
   }
 
+  /// Bir konumun önbellekteki vakitlerini siler. Yeni bir konum eklenirken veya
+  /// hesaplama parametreleri değişirken çağrılır; bir sonraki yükleme güncel
+  /// parametrelerle yeniden çeker.
+  Future<void> clearPrayerTimeCache(String locationId) async {
+    await storage.deletePrayerTimesForLocation(locationId);
+  }
+
   Future<void> updateLocation(Location location) async {
     await storage.updateLocation(location);
   }
@@ -46,25 +52,5 @@ class LocationRepository {
       await storage.saveLocation(location);
       return location;
     }
-  }
-
-  List<String> getAllProvinces() {
-    return TurkeyLocationsData.getAllProvinces();
-  }
-
-  List<Location> getDistrictsByProvince(String province) {
-    return TurkeyLocationsData.getDistrictsByProvince(province);
-  }
-
-  Location? getLocationById(String id) {
-    return TurkeyLocationsData.getLocationById(id);
-  }
-
-  List<Location> getAllLocations() {
-    return TurkeyLocationsData.getAllLocations();
-  }
-
-  List<Location> searchLocations(String query) {
-    return TurkeyLocationsData.searchLocations(query);
   }
 }
