@@ -99,14 +99,21 @@ class LocationMonitorService {
           longitude: position.longitude,
         );
 
-        await locationRepository.saveOrUpdateGpsLocation(gpsLocation);
+        final saved = await locationRepository.saveOrUpdateGpsLocation(
+          gpsLocation,
+        );
+
+        // Konum değişti: eski koordinata ait önbellek vakitleri artık geçersiz.
+        // Temizlenir ki dinleyen taraf yeniden yüklerken yeni koordinatla taze
+        // veri çeksin (cache location_id ile anahtarlı, koordinatla değil).
+        await locationRepository.clearPrayerTimeCache(saved.id);
 
         _lastPosition = position;
         _lastUpdateTime = DateTime.now();
 
-        _locationChangeController.add(gpsLocation);
+        _locationChangeController.add(saved);
 
-        logger.debug('GPS location updated: ${gpsLocation.displayName}');
+        logger.debug('GPS location updated: ${saved.displayName}');
       }
     } catch (e) {
       logger.error('Failed to process location change', e);
