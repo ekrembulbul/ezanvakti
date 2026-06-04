@@ -5,6 +5,8 @@ import '../../core/models/prayer_time.dart';
 import '../../core/utils/prayer_utils.dart';
 import '../../features/notifications/domain/notification_settings_manager.dart';
 import '../../features/notifications/domain/notification_scheduler.dart';
+import '../../core/interfaces/notification_service.dart';
+import '../../core/services/exact_alarm_service.dart';
 import '../../core/di/service_locator.dart';
 import '../../core/providers/app_state.dart';
 import 'package:provider/provider.dart';
@@ -41,17 +43,42 @@ class NotificationSettingsScreen extends StatefulWidget {
 class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     with WidgetsBindingObserver {
   late final NotificationSettingsManager _manager;
+  late final NotificationService _notificationService;
+  late final ExactAlarmService _exactAlarmService;
   List<NotificationSetting> _settings = [];
   bool _isLoading = true;
   bool _hasPermission = false;
+  bool _exactAlarmAllowed = true;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _manager = ServiceLocator().get<NotificationSettingsManager>();
+    _notificationService = ServiceLocator().get<NotificationService>();
+    _exactAlarmService = ServiceLocator().get<ExactAlarmService>();
     _hasPermission = widget.hasPermission;
     _loadSettings();
+    _checkExactAlarm();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Kullanıcı sistem ayarlarından dönünce izin/exact alarm durumunu tazele.
+    if (state == AppLifecycleState.resumed) {
+      _checkExactAlarm();
+      _refreshPermission();
+    }
+  }
+
+  Future<void> _checkExactAlarm() async {
+    final allowed = await _exactAlarmService.isExactAlarmAllowed();
+    if (mounted) setState(() => _exactAlarmAllowed = allowed);
+  }
+
+  Future<void> _refreshPermission() async {
+    final granted = await _notificationService.isPermissionGranted();
+    if (mounted) setState(() => _hasPermission = granted);
   }
 
   @override
@@ -322,6 +349,10 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                     }
                   },
                 ),
+              if (_hasPermission && !_exactAlarmAllowed)
+                _ExactAlarmWarningCard(
+                  onOpenSettings: _notificationService.openExactAlarmSettings,
+                ),
               Expanded(child: _buildBody()),
             ],
           ),
@@ -367,6 +398,70 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           onTap: () => _showEditDialog(setting),
         );
       },
+    );
+  }
+}
+
+/// Android 12+ exact alarm izni kapalıyken gösterilen uyarı. Tıklanınca sistem
+/// ayarlarını açar; kullanıcı dönünce durum yeniden kontrol edilir.
+class _ExactAlarmWarningCard extends StatelessWidget {
+  final VoidCallback onOpenSettings;
+
+  const _ExactAlarmWarningCard({required this.onOpenSettings});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(20, 20, 20, 4),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.orange.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(9),
+            decoration: BoxDecoration(
+              color: Colors.orange.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(
+              Icons.alarm_off_rounded,
+              color: Colors.orange,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 14),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Tam zamanlı alarm kapalı',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(height: 2),
+                Text(
+                  'Bildirimler gecikebilir. Tam zamanında almak için izni açın.',
+                  style: TextStyle(fontSize: 12, color: Colors.white70),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          TextButton(
+            onPressed: onOpenSettings,
+            style: TextButton.styleFrom(foregroundColor: Colors.orange),
+            child: const Text('Aç'),
+          ),
+        ],
+      ),
     );
   }
 }

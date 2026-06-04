@@ -2,13 +2,10 @@ import '../../../core/interfaces/local_storage.dart';
 import '../../../core/models/notification_setting.dart';
 import '../../../core/utils/app_logger.dart';
 import 'default_notification_settings.dart';
-import '../../prayer_times/data/sqlite_storage.dart';
 
 class NotificationSettingsManager {
   final LocalStorage storage;
   final AppLogger _logger = AppLogger();
-  SqliteStorage? get _sqliteStorage =>
-      storage is SqliteStorage ? storage as SqliteStorage : null;
 
   NotificationSettingsManager({required this.storage});
 
@@ -149,35 +146,15 @@ class NotificationSettingsManager {
     required PrayerType prayerType,
     required int minutesBefore,
   }) async {
-    final sqliteStorage = _sqliteStorage;
-    if (sqliteStorage != null) {
-      await sqliteStorage.deleteNotificationSetting(
-        prayerType: prayerType,
-        minutesBefore: minutesBefore,
-      );
-    } else {
-      final settings = await getSettings();
-      final updated = settings
-          .where(
-            (s) =>
-                !(s.prayerType == prayerType &&
-                    s.minutesBefore == minutesBefore),
-          )
-          .toList();
-      await saveSettings(updated);
-    }
+    await storage.deleteNotificationSetting(
+      prayerType: prayerType,
+      minutesBefore: minutesBefore,
+    );
     _logger.debug('Removed setting $prayerType ($minutesBefore dk)');
   }
 
   Future<void> addSetting(NotificationSetting setting) async {
-    final sqliteStorage = _sqliteStorage;
-    if (sqliteStorage != null) {
-      await sqliteStorage.addNotificationSetting(setting);
-    } else {
-      final settings = await getSettings();
-      settings.add(setting);
-      await saveSettings(settings);
-    }
+    await storage.addNotificationSetting(setting);
     _logger.debug(
       'Added setting ${setting.prayerType.name} (${setting.minutesBefore} dk) active=${setting.isActive}',
     );

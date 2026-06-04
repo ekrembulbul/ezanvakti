@@ -13,6 +13,7 @@ import '../interfaces/prayer_time_provider.dart';
 import '../interfaces/local_storage.dart';
 import '../interfaces/notification_service.dart';
 import '../services/timezone_service.dart';
+import '../services/exact_alarm_service.dart';
 import '../utils/app_logger.dart';
 
 class ServiceLocator {
@@ -100,6 +101,8 @@ class ServiceLocator {
       locationRepository: locationRepository,
     );
     register<LocationMonitorService>(locationMonitorService);
+
+    register<ExactAlarmService>(ExactAlarmService());
   }
 
   Future<void> dispose() async {

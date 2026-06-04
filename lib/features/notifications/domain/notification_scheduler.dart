@@ -11,6 +11,11 @@ class NotificationScheduler {
 
   static const int scheduleDaysAhead = 7;
 
+  /// iOS uygulama başına en fazla ~64 bekleyen yerel bildirim tutar; bu sayıyı
+  /// aşanların en uzaktakilerini sessizce atar. Bu yüzden en yakın olanlardan
+  /// bu kadarını planlarız (öngörülemez OS davranışı yerine kontrollü kapama).
+  static const int maxScheduledNotifications = 64;
+
   NotificationScheduler({
     required this.notificationService,
     required this.storage,
@@ -36,7 +41,12 @@ class NotificationScheduler {
     await notificationService.cancelAllNotifications();
     logger.debug('Cancelled all existing notifications');
 
-    final scheduledIds = <String>{};
+    final now = DateTime.now();
+    final cutoff = now.add(const Duration(days: scheduleDaysAhead));
+
+    // Pencere içindeki (şimdi .. +scheduleDaysAhead) aktif bildirimleri topla.
+    final candidates = <_NotificationCandidate>[];
+    final seenIds = <String>{};
 
     for (final prayerTime in prayerTimes) {
       for (final setting in settings) {
@@ -48,41 +58,54 @@ class NotificationScheduler {
         );
         if (prayerDateTime == null) continue;
 
-        if (prayerDateTime.isBefore(DateTime.now())) continue;
+        // Geçmişi ve pencere dışını ele.
+        if (prayerDateTime.isBefore(now) || prayerDateTime.isAfter(cutoff)) {
+          continue;
+        }
 
         final notificationTime = prayerDateTime.subtract(
           Duration(minutes: setting.minutesBefore),
         );
+        if (notificationTime.isBefore(now)) continue;
 
-        if (notificationTime.isBefore(DateTime.now())) continue;
-
-        final notificationId = _generateNotificationId(
+        final id = _generateNotificationId(
           prayerTime.date,
           setting.prayerType,
           setting.minutesBefore,
         );
+        if (!seenIds.add(id)) continue; // ayni (gun,vakit,offset) tekrari
 
-        if (scheduledIds.contains(notificationId)) continue;
-
-        final title = _getNotificationTitle(setting);
-        final body = _getNotificationBody(setting, prayerDateTime);
-
-        await notificationService.scheduleNotification(
-          id: notificationId,
-          scheduledTime: notificationTime,
-          title: title,
-          body: body,
+        candidates.add(
+          _NotificationCandidate(
+            id: id,
+            notificationTime: notificationTime,
+            title: _getNotificationTitle(setting),
+            body: _getNotificationBody(setting, prayerDateTime),
+          ),
         );
-
-        logger.debug(
-          '${_formatTime(prayerDateTime)} için bildirim planlandı -> ${_formatTime(notificationTime)} (${setting.minutesBefore} dk önce)',
-        );
-
-        scheduledIds.add(notificationId);
       }
     }
 
-    logger.debug('Scheduled ${scheduledIds.length} notifications');
+    // En yakın bildirimlerden iOS sınırı kadarını planla.
+    candidates.sort((a, b) => a.notificationTime.compareTo(b.notificationTime));
+    final toSchedule = candidates.take(maxScheduledNotifications).toList();
+
+    for (final candidate in toSchedule) {
+      await notificationService.scheduleNotification(
+        id: candidate.id,
+        scheduledTime: candidate.notificationTime,
+        title: candidate.title,
+        body: candidate.body,
+      );
+      logger.debug(
+        '${_formatTime(candidate.notificationTime)} icin bildirim planlandi (${candidate.id})',
+      );
+    }
+
+    logger.debug(
+      'Scheduled ${toSchedule.length}/${candidates.length} notifications '
+      '(tavan $maxScheduledNotifications, pencere $scheduleDaysAhead gun)',
+    );
   }
 
   Future<void> rescheduleNotifications({
@@ -92,16 +115,19 @@ class NotificationScheduler {
     await scheduleNotifications(location: location, prayerTimes: prayerTimes);
   }
 
+  /// (gün, vakit, offset) için 32-bit'e sığan, çakışmaya dayanıklı sayısal bir
+  /// kimlik üretir. Eski "String + hashCode" yöntemi teorik olarak çakışabiliyordu;
+  /// bu şema benzersizliği garanti eder ve id'den geri çözülebilir.
   String _generateNotificationId(
     DateTime date,
     PrayerType prayerType,
     int minutesBefore,
   ) {
-    final dateStr =
-        '${date.year}${date.month.toString().padLeft(2, '0')}${date.day.toString().padLeft(2, '0')}';
-    final prayerStr = prayerType.name;
-    final offsetStr = minutesBefore.toString().padLeft(3, '0');
-    return '$dateStr-$prayerStr-$offsetStr';
+    final dayOrdinal =
+        DateTime(date.year, date.month, date.day).millisecondsSinceEpoch ~/
+        Duration.millisecondsPerDay;
+    final id = dayOrdinal * 10000 + prayerType.index * 1000 + minutesBefore;
+    return id.toString();
   }
 
   DateTime? _getPrayerDateTime(PrayerTime prayerTime, PrayerType prayerType) {
@@ -182,4 +208,18 @@ class NotificationScheduler {
   Future<bool> requestPermission() async {
     return await notificationService.requestPermission();
   }
+}
+
+class _NotificationCandidate {
+  final String id;
+  final DateTime notificationTime;
+  final String title;
+  final String body;
+
+  const _NotificationCandidate({
+    required this.id,
+    required this.notificationTime,
+    required this.title,
+    required this.body,
+  });
 }

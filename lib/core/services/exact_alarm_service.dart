@@ -16,7 +16,8 @@ class ExactAlarmService {
       final allowed =
           await _channel.invokeMethod<bool>('isExactAlarmAllowed') ?? false;
       return allowed;
-    } on PlatformException catch (e) {
+    } catch (e) {
+      // MissingPluginException dahil her hata güvenli tarafta (false) ele alınır.
       _logger.warning('Could not query exact alarm permission', e);
       return false;
     }

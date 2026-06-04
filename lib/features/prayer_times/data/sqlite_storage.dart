@@ -386,6 +386,7 @@ class SqliteStorage implements LocalStorage {
     });
   }
 
+  @override
   Future<void> addNotificationSetting(NotificationSetting setting) async {
     final db = await database;
     await db.insert('notification_settings', {
@@ -395,6 +396,7 @@ class SqliteStorage implements LocalStorage {
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
+  @override
   Future<void> deleteNotificationSetting({
     required PrayerType prayerType,
     required int minutesBefore,

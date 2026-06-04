@@ -301,6 +301,31 @@ class MockLocalStorage implements LocalStorage {
   }
 
   @override
+  Future<void> addNotificationSetting(NotificationSetting setting) async {
+    _notificationSettings = [
+      ..._notificationSettings.where(
+        (s) =>
+            !(s.prayerType == setting.prayerType &&
+                s.minutesBefore == setting.minutesBefore),
+      ),
+      setting,
+    ];
+  }
+
+  @override
+  Future<void> deleteNotificationSetting({
+    required PrayerType prayerType,
+    required int minutesBefore,
+  }) async {
+    _notificationSettings = _notificationSettings
+        .where(
+          (s) =>
+              !(s.prayerType == prayerType && s.minutesBefore == minutesBefore),
+        )
+        .toList();
+  }
+
+  @override
   Future<void> saveLastUpdateTime(DateTime time) async {
     _lastUpdateTime = time;
   }

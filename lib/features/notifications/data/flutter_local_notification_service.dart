@@ -12,7 +12,6 @@ class FlutterLocalNotificationService implements NotificationService {
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
   final AppLogger _logger = AppLogger();
-  bool _requestedExactAlarmIntent = false;
 
   @override
   Future<void> init() async {
@@ -63,7 +62,8 @@ class FlutterLocalNotificationService implements NotificationService {
           IOSFlutterLocalNotificationsPlugin
         >();
 
-    bool granted = true;
+    // Hiçbir platform plugin'i çözülmezse (ör. masaüstü/web) izin yok say.
+    bool granted = false;
 
     if (android != null) {
       granted = await android.requestNotificationsPermission() ?? false;
@@ -104,9 +104,7 @@ class FlutterLocalNotificationService implements NotificationService {
       return enabled;
     }
 
-    _logger.warning(
-      'Notification permission check: platform plugin missing',
-    );
+    _logger.warning('Notification permission check: platform plugin missing');
     return false;
   }
 
@@ -144,7 +142,7 @@ class FlutterLocalNotificationService implements NotificationService {
 
     try {
       await _plugin.zonedSchedule(
-        id.hashCode,
+        int.parse(id),
         title,
         body,
         tz.TZDateTime.from(scheduledTime, tz.local),
@@ -157,7 +155,7 @@ class FlutterLocalNotificationService implements NotificationService {
     } on PlatformException catch (e) {
       if (e.code == 'exact_alarms_not_permitted') {
         await _plugin.zonedSchedule(
-          id.hashCode,
+          int.parse(id),
           title,
           body,
           tz.TZDateTime.from(scheduledTime, tz.local),
@@ -178,7 +176,7 @@ class FlutterLocalNotificationService implements NotificationService {
 
   @override
   Future<void> cancelNotification(String id) async {
-    await _plugin.cancel(id.hashCode);
+    await _plugin.cancel(int.parse(id));
     _logger.debug('Cancelled notification $id');
   }
 
@@ -194,24 +192,31 @@ class FlutterLocalNotificationService implements NotificationService {
     _logger.debug('Pending notifications count: ${pending.length}');
 
     return pending.map((notification) {
+      // Kimlik dayOrdinal*10000 + prayerIndex*1000 + minutesBefore olarak
+      // kodlanır; vakit ve offset buradan geri çözülür (gün-içi saat OS
+      // bekleyen listesinde yer almaz, bu yüzden tarih gün başına yuvarlanır).
+      final raw = notification.id;
+      final minutesBefore = raw % 1000;
+      final prayerIndex = (raw ~/ 1000) % 10;
+      final dayOrdinal = raw ~/ 10000;
+      final prayerType = prayerIndex < PrayerType.values.length
+          ? PrayerType.values[prayerIndex]
+          : PrayerType.fajr;
+
       return ScheduledNotification(
         id: notification.id.toString(),
-        scheduledTime: DateTime.now(),
-        prayerType: PrayerType.fajr,
-        minutesBefore: 0,
+        scheduledTime: DateTime.fromMillisecondsSinceEpoch(
+          dayOrdinal * Duration.millisecondsPerDay,
+        ),
+        prayerType: prayerType,
+        minutesBefore: minutesBefore,
       );
     }).toList();
   }
 
   @override
   Future<void> openExactAlarmSettings() async {
-    await _maybeLaunchExactAlarmSettings();
-  }
-
-  Future<void> _maybeLaunchExactAlarmSettings() async {
-    if (_requestedExactAlarmIntent) return;
     if (!Platform.isAndroid) return;
-    _requestedExactAlarmIntent = true;
     try {
       const intent = AndroidIntent(
         action: 'android.settings.REQUEST_SCHEDULE_EXACT_ALARM',

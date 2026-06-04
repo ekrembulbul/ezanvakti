@@ -7,6 +7,7 @@ import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart';
 import 'package:ezanvakti/features/notifications/domain/notification_scheduler.dart';
 import 'package:ezanvakti/features/notifications/domain/notification_settings_manager.dart';
+import 'package:ezanvakti/features/notifications/domain/default_notification_settings.dart';
 
 class MockLocalStorage implements LocalStorage {
   final Map<String, List<PrayerTime>> _prayerTimesCache = {};
@@ -124,6 +125,31 @@ class MockLocalStorage implements LocalStorage {
   @override
   Future<List<NotificationSetting>> getNotificationSettings() async {
     return List.from(_notificationSettings);
+  }
+
+  @override
+  Future<void> addNotificationSetting(NotificationSetting setting) async {
+    _notificationSettings = [
+      ..._notificationSettings.where(
+        (s) =>
+            !(s.prayerType == setting.prayerType &&
+                s.minutesBefore == setting.minutesBefore),
+      ),
+      setting,
+    ];
+  }
+
+  @override
+  Future<void> deleteNotificationSetting({
+    required PrayerType prayerType,
+    required int minutesBefore,
+  }) async {
+    _notificationSettings = _notificationSettings
+        .where(
+          (s) =>
+              !(s.prayerType == prayerType && s.minutesBefore == minutesBefore),
+        )
+        .toList();
   }
 
   @override
@@ -680,6 +706,45 @@ void main() {
         latitude: 40.9828,
         longitude: 29.0227,
       );
+    });
+
+    test('Bounds scheduling to the day window and iOS cap', () async {
+      await storage.saveNotificationSettings(defaultNotificationSettings);
+
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final prayerTimes = List.generate(30, (i) {
+        final d = today.add(Duration(days: i + 1));
+        return PrayerTime(
+          fajr: DateTime(d.year, d.month, d.day, 5, 30),
+          sunrise: DateTime(d.year, d.month, d.day, 7, 0),
+          dhuhr: DateTime(d.year, d.month, d.day, 13, 15),
+          asr: DateTime(d.year, d.month, d.day, 16, 30),
+          maghrib: DateTime(d.year, d.month, d.day, 19, 0),
+          isha: DateTime(d.year, d.month, d.day, 20, 30),
+          date: d,
+        );
+      });
+
+      await scheduler.scheduleNotifications(
+        location: testLocation,
+        prayerTimes: prayerTimes,
+      );
+
+      final scheduled = notificationService.scheduledNotifications;
+      expect(scheduled, isNotEmpty);
+      // iOS tavanini asmamali.
+      expect(
+        scheduled.length,
+        lessThanOrEqualTo(NotificationScheduler.maxScheduledNotifications),
+      );
+      // Pencere disindaki (>scheduleDaysAhead) hicbir bildirim planlanmamali.
+      final cutoff = now.add(
+        const Duration(days: NotificationScheduler.scheduleDaysAhead),
+      );
+      for (final n in scheduled) {
+        expect(n.scheduledTime.isAfter(cutoff), isFalse);
+      }
     });
 
     test('Schedules notifications for active settings', () async {

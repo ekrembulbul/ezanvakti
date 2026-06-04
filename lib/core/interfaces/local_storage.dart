@@ -51,6 +51,13 @@ abstract class LocalStorage {
 
   Future<List<NotificationSetting>> getNotificationSettings();
 
+  Future<void> addNotificationSetting(NotificationSetting setting);
+
+  Future<void> deleteNotificationSetting({
+    required PrayerType prayerType,
+    required int minutesBefore,
+  });
+
   Future<void> saveLastUpdateTime(DateTime time);
 
   Future<DateTime?> getLastUpdateTime();
