@@ -5,6 +5,7 @@ import '../../features/location/domain/location_repository.dart';
 import '../widgets/common/app_bar_widgets.dart';
 import '../widgets/common/state_widgets.dart';
 import 'location_add_screen.dart';
+import 'location_edit_screen.dart';
 
 class LocationListScreen extends StatefulWidget {
   final LocationRepository locationRepository;
@@ -62,6 +63,28 @@ class _LocationListScreenState extends State<LocationListScreen> {
       Navigator.popUntil(context, (route) => route.isFirst);
     } else if (result == true) {
       _loadLocations();
+    }
+  }
+
+  Future<void> _editLocation(Location location) async {
+    final updated = await Navigator.push<Location>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LocationEditScreen(
+          locationRepository: widget.locationRepository,
+          location: location,
+        ),
+      ),
+    );
+    if (!mounted || updated == null) return;
+
+    if (widget.currentLocation?.id == updated.id) {
+      // Aktif konumun parametreleri değişti: yeniden yükle + bildirimleri planla.
+      widget.onLocationSelected(updated);
+      Navigator.popUntil(context, (route) => route.isFirst);
+    } else {
+      _loadLocations();
+      _showSnackBar('Konum güncellendi');
     }
   }
 
@@ -182,6 +205,7 @@ class _LocationListScreenState extends State<LocationListScreen> {
             widget.onLocationSelected(location);
             Navigator.popUntil(context, (route) => route.isFirst);
           },
+          onEdit: () => _editLocation(location),
           onDelete: () => _deleteLocation(location),
         );
       },
@@ -193,12 +217,14 @@ class _LocationTileWithDelete extends StatelessWidget {
   final Location location;
   final bool isActive;
   final VoidCallback? onTap;
+  final VoidCallback? onEdit;
   final VoidCallback? onDelete;
 
   const _LocationTileWithDelete({
     required this.location,
     required this.isActive,
     this.onTap,
+    this.onEdit,
     this.onDelete,
   });
 
@@ -336,7 +362,23 @@ class _LocationTileWithDelete extends StatelessWidget {
                         ),
                       ),
                       const Spacer(),
-                      if (!isActive)
+                      GestureDetector(
+                        onTap: onEdit,
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppTheme.gold.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            Icons.tune_rounded,
+                            size: 18,
+                            color: AppTheme.gold.withValues(alpha: 0.9),
+                          ),
+                        ),
+                      ),
+                      if (!isActive) ...[
+                        const SizedBox(width: 8),
                         GestureDetector(
                           onTap: onDelete,
                           child: Container(
@@ -352,6 +394,7 @@ class _LocationTileWithDelete extends StatelessWidget {
                             ),
                           ),
                         ),
+                      ],
                     ],
                   ),
                 ],

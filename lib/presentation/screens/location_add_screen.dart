@@ -14,6 +14,7 @@ import '../../features/location/data/photon_geocoding_service.dart';
 import '../../features/location/data/place_suggestion.dart';
 import '../../features/location/domain/location_repository.dart';
 import '../widgets/common/app_bar_widgets.dart';
+import '../widgets/location/calculation_params_selector.dart';
 import '../widgets/location/location_widgets.dart';
 
 class LocationAddScreen extends StatefulWidget {
@@ -53,7 +54,9 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
 
   app_location.Location? _selectedPlace;
   int _method = CalculationDefaults.method;
-  AsrSchool _school = AsrSchool.fromValue(CalculationDefaults.school);
+  AsrSchool _school = AsrSchool.fromValue(
+    CalculationDefaults.schoolForMethod(CalculationDefaults.method),
+  );
   LatitudeAdjustment _latitudeAdjustment = LatitudeAdjustment.auto;
 
   // Sonuçları kullanıcının yakınına önceleyen opsiyonel bias.
@@ -294,7 +297,9 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
       _searchController.clear();
       _customNameController.clear();
       _method = CalculationDefaults.method;
-      _school = AsrSchool.fromValue(CalculationDefaults.school);
+      _school = AsrSchool.fromValue(
+        CalculationDefaults.schoolForMethod(CalculationDefaults.method),
+      );
       _latitudeAdjustment = LatitudeAdjustment.auto;
     });
   }
@@ -561,11 +566,21 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
         const SizedBox(height: 8),
         _buildCustomNameField(),
         const SizedBox(height: 20),
-        _buildMethodDropdown(),
-        const SizedBox(height: 16),
-        _buildSchoolDropdown(),
-        const SizedBox(height: 16),
-        _buildAdvancedSection(),
+        CalculationParamsSelector(
+          method: _method,
+          school: _school,
+          latitudeAdjustment: _latitudeAdjustment,
+          onMethodChanged: (value) => setState(() {
+            _method = value;
+            // İkindi mezhebini yeni yöntemin bölgesel varsayılanına ayarla.
+            _school = AsrSchool.fromValue(
+              CalculationDefaults.schoolForMethod(value),
+            );
+          }),
+          onSchoolChanged: (value) => setState(() => _school = value),
+          onLatitudeAdjustmentChanged: (value) =>
+              setState(() => _latitudeAdjustment = value),
+        ),
       ],
     );
   }
@@ -594,115 +609,6 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildMethodDropdown() {
-    return _buildLabeledDropdown<int>(
-      label: 'Hesaplama Yöntemi',
-      value: _method,
-      items: [
-        for (final method in CalculationMethods.all)
-          DropdownMenuItem(value: method.id, child: Text(method.name)),
-      ],
-      onChanged: (value) {
-        if (value != null) setState(() => _method = value);
-      },
-    );
-  }
-
-  Widget _buildSchoolDropdown() {
-    return _buildLabeledDropdown<AsrSchool>(
-      label: 'İkindi (Mezhep)',
-      value: _school,
-      items: [
-        for (final school in AsrSchool.values)
-          DropdownMenuItem(value: school, child: Text(school.label)),
-      ],
-      onChanged: (value) {
-        if (value != null) setState(() => _school = value);
-      },
-    );
-  }
-
-  Widget _buildAdvancedSection() {
-    return Theme(
-      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-      child: ExpansionTile(
-        tilePadding: EdgeInsets.zero,
-        childrenPadding: const EdgeInsets.only(top: 8),
-        iconColor: AppTheme.gold,
-        collapsedIconColor: Colors.white.withValues(alpha: 0.5),
-        title: Text(
-          'Gelişmiş',
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.7),
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        children: [
-          _buildLabeledDropdown<LatitudeAdjustment>(
-            label: 'Yüksek Enlem Düzeltmesi',
-            value: _latitudeAdjustment,
-            items: [
-              for (final adjustment in LatitudeAdjustment.values)
-                DropdownMenuItem(
-                  value: adjustment,
-                  child: Text(adjustment.label),
-                ),
-            ],
-            onChanged: (value) {
-              if (value != null) {
-                setState(() => _latitudeAdjustment = value);
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLabeledDropdown<T>({
-    required String label,
-    required T value,
-    required List<DropdownMenuItem<T>> items,
-    required ValueChanged<T?> onChanged,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.6),
-            fontSize: 13,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<T>(
-              value: value,
-              isExpanded: true,
-              dropdownColor: AppTheme.primaryMedium,
-              icon: Icon(
-                Icons.keyboard_arrow_down_rounded,
-                color: Colors.white.withValues(alpha: 0.5),
-              ),
-              style: const TextStyle(color: Colors.white, fontSize: 15),
-              items: items,
-              onChanged: onChanged,
-            ),
-          ),
-        ),
-      ],
     );
   }
 
