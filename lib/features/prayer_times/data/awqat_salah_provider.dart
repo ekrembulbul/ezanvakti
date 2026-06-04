@@ -16,7 +16,7 @@ class AwqatSalahProvider implements PrayerTimeProvider {
     : httpClient = httpClient ?? http.Client();
 
   @override
-  String get providerName => 'Diyanet (Awqat Salah)';
+  String get providerName => 'Aladhan API';
 
   /// Konuma özel hesaplama parametrelerini Aladhan sorgu parçasına çevirir:
   /// method (otorite), school (İkindi mezhebi) ve varsa yüksek enlem düzeltmesi.

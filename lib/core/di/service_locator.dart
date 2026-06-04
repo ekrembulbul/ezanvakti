@@ -52,7 +52,7 @@ class ServiceLocator {
     register<http.Client>(httpClient);
     logger.debug('HTTP Client registered');
 
-    logger.debug('Initializing Prayer Time Provider (Awqat Salah)');
+    logger.debug('Initializing Prayer Time Provider (Aladhan)');
     final prayerTimeProvider = AwqatSalahProvider(httpClient: httpClient);
     logger.debug('Prayer Time Provider registered');
     register<PrayerTimeProvider>(prayerTimeProvider);
