@@ -130,11 +130,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             const SizedBox(height: 6),
             Row(
               children: [
-                LocationWidget(
-                  location: widget.location,
-                  onTap: widget.onLocationTap,
+                Expanded(
+                  child: LocationWidget(
+                    location: widget.location,
+                    onTap: widget.onLocationTap,
+                  ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 12),
                 DateWidget(date: widget.todaysPrayerTime!.date),
               ],
             ),
