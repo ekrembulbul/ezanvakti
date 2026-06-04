@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../core/models/location.dart';
 import '../../../core/theme/app_theme.dart';
 
+/// Bir ayar grubunun üstündeki küçük başlık (ör. "GENEL").
 class SettingsSectionTitle extends StatelessWidget {
   final String title;
 
@@ -10,7 +10,7 @@ class SettingsSectionTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 4),
+      padding: const EdgeInsets.only(left: 4, bottom: 10),
       child: Text(
         title.toUpperCase(),
         style: TextStyle(
@@ -24,347 +24,124 @@ class SettingsSectionTitle extends StatelessWidget {
   }
 }
 
-class LocationSettingsCard extends StatelessWidget {
-  final Location location;
-  final VoidCallback? onTap;
+/// Birden fazla [SettingsRow]'u tek bir yuvarlatılmış kapsayıcıda toplayan
+/// gruplu liste (iOS tarzı). Satırlar arasına ince ayraç eklenir.
+class SettingsGroup extends StatelessWidget {
+  final List<Widget> children;
 
-  const LocationSettingsCard({super.key, required this.location, this.onTap});
+  const SettingsGroup({super.key, required this.children});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: AppTheme.glassDecoration(opacity: 0.1, borderRadius: 20),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppTheme.gold.withValues(alpha: 0.3),
-                    AppTheme.gold.withValues(alpha: 0.1),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(
-                location.type == LocationType.gps
-                    ? Icons.my_location_rounded
-                    : Icons.location_on_rounded,
-                color: AppTheme.gold,
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Aktif Konum',
-                    style: TextStyle(fontSize: 12, color: Colors.white54),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    location.displayName,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                  if (location.type == LocationType.gps) const _GpsBadge(),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.chevron_right_rounded,
-                color: Colors.white54,
-                size: 20,
-              ),
-            ),
-          ],
-        ),
-      ),
+    final items = <Widget>[];
+    for (var i = 0; i < children.length; i++) {
+      items.add(children[i]);
+      if (i < children.length - 1) {
+        items.add(
+          Divider(
+            height: 1,
+            thickness: 1,
+            indent: 56,
+            color: Colors.white.withValues(alpha: 0.06),
+          ),
+        );
+      }
+    }
+
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: AppTheme.glassDecoration(opacity: 0.08, borderRadius: 18),
+      child: Column(children: items),
     );
   }
 }
 
-class _GpsBadge extends StatelessWidget {
-  const _GpsBadge();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 6),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        decoration: BoxDecoration(
-          color: AppTheme.gold.withValues(alpha: 0.2),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.gps_fixed_rounded, size: 12, color: AppTheme.gold),
-            SizedBox(width: 4),
-            Text(
-              'GPS',
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.gold,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class SettingsNavCard extends StatelessWidget {
+/// Gruplu liste içindeki tek bir satır: ikon + başlık (+ alt başlık/değer) +
+/// dokunulabilirse sağda ok. Değer metni ([value]) sağda gösterilir.
+class SettingsRow extends StatelessWidget {
   final IconData icon;
   final String title;
-  final String subtitle;
+  final String? subtitle;
+  final String? value;
   final VoidCallback? onTap;
 
-  const SettingsNavCard({
+  const SettingsRow({
     super.key,
     required this.icon,
     required this.title,
-    required this.subtitle,
+    this.subtitle,
+    this.value,
     this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: AppTheme.glassDecoration(opacity: 0.1, borderRadius: 20),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: Icon(icon, color: Colors.white70, size: 24),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: const TextStyle(fontSize: 12, color: Colors.white54),
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.chevron_right_rounded,
-                color: Colors.white54,
-                size: 20,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class DataSourceCard extends StatelessWidget {
-  final String dataSource;
-
-  const DataSourceCard({super.key, required this.dataSource});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: AppTheme.glassDecoration(opacity: 0.1, borderRadius: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(14),
+                  color: AppTheme.gold.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(11),
                 ),
-                child: const Icon(
-                  Icons.cloud_download_rounded,
-                  color: Colors.white70,
-                  size: 24,
-                ),
+                child: Icon(icon, color: AppTheme.gold, size: 20),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Veri Kaynağı',
-                      style: TextStyle(fontSize: 12, color: Colors.white54),
-                    ),
-                    const SizedBox(height: 4),
                     Text(
-                      dataSource,
+                      title,
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
                       ),
                     ),
+                    if (subtitle != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle!,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white.withValues(alpha: 0.5),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: AppTheme.gold.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.info_outline_rounded,
-                  size: 18,
-                  color: AppTheme.gold.withValues(alpha: 0.8),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
+              if (value != null)
+                Padding(
+                  padding: const EdgeInsets.only(left: 8),
                   child: Text(
-                    'Türkiye için Diyanet İşleri Başkanlığı verileri kullanılmaktadır.',
+                    value!,
+                    textAlign: TextAlign.right,
                     style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white.withValues(alpha: 0.7),
+                      fontSize: 13,
+                      color: Colors.white.withValues(alpha: 0.55),
                     ),
                   ),
                 ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class AppInfoCard extends StatelessWidget {
-  final String version;
-
-  const AppInfoCard({super.key, required this.version});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: AppTheme.glassDecoration(opacity: 0.1, borderRadius: 20),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: const Icon(
-              Icons.info_rounded,
-              color: Colors.white70,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Versiyon',
-                  style: TextStyle(fontSize: 12, color: Colors.white54),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  version.isEmpty ? 'Yükleniyor...' : version,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
+              if (onTap != null)
+                Padding(
+                  padding: const EdgeInsets.only(left: 6),
+                  child: Icon(
+                    Icons.chevron_right_rounded,
+                    color: Colors.white.withValues(alpha: 0.3),
+                    size: 20,
                   ),
                 ),
-              ],
-            ),
+            ],
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class FeatureChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const FeatureChip({super.key, required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: AppTheme.gold),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: Colors.white70,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
