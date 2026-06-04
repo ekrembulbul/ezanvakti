@@ -29,15 +29,17 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   LocationMonitorController? _locationMonitorController;
   bool _isRefreshingGps = false;
+  DateTime? _lastResumeReschedule;
   late final GpsLocationService _locationService;
   late final DataLoaderService _dataLoaderService;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     final logger = AppLogger();
     logger.debug('HomePage initState called');
     _initializeServices();
@@ -60,8 +62,45 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _locationMonitorController?.stopMonitoring();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Yerel bildirimler arka planda kendiliğinden uzamaz; her ön plana gelişte
+    // mevcut vakitlerle yeniden planlamak, kullanıcı uzun süre açmasa bile
+    // 7 günlük pencereyi güncel tutar.
+    if (state == AppLifecycleState.resumed) {
+      _rescheduleOnResume();
+    }
+  }
+
+  Future<void> _rescheduleOnResume() async {
+    final now = DateTime.now();
+    // Gereksiz tekrar planlamayı önlemek için en fazla saatte bir.
+    if (_lastResumeReschedule != null &&
+        now.difference(_lastResumeReschedule!) < const Duration(hours: 1)) {
+      return;
+    }
+
+    final appState = context.read<AppState>();
+    final location = appState.activeLocation;
+    final prayerTimes = appState.prayerTimes;
+    if (location == null || prayerTimes.isEmpty) return;
+
+    _lastResumeReschedule = now;
+    try {
+      final scheduler = ServiceLocator().get<NotificationScheduler>();
+      await scheduler.scheduleNotifications(
+        location: location,
+        prayerTimes: prayerTimes,
+      );
+      AppLogger().debug('Notifications rescheduled on resume');
+    } catch (e) {
+      AppLogger().warning('Resume reschedule failed (ignored)', e);
+    }
   }
 
   Future<void> _startLocationMonitoring() async {
