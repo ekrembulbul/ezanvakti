@@ -8,9 +8,10 @@ Türkiye için namaz vakitlerini gösteren ve vakitlere göre bildirim/hatırlat
 
 - 🕌 Günün namaz vakitleri + bir sonraki vakte geri sayım
 - 📅 30 güne kadar vakit takvimi
-- 📍 İl/ilçe seçimi veya GPS ile otomatik konum
+- 🔍 Online adres araması (Photon/OpenStreetMap, global) veya GPS ile otomatik konum
+- ⚙️ Konuma özel hesaplama yöntemi (Diyanet vb.) ve İkindi mezhebi (Şafi/Hanefi)
 - 🔔 Vakit bazlı bildirimler: tam vaktinde ve/veya X dakika önce
-- 📴 Offline çalışma — son çekilen vakitler cache'den gösterilir
+- 📴 Offline çalışma — son çekilen vakitler cache'den gösterilir (yeni konum eklemek internet ister)
 - 🌙 Hicri tarih gösterimi
 - 🌑 Karanlık tema
 
@@ -22,7 +23,8 @@ Türkiye için namaz vakitlerini gösteren ve vakitlere göre bildirim/hatırlat
 | State yönetimi | `provider` (ChangeNotifier) |
 | Yerel depolama | `sqflite` (SQLite) |
 | Bildirimler | `flutter_local_notifications` + `timezone` |
-| Konum | `geolocator`, `geocoding` |
+| Konum | `geolocator` (GPS), `geocoding` (reverse-geocode), Photon/OSM (adres araması) |
+| Vakit kaynağı | Aladhan API (koordinat tabanlı, `method`=Diyanet vb.) |
 | HTTP | `http` |
 | Loglama | `logger` |
 
@@ -83,4 +85,3 @@ Testler `test/` altında, kaynak yapısını (`prayer_times`, `notifications`, `
 ## Konvansiyon
 
 Tüm kod (dosya, değişken, sınıf, fonksiyon adları) **İngilizce** yazılır. Yalnızca kullanıcıya görünen metinler ve dokümantasyon Türkçedir.
-</invoke>

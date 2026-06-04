@@ -4,23 +4,28 @@ Mevcut durum, kısa vadeli iyileştirmeler ve planlanan özellikler. Ürün sın
 
 ## Mevcut durum (MVP)
 
-- ✅ İl/ilçe ve GPS ile lokasyon seçimi
+- ✅ Online adres araması (Photon/OSM, global typeahead) ve GPS ile lokasyon seçimi
+- ✅ Konuma özel hesaplama yöntemi (Diyanet vb.) ve İkindi mezhebi; konum düzenleme ekranı
 - ✅ Günün vakitleri + geri sayım, 30 günlük takvim
-- ✅ Awqat Salah (Diyanet) kaynağı, SQLite cache, offline gösterim
+- ✅ Aladhan (Diyanet method=13) kaynağı, SQLite cache, offline gösterim
 - ✅ Vakit bazlı bildirimler (tam vakit + X dk önce), izin yönetimi
 - ✅ Hicri tarih, karanlık tema
 
 ## Kısa vadeli iyileştirmeler (teknik borç)
 
-Bu maddeler kod denetiminde tespit edildi:
+Tamamlananlar (önceki refactor + konum çalışması):
 
-- Lokasyon değişiminde bildirimlerin **yeniden planlanması** (şu an yalnızca iptal ediliyor).
-- GPS izleme stream'inde **subscription temizliği** (memory leak).
-- API çağrılarına **timeout** ve hata kategorilendirmesi (4xx/5xx).
-- Loglamada **debug/release ayrımı** ve hassas veri (koordinat) loglamama.
-- Modellerde `==`/`hashCode`/`copyWith` tamamlama.
+- ✅ Lokasyon değişiminde bildirimlerin yeniden planlanması.
+- ✅ GPS izleme stream subscription temizliği (memory leak).
+- ✅ API çağrılarına timeout; parse/ağ hatalarının ayrıştırılması.
+- ✅ Loglamada debug/release ayrımı ve koordinat loglamama (gizlilik).
+- ✅ Modellerde `==`/`hashCode`/`copyWith`.
+
+Açık kalanlar:
+
 - Bildirim duplicate kontrolünün **kalıcı** (DB tabanlı) hale getirilmesi.
-- **Lokasyon değişim mantığının konsolidasyonu:** Canlı akış bildirimleri `HomePage` içinde yeniden planlıyor; ayrıca test edilmiş ama UI'a bağlanmamış bir `LocationService.changeLocation` (domain) var. Tek kanonik yola indirgenmeli (home_page bu servise delege etmeli).
+- **Lokasyon değişim mantığının konsolidasyonu:** Canlı akış bildirimleri `HomePage` içinde yeniden planlıyor; ayrıca test edilmiş ama UI'a bağlanmamış bir `LocationService.changeLocation` (domain) var (artık parametre değişiminde önbellek temizliği de içeriyor). Tek kanonik yola indirgenmeli (home_page bu servise delege etmeli).
+- **Diyanet birebir vakit:** Aladhan method=13 yaklaşık hesaptır; resmi tablo için Diyanet API'si + backend proxy gerekir (bkz. PRODUCT_SPEC).
 
 ## Planlanan özellikler
 
@@ -46,10 +51,10 @@ Hedef: Vakitte yalnızca sessiz bildirim değil, **sesli alarm/ezan** çalması.
 > Bu kısıtlar resmî platform dokümanlarından doğrulanmalıdır (Apple Critical Alerts, Android `USE_EXACT_ALARM` politikaları). Tasarımı netleştirmeden önce iOS hedef deneyiminin ne olacağına karar verilmeli.
 
 ### 📍 Çoklu / favori lokasyonlar
-`LocalStorage` arayüzü zaten `getSavedLocations`/`saveLocation`/`updateLocation`/`deleteLocation` içeriyor — altyapı kısmen hazır. UI'da favori lokasyon listesi ve hızlı geçiş eklenebilir.
+Büyük ölçüde uygulandı: kayıtlı lokasyon listesi, ekleme (arama/GPS), düzenleme (yöntem/mezhep/isim) ve hızlı geçiş mevcut. İyileştirme: lokasyonları sıralama/etiketleme, GPS ile eklenen konuma da düzenleme akışında parametre seçimi (zaten düzenleme ekranından mümkün).
 
 ### 🌍 Yeni kaynak/ülke desteği
-`PrayerTimeProvider` soyutlaması sayesinde yeni bir kaynak eklemek mimari olarak mümkün. Ayarlarda kaynak seçimi UI'ı eklenebilir.
+Aladhan koordinat tabanlı olduğundan **global vakit zaten çalışıyor**; kullanıcı konum başına hesaplama yöntemini (`method`) seçebiliyor. İleride: `PrayerTimeProvider` soyutlamasıyla farklı bir sağlayıcı (ör. backend proxy üzerinden Diyanet resmi API) eklenebilir.
 
 ### 🧩 Ana ekran widget'ı
 Bir sonraki vakti gösteren home screen widget'ı (platforma özgü iş). MVP sonrası.
