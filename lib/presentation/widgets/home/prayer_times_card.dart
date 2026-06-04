@@ -8,47 +8,50 @@ import '../../../core/utils/prayer_utils.dart';
 class PrayerTimesCard extends StatelessWidget {
   final PrayerTime prayerTime;
   final PrayerType? currentPrayer;
-  final VoidCallback? onCalendarTap;
 
   const PrayerTimesCard({
     super.key,
     required this.prayerTime,
     this.currentPrayer,
-    this.onCalendarTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final prayers = PrayerType.values;
 
+    final rows = <Widget>[];
+    for (var index = 0; index < prayers.length; index++) {
+      final type = prayers[index];
+      rows.add(
+        Expanded(
+          child: PrayerTimeRow(
+            type: type,
+            time: PrayerUtils.getPrayerTime(prayerTime, type),
+            isCurrent: type == currentPrayer,
+          ),
+        ),
+      );
+      if (index < prayers.length - 1) {
+        rows.add(
+          Divider(
+            color: Colors.white.withValues(alpha: 0.1),
+            height: 1,
+            indent: 12,
+            endIndent: 12,
+          ),
+        );
+      }
+    }
+
     return Container(
-      padding: const EdgeInsets.fromLTRB(24, 18, 24, 10),
-      decoration: AppTheme.glassDecoration(opacity: 0.1, borderRadius: 18),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+      decoration: AppTheme.glassDecoration(opacity: 0.1, borderRadius: 22),
       child: Column(
         children: [
           _buildHeader(),
-          const SizedBox(height: 10),
-          ...prayers.asMap().entries.map((entry) {
-            final index = entry.key;
-            final type = entry.value;
-            final isCurrent = type == currentPrayer;
-            return Column(
-              children: [
-                PrayerTimeRow(
-                  type: type,
-                  time: PrayerUtils.getPrayerTime(prayerTime, type),
-                  isCurrent: isCurrent,
-                ),
-                if (index < prayers.length - 1)
-                  Divider(
-                    color: Colors.white.withValues(alpha: 0.1),
-                    height: 1,
-                    indent: 12,
-                    endIndent: 12,
-                  ),
-              ],
-            );
-          }),
+          const SizedBox(height: 8),
+          // Kalan alanı doldurur; satırlar mevcut yüksekliğe göre eşit dağılır.
+          Expanded(child: Column(children: rows)),
         ],
       ),
     );
@@ -67,44 +70,6 @@ class PrayerTimesCard extends StatelessWidget {
             color: Colors.white,
           ),
         ),
-        const Spacer(),
-        if (onCalendarTap != null)
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onCalendarTap,
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: AppTheme.gold.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.calendar_month_rounded,
-                      color: AppTheme.gold,
-                      size: 16,
-                    ),
-                    SizedBox(width: 6),
-                    Text(
-                      'Takvim',
-                      style: TextStyle(
-                        color: AppTheme.gold,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
       ],
     );
   }
@@ -129,7 +94,7 @@ class PrayerTimeRow extends StatelessWidget {
     final timeStr = DateFormat('HH:mm').format(time);
 
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       decoration: BoxDecoration(
         color: isCurrent
             ? AppTheme.gold.withValues(alpha: 0.15)
@@ -139,8 +104,8 @@ class PrayerTimeRow extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: 34,
+            height: 34,
             decoration: BoxDecoration(
               color: isCurrent
                   ? AppTheme.gold.withValues(alpha: 0.3)
@@ -152,7 +117,7 @@ class PrayerTimeRow extends StatelessWidget {
               color: isCurrent
                   ? AppTheme.gold
                   : Colors.white.withValues(alpha: 0.7),
-              size: 20,
+              size: 18,
             ),
           ),
           const SizedBox(width: 12),

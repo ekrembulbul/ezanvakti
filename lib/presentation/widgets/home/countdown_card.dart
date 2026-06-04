@@ -7,13 +7,11 @@ import '../../../core/utils/prayer_utils.dart';
 class CountdownCard extends StatefulWidget {
   final DateTime nextPrayerTime;
   final String nextPrayerName;
-  final Animation<double>? pulseAnimation;
 
   const CountdownCard({
     super.key,
     required this.nextPrayerTime,
     required this.nextPrayerName,
-    this.pulseAnimation,
   });
 
   @override
@@ -51,8 +49,8 @@ class _CountdownCardState extends State<CountdownCard> {
     final seconds = difference.inSeconds.remainder(60);
     final nextPrayerName = widget.nextPrayerName;
 
-    final content = Container(
-      padding: const EdgeInsets.fromLTRB(22, 16, 22, 16),
+    return Container(
+      padding: const EdgeInsets.fromLTRB(22, 14, 22, 14),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -96,30 +94,34 @@ class _CountdownCardState extends State<CountdownCard> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _TimeUnit(
-                  value: hours.toString().padLeft(2, '0'),
-                  label: 'Saat',
-                ),
-                const _TimeSeparator(),
-                _TimeUnit(
-                  value: minutes.toString().padLeft(2, '0'),
-                  label: 'Dakika',
-                ),
-                const _TimeSeparator(),
-                _TimeUnit(
-                  value: seconds.toString().padLeft(2, '0'),
-                  label: 'Saniye',
-                ),
-              ],
+          const SizedBox(height: 10),
+          // Sayaç rakamları kalan yüksekliğe göre ölçeklenir (kart büyüyünce
+          // rakamlar büyür, küçülünce küçülür).
+          Expanded(
+            child: FittedBox(
+              fit: BoxFit.contain,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _TimeUnit(
+                    value: hours.toString().padLeft(2, '0'),
+                    label: 'Saat',
+                  ),
+                  const _TimeSeparator(),
+                  _TimeUnit(
+                    value: minutes.toString().padLeft(2, '0'),
+                    label: 'Dakika',
+                  ),
+                  const _TimeSeparator(),
+                  _TimeUnit(
+                    value: seconds.toString().padLeft(2, '0'),
+                    label: 'Saniye',
+                  ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           Text(
             DateFormat('HH:mm').format(widget.nextPrayerTime),
             style: TextStyle(
@@ -131,11 +133,6 @@ class _CountdownCardState extends State<CountdownCard> {
         ],
       ),
     );
-
-    if (widget.pulseAnimation != null) {
-      return ScaleTransition(scale: widget.pulseAnimation!, child: content);
-    }
-    return content;
   }
 }
 

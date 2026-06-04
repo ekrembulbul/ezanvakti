@@ -9,6 +9,7 @@ import '../widgets/home/countdown_card.dart';
 import '../widgets/home/prayer_times_card.dart';
 import '../widgets/home/location_header.dart';
 import '../widgets/home/date_widget.dart';
+import '../widgets/home/home_menu_sheet.dart';
 import '../widgets/common/state_widgets.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -32,7 +33,7 @@ class HomeScreen extends StatefulWidget {
     this.todaysPrayerTime,
     this.tomorrowsPrayerTime,
     this.lastUpdateTime,
-    this.dataSource = 'Diyanet (Awqat Salah API)',
+    this.dataSource = 'Aladhan API',
     this.onCalendarTap,
     this.onSettingsTap,
     this.onNotificationSettingsTap,
@@ -47,10 +48,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen> {
   Timer? _timer;
-  late AnimationController _pulseController;
-  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
@@ -61,22 +60,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _timer = Timer.periodic(const Duration(seconds: 10), (timer) {
       if (mounted) setState(() {});
     });
-
-    _pulseController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    )..repeat(reverse: true);
-
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
   }
 
   @override
   void dispose() {
     _timer?.cancel();
-    _pulseController.dispose();
     super.dispose();
+  }
+
+  void _openMenu() {
+    showHomeMenu(
+      context,
+      onCalendar: widget.onCalendarTap,
+      onNotifications: widget.onNotificationSettingsTap,
+      onSettings: widget.onSettingsTap,
+    );
   }
 
   @override
@@ -86,8 +84,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       appBar: _HomeAppBar(
         location: widget.location,
         onGpsRefresh: widget.onGpsRefresh,
-        onNotificationsTap: widget.onNotificationSettingsTap,
-        onSettingsTap: widget.onSettingsTap,
+        onMenuTap: _openMenu,
       ),
       body: Container(
         width: double.infinity,
@@ -121,38 +118,41 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       );
     }
 
-    return SingleChildScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Column(
-          children: [
-            const SizedBox(height: 6),
-            Row(
-              children: [
-                Expanded(
-                  child: LocationWidget(
-                    location: widget.location,
-                    onTap: widget.onLocationTap,
-                  ),
+    // Scroll yok: içerik her ekran boyutunda tam ekrana yayılır. Vakit kartı
+    // kalan alanı doldurur, satırlar mevcut yüksekliğe göre esner.
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        children: [
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Expanded(
+                child: LocationWidget(
+                  location: widget.location,
+                  onTap: widget.onLocationTap,
                 ),
-                const SizedBox(width: 12),
-                DateWidget(date: widget.todaysPrayerTime!.date),
-              ],
-            ),
-            const SizedBox(height: 18),
-            _buildCountdown(),
-            const SizedBox(height: 22),
-            PrayerTimesCard(
+              ),
+              const SizedBox(width: 12),
+              DateWidget(date: widget.todaysPrayerTime!.date),
+            ],
+          ),
+          const SizedBox(height: 14),
+          // Sayaç ve vakit kartı kalan alanı oransal paylaşır; ekran boyutuna
+          // göre ikisi birlikte büyür/küçülür.
+          Expanded(flex: 4, child: _buildCountdown()),
+          const SizedBox(height: 14),
+          Expanded(
+            flex: 7,
+            child: PrayerTimesCard(
               prayerTime: widget.todaysPrayerTime!,
               currentPrayer: PrayerUtils.getCurrentPrayer(
                 widget.todaysPrayerTime!,
               ),
-              onCalendarTap: widget.onCalendarTap,
             ),
-            const SizedBox(height: 12),
-          ],
-        ),
+          ),
+          const SizedBox(height: 8),
+        ],
       ),
     );
   }
@@ -173,7 +173,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return CountdownCard(
       nextPrayerTime: nextPrayerTime,
       nextPrayerName: nextPrayerName,
-      pulseAnimation: _pulseAnimation,
     );
   }
 }
@@ -181,14 +180,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Location location;
   final VoidCallback? onGpsRefresh;
-  final VoidCallback? onNotificationsTap;
-  final VoidCallback? onSettingsTap;
+  final VoidCallback onMenuTap;
 
   const _HomeAppBar({
     required this.location,
+    required this.onMenuTap,
     this.onGpsRefresh,
-    this.onNotificationsTap,
-    this.onSettingsTap,
   });
 
   @override
@@ -204,7 +201,6 @@ class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Image.asset('assets/icon/app_icon.png', width: 58, height: 58),
-          // const SizedBox(width: 10),
           const Flexible(
             child: Text(
               AppConstants.appTitle,
@@ -227,14 +223,9 @@ class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
             tooltip: 'GPS Yenile',
           ),
         _AppBarAction(
-          icon: Icons.notifications_rounded,
-          onTap: onNotificationsTap ?? () {},
-          tooltip: 'Bildirimler',
-        ),
-        _AppBarAction(
-          icon: Icons.settings_rounded,
-          onTap: onSettingsTap ?? () {},
-          tooltip: 'Ayarlar',
+          icon: Icons.menu_rounded,
+          onTap: onMenuTap,
+          tooltip: 'Menü',
         ),
         const SizedBox(width: 8),
       ],
