@@ -8,6 +8,7 @@ class FakeHttpClient extends http.BaseClient {
   final String body;
   final int status;
   Uri? lastUrl;
+  Map<String, String>? lastHeaders;
   int callCount = 0;
 
   FakeHttpClient({this.body = '', this.status = 200});
@@ -16,6 +17,7 @@ class FakeHttpClient extends http.BaseClient {
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     callCount++;
     lastUrl = request.url;
+    lastHeaders = request.headers;
     return http.StreamedResponse(Stream.value(utf8.encode(body)), status);
   }
 }
@@ -86,6 +88,19 @@ void main() {
       expect(client.callCount, equals(0));
     });
 
+    test('Sends a descriptive User-Agent, not the blocked Dart default', () async {
+      final client = FakeHttpClient(body: _validResponse);
+      final service = PhotonGeocodingService(httpClient: client);
+
+      await service.search('kadik');
+
+      // http header anahtarlarini kucuk harfe normalize eder.
+      final userAgent = client.lastHeaders!['user-agent'];
+      expect(userAgent, isNotNull);
+      expect(userAgent, contains('EzanVakti'));
+      expect(userAgent, isNot(contains('Dart/')));
+    });
+
     test('Bias coordinates are added to the request URL', () async {
       final client = FakeHttpClient(body: _validResponse);
       final service = PhotonGeocodingService(httpClient: client);
@@ -96,7 +111,8 @@ void main() {
       expect(query['q'], equals('merkez'));
       expect(query['lat'], equals('39.92'));
       expect(query['lon'], equals('32.85'));
-      expect(query['lang'], equals('tr'));
+      // Photon public 'tr' lang'i desteklemediginden lang gonderilmez.
+      expect(query.containsKey('lang'), isFalse);
     });
 
     test('Malformed JSON degrades to empty list', () async {

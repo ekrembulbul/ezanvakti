@@ -18,6 +18,13 @@ class PhotonGeocodingService {
   static const int _defaultLimit = 8;
   static const int _minQueryLength = 2;
 
+  // Photon, Dart http paketinin varsayılan "Dart/x (dart:io)" User-Agent'ını
+  // 403 ile engelliyor. Uygulamayı tanımlayan bir UA göndermek hem bu engeli
+  // aşar hem de OSM/Photon fair-use beklentisine uyar.
+  static const Map<String, String> _headers = {
+    'User-Agent': 'EzanVakti/1.0 (Flutter; namaz vakti uygulamasi)',
+  };
+
   PhotonGeocodingService({http.Client? httpClient})
     : httpClient = httpClient ?? http.Client();
 
@@ -27,18 +34,17 @@ class PhotonGeocodingService {
     String query, {
     double? biasLatitude,
     double? biasLongitude,
-    String language = 'tr',
+    String? language,
     int limit = _defaultLimit,
   }) async {
     final logger = AppLogger();
     final trimmed = query.trim();
     if (trimmed.length < _minQueryLength) return const [];
 
-    final params = <String, String>{
-      'q': trimmed,
-      'lang': language,
-      'limit': '$limit',
-    };
+    final params = <String, String>{'q': trimmed, 'limit': '$limit'};
+    // Photon public instance yalnızca default/de/en/fr destekler; 'tr' 400 verir.
+    // Belirtilmezse "default" (yerel ad) kullanılır — Türkçe yerler için doğru.
+    if (language != null) params['lang'] = language;
     if (biasLatitude != null && biasLongitude != null) {
       params['lat'] = '$biasLatitude';
       params['lon'] = '$biasLongitude';
@@ -47,7 +53,9 @@ class PhotonGeocodingService {
     final uri = Uri.parse(_baseUrl).replace(queryParameters: params);
 
     try {
-      final response = await httpClient.get(uri).timeout(_requestTimeout);
+      final response = await httpClient
+          .get(uri, headers: _headers)
+          .timeout(_requestTimeout);
       if (response.statusCode != 200) {
         logger.warning('Photon search returned HTTP ${response.statusCode}');
         return const [];
