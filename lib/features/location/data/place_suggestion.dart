@@ -11,6 +11,10 @@ class PlaceSuggestion {
   final String province;
   final String district;
   final String country;
+
+  /// ISO 3166-1 alpha-2 ülke kodu (ör. "TR"). Bölgesel varsayılan hesaplama
+  /// ayarı için kullanılır; bilinmiyorsa boş.
+  final String countryCode;
   final double latitude;
   final double longitude;
 
@@ -20,6 +24,7 @@ class PlaceSuggestion {
     required this.province,
     required this.district,
     required this.country,
+    required this.countryCode,
     required this.latitude,
     required this.longitude,
   });
@@ -69,6 +74,7 @@ class PlaceSuggestion {
     final county = read('county');
     final city = read('city');
     final country = read('country');
+    final countryCode = read('countrycode');
 
     final province = state.isNotEmpty
         ? state
@@ -83,6 +89,7 @@ class PlaceSuggestion {
       province: province,
       district: district.isNotEmpty ? district : province,
       country: country,
+      countryCode: countryCode.toUpperCase(),
       latitude: latitude,
       longitude: longitude,
     );

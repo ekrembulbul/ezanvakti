@@ -28,7 +28,8 @@ const _validResponse = '''
       "geometry": {"type": "Point", "coordinates": [29.0227, 40.9828]},
       "properties": {
         "osm_id": 123, "osm_type": "R", "name": "Kadıköy",
-        "state": "İstanbul", "county": "İstanbul", "country": "Türkiye"
+        "state": "İstanbul", "county": "İstanbul", "country": "Türkiye",
+        "countrycode": "tr"
       }
     },
     {
@@ -59,6 +60,8 @@ void main() {
       expect(first.longitude, equals(29.0227));
       expect(first.id, equals('photon-R123'));
       expect(first.displayLabel, equals('Kadıköy, İstanbul, Türkiye'));
+      // Ülke kodu büyük harfe normalize edilir (bölgesel varsayılan için).
+      expect(first.countryCode, equals('TR'));
     });
 
     test('toLocation carries coordinates and label', () async {

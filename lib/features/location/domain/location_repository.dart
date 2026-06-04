@@ -40,6 +40,12 @@ class LocationRepository {
     return await storage.getCalculationSettings();
   }
 
+  /// Uygulama genelindeki varsayılan hesaplama ayarını kaydeder. İlk konum
+  /// eklenirken bölgesel varsayılanı atamak için kullanılır.
+  Future<void> saveCalculationSettings(CalculationSettings settings) async {
+    await storage.saveCalculationSettings(settings);
+  }
+
   Future<void> updateLocation(Location location) async {
     await storage.updateLocation(location);
   }
