@@ -1,6 +1,7 @@
 import '../models/prayer_time.dart';
 import '../models/location.dart';
 import '../models/notification_setting.dart';
+import '../models/calculation_settings.dart';
 
 abstract class LocalStorage {
   Future<void> init();
@@ -23,6 +24,16 @@ abstract class LocalStorage {
   /// Belirli bir konumun önbellekteki tüm vakitlerini siler. Hesaplama
   /// yöntemi/mezhebi değişince eski (artık geçersiz) vakitleri temizlemek için.
   Future<void> deletePrayerTimesForLocation(String locationId);
+
+  /// Tüm konumların önbellekteki vakitlerini siler. Global hesaplama ayarı
+  /// değişince (tüm "inherit" konumları etkiler) kullanılır.
+  Future<void> deleteAllPrayerTimes();
+
+  /// Uygulama genelindeki varsayılan hesaplama ayarını döner.
+  Future<CalculationSettings> getCalculationSettings();
+
+  /// Uygulama genelindeki varsayılan hesaplama ayarını kaydeder.
+  Future<void> saveCalculationSettings(CalculationSettings settings);
 
   Future<void> saveActiveLocation(Location location);
 

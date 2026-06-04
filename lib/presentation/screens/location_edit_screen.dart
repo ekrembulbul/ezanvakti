@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 
 import '../../core/models/calculation_params.dart';
+import '../../core/models/calculation_settings.dart';
 import '../../core/models/location.dart';
 import '../../core/theme/app_theme.dart';
 import '../../features/location/domain/location_repository.dart';
 import '../widgets/common/app_bar_widgets.dart';
 import '../widgets/location/calculation_params_selector.dart';
 
-/// Kayıtlı bir konumun hesaplama parametrelerini (yöntem, İkindi mezhebi, yüksek
-/// enlem düzeltmesi) ve özel ismini düzenler. Konumun yeri (il/ilçe/koordinat)
-/// burada değişmez; yeni bir yer için arama ekranı kullanılır.
+/// Kayıtlı bir konumun hesaplama parametrelerini ve özel ismini düzenler.
 ///
-/// Kaydederken hesaplama parametreleri değiştiyse o konumun vakit önbelleği
-/// temizlenir; güncellenmiş konum geri döndürülür ki çağıran taraf aktifse
-/// yeniden yükleyip bildirimleri yeniden planlayabilsin.
+/// Konum varsayılan olarak **genel hesaplama ayarını** kullanır; kullanıcı bu
+/// konuma özel bir override tanımlayabilir. Konumun yeri (il/ilçe/koordinat)
+/// burada değişmez. Parametreler değişirse o konumun vakit önbelleği temizlenip
+/// güncellenmiş konum geri döndürülür ki çağıran taraf (aktifse) yeniden
+/// yükleyip bildirimleri planlayabilsin.
 class LocationEditScreen extends StatefulWidget {
   final LocationRepository locationRepository;
   final Location location;
@@ -30,9 +31,12 @@ class LocationEditScreen extends StatefulWidget {
 
 class _LocationEditScreenState extends State<LocationEditScreen> {
   late final TextEditingController _customNameController;
+  late bool _useGlobal;
   late int _method;
   late AsrSchool _school;
   late LatitudeAdjustment _latitudeAdjustment;
+
+  CalculationSettings _globalSettings = CalculationSettings.defaults;
 
   @override
   void initState() {
@@ -41,11 +45,19 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
     _customNameController = TextEditingController(
       text: location.customName ?? '',
     );
-    _method = location.method;
-    _school = AsrSchool.fromValue(location.school);
+    _useGlobal = !location.hasCalculationOverride;
+
+    // Etkin değerlerle başlat: override varsa onu, yoksa varsayılanı göster.
+    // Global ayar yüklenince inherit durumunda yeniden tohumlanır.
+    _method = location.method ?? CalculationDefaults.method;
+    _school = AsrSchool.fromValue(
+      location.school ?? CalculationDefaults.school,
+    );
     _latitudeAdjustment = LatitudeAdjustment.fromValue(
       location.latitudeAdjustmentMethod,
     );
+
+    _loadGlobalSettings();
   }
 
   @override
@@ -54,12 +66,32 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
     super.dispose();
   }
 
+  Future<void> _loadGlobalSettings() async {
+    final settings = await widget.locationRepository.getCalculationSettings();
+    if (!mounted) return;
+    setState(() {
+      _globalSettings = settings;
+      // Konum global ayarı miras alıyorsa, "özel" moda geçince kullanıcıya
+      // mantıklı bir başlangıç sunmak için seçicileri global değerlere tohumla.
+      if (_useGlobal) {
+        _method = settings.method;
+        _school = AsrSchool.fromValue(settings.school);
+        _latitudeAdjustment = LatitudeAdjustment.fromValue(
+          settings.latitudeAdjustmentMethod,
+        );
+      }
+    });
+  }
+
   Future<void> _save() async {
     final original = widget.location;
     final customName = _customNameController.text.trim();
 
-    // Özel ismi ve yüksek enlem düzeltmesini temizleyebilmek için copyWith
-    // yerine açık kurulum kullanılır (copyWith null'ı "değiştirme" sayar).
+    // Genel ayarı kullan → override yok (null); aksi halde seçilen değerler.
+    final method = _useGlobal ? null : _method;
+    final school = _useGlobal ? null : _school.value;
+    final latitudeAdjustment = _useGlobal ? null : _latitudeAdjustment.value;
+
     final updated = Location(
       id: original.id,
       province: original.province,
@@ -68,15 +100,15 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
       longitude: original.longitude,
       type: original.type,
       customName: customName.isEmpty ? null : customName,
-      method: _method,
-      school: _school.value,
-      latitudeAdjustmentMethod: _latitudeAdjustment.value,
+      method: method,
+      school: school,
+      latitudeAdjustmentMethod: latitudeAdjustment,
     );
 
     final paramsChanged =
-        updated.method != original.method ||
-        updated.school != original.school ||
-        updated.latitudeAdjustmentMethod != original.latitudeAdjustmentMethod;
+        method != original.method ||
+        school != original.school ||
+        latitudeAdjustment != original.latitudeAdjustmentMethod;
 
     try {
       if (paramsChanged) {
@@ -121,21 +153,26 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
                       const SizedBox(height: 24),
                       _buildCustomNameField(),
                       const SizedBox(height: 20),
-                      CalculationParamsSelector(
-                        method: _method,
-                        school: _school,
-                        latitudeAdjustment: _latitudeAdjustment,
-                        onMethodChanged: (value) => setState(() {
-                          _method = value;
-                          _school = AsrSchool.fromValue(
-                            CalculationDefaults.schoolForMethod(value),
-                          );
-                        }),
-                        onSchoolChanged: (value) =>
-                            setState(() => _school = value),
-                        onLatitudeAdjustmentChanged: (value) =>
-                            setState(() => _latitudeAdjustment = value),
-                      ),
+                      _buildUseGlobalSwitch(),
+                      const SizedBox(height: 12),
+                      if (_useGlobal)
+                        _buildGlobalSummary()
+                      else
+                        CalculationParamsSelector(
+                          method: _method,
+                          school: _school,
+                          latitudeAdjustment: _latitudeAdjustment,
+                          onMethodChanged: (value) => setState(() {
+                            _method = value;
+                            _school = AsrSchool.fromValue(
+                              CalculationDefaults.schoolForMethod(value),
+                            );
+                          }),
+                          onSchoolChanged: (value) =>
+                              setState(() => _school = value),
+                          onLatitudeAdjustmentChanged: (value) =>
+                              setState(() => _latitudeAdjustment = value),
+                        ),
                     ],
                   ),
                 ),
@@ -206,6 +243,65 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
             color: Colors.white.withValues(alpha: 0.5),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildUseGlobalSwitch() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+      ),
+      child: SwitchListTile(
+        contentPadding: EdgeInsets.zero,
+        title: const Text(
+          'Genel hesaplama ayarını kullan',
+          style: TextStyle(color: Colors.white, fontSize: 15),
+        ),
+        subtitle: Text(
+          'Kapatırsan bu konuma özel yöntem/mezhep seçebilirsin',
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.5),
+            fontSize: 12,
+          ),
+        ),
+        value: _useGlobal,
+        activeThumbColor: AppTheme.gold,
+        onChanged: (value) => setState(() => _useGlobal = value),
+      ),
+    );
+  }
+
+  Widget _buildGlobalSummary() {
+    final methodName = CalculationMethods.byId(_globalSettings.method).name;
+    final schoolLabel = AsrSchool.fromValue(_globalSettings.school).label;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.public_rounded,
+            size: 18,
+            color: Colors.white.withValues(alpha: 0.5),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Genel ayar: $methodName · $schoolLabel',
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.6),
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

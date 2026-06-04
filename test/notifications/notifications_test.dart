@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
+import 'package:ezanvakti/core/models/calculation_settings.dart';
 import 'package:ezanvakti/core/interfaces/notification_service.dart';
 import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
@@ -55,6 +56,22 @@ class MockLocalStorage implements LocalStorage {
   @override
   Future<void> deletePrayerTimesForLocation(String locationId) async {
     _prayerTimesCache.remove(locationId);
+  }
+
+  @override
+  Future<void> deleteAllPrayerTimes() async {
+    _prayerTimesCache.clear();
+  }
+
+  CalculationSettings _calculationSettings = CalculationSettings.defaults;
+
+  @override
+  Future<CalculationSettings> getCalculationSettings() async =>
+      _calculationSettings;
+
+  @override
+  Future<void> saveCalculationSettings(CalculationSettings settings) async {
+    _calculationSettings = settings;
   }
 
   @override

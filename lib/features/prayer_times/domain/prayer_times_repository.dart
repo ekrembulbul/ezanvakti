@@ -48,7 +48,7 @@ class PrayerTimesRepository {
     try {
       logger.debug('Fetching from remote API');
       final remoteTimes = await provider.fetchPrayerTimes(
-        location: location,
+        location: await _resolveLocation(location),
         startDate: startDate,
         endDate: endDate,
       );
@@ -106,7 +106,7 @@ class PrayerTimesRepository {
     try {
       logger.debug('Fetching from remote API');
       final remoteTime = await provider.fetchDailyPrayerTime(
-        location: location,
+        location: await _resolveLocation(location),
         date: normalizedDate,
       );
 
@@ -159,6 +159,19 @@ class PrayerTimesRepository {
   /// güncel parametrelerle yeniden çeker.
   Future<void> clearCacheForLocation(String locationId) async {
     await storage.deletePrayerTimesForLocation(locationId);
+  }
+
+  /// Tüm konumların önbelleğini siler. Global hesaplama ayarı değişince
+  /// (tüm "inherit" konumları etkilediği için) kullanılır.
+  Future<void> clearAllCache() async {
+    await storage.deleteAllPrayerTimes();
+  }
+
+  /// Konumun override'larını global ayarla birleştirip somut parametreli bir
+  /// konum döner; sağlayıcıya bu gönderilir. Önbellek kimliği değişmez.
+  Future<Location> _resolveLocation(Location location) async {
+    final settings = await storage.getCalculationSettings();
+    return location.withResolvedParams(settings);
   }
 
   Future<DateTime?> getLastUpdateTime() async {

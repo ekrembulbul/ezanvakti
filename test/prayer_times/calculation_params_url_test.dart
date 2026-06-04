@@ -26,27 +26,30 @@ void main() {
   final date = DateTime(2024, 6, 15);
 
   group('AwqatSalahProvider passes per-location calculation params', () {
-    test('Default location sends Diyanet method and standard Asr school', () async {
-      final client = CapturingHttpClient(validBody);
-      final provider = AwqatSalahProvider(httpClient: client);
+    test(
+      'Default location sends Diyanet method and standard Asr school',
+      () async {
+        final client = CapturingHttpClient(validBody);
+        final provider = AwqatSalahProvider(httpClient: client);
 
-      await provider.fetchDailyPrayerTime(
-        location: const Location(
-          id: '1',
-          province: 'İstanbul',
-          district: 'Fatih',
-          latitude: 41.0,
-          longitude: 29.0,
-        ),
-        date: date,
-      );
+        await provider.fetchDailyPrayerTime(
+          location: const Location(
+            id: '1',
+            province: 'İstanbul',
+            district: 'Fatih',
+            latitude: 41.0,
+            longitude: 29.0,
+          ),
+          date: date,
+        );
 
-      final query = client.lastUrl!.queryParameters;
-      expect(query['method'], equals('13'));
-      // Diyanet İkindi'yi asr-ı evvel (standart/Şafi = 0) ile hesaplar.
-      expect(query['school'], equals('0'));
-      expect(query.containsKey('latitudeAdjustmentMethod'), isFalse);
-    });
+        final query = client.lastUrl!.queryParameters;
+        expect(query['method'], equals('13'));
+        // Diyanet İkindi'yi asr-ı evvel (standart/Şafi = 0) ile hesaplar.
+        expect(query['school'], equals('0'));
+        expect(query.containsKey('latitudeAdjustmentMethod'), isFalse);
+      },
+    );
 
     test('Custom params are reflected in the request URL', () async {
       final client = CapturingHttpClient(validBody);

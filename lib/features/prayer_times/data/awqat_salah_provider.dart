@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../../../core/interfaces/prayer_time_provider.dart';
 import '../../../core/models/prayer_time.dart';
 import '../../../core/models/location.dart';
+import '../../../core/models/calculation_params.dart';
 import '../../../core/exceptions/parse_exception.dart';
 import '../../../core/utils/app_logger.dart';
 
@@ -20,9 +21,11 @@ class AwqatSalahProvider implements PrayerTimeProvider {
   /// Konuma özel hesaplama parametrelerini Aladhan sorgu parçasına çevirir:
   /// method (otorite), school (İkindi mezhebi) ve varsa yüksek enlem düzeltmesi.
   String _calculationParams(Location location) {
-    final buffer = StringBuffer(
-      'method=${location.method}&school=${location.school}',
-    );
+    // Konum override belirtmemişse (null) güvenli varsayılana düşülür. Normalde
+    // çözümleme repository'de global ayarla yapılır; bu yalnızca emniyet ağıdır.
+    final method = location.method ?? CalculationDefaults.method;
+    final school = location.school ?? CalculationDefaults.school;
+    final buffer = StringBuffer('method=$method&school=$school');
     final latitudeAdjustment = location.latitudeAdjustmentMethod;
     if (latitudeAdjustment != null) {
       buffer.write('&latitudeAdjustmentMethod=$latitudeAdjustment');

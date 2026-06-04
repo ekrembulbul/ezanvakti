@@ -9,6 +9,7 @@ class SettingsScreen extends StatefulWidget {
   final Location currentLocation;
   final String dataSource;
   final VoidCallback? onChangeLocation;
+  final VoidCallback? onCalculationSettings;
   final VoidCallback? onAbout;
 
   const SettingsScreen({
@@ -16,6 +17,7 @@ class SettingsScreen extends StatefulWidget {
     required this.currentLocation,
     this.dataSource = 'Diyanet (Awqat Salah API)',
     this.onChangeLocation,
+    this.onCalculationSettings,
     this.onAbout,
   });
 
@@ -82,6 +84,15 @@ class _SettingsBody extends StatelessWidget {
           LocationSettingsCard(
             location: state.widget.currentLocation,
             onTap: state.widget.onChangeLocation,
+          ),
+          const SizedBox(height: 28),
+          const SettingsSectionTitle(title: 'Hesaplama'),
+          const SizedBox(height: 12),
+          SettingsNavCard(
+            icon: Icons.tune_rounded,
+            title: 'Hesaplama Ayarları',
+            subtitle: 'Yöntem ve İkindi mezhebi (tüm konumlar)',
+            onTap: state.widget.onCalculationSettings,
           ),
           const SizedBox(height: 28),
           const SettingsSectionTitle(title: 'Veri Kaynağı'),

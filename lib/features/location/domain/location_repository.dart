@@ -1,5 +1,6 @@
 import '../../../core/interfaces/local_storage.dart';
 import '../../../core/models/location.dart';
+import '../../../core/models/calculation_settings.dart';
 
 class LocationRepository {
   final LocalStorage storage;
@@ -31,6 +32,12 @@ class LocationRepository {
   /// parametrelerle yeniden çeker.
   Future<void> clearPrayerTimeCache(String locationId) async {
     await storage.deletePrayerTimesForLocation(locationId);
+  }
+
+  /// Uygulama genelindeki varsayılan hesaplama ayarını döner. Konum düzenleme
+  /// ekranı "genel ayarı kullan" durumunda etkin değerleri göstermek için kullanır.
+  Future<CalculationSettings> getCalculationSettings() async {
+    return await storage.getCalculationSettings();
   }
 
   Future<void> updateLocation(Location location) async {

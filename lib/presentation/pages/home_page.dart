@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../../core/providers/app_state.dart';
 import '../../core/di/service_locator.dart';
 import '../../core/models/location.dart';
+import '../../core/models/calculation_settings.dart';
+import '../../core/interfaces/local_storage.dart';
 import '../../core/utils/app_logger.dart';
 import '../../features/prayer_times/domain/prayer_times_repository.dart';
 import '../../features/notifications/domain/notification_scheduler.dart';
@@ -14,6 +16,7 @@ import '../screens/home_screen.dart';
 import '../screens/calendar_screen.dart';
 import '../screens/notification_settings_screen.dart';
 import '../screens/settings_screen.dart';
+import '../screens/calculation_settings_screen.dart';
 import '../screens/location_list_screen.dart';
 import '../services/location_service.dart';
 import '../services/data_loader_service.dart';
@@ -276,9 +279,40 @@ class _HomePageState extends State<HomePage> {
         builder: (context) => SettingsScreen(
           currentLocation: appState.activeLocation!,
           onChangeLocation: _navigateToLocationList,
+          onCalculationSettings: _navigateToCalculationSettings,
         ),
       ),
     );
+  }
+
+  void _navigateToCalculationSettings() async {
+    final storage = ServiceLocator().get<LocalStorage>();
+    final current = await storage.getCalculationSettings();
+    if (!mounted) return;
+
+    final result = await Navigator.of(context).push<CalculationSettings>(
+      MaterialPageRoute(
+        builder: (context) => CalculationSettingsScreen(initial: current),
+      ),
+    );
+
+    if (result == null || result == current) return;
+
+    await storage.saveCalculationSettings(result);
+    await _applyGlobalCalculationChange();
+  }
+
+  Future<void> _applyGlobalCalculationChange() async {
+    final appState = context.read<AppState>();
+    // Global ayar değişti: tüm "inherit" konumların önbelleği geçersiz.
+    await ServiceLocator().get<PrayerTimesRepository>().clearAllCache();
+    await ServiceLocator().get<NotificationService>().cancelAllNotifications();
+
+    appState.clearPrayerTimes();
+    appState.setTodaysPrayerTime(null);
+    appState.setTomorrowsPrayerTime(null);
+
+    await _loadInitialData();
   }
 
   void _navigateToLocationList() async {
@@ -315,7 +349,9 @@ class _HomePageState extends State<HomePage> {
 
       // Clear the previous location's notifications up front so they don't
       // linger if the new location's prayer times can't be loaded (offline).
-      await ServiceLocator().get<NotificationService>().cancelAllNotifications();
+      await ServiceLocator()
+          .get<NotificationService>()
+          .cancelAllNotifications();
 
       await _loadInitialData();
 

@@ -1,4 +1,4 @@
-import 'calculation_params.dart';
+import 'calculation_settings.dart';
 
 enum LocationType {
   gps,
@@ -23,13 +23,13 @@ class Location {
   final LocationType type;
   final String? customName;
 
-  /// Aladhan hesaplama yöntemi (otorite) — konuma özel.
-  final int method;
+  /// Konuma özel hesaplama yöntemi override'ı. `null` ise global ayar kullanılır.
+  final int? method;
 
-  /// Aladhan İkindi mezhebi (0=Şafi, 1=Hanefi) — konuma özel.
-  final int school;
+  /// Konuma özel İkindi mezhebi override'ı (0=Şafi, 1=Hanefi). `null` ise global.
+  final int? school;
 
-  /// Yüksek enlem düzeltmesi (1/2/3) veya API varsayılanı için null.
+  /// Konuma özel yüksek enlem düzeltmesi override'ı. `null` ise global ayar.
   final int? latitudeAdjustmentMethod;
 
   const Location({
@@ -40,10 +40,26 @@ class Location {
     this.longitude,
     this.type = LocationType.manual,
     this.customName,
-    this.method = CalculationDefaults.method,
-    this.school = CalculationDefaults.school,
+    this.method,
+    this.school,
     this.latitudeAdjustmentMethod,
   });
+
+  /// Bu konumun override'larını global [settings] ile birleştirip somut
+  /// (null olmayan method/school) bir konum döner. Önbellek kimliği değişmez;
+  /// yalnızca hesaplama parametreleri çözümlenir.
+  Location withResolvedParams(CalculationSettings settings) {
+    return copyWith(
+      method: method ?? settings.method,
+      school: school ?? settings.school,
+      latitudeAdjustmentMethod:
+          latitudeAdjustmentMethod ?? settings.latitudeAdjustmentMethod,
+    );
+  }
+
+  /// Bu konum kendi hesaplama parametrelerini (override) belirtmiş mi?
+  bool get hasCalculationOverride =>
+      method != null || school != null || latitudeAdjustmentMethod != null;
 
   String get displayName {
     if (customName != null && customName!.isNotEmpty) {
@@ -79,9 +95,9 @@ class Location {
         orElse: () => LocationType.manual,
       ),
       customName: json['customName'] as String?,
-      // Eski kayıtlarda bu alanlar yoktur; güvenli varsayılana düşülür.
-      method: json['method'] as int? ?? CalculationDefaults.method,
-      school: json['school'] as int? ?? CalculationDefaults.school,
+      // null = override yok, global ayar kullanılır.
+      method: json['method'] as int?,
+      school: json['school'] as int?,
       latitudeAdjustmentMethod: json['latitudeAdjustmentMethod'] as int?,
     );
   }

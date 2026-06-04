@@ -6,6 +6,7 @@ import '../../../core/models/prayer_time.dart';
 import '../../../core/models/location.dart';
 import '../../../core/models/notification_setting.dart';
 import '../../../core/models/calculation_params.dart';
+import '../../../core/models/calculation_settings.dart';
 import '../../../core/exceptions/parse_exception.dart';
 import '../../../core/utils/app_logger.dart';
 
@@ -24,7 +25,7 @@ class SqliteStorage implements LocalStorage {
 
     return await openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -73,8 +74,8 @@ class SqliteStorage implements LocalStorage {
         type TEXT NOT NULL,
         custom_name TEXT,
         created_at TEXT NOT NULL,
-        method INTEGER NOT NULL DEFAULT ${CalculationDefaults.method},
-        school INTEGER NOT NULL DEFAULT ${CalculationDefaults.school},
+        method INTEGER,
+        school INTEGER,
         latitude_adjustment INTEGER
       )
     ''');
@@ -126,6 +127,33 @@ class SqliteStorage implements LocalStorage {
       await db.execute(
         'ALTER TABLE locations ADD COLUMN latitude_adjustment INTEGER',
       );
+    }
+    if (oldVersion < 5) {
+      // method/school override'larını nullable yap (null = global ayarı kullan).
+      // SQLite NOT NULL'u doğrudan kaldıramadığı için tablo yeniden oluşturulur.
+      await db.execute('''
+        CREATE TABLE locations_new (
+          id TEXT PRIMARY KEY,
+          province TEXT NOT NULL,
+          district TEXT NOT NULL,
+          latitude REAL,
+          longitude REAL,
+          type TEXT NOT NULL,
+          custom_name TEXT,
+          created_at TEXT NOT NULL,
+          method INTEGER,
+          school INTEGER,
+          latitude_adjustment INTEGER
+        )
+      ''');
+      await db.execute('''
+        INSERT INTO locations_new
+        SELECT id, province, district, latitude, longitude, type, custom_name,
+               created_at, method, school, latitude_adjustment
+        FROM locations
+      ''');
+      await db.execute('DROP TABLE locations');
+      await db.execute('ALTER TABLE locations_new RENAME TO locations');
     }
   }
 
@@ -267,6 +295,47 @@ class SqliteStorage implements LocalStorage {
       where: 'location_id = ?',
       whereArgs: [locationId],
     );
+  }
+
+  @override
+  Future<void> deleteAllPrayerTimes() async {
+    final db = await database;
+    await db.delete('prayer_times');
+  }
+
+  @override
+  Future<CalculationSettings> getCalculationSettings() async {
+    final db = await database;
+    final results = await db.query(
+      'settings',
+      where: 'key = ?',
+      whereArgs: ['calculation_settings'],
+      limit: 1,
+    );
+
+    if (results.isEmpty) return CalculationSettings.defaults;
+
+    final value = results.first['value'] as String;
+    try {
+      return CalculationSettings.fromJson(
+        json.decode(value) as Map<String, dynamic>,
+      );
+    } on FormatException catch (e) {
+      AppLogger().warning(
+        'Invalid calculation_settings in storage, using defaults',
+        e,
+      );
+      return CalculationSettings.defaults;
+    }
+  }
+
+  @override
+  Future<void> saveCalculationSettings(CalculationSettings settings) async {
+    final db = await database;
+    await db.insert('settings', {
+      'key': 'calculation_settings',
+      'value': json.encode(settings.toJson()),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   @override
@@ -415,8 +484,9 @@ class SqliteStorage implements LocalStorage {
           orElse: () => LocationType.manual,
         ),
         customName: row['custom_name'] as String?,
-        method: row['method'] as int? ?? CalculationDefaults.method,
-        school: row['school'] as int? ?? CalculationDefaults.school,
+        // null = override yok, global ayar kullanılır.
+        method: row['method'] as int?,
+        school: row['school'] as int?,
         latitudeAdjustmentMethod: row['latitude_adjustment'] as int?,
       );
     }).toList();

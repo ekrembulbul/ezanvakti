@@ -7,14 +7,12 @@ import 'package:provider/provider.dart';
 
 import '../../core/theme/app_theme.dart';
 import '../../core/models/location.dart' as app_location;
-import '../../core/models/calculation_params.dart';
 import '../../core/providers/app_state.dart';
 import '../../features/location/data/gps_label.dart';
 import '../../features/location/data/photon_geocoding_service.dart';
 import '../../features/location/data/place_suggestion.dart';
 import '../../features/location/domain/location_repository.dart';
 import '../widgets/common/app_bar_widgets.dart';
-import '../widgets/location/calculation_params_selector.dart';
 import '../widgets/location/location_widgets.dart';
 
 class LocationAddScreen extends StatefulWidget {
@@ -53,11 +51,6 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
   bool _searchAttempted = false;
 
   app_location.Location? _selectedPlace;
-  int _method = CalculationDefaults.method;
-  AsrSchool _school = AsrSchool.fromValue(
-    CalculationDefaults.schoolForMethod(CalculationDefaults.method),
-  );
-  LatitudeAdjustment _latitudeAdjustment = LatitudeAdjustment.auto;
 
   // Sonuçları kullanıcının yakınına önceleyen opsiyonel bias.
   double? _biasLatitude;
@@ -276,11 +269,10 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
     }
 
     final customName = _customNameController.text.trim();
+    // Yeni konum global hesaplama ayarını miras alır (override yok); gerekirse
+    // sonradan düzenleme ekranından konuma özel ayarlanabilir.
     final location = place.copyWith(
       type: app_location.LocationType.manual,
-      method: _method,
-      school: _school.value,
-      latitudeAdjustmentMethod: _latitudeAdjustment.value,
       customName: customName.isEmpty ? null : customName,
     );
 
@@ -296,11 +288,6 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
       _searchAttempted = false;
       _searchController.clear();
       _customNameController.clear();
-      _method = CalculationDefaults.method;
-      _school = AsrSchool.fromValue(
-        CalculationDefaults.schoolForMethod(CalculationDefaults.method),
-      );
-      _latitudeAdjustment = LatitudeAdjustment.auto;
     });
   }
 
@@ -565,21 +552,27 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
         ),
         const SizedBox(height: 8),
         _buildCustomNameField(),
-        const SizedBox(height: 20),
-        CalculationParamsSelector(
-          method: _method,
-          school: _school,
-          latitudeAdjustment: _latitudeAdjustment,
-          onMethodChanged: (value) => setState(() {
-            _method = value;
-            // İkindi mezhebini yeni yöntemin bölgesel varsayılanına ayarla.
-            _school = AsrSchool.fromValue(
-              CalculationDefaults.schoolForMethod(value),
-            );
-          }),
-          onSchoolChanged: (value) => setState(() => _school = value),
-          onLatitudeAdjustmentChanged: (value) =>
-              setState(() => _latitudeAdjustment = value),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Icon(
+              Icons.info_outline_rounded,
+              size: 15,
+              color: Colors.white.withValues(alpha: 0.4),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Hesaplama yöntemi genel ayardan alınır. Bu konuma özel '
+                'değiştirmek için kaydettikten sonra düzenleyin.',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.4),
+                  fontSize: 12,
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );

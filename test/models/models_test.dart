@@ -3,6 +3,7 @@ import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/core/models/calculation_params.dart';
+import 'package:ezanvakti/core/models/calculation_settings.dart';
 
 void main() {
   group('Location equality', () {
@@ -95,18 +96,29 @@ void main() {
   });
 
   group('Location calculation params', () {
-    test('Defaults to Diyanet method and standard (Shafi) Asr school', () {
+    test('Defaults to inherit (null overrides)', () {
       const location = Location(
         id: '1',
         province: 'İstanbul',
         district: 'Fatih',
       );
 
-      expect(location.method, equals(CalculationDefaults.method));
-      expect(location.school, equals(CalculationDefaults.school));
-      // Diyanet İkindi'yi asr-ı evvel (standart/Şafi = 0) ile hesaplar.
-      expect(CalculationDefaults.school, equals(0));
+      // null = override yok, global ayar kullanılır.
+      expect(location.method, isNull);
+      expect(location.school, isNull);
       expect(location.latitudeAdjustmentMethod, isNull);
+      expect(location.hasCalculationOverride, isFalse);
+    });
+
+    test('hasCalculationOverride is true when any override is set', () {
+      const location = Location(
+        id: '1',
+        province: 'İstanbul',
+        district: 'Fatih',
+        method: 3,
+      );
+
+      expect(location.hasCalculationOverride, isTrue);
     });
 
     test('schoolForMethod maps regional Asr defaults', () {
@@ -116,8 +128,8 @@ void main() {
       expect(CalculationDefaults.schoolForMethod(5), equals(1));
     });
 
-    test('fromJson without calc fields falls back to safe defaults', () {
-      // Eski kayıtlarda method/school yoktu; migration sonrası okuma bozulmamalı.
+    test('fromJson without calc fields yields inherit (null)', () {
+      // Override belirtilmemiş; global ayar kullanılır.
       final location = Location.fromJson({
         'id': '1',
         'province': 'İstanbul',
@@ -125,9 +137,44 @@ void main() {
         'type': 'manual',
       });
 
-      expect(location.method, equals(CalculationDefaults.method));
-      expect(location.school, equals(CalculationDefaults.school));
+      expect(location.method, isNull);
+      expect(location.school, isNull);
       expect(location.latitudeAdjustmentMethod, isNull);
+    });
+
+    test('withResolvedParams fills null overrides from global settings', () {
+      const inherit = Location(
+        id: '1',
+        province: 'İstanbul',
+        district: 'Fatih',
+      );
+      const global = CalculationSettings(
+        method: 2,
+        school: 1,
+        latitudeAdjustmentMethod: 3,
+      );
+
+      final resolved = inherit.withResolvedParams(global);
+
+      expect(resolved.method, equals(2));
+      expect(resolved.school, equals(1));
+      expect(resolved.latitudeAdjustmentMethod, equals(3));
+    });
+
+    test('withResolvedParams keeps the location override over global', () {
+      const override = Location(
+        id: '1',
+        province: 'İstanbul',
+        district: 'Fatih',
+        method: 13,
+        school: 0,
+      );
+      const global = CalculationSettings(method: 2, school: 1);
+
+      final resolved = override.withResolvedParams(global);
+
+      expect(resolved.method, equals(13));
+      expect(resolved.school, equals(0));
     });
 
     test('toJson/fromJson round-trips calculation params', () {
@@ -159,8 +206,37 @@ void main() {
 
       expect(updated.method, equals(2));
       expect(updated.school, equals(0));
-      expect(original.method, equals(CalculationDefaults.method));
+      expect(original.method, isNull);
       expect(updated, isNot(equals(original)));
+    });
+  });
+
+  group('CalculationSettings', () {
+    test('defaults to Diyanet method and standard (Shafi) Asr school', () {
+      expect(CalculationSettings.defaults.method, equals(13));
+      expect(CalculationSettings.defaults.school, equals(0));
+      expect(CalculationSettings.defaults.latitudeAdjustmentMethod, isNull);
+    });
+
+    test('toJson/fromJson round-trips', () {
+      const settings = CalculationSettings(
+        method: 2,
+        school: 1,
+        latitudeAdjustmentMethod: 3,
+      );
+
+      final restored = CalculationSettings.fromJson(settings.toJson());
+
+      expect(restored, equals(settings));
+    });
+
+    test('equality reflects all fields', () {
+      const a = CalculationSettings(method: 13, school: 0);
+      const b = CalculationSettings(method: 13, school: 0);
+      const c = CalculationSettings(method: 13, school: 1);
+
+      expect(a, equals(b));
+      expect(a, isNot(equals(c)));
     });
   });
 
