@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../../core/interfaces/prayer_time_provider.dart';
@@ -5,12 +6,20 @@ import '../../../core/models/prayer_time.dart';
 import '../../../core/models/location.dart';
 import '../../../core/models/calculation_params.dart';
 import '../../../core/exceptions/parse_exception.dart';
+import '../../../core/exceptions/api_exception.dart';
 import '../../../core/utils/app_logger.dart';
 
 class AwqatSalahProvider implements PrayerTimeProvider {
   final http.Client httpClient;
   static const String baseUrl = 'https://api.aladhan.com/v1';
   static const Duration _requestTimeout = Duration(seconds: 15);
+
+  // Geçici hatalar (429 / 5xx / timeout) icin yeniden deneme. Toplam istek
+  // sayisini sinirli tutup rate-limit'i koruruz; ardindan ust katman onbellege
+  // duser.
+  static const int _maxAttempts = 3;
+  static const Duration _baseBackoff = Duration(seconds: 1);
+  static const Duration _maxBackoff = Duration(seconds: 8);
 
   AwqatSalahProvider({http.Client? httpClient})
     : httpClient = httpClient ?? http.Client();
@@ -33,6 +42,75 @@ class AwqatSalahProvider implements PrayerTimeProvider {
     return buffer.toString();
   }
 
+  /// HTTP GET; geçici hatalarda (429 / 5xx / timeout) sınırlı sayıda yeniden
+  /// dener. 200 dışı kalıcı durumlar [ApiException] olarak fırlatılır.
+  ///
+  /// Rate limit (429) durumunda istek sayısını artıran "günlük uca düşme"
+  /// yapılmaz; bunun yerine kısa bir backoff ile beklenir, çözülmezse hata
+  /// yukarı bırakılıp önbelleğe düşülür.
+  Future<http.Response> _get(Uri uri) async {
+    final logger = AppLogger();
+    var attempt = 0;
+
+    while (true) {
+      attempt++;
+      try {
+        final response = await httpClient.get(uri).timeout(_requestTimeout);
+
+        if (response.statusCode == 200) {
+          return response;
+        }
+
+        final retriable =
+            response.statusCode == 429 || response.statusCode >= 500;
+        if (retriable && attempt < _maxAttempts) {
+          final wait = _retryDelay(response, attempt);
+          logger.warning(
+            'Aladhan HTTP ${response.statusCode}; retry $attempt/${_maxAttempts - 1} in ${wait.inMilliseconds}ms',
+          );
+          await Future.delayed(wait);
+          continue;
+        }
+
+        throw ApiException(response.statusCode, context: 'GET ${uri.path}');
+      } on TimeoutException {
+        if (attempt < _maxAttempts) {
+          final wait = _backoff(attempt);
+          logger.warning(
+            'Aladhan timeout; retry $attempt/${_maxAttempts - 1} in ${wait.inMilliseconds}ms',
+          );
+          await Future.delayed(wait);
+          continue;
+        }
+        rethrow;
+      }
+    }
+  }
+
+  /// Yeniden deneme gecikmesi: varsa `Retry-After` başlığına (saniye) uyar,
+  /// yoksa üstel backoff uygular. Her iki durumda da [_maxBackoff] ile sınırlı.
+  Duration _retryDelay(http.Response response, int attempt) {
+    final header = response.headers['retry-after'];
+    if (header != null) {
+      final seconds = int.tryParse(header.trim());
+      if (seconds != null && seconds > 0) {
+        final capped = seconds > _maxBackoff.inSeconds
+            ? _maxBackoff.inSeconds
+            : seconds;
+        return Duration(seconds: capped);
+      }
+    }
+    return _backoff(attempt);
+  }
+
+  Duration _backoff(int attempt) {
+    final ms = _baseBackoff.inMilliseconds * (1 << (attempt - 1));
+    final capped = ms > _maxBackoff.inMilliseconds
+        ? _maxBackoff.inMilliseconds
+        : ms;
+    return Duration(milliseconds: capped);
+  }
+
   @override
   Future<List<PrayerTime>> fetchPrayerTimes({
     required Location location,
@@ -50,9 +128,14 @@ class AwqatSalahProvider implements PrayerTimeProvider {
           startDate: startDate,
           endDate: endDate,
         );
-      } catch (e) {
+      } on ParseException catch (e) {
+        // Yalnızca takvim yanıtı bozuk geldiğinde günlük uca düşülür; tek tek
+        // istek atmak bazen temiz parse edilebilir. Ağ/timeout ve rate-limit
+        // (429) hataları ise yukarı bırakılır: günlük uca düşmek istek sayısını
+        // 7 katına çıkarıp limiti daha da kötüleştirir. Bu durumda repository
+        // önbelleğe düşer.
         logger.warning(
-          'Calendar endpoint failed, falling back to daily (max 7 days)',
+          'Calendar response malformed, falling back to daily (max 7 days)',
           e,
         );
         final limitedEndDate = startDate.add(const Duration(days: 6));
@@ -146,11 +229,7 @@ class AwqatSalahProvider implements PrayerTimeProvider {
           '$baseUrl/calendar?latitude=${location.latitude}&longitude=${location.longitude}&${_calculationParams(location)}&month=${currentMonth.month}&year=${currentMonth.year}',
         );
 
-        final response = await httpClient.get(uri).timeout(_requestTimeout);
-
-        if (response.statusCode != 200) {
-          throw Exception('API error: ${response.statusCode}');
-        }
+        final response = await _get(uri);
 
         final data = json.decode(response.body) as Map<String, dynamic>;
         final daysData = data['data'] as List<dynamic>;
@@ -242,11 +321,7 @@ class AwqatSalahProvider implements PrayerTimeProvider {
         '$baseUrl/timings/$timestamp?latitude=${location.latitude}&longitude=${location.longitude}&${_calculationParams(location)}',
       );
 
-      final response = await httpClient.get(uri).timeout(_requestTimeout);
-
-      if (response.statusCode != 200) {
-        throw Exception('API error: ${response.statusCode}');
-      }
+      final response = await _get(uri);
 
       final data = json.decode(response.body) as Map<String, dynamic>;
       final dataField = data['data'] as Map<String, dynamic>?;
