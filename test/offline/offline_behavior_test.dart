@@ -184,6 +184,18 @@ class MockLocalStorage implements LocalStorage {
         .toList();
   }
 
+  bool _notificationDefaultsInitialized = false;
+
+  @override
+  Future<bool> isNotificationDefaultsInitialized() async {
+    return _notificationDefaultsInitialized;
+  }
+
+  @override
+  Future<void> markNotificationDefaultsInitialized() async {
+    _notificationDefaultsInitialized = true;
+  }
+
   @override
   Future<void> saveLastUpdateTime(DateTime time) async {
     _lastUpdateTime = time;

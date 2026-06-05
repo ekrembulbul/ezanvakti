@@ -58,6 +58,14 @@ abstract class LocalStorage {
     required int minutesBefore,
   });
 
+  /// Varsayılan bildirimlerin daha önce bir kez oluşturulup oluşturulmadığını
+  /// döner. Kullanıcı sonradan tüm bildirimleri silse bile varsayılanların
+  /// yeniden üretilmemesi için kullanılır.
+  Future<bool> isNotificationDefaultsInitialized();
+
+  /// Varsayılan bildirimlerin oluşturulduğunu kalıcı olarak işaretler.
+  Future<void> markNotificationDefaultsInitialized();
+
   Future<void> saveLastUpdateTime(DateTime time);
 
   Future<DateTime?> getLastUpdateTime();

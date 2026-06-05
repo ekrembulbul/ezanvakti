@@ -409,6 +409,31 @@ class SqliteStorage implements LocalStorage {
     );
   }
 
+  static const String _notificationDefaultsKey =
+      'notification_defaults_initialized';
+
+  @override
+  Future<bool> isNotificationDefaultsInitialized() async {
+    final db = await database;
+    final results = await db.query(
+      'settings',
+      where: 'key = ?',
+      whereArgs: [_notificationDefaultsKey],
+      limit: 1,
+    );
+    if (results.isEmpty) return false;
+    return results.first['value'] == 'true';
+  }
+
+  @override
+  Future<void> markNotificationDefaultsInitialized() async {
+    final db = await database;
+    await db.insert('settings', {
+      'key': _notificationDefaultsKey,
+      'value': 'true',
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
   Future<void> updateNotificationSetting(NotificationSetting setting) async {
     final db = await database;
     await db.update(

@@ -48,15 +48,11 @@ class DataLoaderService {
     final lastUpdate = await _prayerTimesRepository.getLastUpdateTime();
     final hasPermission = await _notificationService.isPermissionGranted();
 
-    var settings = await _settingsManager.getSettings();
-    if (settings.isEmpty) {
-      _logger.warning('No notification settings found; creating defaults');
-      await _settingsManager.createDefaultSettings();
-      settings = await _settingsManager.getSettings();
-      _logger.debug(
-        'Default notification settings created: ${settings.length}',
-      );
-    }
+    // Varsayılan bildirimler yalnızca ilk açılışta (bir kez) oluşturulur.
+    // "Boşsa oluştur" mantığı, kullanıcı hepsini sildikten sonra konum değişince
+    // bildirimleri geri getiriyordu; bunun yerine kalıcı bir bayrak kullanılır.
+    await _settingsManager.ensureDefaultsSeeded();
+    final settings = await _settingsManager.getSettings();
 
     return {
       'todayPrayer': todayPrayer,

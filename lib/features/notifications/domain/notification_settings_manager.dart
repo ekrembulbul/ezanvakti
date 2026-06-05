@@ -142,6 +142,28 @@ class NotificationSettingsManager {
     await saveSettings(defaultNotificationSettings);
   }
 
+  /// Varsayılan bildirimleri uygulama ömründe yalnızca bir kez oluşturur.
+  ///
+  /// Daha önce işaretlenmişse hiçbir şey yapmaz; böylece kullanıcı tüm
+  /// bildirimleri silse bile (örn. konum değişiminde) varsayılanlar otomatik
+  /// geri gelmez. Bayrak öncesi kurulumlarda mevcut ayarlar korunur, yalnızca
+  /// "tohumlandı" olarak işaretlenir.
+  Future<void> ensureDefaultsSeeded() async {
+    if (await storage.isNotificationDefaultsInitialized()) {
+      return;
+    }
+
+    final existing = await getSettings();
+    if (existing.isEmpty) {
+      await createDefaultSettings();
+      _logger.debug('First launch: created default notification settings');
+    } else {
+      _logger.debug('Existing notification settings found; marking seeded');
+    }
+
+    await storage.markNotificationDefaultsInitialized();
+  }
+
   Future<void> removeSetting({
     required PrayerType prayerType,
     required int minutesBefore,

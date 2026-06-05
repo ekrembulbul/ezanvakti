@@ -152,6 +152,18 @@ class MockLocalStorage implements LocalStorage {
         .toList();
   }
 
+  bool _notificationDefaultsInitialized = false;
+
+  @override
+  Future<bool> isNotificationDefaultsInitialized() async {
+    return _notificationDefaultsInitialized;
+  }
+
+  @override
+  Future<void> markNotificationDefaultsInitialized() async {
+    _notificationDefaultsInitialized = true;
+  }
+
   @override
   Future<void> saveLastUpdateTime(DateTime time) async {
     _lastUpdateTime = time;
@@ -239,6 +251,55 @@ void main() {
       storage = MockLocalStorage();
       manager = NotificationSettingsManager(storage: storage);
     });
+
+    test('ensureDefaultsSeeded creates defaults on first launch', () async {
+      expect(await manager.getSettings(), isEmpty);
+
+      await manager.ensureDefaultsSeeded();
+
+      expect(
+        await manager.getSettings(),
+        hasLength(defaultNotificationSettings.length),
+      );
+    });
+
+    test(
+      'ensureDefaultsSeeded does not recreate defaults after user clears them',
+      () async {
+        // İlk açılış: varsayılanlar oluşur ve bayrak işaretlenir.
+        await manager.ensureDefaultsSeeded();
+        expect(await manager.getSettings(), isNotEmpty);
+
+        // Kullanıcı tüm bildirimleri siler.
+        await manager.saveSettings([]);
+        expect(await manager.getSettings(), isEmpty);
+
+        // Konum değişimi vb. yeniden tetiklese de geri GELMEMELİ.
+        await manager.ensureDefaultsSeeded();
+        expect(await manager.getSettings(), isEmpty);
+      },
+    );
+
+    test(
+      'ensureDefaultsSeeded preserves pre-flag installs without reseeding',
+      () async {
+        // Bayrak öncesi kurulum: ayar var ama "tohumlandı" işareti yok.
+        await manager.saveSettings([
+          const NotificationSetting(
+            prayerType: PrayerType.fajr,
+            isActive: false,
+            minutesBefore: 15,
+          ),
+        ]);
+
+        await manager.ensureDefaultsSeeded();
+
+        final settings = await manager.getSettings();
+        expect(settings, hasLength(1));
+        expect(settings.first.minutesBefore, equals(15));
+        expect(settings.first.isActive, isFalse);
+      },
+    );
 
     test('Can save and retrieve settings', () async {
       final settings = [
