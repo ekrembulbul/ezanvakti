@@ -4,6 +4,17 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.1.2] - 2026-06-05
+
+Kararlılık düzeltmeleri.
+
+### Düzeltildi
+- Aladhan API hız sınırı (429) yönetimi: geçici hatalarda (429/5xx/zaman aşımı) sınırlı yeniden deneme ve bekleme (backoff) uygulanır, `Retry-After` başlığına uyulur. Hız sınırı aşıldığında aylık uçtan günlük uca düşüp istek sayısını katlama davranışı kaldırıldı; kalıcı sınırda önbelleğe düşülür.
+- Kullanıcı tüm bildirimleri silse bile konum değiştirince varsayılanların geri gelmesi giderildi; varsayılan bildirimler artık yalnızca ilk açılışta bir kez oluşturulur.
+
+### Değiştirildi
+- Flutter sürümü yükseltildi; iOS 26 / Xcode 26.5 ile debug modunda yaşanan başlatma çökmesi (EXC_BAD_ACCESS) giderildi ve iOS UIScene yaşam döngüsüne geçildi.
+
 ## [0.1.1] - 2026-06-05
 
 Bildirim güvenilirliği düzeltmeleri.
@@ -43,5 +54,6 @@ Bildirim güvenilirliği düzeltmeleri.
 - Her ekran boyutuna uyan, kaydırmasız ana ekran; karanlık tema.
 - Takvim, bildirim ve ayarları toplayan modern menü.
 
+[0.1.2]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.2
 [0.1.1]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.1
 [0.1.0]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.0
