@@ -34,8 +34,8 @@ Son sürümlerde tamamlananlar (0.1.1–0.1.3):
 
 Açık kalanlar:
 
-- Bildirim duplicate kontrolünün **kalıcı** (DB tabanlı) hale getirilmesi.
-- **Lokasyon değişim mantığının konsolidasyonu:** Canlı akış bildirimleri `HomePage` içinde yeniden planlıyor; ayrıca test edilmiş ama UI'a bağlanmamış bir `LocationService.changeLocation` (domain) var (artık parametre değişiminde önbellek temizliği de içeriyor). Tek kanonik yola indirgenmeli (home_page bu servise delege etmeli).
+- ~~Bildirim duplicate kontrolünün **kalıcı** (DB tabanlı) hale getirilmesi.~~ **Gerekli değil:** `scheduleNotifications` her çalışmada başta `cancelAllNotifications()` çağırıyor ve ID'ler `(gün, vakit, ofset)`'ten deterministik üretiliyor; aynı ID platformda üzerine yazılıyor. Duplicate birikme yolu yok, DB'ye taşımak gereksiz karmaşıklık olur.
+- ✅ **Lokasyon değişim mantığının konsolidasyonu (manuel yol):** `HomePage._switchLocation` artık domain `LocationService.changeLocation`'a delege ediyor. `changeLocation` veri çekme sorumluluğundan arındırıldı (yalnızca aktif konum + parametre değişiminde önbellek geçersizleştirme + bildirim iptali); vakit yükleme tek pencerede (`DataLoaderService`) kalıyor, böylece çift çekim ve offline sıralama sorunu yok. **Kalan küçük takip:** GPS canlı akış yolu (`LocationMonitorController`) hâlâ doğrudan `locationRepository.setActiveLocation` kullanıyor; o da bu servise delege edilebilir.
 - **Diyanet birebir vakit:** Aladhan method=13 yaklaşık hesaptır; resmi tablo için Diyanet API'si + backend proxy gerekir (bkz. PRODUCT_SPEC).
 
 ## Planlanan özellikler
