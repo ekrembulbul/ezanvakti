@@ -4,6 +4,11 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.1.10] - 2026-06-07
+
+### Düzeltildi
+- Otomatik TestFlight dağıtım hattı (GitHub Actions) çalışır hale getirildi: fastlane `multi_json` bağımlılığı eklendi, sürüm script'i yalnızca `main` dalında çalışacak şekilde sınırlandı ve dağıtım imzalaması Apple Distribution sertifikasıyla yapılandırıldı. Workflow elle de tetiklenebilir (`workflow_dispatch`).
+
 ## [0.1.9] - 2026-06-07
 
 ### Düzeltildi
@@ -114,6 +119,7 @@ Bildirim güvenilirliği düzeltmeleri.
 - Her ekran boyutuna uyan, kaydırmasız ana ekran; karanlık tema.
 - Takvim, bildirim ve ayarları toplayan modern menü.
 
+[0.1.10]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.10
 [0.1.9]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.9
 [0.1.8]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.8
 [0.1.7]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.7
