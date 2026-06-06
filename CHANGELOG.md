@@ -4,6 +4,13 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.1.7] - 2026-06-06
+
+iOS yükleme uyarısı düzeltmesi.
+
+### Düzeltildi
+- `Info.plist`'e `NSLocationAlwaysAndWhenInUseUsageDescription` açıklama metni eklendi. Konum kütüphaneleri "Always" konum API'sine referans verdiğinden App Store Connect yüklemesinde "Missing purpose string" (90683) uyarısı çıkıyordu; uygulama bu izni kullanmasa da Apple açıklama metnini bekliyor.
+
 ## [0.1.6] - 2026-06-06
 
 iOS derleme düzeltmesi.
@@ -89,6 +96,7 @@ Bildirim güvenilirliği düzeltmeleri.
 - Her ekran boyutuna uyan, kaydırmasız ana ekran; karanlık tema.
 - Takvim, bildirim ve ayarları toplayan modern menü.
 
+[0.1.7]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.7
 [0.1.6]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.6
 [0.1.5]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.5
 [0.1.4]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.4
