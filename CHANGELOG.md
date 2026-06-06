@@ -4,6 +4,11 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.1.12] - 2026-06-07
+
+### Değiştirildi
+- Ana ekran başlığında ikon ile uygulama adı arasına boşluk eklendi.
+
 ## [0.1.11] - 2026-06-07
 
 ### Değiştirildi
@@ -124,6 +129,7 @@ Bildirim güvenilirliği düzeltmeleri.
 - Her ekran boyutuna uyan, kaydırmasız ana ekran; karanlık tema.
 - Takvim, bildirim ve ayarları toplayan modern menü.
 
+[0.1.12]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.12
 [0.1.11]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.11
 [0.1.10]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.10
 [0.1.9]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.9
