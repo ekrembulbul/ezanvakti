@@ -4,6 +4,14 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.1.9] - 2026-06-07
+
+### Düzeltildi
+- Ana ekran başlığındaki uygulama ikonu yuvarlatıldı; full-bleed ikon köşeli/kare görünüyordu.
+
+### Eklendi
+- GitHub Actions ile tag tabanlı otomatik TestFlight dağıtımı (`scripts/release_tag.sh` ile tag at → bulutta derle ve yükle; fastlane).
+
 ## [0.1.8] - 2026-06-06
 
 Görsel iyileştirmeler.
@@ -106,6 +114,7 @@ Bildirim güvenilirliği düzeltmeleri.
 - Her ekran boyutuna uyan, kaydırmasız ana ekran; karanlık tema.
 - Takvim, bildirim ve ayarları toplayan modern menü.
 
+[0.1.9]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.9
 [0.1.8]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.8
 [0.1.7]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.7
 [0.1.6]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.6
