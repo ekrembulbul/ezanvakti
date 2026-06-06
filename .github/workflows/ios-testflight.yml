@@ -16,6 +16,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Xcode 26 sec (Apple iOS 26 SDK zorunlulugu)
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
       - name: Flutter kurulumu
         uses: subosito/flutter-action@v2
         with:
