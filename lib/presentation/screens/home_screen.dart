@@ -200,7 +200,14 @@ class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Image.asset('assets/icon/app_icon.png', width: 58, height: 58),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(13),
+            child: Image.asset(
+              'assets/icon/app_icon.png',
+              width: 58,
+              height: 58,
+            ),
+          ),
           const Flexible(
             child: Text(
               AppConstants.appTitle,
