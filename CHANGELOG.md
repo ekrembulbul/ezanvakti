@@ -4,6 +4,13 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.1.3] - 2026-06-06
+
+Performans iyileştirmesi.
+
+### Değiştirildi
+- Arka planda tutulan vakit penceresi daraltıldı: bugünden önce 7 yerine 2 gün, sonra 21 yerine 10 gün (toplam 28 → 13 gün). Gereksiz API isteği azaltıldı; 7 günlük bildirim planlama penceresi tamponuyla korundu.
+
 ## [0.1.2] - 2026-06-05
 
 Kararlılık düzeltmeleri.
@@ -54,6 +61,7 @@ Bildirim güvenilirliği düzeltmeleri.
 - Her ekran boyutuna uyan, kaydırmasız ana ekran; karanlık tema.
 - Takvim, bildirim ve ayarları toplayan modern menü.
 
+[0.1.3]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.3
 [0.1.2]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.2
 [0.1.1]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.1
 [0.1.0]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.0
