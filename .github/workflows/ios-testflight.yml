@@ -5,6 +5,8 @@ on:
   push:
     tags:
       - 'v*'
+  # Tag yakmadan elle test/yeniden deneme icin (Actions > Run workflow)
+  workflow_dispatch:
 
 jobs:
   testflight:

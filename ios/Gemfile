@@ -1,3 +1,6 @@
 source "https://rubygems.org"
 
 gem "fastlane"
+# representable 3.2.0 multi_json'i runtime'da gerektiriyor ama bagimlilik olarak
+# bildirmiyor; "multi_json is not part of the bundle" hatasini onlemek icin acikca eklenir.
+gem "multi_json"
