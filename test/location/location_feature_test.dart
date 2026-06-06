@@ -10,6 +10,17 @@ import 'package:ezanvakti/features/location/domain/location_repository.dart';
 import 'package:ezanvakti/features/location/domain/location_service.dart';
 import 'package:ezanvakti/features/prayer_times/domain/prayer_times_repository.dart';
 
+/// Testlerde onbellek beslemek icin tek gunluk ornek vakit.
+PrayerTime _samplePrayerTime() => PrayerTime(
+  fajr: DateTime(2024, 1, 1, 5, 30),
+  sunrise: DateTime(2024, 1, 1, 7, 0),
+  dhuhr: DateTime(2024, 1, 1, 13, 15),
+  asr: DateTime(2024, 1, 1, 16, 30),
+  maghrib: DateTime(2024, 1, 1, 19, 0),
+  isha: DateTime(2024, 1, 1, 20, 30),
+  date: DateTime(2024, 1, 1),
+);
+
 class MockLocalStorage implements LocalStorage {
   final Map<String, List<PrayerTime>> _prayerTimesCache = {};
   Location? _activeLocation;
@@ -498,7 +509,7 @@ void main() {
       expect(retrieved!.id, equals('9635'));
     });
 
-    test('Changing location updates cache with new prayer times', () async {
+    test('Changing location sets it active without fetching', () async {
       const location1 = Location(
         id: '9635',
         province: 'İstanbul',
@@ -515,15 +526,19 @@ void main() {
         longitude: 32.8667,
       );
 
-      await locationService.changeLocation(location1);
+      provider.fetchCallCount = 0;
 
-      expect(storage.cacheForTesting.containsKey(location1.id), isTrue);
-      expect(storage.cacheForTesting[location1.id], isNotEmpty);
+      await locationService.changeLocation(location1);
+      var active = await locationService.getActiveLocation();
+      expect(active!.id, equals(location1.id));
 
       await locationService.changeLocation(location2);
+      active = await locationService.getActiveLocation();
+      expect(active!.id, equals(location2.id));
 
-      expect(storage.cacheForTesting.containsKey(location2.id), isTrue);
-      expect(storage.cacheForTesting[location2.id], isNotEmpty);
+      // changeLocation veri cekmez; vakit yuklemesi presentation katmaninda
+      // (DataLoaderService) tek pencerede yapilir.
+      expect(provider.fetchCallCount, equals(0));
     });
 
     test('Changing location cancels all notifications', () async {
@@ -582,7 +597,7 @@ void main() {
     });
 
     test(
-      'Same location with changed calc params refetches and reschedules',
+      'Same location with changed calc params clears cache and reschedules',
       () async {
         const base = Location(
           id: '9635',
@@ -593,6 +608,21 @@ void main() {
         );
 
         await locationService.changeLocation(base);
+
+        // Onbellekte bu konuma ait vakit bulunsun; parametre degisince temizlenmeli.
+        await storage.savePrayerTimes([
+          PrayerTime(
+            fajr: DateTime(2024, 1, 1, 5, 30),
+            sunrise: DateTime(2024, 1, 1, 7, 0),
+            dhuhr: DateTime(2024, 1, 1, 13, 15),
+            asr: DateTime(2024, 1, 1, 16, 30),
+            maghrib: DateTime(2024, 1, 1, 19, 0),
+            isha: DateTime(2024, 1, 1, 20, 30),
+            date: DateTime(2024, 1, 1),
+          ),
+        ], base.id);
+        expect(storage.cacheForTesting.containsKey(base.id), isTrue);
+
         provider.fetchCallCount = 0;
         notificationService.cancelAllCallCount = 0;
 
@@ -600,8 +630,11 @@ void main() {
         final changed = base.copyWith(method: 3, school: 0);
         await locationService.changeLocation(changed);
 
-        expect(provider.fetchCallCount, greaterThan(0));
+        // Onbellek temizlendi, bildirimler iptal edildi, parametreler guncellendi.
+        expect(storage.cacheForTesting.containsKey(base.id), isFalse);
         expect(notificationService.cancelAllCallCount, equals(1));
+        // changeLocation veri cekmez; yeniden cekim presentation katmaninda olur.
+        expect(provider.fetchCallCount, equals(0));
         final active = await locationService.getActiveLocation();
         expect(active!.method, equals(3));
         expect(active.school, equals(0));
@@ -630,21 +663,6 @@ void main() {
         );
       },
     );
-
-    test('Location change fetches 30 days of prayer times', () async {
-      const location = Location(
-        id: '9635',
-        province: 'İstanbul',
-        district: 'Kadıköy',
-        latitude: 40.9828,
-        longitude: 29.0227,
-      );
-
-      await locationService.changeLocation(location);
-
-      final cached = storage.cacheForTesting[location.id]!;
-      expect(cached.length, greaterThanOrEqualTo(30));
-    });
   });
 
   group('Location Feature - Cache Update on Location Change', () {
@@ -684,6 +702,10 @@ void main() {
         latitude: 39.9167,
         longitude: 32.8667,
       );
+
+      // Onbellekleri elle besle; konum degisimi diger konumlarin onbellegini silmez.
+      await storage.savePrayerTimes([_samplePrayerTime()], location1.id);
+      await storage.savePrayerTimes([_samplePrayerTime()], location2.id);
 
       await locationService.changeLocation(location1);
       await locationService.changeLocation(location2);
@@ -717,21 +739,6 @@ void main() {
       active = await locationService.getActiveLocation();
       expect(active!.id, equals(location2.id));
     });
-
-    test('Location change fetches 30 days of prayer times', () async {
-      const location = Location(
-        id: '9635',
-        province: 'İstanbul',
-        district: 'Kadıköy',
-        latitude: 40.9828,
-        longitude: 29.0227,
-      );
-
-      await locationService.changeLocation(location);
-
-      final cached = storage.cacheForTesting[location.id]!;
-      expect(cached.length, greaterThanOrEqualTo(30));
-    });
   });
 
   group('Location Feature - Cache Update on Location Change', () {
@@ -772,6 +779,10 @@ void main() {
         longitude: 32.8667,
       );
 
+      // Onbellekleri elle besle; konum degisimi diger konumlarin onbellegini silmez.
+      await storage.savePrayerTimes([_samplePrayerTime()], location1.id);
+      await storage.savePrayerTimes([_samplePrayerTime()], location2.id);
+
       await locationService.changeLocation(location1);
       await locationService.changeLocation(location2);
 
@@ -803,6 +814,11 @@ void main() {
         latitude: 38.4667,
         longitude: 27.2167,
       );
+
+      // Onbellekleri elle besle; konum degisimi diger konumlarin onbellegini silmez.
+      await storage.savePrayerTimes([_samplePrayerTime()], location1.id);
+      await storage.savePrayerTimes([_samplePrayerTime()], location2.id);
+      await storage.savePrayerTimes([_samplePrayerTime()], location3.id);
 
       await locationService.changeLocation(location1);
       await locationService.changeLocation(location2);

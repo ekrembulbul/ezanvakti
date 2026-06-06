@@ -37,33 +37,17 @@ class LocationService {
 
     await locationRepository.setActiveLocation(newLocation);
 
-    await _updateCacheForNewLocation(newLocation);
-
-    if (notificationService != null) {
-      await _rescheduleNotifications(oldLocation, newLocation);
-    }
+    // Vakit verisini yeniden yüklemek çağırana (presentation/DataLoaderService)
+    // aittir; burada yalnızca durum geçişi, önbellek geçersizleştirme ve bekleyen
+    // bildirimlerin iptali yapılır. Böylece tek bir veri yükleme penceresi korunur
+    // ve konum değişiminde çift çekim olmaz. Ağ erişimi gerektirmediğinden bu işlem
+    // offline'da da güvenle tamamlanır; eski konumun bildirimleri ortada kalmaz.
+    await notificationService?.cancelAllNotifications();
   }
 
   bool _calcParamsChanged(Location a, Location b) {
     return a.method != b.method ||
         a.school != b.school ||
         a.latitudeAdjustmentMethod != b.latitudeAdjustmentMethod;
-  }
-
-  Future<void> _updateCacheForNewLocation(Location location) async {
-    try {
-      await prayerTimesRepository.refreshPrayerTimes(location);
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  Future<void> _rescheduleNotifications(
-    Location? oldLocation,
-    Location newLocation,
-  ) async {
-    if (notificationService == null) return;
-
-    await notificationService!.cancelAllNotifications();
   }
 }

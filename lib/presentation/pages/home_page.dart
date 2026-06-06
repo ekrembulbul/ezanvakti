@@ -10,6 +10,7 @@ import '../../features/prayer_times/domain/prayer_times_repository.dart';
 import '../../features/notifications/domain/notification_scheduler.dart';
 import '../../features/notifications/domain/notification_settings_manager.dart';
 import '../../features/location/domain/location_repository.dart';
+import '../../features/location/domain/location_service.dart';
 import '../../features/location/domain/location_monitor_service.dart';
 import '../../core/interfaces/notification_service.dart';
 import '../screens/home_screen.dart';
@@ -374,23 +375,22 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   Future<void> _switchLocation(Location newLocation) async {
     final logger = AppLogger();
     final appState = context.read<AppState>();
-    final locationRepository = ServiceLocator().get<LocationRepository>();
+    final locationService = ServiceLocator().get<LocationService>();
 
     logger.debug('Switching location to: ${newLocation.displayName}');
 
     try {
-      await locationRepository.setActiveLocation(newLocation);
+      // Tek kanonik yol: aktif konumu ayarlama, hesaplama parametresi değişince
+      // önbellek geçersizleştirme ve eski konumun bildirimlerini iptal etme
+      // domain LocationService'e delege edilir. Vakit verisinin yüklenmesi ve
+      // bildirimlerin yeniden planlanması aşağıdaki _loadInitialData'da kalır
+      // (tek veri yükleme penceresi; çift çekim olmaz).
+      await locationService.changeLocation(newLocation);
       appState.setActiveLocation(newLocation);
 
       appState.clearPrayerTimes();
       appState.setTodaysPrayerTime(null);
       appState.setTomorrowsPrayerTime(null);
-
-      // Clear the previous location's notifications up front so they don't
-      // linger if the new location's prayer times can't be loaded (offline).
-      await ServiceLocator()
-          .get<NotificationService>()
-          .cancelAllNotifications();
 
       await _loadInitialData();
 
