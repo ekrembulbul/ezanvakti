@@ -74,6 +74,10 @@ echo "==> Surum: ${CURRENT_VERSION} -> ${NEW_VERSION}"
 sed -i '' "s/^version: .*/version: ${NEW_VERSION}/" pubspec.yaml
 
 # --- 2) IPA derle ---
+# flutter_local_notifications Swift Package Manager'i desteklemiyor; SPM acikken
+# Xcode'un -resolvePackageDependencies adimi basarisiz olabiliyor. Projeyi
+# CocoaPods'a sabitleyerek bunu onleriz (idempotent; global flutter ayari).
+flutter config --no-enable-swift-package-manager >/dev/null
 echo "==> IPA derleniyor (App Store)..."
 flutter build ipa --export-method app-store
 
