@@ -4,6 +4,20 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.1.5] - 2026-06-06
+
+Mağaza çıkışı hazırlığı (iOS TestFlight).
+
+### Değiştirildi
+- Uygulama adı "Ezan Vakti - Hatırlatıcı"dan **"Ezan Vakti & Alarm"a** güncellendi.
+- Android uygulama kimliği gerçek pakete taşındı (`com.example.ezanvakti` → `com.ekrembulbul.ezanvakti`); iOS bundle kimliğiyle tutarlı hâle getirildi.
+
+### Eklendi
+- Gizlilik politikası taslağı (konum ve üçüncü taraf servis kullanımını açıklar).
+- Android release imzalama altyapısı (`key.properties` deseni; anahtar repoya konmaz).
+- iOS export compliance beyanı (yalnızca standart HTTPS; `ITSAppUsesNonExemptEncryption=false`).
+- iOS TestFlight yükleme otomasyon scripti (`scripts/release_ios.sh`): sürüm/build yönetimi, IPA derleme ve yükleme tek komutta.
+
 ## [0.1.4] - 2026-06-06
 
 İç iyileştirme.
@@ -68,6 +82,7 @@ Bildirim güvenilirliği düzeltmeleri.
 - Her ekran boyutuna uyan, kaydırmasız ana ekran; karanlık tema.
 - Takvim, bildirim ve ayarları toplayan modern menü.
 
+[0.1.5]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.5
 [0.1.4]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.4
 [0.1.3]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.3
 [0.1.2]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.2
