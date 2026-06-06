@@ -50,3 +50,8 @@ app.*.map.json
 
 # iOS release secrets (Issuer ID vb.) — repoya konmaz
 ios/.release.env
+
+# fastlane ciktilari
+ios/fastlane/report.xml
+ios/fastlane/Preview.html
+ios/fastlane/test_output/

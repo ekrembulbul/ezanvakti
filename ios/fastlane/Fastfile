@@ -1,0 +1,45 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "IPA derle ve TestFlight'a yukle"
+  lane :beta do
+    # App Store Connect API anahtari (imzalama profili yonetimi + yukleme icin)
+    api_key = app_store_connect_api_key(
+      key_id: ENV["ASC_KEY_ID"],
+      issuer_id: ENV["ASC_ISSUER_ID"],
+      key_content: ENV["ASC_KEY_P8_BASE64"],
+      is_key_content_base64: true,
+    )
+
+    # CI icin gecici keychain olustur
+    setup_ci
+
+    # Dagitim sertifikasini gecici keychain'e aktar
+    import_certificate(
+      certificate_path: ENV["CERT_PATH"],
+      certificate_password: ENV["CERT_PASSWORD"],
+      keychain_name: "fastlane_tmp_keychain",
+      keychain_password: "",
+    )
+
+    # App Store dagitim profilini API anahtariyla otomatik olustur/indir
+    sigh(
+      api_key: api_key,
+      app_identifier: "com.ekrembulbul.ezanvakti",
+      platform: "ios",
+    )
+
+    # IPA derle (sigh'in indirdigi profil + sertifika ile)
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      export_method: "app-store",
+    )
+
+    # TestFlight'a yukle (islenmeyi bekleme)
+    upload_to_testflight(
+      api_key: api_key,
+      skip_waiting_for_build_processing: true,
+    )
+  end
+end
