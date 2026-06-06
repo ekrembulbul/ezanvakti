@@ -7,7 +7,7 @@
 # Yerel makinede IPA DERLEMEZ; sadece surumu gunceller, commit'ler, tag atar ve
 # push eder. Derleme/yukleme bulutta (GitHub) yapilir.
 #
-# Kullanim (genelde main dalinda calistir):
+# Kullanim (yalnizca 'main' dalinda calisir):
 #   ./scripts/release_tag.sh            # build numarasini +1, ayni surum adi
 #   ./scripts/release_tag.sh 0.1.9      # surum adini 0.1.9 yap, build +1
 #   ./scripts/release_tag.sh 0.1.9+10   # surumu tam olarak 0.1.9+10 yap
@@ -16,6 +16,14 @@
 
 set -euo pipefail
 cd "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/.."
+
+# Surum yalnizca 'main' dalindan cikilir
+BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+if [[ "$BRANCH" != "main" ]]; then
+  echo "HATA: release_tag.sh yalnizca 'main' dalinda calisir (su an: $BRANCH)." >&2
+  echo "  -> git checkout main && git merge --ff-only dev   (sonra tekrar dene)" >&2
+  exit 1
+fi
 
 # Calisma agaci temiz olmali (yarim degisiklikle tag atilmasin)
 if [[ -n "$(git status --porcelain)" ]]; then
@@ -46,7 +54,6 @@ if git rev-parse "$TAG" >/dev/null 2>&1; then
   exit 1
 fi
 
-BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 echo "==> Surum: $CUR -> $NEW (tag $TAG, dal $BRANCH)"
 sed -i '' "s/^version: .*/version: ${NEW}/" pubspec.yaml
 git add pubspec.yaml
