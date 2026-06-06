@@ -44,7 +44,9 @@ jobs:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
           ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+          ASC_KEY_PATH: ${{ runner.temp }}/asc_key.p8
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
+          echo "$ASC_KEY_P8_BASE64" | base64 --decode > "$ASC_KEY_PATH"
           bundle install
           bundle exec fastlane beta
