@@ -4,6 +4,13 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.1.6] - 2026-06-06
+
+iOS derleme düzeltmesi.
+
+### Düzeltildi
+- iOS derlemesi CocoaPods'a sabitlendi: `flutter_local_notifications` Swift Package Manager'ı (SPM) desteklemediğinden SPM açıkken Xcode paket çözümlemesi başarısız oluyordu (`Xcode failed to resolve Swift Package Manager dependencies`). Release scripti artık derlemeden önce SPM'i kapatır; tüm eklentiler CocoaPods üzerinden gelir.
+
 ## [0.1.5] - 2026-06-06
 
 Mağaza çıkışı hazırlığı (iOS TestFlight).
@@ -82,6 +89,7 @@ Bildirim güvenilirliği düzeltmeleri.
 - Her ekran boyutuna uyan, kaydırmasız ana ekran; karanlık tema.
 - Takvim, bildirim ve ayarları toplayan modern menü.
 
+[0.1.6]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.6
 [0.1.5]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.5
 [0.1.4]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.4
 [0.1.3]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.3
