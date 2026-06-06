@@ -1,4 +1,4 @@
-# Ezan Vakti — Hatırlatıcı
+# Ezan Vakti & Alarm
 
 Türkiye için namaz vakitlerini gösteren ve vakitlere göre bildirim/hatırlatma gönderen bir Flutter mobil uygulaması (Android + iOS). Vakit verisi **Awqat Salah API** (Diyanet kaynaklı) üzerinden alınır, cihazda SQLite ile saklanır ve internet olmadan da çalışır.
 
