@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import '../utils/app_logger.dart';
 
 class ExactAlarmService {
-  static const _channel = MethodChannel('com.example.ezanvakti/exact_alarm');
+  static const _channel = MethodChannel('com.ekrembulbul.ezanvakti/exact_alarm');
 
   final AppLogger _logger = AppLogger();
 

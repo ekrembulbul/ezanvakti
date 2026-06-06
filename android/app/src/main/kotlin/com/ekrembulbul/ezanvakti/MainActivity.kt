@@ -1,4 +1,4 @@
-package com.example.ezanvakti
+package com.ekrembulbul.ezanvakti
 
 import android.app.AlarmManager
 import android.content.Context
@@ -8,7 +8,7 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
-    private val channelName = "com.example.ezanvakti/exact_alarm"
+    private val channelName = "com.ekrembulbul.ezanvakti/exact_alarm"
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)

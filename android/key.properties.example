@@ -1,0 +1,14 @@
+# Release imzalama icin sablon. Bu dosyayi `key.properties` olarak kopyalayip
+# kendi degerlerinle doldur. GERCEK key.properties gitignore'dadir; ASLA repoya
+# eklenmez. Keystore (.jks) dosyasini da repo disinda, guvenli bir yerde sakla.
+#
+# Keystore olusturma (bir kez):
+#   keytool -genkey -v -keystore ~/ezanvakti-upload.jks \
+#     -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+#
+# storeFile: .jks dosyasinin tam (absolute) yolu onerilir.
+
+storePassword=KEYSTORE_PAROLASI
+keyPassword=ANAHTAR_PAROLASI
+keyAlias=upload
+storeFile=/Users/KULLANICI/ezanvakti-upload.jks
