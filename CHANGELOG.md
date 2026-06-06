@@ -4,6 +4,16 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.1.8] - 2026-06-06
+
+Görsel iyileştirmeler.
+
+### Değiştirildi
+- Uygulama ikonu yeniden düzenlendi: artık tam-taşan (full-bleed) lacivert zemin + altın motif. iOS'taki şeffaf köşelerden kaynaklanan "kutu içinde kutu"/siyah köşe görünümü giderildi.
+
+### Eklendi
+- Açılış ekranı (splash): lacivert zemin üzerinde altın motif (`flutter_native_splash`). Önceki varsayılan placeholder ve buna bağlı "default launch image" uyarısı giderildi.
+
 ## [0.1.7] - 2026-06-06
 
 iOS yükleme uyarısı düzeltmesi.
@@ -96,6 +106,7 @@ Bildirim güvenilirliği düzeltmeleri.
 - Her ekran boyutuna uyan, kaydırmasız ana ekran; karanlık tema.
 - Takvim, bildirim ve ayarları toplayan modern menü.
 
+[0.1.8]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.8
 [0.1.7]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.7
 [0.1.6]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.6
 [0.1.5]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.5
