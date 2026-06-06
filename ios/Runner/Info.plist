@@ -30,6 +30,8 @@
 	<true/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Namaz vakitlerini bulunduğunuz konuma göre göstermek için konum iznine ihtiyaç var.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Namaz vakitlerini bulunduğunuz konuma göre göstermek için konum iznine ihtiyaç var.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
