@@ -47,3 +47,6 @@ app.*.map.json
 
 .vscode/
 .windsurf/
+
+# iOS release secrets (Issuer ID vb.) — repoya konmaz
+ios/.release.env
