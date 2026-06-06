@@ -4,6 +4,13 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.1.4] - 2026-06-06
+
+İç iyileştirme.
+
+### Değiştirildi
+- Konum değişim mantığı tek kanonik yola indirildi: aktif konum ayarlama, hesaplama parametresi değişiminde önbellek geçersizleştirme ve bildirim iptali artık `LocationService.changeLocation` üzerinden yürür; vakit yükleme tek pencerede kalır. Konum değişiminde oluşabilecek gereksiz çift veri çekimi ve nadir bir bildirim-iptali sıralama sorunu giderildi.
+
 ## [0.1.3] - 2026-06-06
 
 Performans iyileştirmesi.
@@ -61,6 +68,7 @@ Bildirim güvenilirliği düzeltmeleri.
 - Her ekran boyutuna uyan, kaydırmasız ana ekran; karanlık tema.
 - Takvim, bildirim ve ayarları toplayan modern menü.
 
+[0.1.4]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.4
 [0.1.3]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.3
 [0.1.2]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.2
 [0.1.1]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.1
