@@ -21,7 +21,7 @@ Tamamlananlar (önceki refactor + konum çalışması):
 - ✅ Loglamada debug/release ayrımı ve koordinat loglamama (gizlilik).
 - ✅ Modellerde `==`/`hashCode`/`copyWith`.
 
-Son sürümlerde tamamlananlar (0.1.1–0.1.3):
+Son sürümlerde tamamlananlar (0.1.1–0.1.4):
 
 - ✅ Bildirim planlaması 7 günlük pencereye sınırlandı ve iOS 64 bildirim sınırına göre en yakın olanlar seçilerek kontrollü kapatıldı.
 - ✅ Çakışmaya dayanıklı sayısal bildirim kimlikleri; bekleyen bildirim bilgisi kimlikten doğru çözülüyor.
@@ -31,12 +31,14 @@ Son sürümlerde tamamlananlar (0.1.1–0.1.3):
 - ✅ Varsayılan bildirimler yalnızca ilk açılışta bir kez oluşturulur (kalıcı DB bayrağı); kullanıcı silince konum değişiminde geri gelmiyor.
 - ✅ Arka plan vakit penceresi 28 → 13 güne daraltıldı (bugünden önce 2, sonra 10 gün); gereksiz API isteği azaltıldı.
 - ✅ Flutter yükseltmesi + iOS UIScene yaşam döngüsüne geçiş; iOS 26 / Xcode 26.5 ile debug modu çökmesi (EXC_BAD_ACCESS) giderildi.
+- ✅ Konum değişim mantığı tek kanonik yola indirildi (manuel yol): `HomePage._switchLocation` artık domain `LocationService.changeLocation`'a delege ediyor. `changeLocation` veri çekme sorumluluğundan arındırıldı (yalnızca aktif konum + parametre değişiminde önbellek geçersizleştirme + bildirim iptali); vakit yükleme tek pencerede (`DataLoaderService`) kalıyor, böylece çift çekim ve offline sıralama sorunu giderildi.
 
 Açık kalanlar:
 
-- ~~Bildirim duplicate kontrolünün **kalıcı** (DB tabanlı) hale getirilmesi.~~ **Gerekli değil:** `scheduleNotifications` her çalışmada başta `cancelAllNotifications()` çağırıyor ve ID'ler `(gün, vakit, ofset)`'ten deterministik üretiliyor; aynı ID platformda üzerine yazılıyor. Duplicate birikme yolu yok, DB'ye taşımak gereksiz karmaşıklık olur.
-- ✅ **Lokasyon değişim mantığının konsolidasyonu (manuel yol):** `HomePage._switchLocation` artık domain `LocationService.changeLocation`'a delege ediyor. `changeLocation` veri çekme sorumluluğundan arındırıldı (yalnızca aktif konum + parametre değişiminde önbellek geçersizleştirme + bildirim iptali); vakit yükleme tek pencerede (`DataLoaderService`) kalıyor, böylece çift çekim ve offline sıralama sorunu yok. **Kalan küçük takip:** GPS canlı akış yolu (`LocationMonitorController`) hâlâ doğrudan `locationRepository.setActiveLocation` kullanıyor; o da bu servise delege edilebilir.
+- **Konum değişim konsolidasyonu — GPS yolu:** Manuel yol tamamlandı; GPS canlı akış yolu (`LocationMonitorController`) hâlâ doğrudan `locationRepository.setActiveLocation` kullanıyor. O da `LocationService.changeLocation`'a delege edilebilir (küçük takip).
 - **Diyanet birebir vakit:** Aladhan method=13 yaklaşık hesaptır; resmi tablo için Diyanet API'si + backend proxy gerekir (bkz. PRODUCT_SPEC).
+
+> Kapatılan: Bildirim duplicate kontrolünün DB tabanlı hale getirilmesi **gerekli görülmedi** — `scheduleNotifications` her çalışmada başta `cancelAllNotifications()` çağırıyor ve ID'ler `(gün, vakit, ofset)`'ten deterministik üretiliyor (aynı ID platformda üzerine yazılır). Duplicate birikme yolu olmadığından DB'ye taşımak gereksiz karmaşıklık olurdu.
 
 ## Planlanan özellikler
 
