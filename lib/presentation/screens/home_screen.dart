@@ -208,6 +208,7 @@ class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
               height: 44,
             ),
           ),
+          const SizedBox(width: 10),
           const Flexible(
             child: Text(
               AppConstants.appTitle,
