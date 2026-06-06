@@ -6,6 +6,16 @@ import '../../features/notifications/domain/notification_settings_manager.dart';
 import '../../core/utils/app_logger.dart';
 
 class DataLoaderService {
+  /// Arka planda tutulan vakit penceresi: bugünden önce çekilen gün sayısı.
+  /// Geçmiş yalnızca gece yarısı/timezone kenar durumları ve "dünün vakitleri"
+  /// için küçük bir tampondur.
+  static const int _backgroundDaysBefore = 2;
+
+  /// Bugünden sonra çekilen gün sayısı. Bildirim planlama penceresini
+  /// (NotificationScheduler.scheduleDaysAhead = 7 gün) tamponuyla kapsamalıdır;
+  /// aksi halde ileri tarihli bildirimler için veri bulunamaz.
+  static const int _backgroundDaysAfter = 10;
+
   final PrayerTimesRepository _prayerTimesRepository;
   final NotificationService _notificationService;
   final NotificationSettingsManager _settingsManager;
@@ -69,13 +79,17 @@ class DataLoaderService {
     DateTime startDate,
   ) async {
     _logger.debug(
-      'Loading background data: 1 week before + 3 weeks after (28 days total)',
+      'Loading background data: $_backgroundDaysBefore days before + '
+      '$_backgroundDaysAfter days after '
+      '(${_backgroundDaysBefore + 1 + _backgroundDaysAfter} days total)',
     );
     try {
       final prayerTimes = await _prayerTimesRepository.getPrayerTimes(
         location: location,
-        startDate: startDate.subtract(const Duration(days: 7)),
-        endDate: startDate.add(const Duration(days: 21)),
+        startDate: startDate.subtract(
+          const Duration(days: _backgroundDaysBefore),
+        ),
+        endDate: startDate.add(const Duration(days: _backgroundDaysAfter)),
         forceRefresh: false,
       );
       _logger.debug('Background load completed: ${prayerTimes.length} days');
