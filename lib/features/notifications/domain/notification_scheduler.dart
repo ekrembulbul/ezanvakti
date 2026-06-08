@@ -32,14 +32,18 @@ class NotificationScheduler {
 
     final settings = await storage.getNotificationSettings();
 
+    // Mevcut tüm planlanmış bildirimleri önce iptal et — ayar listesi boş olsa
+    // bile. Aksi halde kullanıcı tüm bildirimleri silince, daha önce OS'a
+    // zamanlanmış bildirimler iptal edilmeden kalır ve tetiklenmeye devam eder.
+    await notificationService.cancelAllNotifications();
+    logger.debug('Cancelled all existing notifications');
+
     if (settings.isEmpty) {
-      logger.warning('No notification settings found, skipping');
+      logger.debug('No notification settings; cleared all, nothing to schedule');
       return;
     }
 
     logger.debug('Found ${settings.length} notification settings');
-    await notificationService.cancelAllNotifications();
-    logger.debug('Cancelled all existing notifications');
 
     final now = DateTime.now();
     final cutoff = now.add(const Duration(days: scheduleDaysAhead));

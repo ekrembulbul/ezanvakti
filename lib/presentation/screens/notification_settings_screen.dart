@@ -229,6 +229,11 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           location: location,
           prayerTimes: prayerTimes,
         );
+      } else {
+        // Vakit verisi yokken yeniden planlayamayız; yine de silinen/kapatılan
+        // bildirimlerin eski OS kopyaları tetiklenmesin diye hepsini iptal et.
+        // Aktif ayarlar bir sonraki veri yüklemesinde yeniden planlanır.
+        await ServiceLocator().get<NotificationService>().cancelAllNotifications();
       }
     } catch (e) {
       _showSnackBar('Bildirimler güncellenemedi: $e', isError: true);

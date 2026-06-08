@@ -808,6 +808,44 @@ void main() {
       }
     });
 
+    test('Empty settings still cancels previously scheduled notifications',
+        () async {
+      // Daha once OS'a zamanlanmis bir bildirim olsun (kullanici silmeden once
+      // varsayilanlarin planladigi gibi).
+      await notificationService.scheduleNotification(
+        id: '12345',
+        scheduledTime: DateTime.now().add(const Duration(hours: 1)),
+        title: 'Eski',
+        body: 'Eski bildirim',
+      );
+      expect(notificationService.scheduledNotifications, isNotEmpty);
+
+      // Ayar listesi bos (kullanici hepsini sildi); storage'a hic ayar kaydedilmedi.
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final prayerTimes = [
+        PrayerTime(
+          fajr: DateTime(today.year, today.month, today.day, 5, 30),
+          sunrise: DateTime(today.year, today.month, today.day, 7, 0),
+          dhuhr: DateTime(today.year, today.month, today.day, 13, 15),
+          asr: DateTime(today.year, today.month, today.day, 16, 30),
+          maghrib: DateTime(today.year, today.month, today.day, 19, 0),
+          isha: DateTime(today.year, today.month, today.day, 20, 30),
+          date: today.add(const Duration(days: 1)),
+        ),
+      ];
+
+      notificationService.cancelAllCallCount = 0;
+      await scheduler.scheduleNotifications(
+        location: testLocation,
+        prayerTimes: prayerTimes,
+      );
+
+      // Bos ayarda bile cancelAll cagrilmali; eski bildirimler temizlenmeli.
+      expect(notificationService.cancelAllCallCount, equals(1));
+      expect(notificationService.scheduledNotifications, isEmpty);
+    });
+
     test('Schedules notifications for active settings', () async {
       final tomorrow = DateTime.now().add(const Duration(days: 1));
       final tomorrowNormalized = DateTime(
