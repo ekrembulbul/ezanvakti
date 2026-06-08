@@ -15,8 +15,10 @@ class FlutterLocalNotificationService implements NotificationService {
 
   @override
   Future<void> init() async {
+    // Android durum cubugu kucuk ikonu monokrom (beyaz siluet) olmali; aksi halde
+    // full-bleed launcher ikonu beyaz kare gibi gorunur.
     const androidSettings = AndroidInitializationSettings(
-      '@mipmap/ic_launcher',
+      '@drawable/ic_stat_notification',
     );
     const iosSettings = DarwinInitializationSettings(
       requestAlertPermission: false,
@@ -121,6 +123,7 @@ class FlutterLocalNotificationService implements NotificationService {
       channelDescription: 'Namaz vakitlerini bildiren bildirimler',
       importance: Importance.high,
       priority: Priority.high,
+      icon: 'ic_stat_notification',
     );
 
     const iosDetails = DarwinNotificationDetails(
