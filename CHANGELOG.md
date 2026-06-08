@@ -4,6 +4,11 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.1.14] - 2026-06-07
+
+### Değiştirildi
+- İşlem bildirimleri (snackbar) artık birbirini beklemiyor: yeni bir işlem yapıldığında önceki mesaj anında kaldırılıp yeni mesaj hemen gösterilir.
+
 ## [0.1.13] - 2026-06-07
 
 ### Düzeltildi
@@ -134,6 +139,7 @@ Bildirim güvenilirliği düzeltmeleri.
 - Her ekran boyutuna uyan, kaydırmasız ana ekran; karanlık tema.
 - Takvim, bildirim ve ayarları toplayan modern menü.
 
+[0.1.14]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.14
 [0.1.13]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.13
 [0.1.12]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.12
 [0.1.11]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.11
