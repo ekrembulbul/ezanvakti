@@ -129,7 +129,9 @@ class _LocationListScreenState extends State<LocationListScreen> {
 
   void _showSnackBar(String message, {bool isError = false}) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      // Onceki snackbar'i hemen kaldir; yeni islem mesaji beklemeden gosterilsin.
+      final messenger = ScaffoldMessenger.of(context)..clearSnackBars();
+      messenger.showSnackBar(
         SnackBar(
           content: Text(message),
           backgroundColor: isError ? Colors.red.shade700 : AppTheme.gold,

@@ -141,26 +141,32 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       await _loadInitialData();
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('GPS konumu güncellendi: ${gpsLocation.displayName}'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        ScaffoldMessenger.of(context)
+          ..clearSnackBars()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(
+                'GPS konumu güncellendi: ${gpsLocation.displayName}',
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
       }
 
       logger.debug('Manual GPS refresh completed');
     } catch (e) {
       logger.error('Manual GPS refresh failed', e);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'GPS yenileme hatası: ${e.toString().replaceAll('Exception: ', '')}',
+        ScaffoldMessenger.of(context)
+          ..clearSnackBars()
+          ..showSnackBar(
+            SnackBar(
+              content: Text(
+                'GPS yenileme hatası: ${e.toString().replaceAll('Exception: ', '')}',
+              ),
+              backgroundColor: Colors.red,
             ),
-            backgroundColor: Colors.red,
-          ),
-        );
+          );
       }
     } finally {
       if (mounted) {
@@ -398,9 +404,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     } catch (e) {
       logger.error('Failed to switch location', e);
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Konum değiştirilemedi: $e')));
+        ScaffoldMessenger.of(context)
+          ..clearSnackBars()
+          ..showSnackBar(SnackBar(content: Text('Konum değiştirilemedi: $e')));
       }
     }
   }

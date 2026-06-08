@@ -233,7 +233,9 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
         // Vakit verisi yokken yeniden planlayamayız; yine de silinen/kapatılan
         // bildirimlerin eski OS kopyaları tetiklenmesin diye hepsini iptal et.
         // Aktif ayarlar bir sonraki veri yüklemesinde yeniden planlanır.
-        await ServiceLocator().get<NotificationService>().cancelAllNotifications();
+        await ServiceLocator()
+            .get<NotificationService>()
+            .cancelAllNotifications();
       }
     } catch (e) {
       _showSnackBar('Bildirimler güncellenemedi: $e', isError: true);
@@ -242,7 +244,9 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
 
   void _showSnackBar(String message, {bool isError = false}) {
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      // Onceki snackbar'i hemen kaldir; yeni islem mesaji beklemeden gosterilsin.
+      final messenger = ScaffoldMessenger.of(context)..clearSnackBars();
+      messenger.showSnackBar(
         SnackBar(
           content: Text(message),
           backgroundColor: isError ? Colors.red.shade700 : AppTheme.gold,
