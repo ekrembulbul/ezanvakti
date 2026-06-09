@@ -1,10 +1,12 @@
 name: iOS TestFlight
 
-# vX.Y.Z bicimindeki tag push edilince calisir; IPA derler ve TestFlight'a yukler.
+# vX.Y.Z (iki platform) veya ios-vX.Y.Z (sadece iOS) tag'inde calisir; IPA derleyip
+# TestFlight'a yukler. android-v* tag'i bu workflow'u tetiklemez.
 on:
   push:
     tags:
       - 'v*'
+      - 'ios-v*'
   # Tag yakmadan elle test/yeniden deneme icin (Actions > Run workflow)
   workflow_dispatch:
 

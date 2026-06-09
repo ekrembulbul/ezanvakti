@@ -8,6 +8,7 @@ on:
   push:
     tags:
       - 'v*'
+      - 'android-v*'
 
 jobs:
   # Gerekli Play secret'lari var mi? Yoksa internal job atlanir (kirmizi olmaz).
