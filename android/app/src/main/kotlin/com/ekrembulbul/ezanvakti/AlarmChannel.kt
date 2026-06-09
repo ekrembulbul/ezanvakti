@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Build
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import java.io.File
 
 /** Flutter <-> native alarm köprüsü. AlarmService (Dart) bu kanalı çağırır. */
 class AlarmChannel(private val context: Context) {
@@ -40,9 +41,33 @@ class AlarmChannel(private val context: Context) {
                         AlarmScheduling.cancelAll(context)
                         result.success(null)
                     }
+                    "importCustomSound" -> {
+                        result.success(
+                            importCustomSound(
+                                call.argument<String>("path"),
+                                call.argument<String>("name"),
+                            ),
+                        )
+                    }
                     else -> result.notImplemented()
                 }
             }
+    }
+
+    /** Seçilen ses dosyasını filesDir/alarm_sounds altına kopyalar; `custom:<ad>`
+     *  döner. Çalarken [AlarmRingService] bu adı dosya yoluna çözer. */
+    private fun importCustomSound(path: String?, name: String?): String? {
+        if (path.isNullOrBlank() || name.isNullOrBlank()) return null
+        return try {
+            val src = File(path)
+            if (!src.exists()) return null
+            val dir = File(context.filesDir, "alarm_sounds").apply { mkdirs() }
+            val safe = name.replace(Regex("[^A-Za-z0-9._-]"), "_")
+            src.copyTo(File(dir, safe), overwrite = true)
+            "custom:$safe"
+        } catch (_: Exception) {
+            null
+        }
     }
 
     private fun canScheduleExact(): Boolean {

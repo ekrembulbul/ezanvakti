@@ -60,6 +60,9 @@ class AlarmKitHandler {
     case "cancelAllAlarms":
       cancelAll()
       result(nil)
+    case "importCustomSound":
+      let args = call.arguments as? [String: Any]
+      result(importCustomSound(path: args?["path"] as? String, name: args?["name"] as? String))
     default:
       result(FlutterMethodNotImplemented)
     }
@@ -141,16 +144,50 @@ class AlarmKitHandler {
     }
   }
 
-  /// soundId bundle'da bir ses dosyasına (ör. adhan.caf) karşılık geliyorsa onu,
-  /// yoksa sistemin varsayılan alarm sesini döner. Gömülü ses dosyaları
-  /// eklendiğinde ek koda gerek kalmadan çalışır.
+  /// soundId bundle'da bir ses dosyasına (ör. adhan.caf) ya da `custom:<ad>` ile
+  /// Library/Sounds altındaki bir dosyaya karşılık geliyorsa onu, yoksa sistemin
+  /// varsayılan alarm sesini döner.
   @available(iOS 26.0, *)
   private func alertSound(_ soundId: String?) -> ActivityKit.AlertConfiguration.AlertSound {
     guard let id = soundId, id != "default", !id.isEmpty else { return .default }
+    if id.hasPrefix("custom:") {
+      let name = String(id.dropFirst("custom:".count))
+      if let dir = librarySoundsDir(),
+        FileManager.default.fileExists(atPath: dir.appendingPathComponent(name).path)
+      {
+        return .named(name)
+      }
+      return .default
+    }
     let hasFile = ["caf", "aiff", "wav", "mp3"].contains {
       Bundle.main.url(forResource: id, withExtension: $0) != nil
     }
     return hasFile ? .named(id) : .default
+  }
+
+  /// Kullanıcının seçtiği ses dosyasını Library/Sounds altına kopyalar; AlarmKit'in
+  /// bulabilmesi için doğru konumdur. `custom:<ad>` döner. iOS yalnızca desteklenen
+  /// biçimleri (caf/aiff/wav, ≤30 sn) çalar; diğerleri varsayılana düşer.
+  private func importCustomSound(path: String?, name: String?) -> String? {
+    guard let path = path, let name = name, !path.isEmpty, !name.isEmpty,
+      let dir = librarySoundsDir()
+    else { return nil }
+    let safe = (name as NSString).lastPathComponent
+    let fm = FileManager.default
+    do {
+      try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+      let dst = dir.appendingPathComponent(safe)
+      if fm.fileExists(atPath: dst.path) { try fm.removeItem(at: dst) }
+      try fm.copyItem(at: URL(fileURLWithPath: path), to: dst)
+      return "custom:\(safe)"
+    } catch {
+      return nil
+    }
+  }
+
+  private func librarySoundsDir() -> URL? {
+    FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first?
+      .appendingPathComponent("Sounds", isDirectory: true)
   }
 
   private func cancel(idStr: String) {

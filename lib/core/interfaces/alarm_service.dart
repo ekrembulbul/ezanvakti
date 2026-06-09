@@ -29,4 +29,12 @@ abstract class AlarmService {
   Future<void> cancelAlarm(String id);
 
   Future<void> cancelAllAlarms();
+
+  /// Kullanıcının seçtiği ses dosyasını ([sourcePath]) uygulamanın kalıcı alanına
+  /// kopyalar ve alarmlarda kullanılacak `custom:<ad>` biçiminde bir soundId döner.
+  /// Başarısızsa veya platform desteklemiyorsa null döner.
+  ///
+  /// iOS notu: AlarmKit yalnızca desteklenen ses biçimlerini (caf/aiff/wav,
+  /// ≤30 sn) çalar; diğer biçimler sessizce varsayılan sese düşebilir.
+  Future<String?> importCustomSound(String sourcePath);
 }

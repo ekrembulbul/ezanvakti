@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -342,6 +343,9 @@ class _AlarmEditScreenState extends State<_AlarmEditScreen> {
   late bool _snoozeEnabled;
   late int _snoozeMinutes;
   late TextEditingController _label;
+  String? _customSoundName;
+
+  static const _pickSoundValue = '__pick__';
 
   @override
   void initState() {
@@ -359,6 +363,9 @@ class _AlarmEditScreenState extends State<_AlarmEditScreen> {
     _snoozeEnabled = a?.snoozeEnabled ?? true;
     _snoozeMinutes = a?.snoozeMinutes ?? 5;
     _label = TextEditingController(text: a?.label ?? '');
+    if (_soundId.startsWith('custom:')) {
+      _customSoundName = _soundId.substring('custom:'.length);
+    }
   }
 
   @override
@@ -577,18 +584,64 @@ class _AlarmEditScreenState extends State<_AlarmEditScreen> {
   }
 
   Widget _soundSelector() {
+    final isCustom = _soundId.startsWith('custom:');
     return DropdownButtonFormField<String>(
       initialValue: _soundId,
+      isExpanded: true,
       dropdownColor: AppTheme.primaryMedium,
       style: const TextStyle(color: Colors.white),
       decoration: _fieldDecoration('Ses'),
-      items: const [
-        DropdownMenuItem(value: 'adhan', child: Text('Ezan')),
-        DropdownMenuItem(value: 'alarm', child: Text('Alarm sesi')),
-        DropdownMenuItem(value: 'default', child: Text('Varsayılan')),
+      items: [
+        const DropdownMenuItem(value: 'adhan', child: Text('Ezan')),
+        const DropdownMenuItem(value: 'alarm', child: Text('Alarm sesi')),
+        const DropdownMenuItem(value: 'default', child: Text('Varsayılan')),
+        if (isCustom)
+          DropdownMenuItem(
+            value: _soundId,
+            child: Text(
+              _customSoundName ?? 'Özel ses',
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        const DropdownMenuItem(
+          value: _pickSoundValue,
+          child: Row(
+            children: [
+              Icon(Icons.library_music_outlined, size: 18, color: AppTheme.gold),
+              SizedBox(width: 8),
+              Text('Cihazdan ses seç…'),
+            ],
+          ),
+        ),
       ],
-      onChanged: (v) => setState(() => _soundId = v ?? 'adhan'),
+      onChanged: (v) {
+        if (v == _pickSoundValue) {
+          _pickCustomSound();
+          return;
+        }
+        setState(() => _soundId = v ?? 'adhan');
+      },
     );
+  }
+
+  Future<void> _pickCustomSound() async {
+    final result = await FilePicker.pickFiles(type: FileType.audio);
+    final path = result?.files.single.path;
+    if (path == null) return;
+    final soundId = await ServiceLocator().get<AlarmService>().importCustomSound(
+      path,
+    );
+    if (!mounted) return;
+    if (soundId == null) {
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(const SnackBar(content: Text('Ses dosyası alınamadı')));
+      return;
+    }
+    setState(() {
+      _soundId = soundId;
+      _customSoundName = path.split('/').last;
+    });
   }
 
   Widget _snoozeMinutesSelector() {

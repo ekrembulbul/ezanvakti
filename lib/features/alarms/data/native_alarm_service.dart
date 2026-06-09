@@ -63,4 +63,14 @@ class NativeAlarmService implements AlarmService {
     if (!_hasNative) return;
     await _channel.invokeMethod('cancelAllAlarms');
   }
+
+  @override
+  Future<String?> importCustomSound(String sourcePath) async {
+    if (!_hasNative) return null;
+    final name = sourcePath.split('/').last;
+    return await _channel.invokeMethod<String>('importCustomSound', {
+      'path': sourcePath,
+      'name': name,
+    });
+  }
 }

@@ -16,6 +16,7 @@ import android.os.IBinder
 import android.os.VibrationEffect
 import android.os.Vibrator
 import androidx.core.app.NotificationCompat
+import java.io.File
 
 /** Alarm çalarken ön planda çalışan servis: sesi (alarm akışında, döngüde) çalar,
  *  titreşir ve tam ekran çalar ekranını açan bir bildirim gösterir. Kapat/ertele
@@ -106,7 +107,10 @@ class AlarmRingService : Service() {
      *  yoksa sistemin varsayılan alarm sesini döner. Gömülü ses dosyaları
      *  eklendiğinde (raw/<soundId>) ek koda gerek kalmadan çalışır. */
     private fun soundUriFor(soundId: String): Uri? {
-        if (soundId.isNotBlank() && soundId != "default") {
+        if (soundId.startsWith("custom:")) {
+            val file = File(filesDir, "alarm_sounds/${soundId.removePrefix("custom:")}")
+            if (file.exists()) return Uri.fromFile(file)
+        } else if (soundId.isNotBlank() && soundId != "default") {
             val resId = resources.getIdentifier(soundId, "raw", packageName)
             if (resId != 0) {
                 return Uri.parse("android.resource://$packageName/$resId")
