@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="alarm_dismiss">Kapat</string>
+    <string name="alarm_snooze">Ertele</string>
+    <string name="alarm_snooze_minutes">%d dk ertele</string>
+</resources>
