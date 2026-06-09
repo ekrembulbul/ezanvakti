@@ -4,6 +4,18 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.2.0] - 2026-06-09
+
+### Eklendi
+- **Sesli alarm** özelliği: kapatılana kadar çalan, sessiz modu delen, ertelenebilir alarmlar (bildirimlerden ayrı).
+  - İki tür: **sabit saat** ve **vakte göre** (bir namaz vaktinden önce/sonra dakika sapmasıyla).
+  - Haftanın günlerine göre tekrar, etiket, titreşim ve erteleme (snooze) ayarları.
+  - **Ses seçimi:** gömülü sesler (ezan/alarm) ya da cihazınızdan kendi ses dosyanız.
+  - **Android:** kilit ekranında açılan tam ekran çalar ekran; cihaz yeniden başladığında alarmlar yeniden kurulur.
+  - **iOS:** AlarmKit ile sistem alarmı; erteleme desteği. (Yalnızca **iOS 26 ve üzeri**; daha eski sürümlerde alarm kaydedilir ancak çalmaz.)
+
+> Not: iOS'ta özel ses olarak yalnızca desteklenen biçimler (caf/aiff/wav, ≤30 sn) çalar; diğer biçimler varsayılan alarm sesine düşer.
+
 ## [0.1.15] - 2026-06-09
 
 ### Eklendi
