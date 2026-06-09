@@ -96,17 +96,40 @@ class AlarmKitHandler {
     let date = Date(timeIntervalSince1970: Double(timeMillis) / 1000.0)
     let uuid = uuidFor(idStr)
     let sound = alertSound(args["soundId"] as? String)
+    let snoozeEnabled = (args["snoozeEnabled"] as? NSNumber)?.boolValue ?? false
+    let snoozeMinutes = (args["snoozeMinutes"] as? NSNumber)?.intValue ?? 5
 
     let title: LocalizedStringResource =
       label.isEmpty ? "Ezan Vakti & Alarm" : LocalizedStringResource(stringLiteral: label)
     let stopButton = AlarmButton(
       text: "Kapat", textColor: .white, systemImageName: "stop.circle.fill")
-    let alert = AlarmPresentation.Alert(title: title, stopButton: stopButton)
-    let presentation = AlarmPresentation(alert: alert)
+
+    // Snooze: AlarmKit'in yerleşik countdown davranışı (App Intent gerekmez).
+    // Erteleme tuşuna basınca postAlert süresi kadar geri sayar ve tekrar çalar.
+    let alert: AlarmPresentation.Alert
+    var countdownPresentation: AlarmPresentation.Countdown?
+    var countdownDuration: Alarm.CountdownDuration?
+    if snoozeEnabled {
+      let snoozeButton = AlarmButton(
+        text: "Ertele", textColor: .white, systemImageName: "zzz")
+      alert = AlarmPresentation.Alert(
+        title: title, stopButton: stopButton,
+        secondaryButton: snoozeButton, secondaryButtonBehavior: .countdown)
+      countdownPresentation = AlarmPresentation.Countdown(title: "Erteleme")
+      countdownDuration = Alarm.CountdownDuration(
+        preAlert: nil, postAlert: Double(snoozeMinutes * 60))
+    } else {
+      alert = AlarmPresentation.Alert(title: title, stopButton: stopButton)
+    }
+
+    let presentation = AlarmPresentation(alert: alert, countdown: countdownPresentation)
     let attributes = AlarmAttributes<EzanAlarmMetadata>(
       presentation: presentation, metadata: EzanAlarmMetadata(), tintColor: Color.yellow)
-    let config = AlarmManager.AlarmConfiguration.alarm(
-      schedule: .fixed(date), attributes: attributes, sound: sound)
+    let config = AlarmManager.AlarmConfiguration(
+      countdownDuration: countdownDuration,
+      schedule: .fixed(date),
+      attributes: attributes,
+      sound: sound)
 
     Task {
       do {
