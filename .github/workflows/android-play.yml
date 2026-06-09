@@ -1,15 +1,36 @@
 name: Android Play (internal)
 
-# Play uygulamasi olusturulup secret'lar eklenene kadar yalnizca elle tetiklenir.
-# Hazir olunca asagidaki 'push.tags' blogunu acarak iOS gibi tag-tetikli yapabilirsin.
+# Tek sürüm/tek tag: vX.Y.Z tag'i hem iOS hem Android'i tetikler (beraber versiyonlama).
+# Play secret'lari henuz yoksa Android isi ATLANIR (skip), iOS tag'leri hata vermez.
+# Secret'lar eklenince otomatik calismaya baslar.
 on:
   workflow_dispatch:
-  # push:
-  #   tags:
-  #     - 'v*'
+  push:
+    tags:
+      - 'v*'
 
 jobs:
+  # Gerekli Play secret'lari var mi? Yoksa internal job atlanir (kirmizi olmaz).
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      ready: ${{ steps.c.outputs.ready }}
+    steps:
+      - id: c
+        env:
+          PLAY_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON_BASE64 }}
+          KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$PLAY_JSON" ] && [ -n "$KEYSTORE" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "Play secret'lari (PLAY_SERVICE_ACCOUNT_JSON_BASE64 / ANDROID_KEYSTORE_BASE64) tanimli degil; Android yuklemesi atlandi."
+          fi
+
   internal:
+    needs: check
+    if: needs.check.outputs.ready == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:

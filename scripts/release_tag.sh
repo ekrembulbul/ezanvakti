@@ -64,5 +64,6 @@ git push origin "$TAG"
 
 echo ""
 echo "==> $TAG push edildi."
-echo "    GitHub Actions TestFlight yuklemesini baslatti."
-echo "    Ilerleme: GitHub repo > Actions sekmesi > 'iOS TestFlight'."
+echo "    GitHub Actions tetiklendi: iOS TestFlight + Android Play (beraber versiyon)."
+echo "    Android, Play secret'lari yoksa atlanir (iOS'u etkilemez)."
+echo "    Ilerleme: GitHub repo > Actions sekmesi."
