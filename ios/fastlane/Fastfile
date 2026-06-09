@@ -33,6 +33,9 @@ platform :ios do
       workspace: "Runner.xcworkspace",
       scheme: "Runner",
       export_method: "app-store",
+      # IPA adi bosluksuz olsun; CFBundleName 'Ezan Vakti' bosluklu IPA uretiyor ve
+      # yeni altool (Xcode 26.3 / fastlane 2.236) bosluklu yolu acamiyordu (hata 259).
+      output_name: "ezanvakti",
       xcargs: "-allowProvisioningUpdates #{auth} " \
               "DEVELOPMENT_TEAM=#{ENV['APPLE_TEAM_ID']} CODE_SIGN_STYLE=Automatic",
       export_options: {

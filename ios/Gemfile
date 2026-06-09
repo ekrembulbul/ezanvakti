@@ -1,6 +1,8 @@
 source "https://rubygems.org"
 
-gem "fastlane"
+# fastlane 2.236.0, Xcode 26.3 ile uyumsuz IPA uretiyor (altool: "isn't in the correct
+# format" / 259). v0.1.14 ayni Xcode + 2.235.0 ile sorunsuzdu; bu yuzden sabitlendi.
+gem "fastlane", "2.235.0"
 # representable 3.2.0 multi_json'i runtime'da gerektiriyor ama bagimlilik olarak
 # bildirmiyor; "multi_json is not part of the bundle" hatasini onlemek icin acikca eklenir.
 gem "multi_json"
