@@ -1,8 +1,11 @@
 package com.ekrembulbul.ezanvakti
 
 import android.content.Intent
+import org.json.JSONObject
 
-/** Bir alarmın tüm bilgisini taşıyan veri sınıfı; Intent extra'larıyla aktarılır. */
+/** Bir alarmın tüm bilgisini taşıyan veri sınıfı; Intent extra'larıyla aktarılır.
+ *  Cihaz yeniden başladığında Dart çalıştırmadan yeniden kurabilmek için
+ *  SharedPreferences'a JSON olarak da yazılır. */
 data class AlarmArgs(
     val id: String,
     val timeMillis: Long,
@@ -22,6 +25,16 @@ data class AlarmArgs(
         intent.putExtra("snoozeMinutes", snoozeMinutes)
     }
 
+    fun toJson(): String = JSONObject().apply {
+        put("id", id)
+        put("timeMillis", timeMillis)
+        put("label", label)
+        put("soundId", soundId)
+        put("vibrate", vibrate)
+        put("snoozeEnabled", snoozeEnabled)
+        put("snoozeMinutes", snoozeMinutes)
+    }.toString()
+
     companion object {
         fun readFrom(intent: Intent): AlarmArgs = AlarmArgs(
             id = intent.getStringExtra("id") ?: "",
@@ -32,5 +45,20 @@ data class AlarmArgs(
             snoozeEnabled = intent.getBooleanExtra("snoozeEnabled", true),
             snoozeMinutes = intent.getIntExtra("snoozeMinutes", 5),
         )
+
+        fun fromJson(json: String): AlarmArgs? = try {
+            val o = JSONObject(json)
+            AlarmArgs(
+                id = o.getString("id"),
+                timeMillis = o.getLong("timeMillis"),
+                label = o.optString("label", ""),
+                soundId = o.optString("soundId", "adhan"),
+                vibrate = o.optBoolean("vibrate", true),
+                snoozeEnabled = o.optBoolean("snoozeEnabled", true),
+                snoozeMinutes = o.optInt("snoozeMinutes", 5),
+            )
+        } catch (_: Exception) {
+            null
+        }
     }
 }

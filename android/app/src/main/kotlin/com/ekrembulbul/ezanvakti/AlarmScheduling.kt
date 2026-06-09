@@ -18,6 +18,8 @@ object AlarmScheduling {
         // setAlarmClock: kullanici-gorunur alarm; Doze'da bile tetiklenir.
         am.setAlarmClock(AlarmManager.AlarmClockInfo(args.timeMillis, pi), pi)
         addId(context, args.id)
+        // Reboot sonrasi (Dart calismadan) yeniden kurabilmek icin tam args sakla.
+        prefs(context).edit().putString(argsKey(args.id), args.toJson()).apply()
     }
 
     fun cancel(context: Context, id: String) {
@@ -72,6 +74,14 @@ object AlarmScheduling {
 
     fun removeId(context: Context, id: String) {
         val set = ids(context).toMutableSet().apply { remove(id) }
-        prefs(context).edit().putStringSet(KEY_IDS, set).apply()
+        prefs(context).edit().remove(argsKey(id)).putStringSet(KEY_IDS, set).apply()
     }
+
+    private fun argsKey(id: String) = "args_$id"
+
+    /** Saklanan tüm alarm args'larını döner (reboot sonrası yeniden kurmak için). */
+    fun allArgs(context: Context): List<AlarmArgs> =
+        ids(context).mapNotNull { id ->
+            prefs(context).getString(argsKey(id), null)?.let { AlarmArgs.fromJson(it) }
+        }
 }
