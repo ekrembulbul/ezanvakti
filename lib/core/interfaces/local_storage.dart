@@ -2,6 +2,7 @@ import '../models/prayer_time.dart';
 import '../models/location.dart';
 import '../models/notification_setting.dart';
 import '../models/calculation_settings.dart';
+import '../models/alarm.dart';
 
 abstract class LocalStorage {
   Future<void> init();
@@ -69,4 +70,13 @@ abstract class LocalStorage {
   Future<void> saveLastUpdateTime(DateTime time);
 
   Future<DateTime?> getLastUpdateTime();
+
+  /// Kayıtlı tüm alarmları döner.
+  Future<List<Alarm>> getAlarms();
+
+  /// Alarmı ekler veya (aynı id ise) günceller.
+  Future<void> saveAlarm(Alarm alarm);
+
+  /// Alarmı id'sine göre siler.
+  Future<void> deleteAlarm(String id);
 }

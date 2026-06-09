@@ -5,6 +5,7 @@ import '../../../core/interfaces/local_storage.dart';
 import '../../../core/models/prayer_time.dart';
 import '../../../core/models/location.dart';
 import '../../../core/models/notification_setting.dart';
+import '../../../core/models/alarm.dart';
 import '../../../core/models/calculation_params.dart';
 import '../../../core/models/calculation_settings.dart';
 import '../../../core/exceptions/parse_exception.dart';
@@ -25,7 +26,7 @@ class SqliteStorage implements LocalStorage {
 
     return await openDatabase(
       path,
-      version: 5,
+      version: 6,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -83,6 +84,28 @@ class SqliteStorage implements LocalStorage {
     await db.execute('''
       CREATE INDEX idx_prayer_times_location_date
       ON prayer_times(location_id, date)
+    ''');
+
+    await _createAlarmsTable(db);
+  }
+
+  Future<void> _createAlarmsTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE alarms (
+        id TEXT PRIMARY KEY,
+        kind TEXT NOT NULL,
+        label TEXT NOT NULL DEFAULT '',
+        is_active INTEGER NOT NULL DEFAULT 1,
+        hour INTEGER NOT NULL DEFAULT 0,
+        minute INTEGER NOT NULL DEFAULT 0,
+        anchor TEXT NOT NULL DEFAULT 'fajr',
+        offset_minutes INTEGER NOT NULL DEFAULT 0,
+        weekdays TEXT NOT NULL DEFAULT '',
+        sound_id TEXT NOT NULL DEFAULT 'adhan',
+        vibrate INTEGER NOT NULL DEFAULT 1,
+        snooze_enabled INTEGER NOT NULL DEFAULT 1,
+        snooze_minutes INTEGER NOT NULL DEFAULT 5
+      )
     ''');
   }
 
@@ -154,6 +177,9 @@ class SqliteStorage implements LocalStorage {
       ''');
       await db.execute('DROP TABLE locations');
       await db.execute('ALTER TABLE locations_new RENAME TO locations');
+    }
+    if (oldVersion < 6) {
+      await _createAlarmsTable(db);
     }
   }
 
@@ -562,5 +588,28 @@ class SqliteStorage implements LocalStorage {
   Future<void> deleteLocation(String locationId) async {
     final db = await database;
     await db.delete('locations', where: 'id = ?', whereArgs: [locationId]);
+  }
+
+  @override
+  Future<List<Alarm>> getAlarms() async {
+    final db = await database;
+    final rows = await db.query('alarms', orderBy: 'id');
+    return rows.map(Alarm.fromMap).toList();
+  }
+
+  @override
+  Future<void> saveAlarm(Alarm alarm) async {
+    final db = await database;
+    await db.insert(
+      'alarms',
+      alarm.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  @override
+  Future<void> deleteAlarm(String id) async {
+    final db = await database;
+    await db.delete('alarms', where: 'id = ?', whereArgs: [id]);
   }
 }

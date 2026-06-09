@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
+import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/core/models/calculation_settings.dart';
 import 'package:ezanvakti/core/interfaces/notification_service.dart';
 import 'package:ezanvakti/core/interfaces/prayer_time_provider.dart';
@@ -216,6 +217,19 @@ class MockLocalStorage implements LocalStorage {
   @override
   Future<DateTime?> getLastUpdateTime() async {
     return _lastUpdateTime;
+  }
+
+  final List<Alarm> _alarms = [];
+  @override
+  Future<List<Alarm>> getAlarms() async => List.from(_alarms);
+  @override
+  Future<void> saveAlarm(Alarm alarm) async {
+    _alarms.removeWhere((a) => a.id == alarm.id);
+    _alarms.add(alarm);
+  }
+  @override
+  Future<void> deleteAlarm(String id) async {
+    _alarms.removeWhere((a) => a.id == id);
   }
 
   Map<String, List<PrayerTime>> get cacheForTesting => _prayerTimesCache;
