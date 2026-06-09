@@ -8,6 +8,7 @@ import '../../core/interfaces/local_storage.dart';
 import '../../core/utils/app_logger.dart';
 import '../../features/prayer_times/domain/prayer_times_repository.dart';
 import '../../features/notifications/domain/notification_scheduler.dart';
+import '../../features/alarms/domain/alarm_scheduler.dart';
 import '../../features/notifications/domain/notification_settings_manager.dart';
 import '../../features/location/domain/location_repository.dart';
 import '../../features/location/domain/location_service.dart';
@@ -98,7 +99,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         location: location,
         prayerTimes: prayerTimes,
       );
-      AppLogger().debug('Notifications rescheduled on resume');
+      await ServiceLocator().get<AlarmScheduler>().scheduleAlarms(
+        prayerTimes: prayerTimes,
+      );
+      AppLogger().debug('Notifications + alarms rescheduled on resume');
     } catch (e) {
       AppLogger().warning('Resume reschedule failed (ignored)', e);
     }
@@ -234,6 +238,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       final scheduler = ServiceLocator().get<NotificationScheduler>();
       await scheduler.scheduleNotifications(
         location: location,
+        prayerTimes: prayerTimes,
+      );
+      // Alarmları da güncel vakitlerle planla.
+      await ServiceLocator().get<AlarmScheduler>().scheduleAlarms(
         prayerTimes: prayerTimes,
       );
     }

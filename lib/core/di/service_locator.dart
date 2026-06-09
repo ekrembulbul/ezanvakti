@@ -9,6 +9,10 @@ import '../../features/location/domain/location_monitor_service.dart';
 import '../../features/notifications/data/flutter_local_notification_service.dart';
 import '../../features/notifications/domain/notification_scheduler.dart';
 import '../../features/notifications/domain/notification_settings_manager.dart';
+import '../interfaces/alarm_service.dart';
+import '../../features/alarms/data/native_alarm_service.dart';
+import '../../features/alarms/domain/alarm_scheduler.dart';
+import '../../features/alarms/domain/alarms_manager.dart';
 import '../interfaces/prayer_time_provider.dart';
 import '../interfaces/local_storage.dart';
 import '../interfaces/notification_service.dart';
@@ -103,6 +107,13 @@ class ServiceLocator {
     register<LocationMonitorService>(locationMonitorService);
 
     register<ExactAlarmService>(ExactAlarmService());
+
+    final AlarmService alarmService = NativeAlarmService();
+    register<AlarmService>(alarmService);
+    register<AlarmScheduler>(
+      AlarmScheduler(alarmService: alarmService, storage: localStorage),
+    );
+    register<AlarmsManager>(AlarmsManager(storage: localStorage));
   }
 
   Future<void> dispose() async {
