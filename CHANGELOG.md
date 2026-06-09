@@ -4,6 +4,17 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.1.15] - 2026-06-09
+
+### Eklendi
+- Android dağıtım altyapısı: Play internal testing'e otomatik yükleme (GitHub Actions + fastlane), mağaza varlıkları ve Data Safety dokümanları.
+- Tek tag ile iOS + Android yayını; gerektiğinde tek platforma sürüm (`--ios` / `--android`).
+
+### Değiştirildi
+- Android bildirim durum çubuğu ikonu monokrom hale getirildi (beyaz kare görünümü giderildi).
+
+> Not: Bu sürümde iOS tarafında kullanıcıya yönelik davranış değişikliği yoktur; değişiklikler Android dağıtım altyapısı ve ortak araçlarla ilgilidir.
+
 ## [0.1.14] - 2026-06-07
 
 ### Değiştirildi
@@ -139,6 +150,7 @@ Bildirim güvenilirliği düzeltmeleri.
 - Her ekran boyutuna uyan, kaydırmasız ana ekran; karanlık tema.
 - Takvim, bildirim ve ayarları toplayan modern menü.
 
+[0.1.15]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.15
 [0.1.14]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.14
 [0.1.13]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.13
 [0.1.12]: https://github.com/ekrembulbul/ezanvakti/releases/tag/v0.1.12
