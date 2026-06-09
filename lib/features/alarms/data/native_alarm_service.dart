@@ -4,26 +4,29 @@ import 'package:flutter/services.dart';
 
 import '../../../core/interfaces/alarm_service.dart';
 
-/// Android tarafında native alarm modülüyle (AlarmManager + tam ekran çalar +
-/// foreground service) konuşan [AlarmService] gerçeklemesi.
-class AndroidAlarmService implements AlarmService {
+/// Native alarm modülüyle (Android: AlarmManager + tam ekran çalar; iOS 26+:
+/// AlarmKit) tek bir platform channel üzerinden konuşan [AlarmService].
+/// Desteklenmeyen platformlarda (web/masaüstü, iOS < 26) güvenle no-op döner.
+class NativeAlarmService implements AlarmService {
   static const _channel = MethodChannel('com.ekrembulbul.ezanvakti/alarm');
+
+  bool get _hasNative => Platform.isAndroid || Platform.isIOS;
 
   @override
   Future<bool> isSupported() async {
-    if (!Platform.isAndroid) return false;
+    if (!_hasNative) return false;
     return await _channel.invokeMethod<bool>('isSupported') ?? false;
   }
 
   @override
   Future<bool> requestPermission() async {
-    if (!Platform.isAndroid) return false;
+    if (!_hasNative) return false;
     return await _channel.invokeMethod<bool>('requestPermission') ?? false;
   }
 
   @override
   Future<bool> isPermissionGranted() async {
-    if (!Platform.isAndroid) return false;
+    if (!_hasNative) return false;
     return await _channel.invokeMethod<bool>('isPermissionGranted') ?? false;
   }
 
@@ -37,7 +40,7 @@ class AndroidAlarmService implements AlarmService {
     required bool snoozeEnabled,
     required int snoozeMinutes,
   }) async {
-    if (!Platform.isAndroid) return;
+    if (!_hasNative) return;
     await _channel.invokeMethod('scheduleAlarm', {
       'id': id,
       'timeMillis': scheduledTime.millisecondsSinceEpoch,
@@ -51,13 +54,13 @@ class AndroidAlarmService implements AlarmService {
 
   @override
   Future<void> cancelAlarm(String id) async {
-    if (!Platform.isAndroid) return;
+    if (!_hasNative) return;
     await _channel.invokeMethod('cancelAlarm', {'id': id});
   }
 
   @override
   Future<void> cancelAllAlarms() async {
-    if (!Platform.isAndroid) return;
+    if (!_hasNative) return;
     await _channel.invokeMethod('cancelAllAlarms');
   }
 }
