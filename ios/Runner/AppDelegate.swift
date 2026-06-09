@@ -1,3 +1,4 @@
+import ActivityKit
 import AlarmKit
 import Flutter
 import Foundation
@@ -94,6 +95,7 @@ class AlarmKitHandler {
     let label = args["label"] as? String ?? ""
     let date = Date(timeIntervalSince1970: Double(timeMillis) / 1000.0)
     let uuid = uuidFor(idStr)
+    let sound = alertSound(args["soundId"] as? String)
 
     let title: LocalizedStringResource =
       label.isEmpty ? "Ezan Vakti & Alarm" : LocalizedStringResource(stringLiteral: label)
@@ -104,7 +106,7 @@ class AlarmKitHandler {
     let attributes = AlarmAttributes<EzanAlarmMetadata>(
       presentation: presentation, metadata: EzanAlarmMetadata(), tintColor: Color.yellow)
     let config = AlarmManager.AlarmConfiguration.alarm(
-      schedule: .fixed(date), attributes: attributes)
+      schedule: .fixed(date), attributes: attributes, sound: sound)
 
     Task {
       do {
@@ -114,6 +116,18 @@ class AlarmKitHandler {
         result(FlutterError(code: "schedule_failed", message: "\(error)", details: nil))
       }
     }
+  }
+
+  /// soundId bundle'da bir ses dosyasına (ör. adhan.caf) karşılık geliyorsa onu,
+  /// yoksa sistemin varsayılan alarm sesini döner. Gömülü ses dosyaları
+  /// eklendiğinde ek koda gerek kalmadan çalışır.
+  @available(iOS 26.0, *)
+  private func alertSound(_ soundId: String?) -> ActivityKit.AlertConfiguration.AlertSound {
+    guard let id = soundId, id != "default", !id.isEmpty else { return .default }
+    let hasFile = ["caf", "aiff", "wav", "mp3"].contains {
+      Bundle.main.url(forResource: id, withExtension: $0) != nil
+    }
+    return hasFile ? .named(id) : .default
   }
 
   private func cancel(idStr: String) {

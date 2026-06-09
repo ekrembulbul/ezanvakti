@@ -22,11 +22,14 @@ class _AlarmsScreenState extends State<AlarmsScreen> {
   final _manager = ServiceLocator().get<AlarmsManager>();
   List<Alarm> _alarms = [];
   bool _loading = true;
+  bool _supported = true;
+  bool _granted = true;
 
   @override
   void initState() {
     super.initState();
     _load();
+    _refreshPermissionState();
   }
 
   Future<void> _load() async {
@@ -37,6 +40,23 @@ class _AlarmsScreenState extends State<AlarmsScreen> {
         _loading = false;
       });
     }
+  }
+
+  Future<void> _refreshPermissionState() async {
+    final service = ServiceLocator().get<AlarmService>();
+    final supported = await service.isSupported();
+    final granted = supported ? await service.isPermissionGranted() : false;
+    if (mounted) {
+      setState(() {
+        _supported = supported;
+        _granted = granted;
+      });
+    }
+  }
+
+  Future<void> _requestPermission() async {
+    await ServiceLocator().get<AlarmService>().requestPermission();
+    await _refreshPermissionState();
   }
 
   Future<void> _reschedule() async {
@@ -52,6 +72,7 @@ class _AlarmsScreenState extends State<AlarmsScreen> {
     if (!await service.isPermissionGranted()) {
       await service.requestPermission();
     }
+    await _refreshPermissionState();
   }
 
   Future<void> _addOrEdit([Alarm? existing]) async {
@@ -84,6 +105,7 @@ class _AlarmsScreenState extends State<AlarmsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final banner = _permissionBanner();
     return Scaffold(
       backgroundColor: AppTheme.primaryDark,
       appBar: AppBar(
@@ -101,19 +123,78 @@ class _AlarmsScreenState extends State<AlarmsScreen> {
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: AppTheme.gold))
-          : _alarms.isEmpty
-          ? _empty()
-          : ListView.separated(
-              padding: const EdgeInsets.fromLTRB(12, 12, 12, 96),
-              itemCount: _alarms.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 10),
-              itemBuilder: (_, i) => _AlarmCard(
-                alarm: _alarms[i],
-                onTap: () => _addOrEdit(_alarms[i]),
-                onToggle: (v) => _toggle(_alarms[i], v),
-                onDelete: () => _delete(_alarms[i]),
+          : Column(
+              children: [
+                ?banner,
+                Expanded(
+                  child: _alarms.isEmpty
+                      ? _empty()
+                      : ListView.separated(
+                          padding: const EdgeInsets.fromLTRB(12, 12, 12, 96),
+                          itemCount: _alarms.length,
+                          separatorBuilder: (_, _) => const SizedBox(height: 10),
+                          itemBuilder: (_, i) => _AlarmCard(
+                            alarm: _alarms[i],
+                            onTap: () => _addOrEdit(_alarms[i]),
+                            onToggle: (v) => _toggle(_alarms[i], v),
+                            onDelete: () => _delete(_alarms[i]),
+                          ),
+                        ),
+                ),
+              ],
+            ),
+    );
+  }
+
+  /// iOS < 26'da destek yok; izin verilmemişse uyarı + "İzin ver" gösterir.
+  /// Her şey yolundaysa null döner (banner gizli).
+  Widget? _permissionBanner() {
+    if (!_supported) {
+      return _banner(
+        icon: Icons.info_outline_rounded,
+        text:
+            'Sesli alarm bu cihazda desteklenmiyor (iOS 26 ve üzeri gerekir). '
+            'Alarmlar kaydedilir ancak çalmaz.',
+      );
+    }
+    if (!_granted) {
+      return _banner(
+        icon: Icons.notifications_off_rounded,
+        text: 'Alarmların çalması için izin gerekiyor.',
+        action: TextButton(
+          onPressed: _requestPermission,
+          child: const Text('İzin ver', style: TextStyle(color: AppTheme.gold)),
+        ),
+      );
+    }
+    return null;
+  }
+
+  Widget _banner({required IconData icon, required String text, Widget? action}) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: AppTheme.gold.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppTheme.gold.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: AppTheme.gold, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.85),
+                fontSize: 12.5,
               ),
             ),
+          ),
+          ?action,
+        ],
+      ),
     );
   }
 

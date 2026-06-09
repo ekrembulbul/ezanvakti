@@ -10,6 +10,7 @@ import android.content.Intent
 import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Build
 import android.os.IBinder
 import android.os.VibrationEffect
@@ -81,10 +82,8 @@ class AlarmRingService : Service() {
     }
 
     private fun startRinging(args: AlarmArgs) {
-        // Faz 4'te soundId -> gömülü ses (raw) eşlenecek; şimdilik varsayılan alarm sesi.
-        val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
-            ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
-        try {
+        val uri = soundUriFor(args.soundId)
+        if (uri != null) try {
             player = MediaPlayer().apply {
                 setAudioAttributes(
                     AudioAttributes.Builder()
@@ -101,6 +100,20 @@ class AlarmRingService : Service() {
             // Ses çalınamazsa alarm yine de görünür kalır.
         }
         if (args.vibrate) startVibrate()
+    }
+
+    /** soundId res/raw altında bir kaynağa (ör. raw/adhan) karşılık geliyorsa onu,
+     *  yoksa sistemin varsayılan alarm sesini döner. Gömülü ses dosyaları
+     *  eklendiğinde (raw/<soundId>) ek koda gerek kalmadan çalışır. */
+    private fun soundUriFor(soundId: String): Uri? {
+        if (soundId.isNotBlank() && soundId != "default") {
+            val resId = resources.getIdentifier(soundId, "raw", packageName)
+            if (resId != 0) {
+                return Uri.parse("android.resource://$packageName/$resId")
+            }
+        }
+        return RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+            ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
     }
 
     private fun startVibrate() {

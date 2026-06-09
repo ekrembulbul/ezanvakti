@@ -32,6 +32,8 @@
 		<string>Namaz vakitlerini bulunduğunuz konuma göre göstermek için konum iznine ihtiyaç var.</string>
 		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 		<string>Namaz vakitlerini bulunduğunuz konuma göre göstermek için konum iznine ihtiyaç var.</string>
+		<key>NSAlarmKitUsageDescription</key>
+		<string>Namaz vakitleri ve seçtiğiniz saatler için sesli alarm kurmak amacıyla alarm iznine ihtiyaç var.</string>
 		<key>UIApplicationSceneManifest</key>
 		<dict>
 			<key>UIApplicationSupportsMultipleScenes</key>
