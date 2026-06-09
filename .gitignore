@@ -55,3 +55,6 @@ ios/.release.env
 ios/fastlane/report.xml
 ios/fastlane/Preview.html
 ios/fastlane/test_output/
+android/fastlane/report.xml
+android/fastlane/Preview.html
+android/fastlane/test_output/

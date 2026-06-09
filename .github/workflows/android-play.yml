@@ -1,0 +1,64 @@
+name: Android Play (internal)
+
+# Play uygulamasi olusturulup secret'lar eklenene kadar yalnizca elle tetiklenir.
+# Hazir olunca asagidaki 'push.tags' blogunu acarak iOS gibi tag-tetikli yapabilirsin.
+on:
+  workflow_dispatch:
+  # push:
+  #   tags:
+  #     - 'v*'
+
+jobs:
+  internal:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Java kurulumu
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Flutter kurulumu
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.44.1'
+          cache: true
+
+      - name: Bagimliliklar
+        run: flutter pub get
+
+      - name: Upload keystore'u ve key.properties'i yaz
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_B64" | base64 --decode > "$RUNNER_TEMP/upload.jks"
+          cat > android/key.properties <<EOF
+          storePassword=$STORE_PASSWORD
+          keyPassword=$KEY_PASSWORD
+          keyAlias=$KEY_ALIAS
+          storeFile=$RUNNER_TEMP/upload.jks
+          EOF
+
+      - name: AAB derle (imzali release)
+        run: flutter build appbundle --release
+
+      - name: Play service account anahtarini yaz
+        env:
+          PLAY_JSON_B64: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON_BASE64 }}
+        run: echo "$PLAY_JSON_B64" | base64 --decode > "$RUNNER_TEMP/play.json"
+
+      - name: Play internal testing'e yukle (fastlane supply)
+        working-directory: android
+        env:
+          PLAY_JSON_KEY_PATH: ${{ runner.temp }}/play.json
+        run: |
+          bundle install
+          bundle exec fastlane internal

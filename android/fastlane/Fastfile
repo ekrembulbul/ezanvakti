@@ -1,0 +1,17 @@
+default_platform(:android)
+
+platform :android do
+  desc "AAB'yi Play Console internal testing track'ine yukle"
+  lane :internal do
+    upload_to_play_store(
+      track: "internal",
+      aab: "../build/app/outputs/bundle/release/app-release.aab",
+      # Yalnizca AAB yuklenir; magaza metni/gorseller Play Console'dan yonetilir.
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      release_status: "draft",
+    )
+  end
+end
