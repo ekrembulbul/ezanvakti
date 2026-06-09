@@ -8,6 +8,7 @@ Future<void> showHomeMenu(
   BuildContext context, {
   VoidCallback? onCalendar,
   VoidCallback? onNotifications,
+  VoidCallback? onAlarms,
   VoidCallback? onSettings,
 }) {
   return showModalBottomSheet<void>(
@@ -17,6 +18,7 @@ Future<void> showHomeMenu(
     builder: (context) => _HomeMenuSheet(
       onCalendar: onCalendar,
       onNotifications: onNotifications,
+      onAlarms: onAlarms,
       onSettings: onSettings,
     ),
   );
@@ -25,11 +27,13 @@ Future<void> showHomeMenu(
 class _HomeMenuSheet extends StatelessWidget {
   final VoidCallback? onCalendar;
   final VoidCallback? onNotifications;
+  final VoidCallback? onAlarms;
   final VoidCallback? onSettings;
 
   const _HomeMenuSheet({
     this.onCalendar,
     this.onNotifications,
+    this.onAlarms,
     this.onSettings,
   });
 
@@ -82,6 +86,18 @@ class _HomeMenuSheet extends StatelessWidget {
                   : () {
                       Navigator.of(context).pop();
                       onNotifications!();
+                    },
+            ),
+            const SizedBox(height: 10),
+            _MenuItem(
+              icon: Icons.alarm_rounded,
+              title: 'Alarmlar',
+              subtitle: 'Sesli alarm: sabit saat veya vakte göre',
+              onTap: onAlarms == null
+                  ? null
+                  : () {
+                      Navigator.of(context).pop();
+                      onAlarms!();
                     },
             ),
             const SizedBox(height: 10),

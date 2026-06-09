@@ -20,6 +20,7 @@ import '../screens/notification_settings_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/calculation_settings_screen.dart';
 import '../screens/location_list_screen.dart';
+import '../screens/alarms_screen.dart';
 import '../services/location_service.dart';
 import '../services/data_loader_service.dart';
 import '../controllers/location_monitor_controller.dart';
@@ -267,6 +268,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
   }
 
+  void _navigateToAlarms() {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const AlarmsScreen()));
+  }
+
   void _navigateToCalendar() {
     final appState = context.read<AppState>();
 
@@ -434,6 +441,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           onGpsRefresh: _manualGpsRefresh,
           onCalendarTap: _navigateToCalendar,
           onNotificationSettingsTap: _navigateToNotificationSettings,
+          onAlarmsTap: _navigateToAlarms,
           onSettingsTap: _navigateToSettings,
           onLocationTap: _navigateToLocationList,
         );
