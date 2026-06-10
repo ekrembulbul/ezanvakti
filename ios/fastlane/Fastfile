@@ -1,9 +1,15 @@
 default_platform(:ios)
 
 platform :ios do
-  desc "IPA derle ve TestFlight'a yukle"
+  # App Store dagitim profili (manuel imza). Apple portalindaki profil adiyla
+  # birebir ayni olmali.
+  APPSTORE_PROFILE_NAME = "com.ekrembulbul.ezanvakti AppStore"
+  APP_BUNDLE_ID = "com.ekrembulbul.ezanvakti"
+
+  desc "IPA derle ve TestFlight'a yukle (manuel imza)"
   lane :beta do
-    # App Store Connect API anahtari (imza profili uretimi + yukleme icin)
+    # App Store Connect API anahtari yalnizca YUKLEME icin kullanilir; imza/profil
+    # uretimi yapilmaz (manuel imza). Boylece sertifika kotasi hic zorlanmaz.
     api_key = app_store_connect_api_key(
       key_id: ENV["ASC_KEY_ID"],
       issuer_id: ENV["ASC_ISSUER_ID"],
@@ -14,7 +20,7 @@ platform :ios do
     # CI icin gecici keychain olustur
     setup_ci
 
-    # Dagitim sertifikasini gecici keychain'e aktar
+    # Dagitim sertifikasini gecici keychain'e aktar (ozel anahtar dahil)
     import_certificate(
       certificate_path: ENV["CERT_PATH"],
       certificate_password: ENV["CERT_PASSWORD"],
@@ -22,13 +28,9 @@ platform :ios do
       keychain_password: "",
     )
 
-    # Otomatik imza: xcodebuild, API anahtariyla (Admin) gereken App Store profilini
-    # kendisi olusturup indirir (-allowProvisioningUpdates). Imzalama icin yetkilendirme
-    # bayraklari xcodebuild'e acikca verilir.
-    auth = "-authenticationKeyPath #{ENV['ASC_KEY_PATH']} " \
-           "-authenticationKeyID #{ENV['ASC_KEY_ID']} " \
-           "-authenticationKeyIssuerID #{ENV['ASC_ISSUER_ID']}"
-
+    # Manuel imza: xcodebuild yalnizca verilen sertifika + profili kullanir;
+    # App Store Connect'e gidip sertifika/profil URETMEZ. -allowProvisioningUpdates
+    # bilerek kaldirildi. Provisioning profil workflow adiminda kuruldu.
     build_app(
       workspace: "Runner.xcworkspace",
       scheme: "Runner",
@@ -36,11 +38,16 @@ platform :ios do
       # IPA adi bosluksuz olsun; CFBundleName 'Ezan Vakti' bosluklu IPA uretiyor ve
       # yeni altool (Xcode 26.3 / fastlane 2.236) bosluklu yolu acamiyordu (hata 259).
       output_name: "ezanvakti",
-      xcargs: "-allowProvisioningUpdates #{auth} " \
-              "DEVELOPMENT_TEAM=#{ENV['APPLE_TEAM_ID']} CODE_SIGN_STYLE=Automatic",
+      xcargs: "DEVELOPMENT_TEAM=#{ENV['APPLE_TEAM_ID']} " \
+              "CODE_SIGN_STYLE=Manual " \
+              "PROVISIONING_PROFILE_SPECIFIER=\"#{APPSTORE_PROFILE_NAME}\" " \
+              "CODE_SIGN_IDENTITY=\"Apple Distribution\"",
       export_options: {
         teamID: ENV["APPLE_TEAM_ID"],
-        signingStyle: "automatic",
+        signingStyle: "manual",
+        provisioningProfiles: {
+          APP_BUNDLE_ID => APPSTORE_PROFILE_NAME,
+        },
       },
     )
 
