@@ -28,9 +28,21 @@ platform :ios do
       keychain_password: "",
     )
 
-    # Manuel imza: xcodebuild yalnizca verilen sertifika + profili kullanir;
-    # App Store Connect'e gidip sertifika/profil URETMEZ. -allowProvisioningUpdates
-    # bilerek kaldirildi. Provisioning profil workflow adiminda kuruldu.
+    # Manuel imzayi YALNIZCA Runner uygulamasina uygula. Global xcargs verilirse
+    # profil tum Pod (framework) hedeflerine de dayatilir ve "does not support
+    # provisioning profiles" hatasi alinir; framework'ler profil kabul etmez.
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: "Runner.xcodeproj",
+      team_id: ENV["APPLE_TEAM_ID"],
+      code_sign_identity: "Apple Distribution",
+      bundle_identifier: APP_BUNDLE_ID,
+      profile_name: APPSTORE_PROFILE_NAME,
+      targets: ["Runner"],
+    )
+
+    # xcodebuild yalnizca verilen sertifika + profili kullanir; App Store Connect'e
+    # gidip sertifika/profil URETMEZ. -allowProvisioningUpdates bilerek kaldirildi.
     build_app(
       workspace: "Runner.xcworkspace",
       scheme: "Runner",
@@ -38,10 +50,6 @@ platform :ios do
       # IPA adi bosluksuz olsun; CFBundleName 'Ezan Vakti' bosluklu IPA uretiyor ve
       # yeni altool (Xcode 26.3 / fastlane 2.236) bosluklu yolu acamiyordu (hata 259).
       output_name: "ezanvakti",
-      xcargs: "DEVELOPMENT_TEAM=#{ENV['APPLE_TEAM_ID']} " \
-              "CODE_SIGN_STYLE=Manual " \
-              "PROVISIONING_PROFILE_SPECIFIER=\"#{APPSTORE_PROFILE_NAME}\" " \
-              "CODE_SIGN_IDENTITY=\"Apple Distribution\"",
       export_options: {
         teamID: ENV["APPLE_TEAM_ID"],
         signingStyle: "manual",
