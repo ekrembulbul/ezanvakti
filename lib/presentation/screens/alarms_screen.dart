@@ -1,4 +1,4 @@
-import 'package:file_picker/file_picker.dart';
+import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -625,11 +625,16 @@ class _AlarmEditScreenState extends State<_AlarmEditScreen> {
   }
 
   Future<void> _pickCustomSound() async {
-    final result = await FilePicker.pickFiles(type: FileType.audio);
-    final path = result?.files.single.path;
-    if (path == null) return;
+    const audioGroup = XTypeGroup(
+      label: 'Ses',
+      extensions: ['mp3', 'm4a', 'aac', 'wav', 'aiff', 'aif', 'caf', 'flac', 'ogg'],
+      mimeTypes: ['audio/*'],
+      uniformTypeIdentifiers: ['public.audio'],
+    );
+    final file = await openFile(acceptedTypeGroups: [audioGroup]);
+    if (file == null) return;
     final soundId = await ServiceLocator().get<AlarmService>().importCustomSound(
-      path,
+      file.path,
     );
     if (!mounted) return;
     if (soundId == null) {
@@ -640,7 +645,7 @@ class _AlarmEditScreenState extends State<_AlarmEditScreen> {
     }
     setState(() {
       _soundId = soundId;
-      _customSoundName = path.split('/').last;
+      _customSoundName = file.name;
     });
   }
 
