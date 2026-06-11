@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/providers/app_state.dart';
 import '../../core/di/service_locator.dart';
+import '../../core/theme/app_theme.dart';
 import '../../core/models/location.dart';
 import '../../core/models/calculation_settings.dart';
 import '../../core/interfaces/local_storage.dart';
@@ -35,6 +36,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   LocationMonitorController? _locationMonitorController;
   bool _isRefreshingGps = false;
+  int _tabIndex = 0;
   DateTime? _lastResumeReschedule;
   late final GpsLocationService _locationService;
   late final DataLoaderService _dataLoaderService;
@@ -268,12 +270,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
   }
 
-  void _navigateToAlarms() {
-    Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (context) => const AlarmsScreen()));
-  }
-
   void _navigateToCalendar() {
     final appState = context.read<AppState>();
 
@@ -428,24 +424,74 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AppState>(
-      builder: (context, appState, child) {
-        return HomeScreen(
-          location: appState.activeLocation!,
-          todaysPrayerTime: appState.todaysPrayerTime,
-          tomorrowsPrayerTime: appState.tomorrowsPrayerTime,
-          lastUpdateTime: appState.lastUpdateTime,
-          isLoading: appState.isLoading,
-          errorMessage: appState.errorMessage,
-          onRefresh: _refreshData,
-          onGpsRefresh: _manualGpsRefresh,
-          onCalendarTap: _navigateToCalendar,
-          onNotificationSettingsTap: _navigateToNotificationSettings,
-          onAlarmsTap: _navigateToAlarms,
-          onSettingsTap: _navigateToSettings,
-          onLocationTap: _navigateToLocationList,
-        );
-      },
+    return Scaffold(
+      backgroundColor: AppTheme.primaryDark,
+      body: IndexedStack(
+        index: _tabIndex,
+        children: [
+          Consumer<AppState>(
+            builder: (context, appState, child) {
+              return HomeScreen(
+                location: appState.activeLocation!,
+                todaysPrayerTime: appState.todaysPrayerTime,
+                tomorrowsPrayerTime: appState.tomorrowsPrayerTime,
+                lastUpdateTime: appState.lastUpdateTime,
+                isLoading: appState.isLoading,
+                errorMessage: appState.errorMessage,
+                onRefresh: _refreshData,
+                onGpsRefresh: _manualGpsRefresh,
+                onCalendarTap: _navigateToCalendar,
+                onNotificationSettingsTap: _navigateToNotificationSettings,
+                onSettingsTap: _navigateToSettings,
+                onLocationTap: _navigateToLocationList,
+              );
+            },
+          ),
+          const AlarmsScreen(),
+        ],
+      ),
+      bottomNavigationBar: _buildBottomNav(),
+    );
+  }
+
+  Widget _buildBottomNav() {
+    return NavigationBarTheme(
+      data: NavigationBarThemeData(
+        backgroundColor: AppTheme.primaryDark,
+        indicatorColor: AppTheme.gold.withValues(alpha: 0.18),
+        labelTextStyle: WidgetStateProperty.resolveWith(
+          (states) => TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: states.contains(WidgetState.selected)
+                ? AppTheme.gold
+                : Colors.white60,
+          ),
+        ),
+        iconTheme: WidgetStateProperty.resolveWith(
+          (states) => IconThemeData(
+            color: states.contains(WidgetState.selected)
+                ? AppTheme.gold
+                : Colors.white60,
+          ),
+        ),
+      ),
+      child: NavigationBar(
+        selectedIndex: _tabIndex,
+        onDestinationSelected: (i) => setState(() => _tabIndex = i),
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.access_time_outlined),
+            selectedIcon: Icon(Icons.access_time_filled_rounded),
+            label: 'Vakitler',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.alarm_outlined),
+            selectedIcon: Icon(Icons.alarm_on_rounded),
+            label: 'Alarmlar',
+          ),
+        ],
+      ),
     );
   }
 }

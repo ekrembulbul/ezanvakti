@@ -21,7 +21,6 @@ class HomeScreen extends StatefulWidget {
   final VoidCallback? onCalendarTap;
   final VoidCallback? onSettingsTap;
   final VoidCallback? onNotificationSettingsTap;
-  final VoidCallback? onAlarmsTap;
   final VoidCallback? onRefresh;
   final VoidCallback? onGpsRefresh;
   final VoidCallback? onLocationTap;
@@ -38,7 +37,6 @@ class HomeScreen extends StatefulWidget {
     this.onCalendarTap,
     this.onSettingsTap,
     this.onNotificationSettingsTap,
-    this.onAlarmsTap,
     this.onRefresh,
     this.onGpsRefresh,
     this.onLocationTap,
@@ -75,7 +73,6 @@ class _HomeScreenState extends State<HomeScreen> {
       context,
       onCalendar: widget.onCalendarTap,
       onNotifications: widget.onNotificationSettingsTap,
-      onAlarms: widget.onAlarmsTap,
       onSettings: widget.onSettingsTap,
     );
   }
