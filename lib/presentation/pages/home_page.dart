@@ -473,7 +473,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
           child: Row(
             children: [
               _navItem(0, Icons.access_time_rounded, 'Vakitler'),
@@ -496,12 +496,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           duration: const Duration(milliseconds: 220),
           curve: Curves.easeOut,
           margin: const EdgeInsets.symmetric(horizontal: 6),
-          padding: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(vertical: 6),
           decoration: BoxDecoration(
             color: selected
                 ? AppTheme.gold.withValues(alpha: 0.14)
                 : Colors.transparent,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: selected
                   ? AppTheme.gold.withValues(alpha: 0.45)
@@ -511,12 +511,12 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 22, color: color),
-              const SizedBox(height: 4),
+              Icon(icon, size: 20, color: color),
+              const SizedBox(height: 2),
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                   color: color,
                 ),

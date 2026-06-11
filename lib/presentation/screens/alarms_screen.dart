@@ -13,6 +13,7 @@ import '../../core/theme/app_theme.dart';
 import '../../features/alarms/domain/alarm_scheduler.dart';
 import '../../features/alarms/domain/alarms_manager.dart';
 import '../utils/prayer_name_helper.dart';
+import '../widgets/common/app_bar_widgets.dart';
 
 class AlarmsScreen extends StatefulWidget {
   const AlarmsScreen({super.key});
@@ -110,13 +111,8 @@ class _AlarmsScreenState extends State<AlarmsScreen> {
   Widget build(BuildContext context) {
     final banner = _permissionBanner();
     return Scaffold(
-      backgroundColor: AppTheme.primaryDark,
-      appBar: AppBar(
-        title: const Text('Alarmlar'),
-        backgroundColor: AppTheme.primaryMedium,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
+      extendBodyBehindAppBar: true,
+      appBar: const SimpleAppBar(title: 'Alarmlar', showBack: false),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _addOrEdit(),
         backgroundColor: AppTheme.gold,
@@ -124,28 +120,36 @@ class _AlarmsScreenState extends State<AlarmsScreen> {
         icon: const Icon(Icons.add),
         label: const Text('Alarm ekle'),
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.gold))
-          : Column(
-              children: [
-                ?banner,
-                Expanded(
-                  child: _alarms.isEmpty
-                      ? _empty()
-                      : ListView.separated(
-                          padding: const EdgeInsets.fromLTRB(12, 12, 12, 96),
-                          itemCount: _alarms.length,
-                          separatorBuilder: (_, _) => const SizedBox(height: 10),
-                          itemBuilder: (_, i) => _AlarmCard(
-                            alarm: _alarms[i],
-                            onTap: () => _addOrEdit(_alarms[i]),
-                            onToggle: (v) => _toggle(_alarms[i], v),
-                            onDelete: () => _delete(_alarms[i]),
-                          ),
-                        ),
+      body: Container(
+        decoration: const BoxDecoration(gradient: AppTheme.nightGradient),
+        child: SafeArea(
+          child: _loading
+              ? const Center(
+                  child: CircularProgressIndicator(color: AppTheme.gold),
+                )
+              : Column(
+                  children: [
+                    ?banner,
+                    Expanded(
+                      child: _alarms.isEmpty
+                          ? _empty()
+                          : ListView.separated(
+                              padding: const EdgeInsets.fromLTRB(12, 12, 12, 96),
+                              itemCount: _alarms.length,
+                              separatorBuilder: (_, _) =>
+                                  const SizedBox(height: 10),
+                              itemBuilder: (_, i) => _AlarmCard(
+                                alarm: _alarms[i],
+                                onTap: () => _addOrEdit(_alarms[i]),
+                                onToggle: (v) => _toggle(_alarms[i], v),
+                                onDelete: () => _delete(_alarms[i]),
+                              ),
+                            ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+        ),
+      ),
     );
   }
 
@@ -424,12 +428,10 @@ class _AlarmEditScreenState extends State<_AlarmEditScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.primaryDark,
-      appBar: AppBar(
-        title: Text(widget.alarm == null ? 'Alarm ekle' : 'Alarmı düzenle'),
-        backgroundColor: AppTheme.primaryMedium,
-        foregroundColor: Colors.white,
-        elevation: 0,
+      // Transparent SimpleAppBar arkasında gradient'in üst rengi görünür → kesintisiz.
+      backgroundColor: const Color(0xFF0D1B2A),
+      appBar: SimpleAppBar(
+        title: widget.alarm == null ? 'Alarm ekle' : 'Alarmı düzenle',
         actions: [
           TextButton(
             onPressed: _save,
@@ -437,9 +439,11 @@ class _AlarmEditScreenState extends State<_AlarmEditScreen> {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
+      body: Container(
+        decoration: const BoxDecoration(gradient: AppTheme.nightGradient),
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
           _kindToggle(),
           const SizedBox(height: 16),
           if (_kind == AlarmKind.fixed) _fixedSection() else _anchoredSection(),
@@ -455,7 +459,8 @@ class _AlarmEditScreenState extends State<_AlarmEditScreen> {
             setState(() => _snoozeEnabled = v);
           }),
           if (_snoozeEnabled) _snoozeMinutesSelector(),
-        ],
+          ],
+        ),
       ),
     );
   }
