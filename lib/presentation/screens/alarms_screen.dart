@@ -1,7 +1,9 @@
 import 'package:file_selector/file_selector.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/constants/notification_constants.dart';
 import '../../core/di/service_locator.dart';
 import '../../core/interfaces/alarm_service.dart';
 import '../../core/models/alarm.dart';
@@ -317,7 +319,13 @@ String alarmSubtitle(Alarm alarm) {
 }
 
 String weekdaysLabel(Set<int> weekdays) {
-  if (weekdays.isEmpty) return 'Her gün';
+  if (weekdays.isEmpty || weekdays.length == 7) return 'Her gün';
+  if (weekdays.length == 5 && weekdays.containsAll(const {1, 2, 3, 4, 5})) {
+    return 'Hafta içi';
+  }
+  if (weekdays.length == 2 && weekdays.containsAll(const {6, 7})) {
+    return 'Hafta sonu';
+  }
   const names = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
   final sorted = weekdays.toList()..sort();
   return sorted.map((d) => names[d - 1]).join(', ');
@@ -357,7 +365,10 @@ class _AlarmEditScreenState extends State<_AlarmEditScreen> {
     _minute = a?.minute ?? now.minute;
     _anchor = a?.anchor ?? PrayerType.fajr;
     _offset = a?.offsetMinutes ?? 0;
-    _weekdays = {...(a?.weekdays ?? const <int>{})};
+    // Modelde boş küme = her gün. UI'da bunu 7 günün tamamı olarak gösteriyoruz
+    // ki "Her gün" hızlı seçimi ve gün çipleri tutarlı/senkron olsun.
+    final wd = a?.weekdays ?? const <int>{};
+    _weekdays = wd.isEmpty ? {1, 2, 3, 4, 5, 6, 7} : {...wd};
     _soundId = a?.soundId ?? 'adhan';
     _vibrate = a?.vibrate ?? true;
     _snoozeEnabled = a?.snoozeEnabled ?? true;
@@ -376,6 +387,9 @@ class _AlarmEditScreenState extends State<_AlarmEditScreen> {
 
   void _save() {
     final id = widget.alarm?.id ?? DateTime.now().microsecondsSinceEpoch.toString();
+    // 7 günün tamamı = "her gün" → modelde boş küme olarak sakla (etiket sade
+    // kalsın, repeats mantığı tutarlı olsun).
+    final weekdaysToSave = _weekdays.length == 7 ? <int>{} : _weekdays;
     final alarm = Alarm(
       id: id,
       kind: _kind,
@@ -385,7 +399,7 @@ class _AlarmEditScreenState extends State<_AlarmEditScreen> {
       minute: _minute,
       anchor: _anchor,
       offsetMinutes: _offset,
-      weekdays: _weekdays,
+      weekdays: weekdaysToSave,
       soundId: _soundId,
       vibrate: _vibrate,
       snoozeEnabled: _snoozeEnabled,
@@ -489,12 +503,16 @@ class _AlarmEditScreenState extends State<_AlarmEditScreen> {
   }
 
   Widget _anchoredSection() {
-    final before = _offset <= 0;
-    final minutes = _offset.abs();
-    return _section(
-      'Vakit ve sapma',
-      Column(
-        children: [
+    final maxOffset = NotificationConstants.getMaxMinutesBefore(_anchor);
+    final isBefore = _offset < 0;
+    final isAfter = _offset > 0;
+    final isExact = _offset == 0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _section(
+          'Vakit',
           DropdownButtonFormField<PrayerType>(
             initialValue: _anchor,
             dropdownColor: AppTheme.primaryMedium,
@@ -508,71 +526,264 @@ class _AlarmEditScreenState extends State<_AlarmEditScreen> {
                   ),
                 )
                 .toList(),
-            onChanged: (v) => setState(() => _anchor = v ?? _anchor),
+            onChanged: (v) => setState(() {
+              _anchor = v ?? _anchor;
+              // Yeni vaktin sınırını aşan sapmayı kırp.
+              final max = NotificationConstants.getMaxMinutesBefore(_anchor);
+              if (_offset.abs() > max) _offset = _offset.sign * max;
+            }),
           ),
-          const SizedBox(height: 12),
+        ),
+        const SizedBox(height: 16),
+        _section(
+          'Zamanlama',
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  _timeChip('Önce', isBefore, () {
+                    setState(() => _offset = -_anchorMagnitude(maxOffset));
+                  }),
+                  _timeChip('Tam vaktinde', isExact, () {
+                    setState(() => _offset = 0);
+                  }),
+                  _timeChip('Sonra', isAfter, () {
+                    setState(() => _offset = _anchorMagnitude(maxOffset));
+                  }),
+                ],
+              ),
+              if (!isExact) ...[
+                const SizedBox(height: 12),
+                _minutePicker(maxOffset, _offset.abs().clamp(1, maxOffset), isBefore),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Önce/Sonra'ya geçerken kullanılacak dakika büyüklüğü: mevcut sapma varsa
+  /// onu, yoksa makul bir varsayılanı (15 dk) vaktin sınırına kırparak döner.
+  int _anchorMagnitude(int maxOffset) {
+    final current = _offset.abs();
+    final base = current > 0 ? current : 15;
+    return base.clamp(1, maxOffset);
+  }
+
+  Widget _timeChip(String label, bool selected, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppTheme.gold.withValues(alpha: 0.2)
+              : Colors.white.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selected ? AppTheme.gold : Colors.white.withValues(alpha: 0.1),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected ? AppTheme.gold : Colors.white,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _minutePicker(int maxOffset, int magnitude, bool isBefore) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppTheme.gold.withValues(alpha: 0.35)),
+      ),
+      child: Column(
+        children: [
           Row(
             children: [
-              Expanded(
-                child: DropdownButtonFormField<bool>(
-                  initialValue: before,
-                  dropdownColor: AppTheme.primaryMedium,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: _fieldDecoration('Yön'),
-                  items: const [
-                    DropdownMenuItem(value: true, child: Text('Önce')),
-                    DropdownMenuItem(value: false, child: Text('Sonra')),
-                  ],
-                  onChanged: (v) => setState(() {
-                    final b = v ?? true;
-                    _offset = (b ? -1 : 1) * minutes;
-                  }),
+              Container(
+                padding: const EdgeInsets.all(9),
+                decoration: BoxDecoration(
+                  color: AppTheme.gold.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.access_time_rounded,
+                  color: AppTheme.gold,
+                  size: 18,
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextFormField(
-                  initialValue: minutes.toString(),
-                  keyboardType: TextInputType.number,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: _fieldDecoration('Dakika'),
-                  onChanged: (v) {
-                    final m = int.tryParse(v) ?? 0;
-                    setState(() => _offset = (before ? -1 : 1) * m);
-                  },
-                ),
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isBefore ? 'Vakitten önce' : 'Vakitten sonra',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                  Text(
+                    '1 - $maxOffset dk',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.55),
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
               ),
             ],
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            height: 140,
+            child: CupertinoPicker(
+              scrollController: FixedExtentScrollController(
+                initialItem: (magnitude - 1).clamp(0, maxOffset - 1),
+              ),
+              magnification: 1.1,
+              squeeze: 1.05,
+              useMagnifier: true,
+              itemExtent: 36,
+              selectionOverlay: CupertinoPickerDefaultSelectionOverlay(
+                background: Colors.white.withValues(alpha: 0.08),
+              ),
+              onSelectedItemChanged: (index) {
+                setState(() => _offset = (isBefore ? -1 : 1) * (index + 1));
+              },
+              children: List.generate(
+                maxOffset,
+                (i) => Center(
+                  child: Text(
+                    '${i + 1} dk',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
+  bool get _isEveryDay => _weekdays.length == 7;
+  bool get _isWeekdaysOnly =>
+      _weekdays.length == 5 && _weekdays.containsAll(const {1, 2, 3, 4, 5});
+
   Widget _weekdaysSelector() {
-    const names = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
-    return Wrap(
-      spacing: 6,
-      children: List.generate(7, (i) {
-        final day = i + 1;
-        final selected = _weekdays.contains(day);
-        return FilterChip(
-          label: Text(names[i]),
-          selected: selected,
-          showCheckmark: false,
-          backgroundColor: Colors.white.withValues(alpha: 0.05),
-          selectedColor: AppTheme.gold.withValues(alpha: 0.3),
-          labelStyle: const TextStyle(color: Colors.white),
-          onSelected: (v) => setState(() {
-            if (v) {
-              _weekdays.add(day);
-            } else {
-              _weekdays.remove(day);
-            }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            _quickChip('Her gün', _isEveryDay, () {
+              setState(() => _weekdays = {1, 2, 3, 4, 5, 6, 7});
+            }),
+            const SizedBox(width: 8),
+            _quickChip('Hafta içi', _isWeekdaysOnly, () {
+              setState(() => _weekdays = {1, 2, 3, 4, 5});
+            }),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: List.generate(7, (i) {
+            final day = i + 1;
+            return Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(right: i < 6 ? 6 : 0),
+                child: _dayCell(day),
+              ),
+            );
           }),
-        );
-      }),
+        ),
+      ],
     );
+  }
+
+  Widget _quickChip(String label, bool active, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+        decoration: BoxDecoration(
+          color: active
+              ? AppTheme.gold.withValues(alpha: 0.2)
+              : Colors.white.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: active ? AppTheme.gold : Colors.white.withValues(alpha: 0.1),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: active ? AppTheme.gold : Colors.white,
+            fontWeight: active ? FontWeight.w600 : FontWeight.w400,
+            fontSize: 13,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _dayCell(int day) {
+    const names = ['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pa'];
+    final selected = _weekdays.contains(day);
+    return GestureDetector(
+      onTap: () => _toggleDay(day),
+      child: Container(
+        height: 46,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: selected
+              ? AppTheme.gold.withValues(alpha: 0.2)
+              : Colors.white.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selected
+                ? AppTheme.gold
+                : Colors.white.withValues(alpha: 0.08),
+          ),
+        ),
+        child: Text(
+          names[day - 1],
+          style: TextStyle(
+            color: selected ? AppTheme.gold : Colors.white70,
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            fontSize: 13,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _toggleDay(int day) {
+    setState(() {
+      if (_weekdays.contains(day)) {
+        // En az bir gün seçili kalsın (alarmın hiç çalmaması anlamsız).
+        if (_weekdays.length > 1) _weekdays.remove(day);
+      } else {
+        _weekdays.add(day);
+      }
+    });
   }
 
   Widget _labelField() {
