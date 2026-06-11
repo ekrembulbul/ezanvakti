@@ -4,6 +4,15 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.2.1] - 2026-06-11
+
+### Değiştirildi
+- Alarmlar artık ana ekranda ayrı bir **alt sekmede** (önceki menü girişi kaldırıldı); namaz vakitleri ile alarmlar arasında tek dokunuşla geçiş.
+- Alarm ekleme ekranı yenilendi:
+  - Tekrar günleri tek satırda; **"Her gün"** ve **"Hafta içi"** hızlı seçimleri gün seçimiyle çift yönlü senkron çalışır.
+  - "Vakte göre" alarmlarda dakika seçimi artık (bildirimlerdeki gibi) **vakit-başına sınırlı tekerlek** ile yapılıyor; Önce / Tam vaktinde / Sonra.
+- Alarm ekranları uygulamanın geneliyle görsel olarak hizalandı (gece gradyanı, altın vurgular).
+
 ## [0.2.0] - 2026-06-09
 
 ### Eklendi
