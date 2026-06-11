@@ -462,6 +462,14 @@ class _AlarmEditScreenState extends State<_AlarmEditScreen> {
 
   Widget _kindToggle() {
     return SegmentedButton<AlarmKind>(
+      style: SegmentedButton.styleFrom(
+        backgroundColor: Colors.white.withValues(alpha: 0.05),
+        foregroundColor: Colors.white,
+        selectedBackgroundColor: AppTheme.gold,
+        selectedForegroundColor: AppTheme.primaryDark,
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
+        textStyle: const TextStyle(fontWeight: FontWeight.w600),
+      ),
       segments: const [
         ButtonSegment(value: AlarmKind.fixed, label: Text('Sabit saat')),
         ButtonSegment(value: AlarmKind.anchored, label: Text('Vakte göre')),
