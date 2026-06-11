@@ -455,42 +455,75 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   Widget _buildBottomNav() {
-    return NavigationBarTheme(
-      data: NavigationBarThemeData(
-        backgroundColor: AppTheme.primaryDark,
-        indicatorColor: AppTheme.gold.withValues(alpha: 0.18),
-        labelTextStyle: WidgetStateProperty.resolveWith(
-          (states) => TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: states.contains(WidgetState.selected)
-                ? AppTheme.gold
-                : Colors.white60,
-          ),
+    // Ana ekranın nightGradient'iyle uyumlu derin gece zemini; üstte ince ayraç.
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFF0D1B2A),
+        border: Border(
+          top: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
         ),
-        iconTheme: WidgetStateProperty.resolveWith(
-          (states) => IconThemeData(
-            color: states.contains(WidgetState.selected)
-                ? AppTheme.gold
-                : Colors.white60,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.25),
+            blurRadius: 16,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          child: Row(
+            children: [
+              _navItem(0, Icons.access_time_rounded, 'Vakitler'),
+              _navItem(1, Icons.alarm_rounded, 'Alarmlar'),
+            ],
           ),
         ),
       ),
-      child: NavigationBar(
-        selectedIndex: _tabIndex,
-        onDestinationSelected: (i) => setState(() => _tabIndex = i),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.access_time_outlined),
-            selectedIcon: Icon(Icons.access_time_filled_rounded),
-            label: 'Vakitler',
+    );
+  }
+
+  Widget _navItem(int index, IconData icon, String label) {
+    final selected = _tabIndex == index;
+    final color = selected ? AppTheme.gold : Colors.white54;
+    return Expanded(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => setState(() => _tabIndex = index),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOut,
+          margin: const EdgeInsets.symmetric(horizontal: 6),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: selected
+                ? AppTheme.gold.withValues(alpha: 0.14)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: selected
+                  ? AppTheme.gold.withValues(alpha: 0.45)
+                  : Colors.transparent,
+            ),
           ),
-          NavigationDestination(
-            icon: Icon(Icons.alarm_outlined),
-            selectedIcon: Icon(Icons.alarm_on_rounded),
-            label: 'Alarmlar',
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 22, color: color),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  color: color,
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
