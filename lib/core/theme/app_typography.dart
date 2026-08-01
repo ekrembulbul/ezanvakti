@@ -21,11 +21,19 @@ class AppTypography {
 
   static const List<FontFeature> _tabular = [FontFeature.tabularFigures()];
 
+  /// Degisken fontta agirlik `wght` ekseninden secilir; yalnizca [FontWeight]
+  /// vermek sentetik kalinlik uretir, gercek eksen degerini kullanmaz.
+  static const List<FontVariation> _w500 = [FontVariation('wght', 500)];
+  static const List<FontVariation> _w600 = [FontVariation('wght', 600)];
+  static const List<FontVariation> _w700 = [FontVariation('wght', 700)];
+  static const List<FontVariation> _w800 = [FontVariation('wght', 800)];
+
   /// Ana ekrandaki geri sayım.
   static const TextStyle counter = TextStyle(
     fontFamily: fontFamily,
     fontSize: 62,
     fontWeight: FontWeight.w800,
+    fontVariations: _w800,
     letterSpacing: -2.79,
     height: 1,
     fontFeatures: _tabular,
@@ -36,6 +44,7 @@ class AppTypography {
     fontFamily: fontFamily,
     fontSize: 17,
     fontWeight: FontWeight.w800,
+    fontVariations: _w800,
   );
 
   /// Liste satırı başlığı ve konum başlığı.
@@ -43,6 +52,7 @@ class AppTypography {
     fontFamily: fontFamily,
     fontSize: 16,
     fontWeight: FontWeight.w700,
+    fontVariations: _w700,
     letterSpacing: -0.24,
   );
 
@@ -51,6 +61,7 @@ class AppTypography {
     fontFamily: fontFamily,
     fontSize: 13,
     fontWeight: FontWeight.w500,
+    fontVariations: _w500,
   );
 
   /// Ana ekrandaki vakit ızgarasının saat değeri.
@@ -58,6 +69,7 @@ class AppTypography {
     fontFamily: fontFamily,
     fontSize: 17,
     fontWeight: FontWeight.w700,
+    fontVariations: _w700,
     letterSpacing: -0.43,
     fontFeatures: _tabular,
   );
@@ -67,6 +79,7 @@ class AppTypography {
     fontFamily: fontFamily,
     fontSize: 16,
     fontWeight: FontWeight.w700,
+    fontVariations: _w700,
     fontFeatures: _tabular,
   );
 
@@ -75,6 +88,7 @@ class AppTypography {
     fontFamily: fontFamily,
     fontSize: 12,
     fontWeight: FontWeight.w800,
+    fontVariations: _w800,
     letterSpacing: 2.4,
   );
 
@@ -83,6 +97,7 @@ class AppTypography {
     fontFamily: fontFamily,
     fontSize: 11,
     fontWeight: FontWeight.w800,
+    fontVariations: _w800,
     letterSpacing: 1.76,
   );
 
@@ -91,6 +106,7 @@ class AppTypography {
     fontFamily: fontFamily,
     fontSize: 11,
     fontWeight: FontWeight.w800,
+    fontVariations: _w800,
     letterSpacing: 0.66,
   );
 
@@ -99,6 +115,7 @@ class AppTypography {
     fontFamily: fontFamily,
     fontSize: 11,
     fontWeight: FontWeight.w800,
+    fontVariations: _w800,
     fontFeatures: _tabular,
   );
 
@@ -107,6 +124,7 @@ class AppTypography {
     fontFamily: fontFamily,
     fontSize: 14,
     fontWeight: FontWeight.w700,
+    fontVariations: _w700,
     letterSpacing: -0.14,
   );
 
@@ -115,6 +133,7 @@ class AppTypography {
     fontFamily: fontFamily,
     fontSize: 13,
     fontWeight: FontWeight.w600,
+    fontVariations: _w600,
   );
 
   /// Yardım ve alt bilgi metinleri.
@@ -122,6 +141,7 @@ class AppTypography {
     fontFamily: fontFamily,
     fontSize: 12,
     fontWeight: FontWeight.w500,
+    fontVariations: _w500,
   );
 
   /// Tanımlı tüm stiller. Ölçek denetimi bu liste üzerinden yapılır; yeni bir

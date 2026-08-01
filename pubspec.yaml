@@ -80,6 +80,15 @@ flutter:
   assets:
     - assets/icon/app_icon.png
 
+  # Manrope degisken font (wght ekseni 200-800). Tek dosya, 165 KB; dort
+  # statik agirlik yerine bu tercih edildi (~400 KB yerine 165 KB ve gercek
+  # eksen enterpolasyonu). Agirlik TextStyle.fontVariations ile secilir,
+  # bkz. lib/core/theme/app_typography.dart
+  fonts:
+    - family: Manrope
+      fonts:
+        - asset: assets/fonts/Manrope-Variable.ttf
+
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

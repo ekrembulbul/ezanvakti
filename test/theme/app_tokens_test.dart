@@ -144,5 +144,16 @@ void main() {
         expect(style.color, isNull);
       }
     });
+
+    test('Degisken font icin agirlik wght ekseninden secilir', () {
+      // Yalnizca fontWeight vermek degisken fontta sentetik kalinlik uretir;
+      // gercek eksen degeri fontVariations ile gelir ve ikisi tutarli olmali.
+      for (final style in AppTypography.all) {
+        final variations = style.fontVariations;
+        expect(variations, isNotNull, reason: '${style.fontSize}px');
+        expect(variations!.single.axis, 'wght');
+        expect(variations.single.value, style.fontWeight!.value.toDouble());
+      }
+    });
   });
 }
