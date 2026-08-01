@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import '../../core/models/location.dart';
-import '../../features/location/domain/location_monitor_service.dart';
-import '../../features/location/domain/location_repository.dart';
 import '../../core/utils/app_logger.dart';
+import '../../features/location/domain/location_monitor_service.dart';
+import '../../features/location/domain/location_service.dart';
 
 class LocationMonitorController {
   final LocationMonitorService _monitorService;
-  final LocationRepository _locationRepository;
+  final LocationService _locationService;
   final AppLogger _logger;
   final Function(Location) _onLocationChanged;
 
@@ -15,11 +15,11 @@ class LocationMonitorController {
 
   LocationMonitorController({
     required LocationMonitorService monitorService,
-    required LocationRepository locationRepository,
+    required LocationService locationService,
     required AppLogger logger,
     required Function(Location) onLocationChanged,
   }) : _monitorService = monitorService,
-       _locationRepository = locationRepository,
+       _locationService = locationService,
        _logger = logger,
        _onLocationChanged = onLocationChanged;
 
@@ -32,7 +32,11 @@ class LocationMonitorController {
       newLocation,
     ) async {
       _logger.debug('GPS location changed, refreshing prayer times');
-      await _locationRepository.setActiveLocation(newLocation);
+      // Tek kanonik yol: aktif konumu ayarlama, hesaplama parametresi degisince
+      // onbellek gecersizlestirme ve eski konumun bildirimlerini iptal etme
+      // domain LocationService'e delege edilir — manuel konum degisimiyle ayni
+      // davranis. Vakit verisini yeniden yuklemek cagirana (HomePage) aittir.
+      await _locationService.changeLocation(newLocation);
       _onLocationChanged(newLocation);
     });
 

@@ -115,7 +115,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     final appState = context.read<AppState>();
     _locationMonitorController = LocationMonitorController(
       monitorService: ServiceLocator().get<LocationMonitorService>(),
-      locationRepository: ServiceLocator().get<LocationRepository>(),
+      locationService: ServiceLocator().get<LocationService>(),
       logger: AppLogger(),
       onLocationChanged: (newLocation) async {
         appState.setActiveLocation(newLocation);
