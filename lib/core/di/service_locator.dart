@@ -18,6 +18,7 @@ import '../interfaces/local_storage.dart';
 import '../interfaces/notification_service.dart';
 import '../services/timezone_service.dart';
 import '../services/exact_alarm_service.dart';
+import '../theme/theme_controller.dart';
 import '../utils/app_logger.dart';
 
 class ServiceLocator {
@@ -114,6 +115,12 @@ class ServiceLocator {
       AlarmScheduler(alarmService: alarmService, storage: localStorage),
     );
     register<AlarmsManager>(AlarmsManager(storage: localStorage));
+
+    // Gorunum tercihleri acilista okunur; ilk frame dogru palette cizilsin.
+    final themeController = ThemeController(storage: localStorage);
+    await themeController.load();
+    register<ThemeController>(themeController);
+    logger.debug('ThemeController registered');
   }
 
   Future<void> dispose() async {
