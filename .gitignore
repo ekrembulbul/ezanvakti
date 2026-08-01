@@ -51,6 +51,9 @@ app.*.map.json
 # iOS release secrets (Issuer ID vb.) — repoya konmaz
 ios/.release.env
 
+# integration_test ile uretilen ekran goruntuleri (yeniden uretilebilir)
+/screenshots/
+
 # fastlane ciktilari
 ios/fastlane/report.xml
 ios/fastlane/Preview.html
