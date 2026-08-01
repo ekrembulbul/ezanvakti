@@ -257,22 +257,27 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
-      child: SwitchListTile(
-        contentPadding: EdgeInsets.zero,
-        title: const Text(
-          'Genel hesaplama ayarını kullan',
-          style: TextStyle(color: Colors.white, fontSize: 15),
-        ),
-        subtitle: Text(
-          'Kapatırsan bu konuma özel yöntem/mezhep seçebilirsin',
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.5),
-            fontSize: 12,
+      // ListTile arka planini ve ink efektini en yakin Material'a cizer;
+      // renkli kapsayici bunu gizledigi icin kendi seffaf Material'ina sarilir.
+      child: Material(
+        type: MaterialType.transparency,
+        child: SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: const Text(
+            'Genel hesaplama ayarını kullan',
+            style: TextStyle(color: Colors.white, fontSize: 15),
           ),
+          subtitle: Text(
+            'Kapatırsan bu konuma özel yöntem/mezhep seçebilirsin',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.5),
+              fontSize: 12,
+            ),
+          ),
+          value: _useGlobal,
+          activeThumbColor: AppTheme.gold,
+          onChanged: (value) => setState(() => _useGlobal = value),
         ),
-        value: _useGlobal,
-        activeThumbColor: AppTheme.gold,
-        onChanged: (value) => setState(() => _useGlobal = value),
       ),
     );
   }
