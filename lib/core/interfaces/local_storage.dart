@@ -2,6 +2,7 @@ import '../models/prayer_time.dart';
 import '../models/location.dart';
 import '../models/notification_setting.dart';
 import '../models/calculation_settings.dart';
+import '../models/appearance_settings.dart';
 import '../models/alarm.dart';
 
 abstract class LocalStorage {
@@ -35,6 +36,12 @@ abstract class LocalStorage {
 
   /// Uygulama genelindeki varsayılan hesaplama ayarını kaydeder.
   Future<void> saveCalculationSettings(CalculationSettings settings);
+
+  /// Görünüm tercihlerini döner; kayıt yoksa [AppearanceSettings] varsayılanları.
+  Future<AppearanceSettings> getAppearanceSettings();
+
+  /// Görünüm tercihlerini `settings` tablosuna yazar.
+  Future<void> saveAppearanceSettings(AppearanceSettings settings);
 
   Future<void> saveActiveLocation(Location location);
 

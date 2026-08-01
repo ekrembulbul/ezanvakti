@@ -8,6 +8,7 @@ import '../../../core/models/notification_setting.dart';
 import '../../../core/models/alarm.dart';
 import '../../../core/models/calculation_params.dart';
 import '../../../core/models/calculation_settings.dart';
+import '../../../core/models/appearance_settings.dart';
 import '../../../core/exceptions/parse_exception.dart';
 import '../../../core/utils/app_logger.dart';
 
@@ -458,6 +459,37 @@ class SqliteStorage implements LocalStorage {
       'key': _notificationDefaultsKey,
       'value': 'true',
     }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  @override
+  Future<AppearanceSettings> getAppearanceSettings() async {
+    final db = await database;
+    final rows = await db.query(
+      'settings',
+      where: 'key IN (?, ?, ?)',
+      whereArgs: [
+        AppearanceSettings.themeModeKey,
+        AppearanceSettings.timeBasedColorKey,
+        AppearanceSettings.fixedPaletteKey,
+      ],
+    );
+    final map = {
+      for (final row in rows) row['key'] as String: row['value'] as String,
+    };
+    return AppearanceSettings.fromMap(map);
+  }
+
+  @override
+  Future<void> saveAppearanceSettings(AppearanceSettings settings) async {
+    final db = await database;
+    final batch = db.batch();
+    settings.toMap().forEach((key, value) {
+      batch.insert('settings', {
+        'key': key,
+        'value': value,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
+    });
+    await batch.commit(noResult: true);
   }
 
   Future<void> updateNotificationSetting(NotificationSetting setting) async {

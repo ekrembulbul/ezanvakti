@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
 import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/core/models/calculation_settings.dart';
+import 'package:ezanvakti/core/models/appearance_settings.dart';
 import 'package:ezanvakti/core/interfaces/prayer_time_provider.dart';
 import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
@@ -11,6 +12,13 @@ import 'package:ezanvakti/features/prayer_times/domain/prayer_times_repository.d
 import 'package:ezanvakti/features/prayer_times/domain/offline_state_manager.dart';
 
 class MockLocalStorage implements LocalStorage {
+
+  @override
+  Future<AppearanceSettings> getAppearanceSettings() async =>
+      const AppearanceSettings();
+
+  @override
+  Future<void> saveAppearanceSettings(AppearanceSettings settings) async {}
   final Map<String, List<PrayerTime>> _prayerTimesCache = {};
   Location? _activeLocation;
   final List<Location> _savedLocations = [];
