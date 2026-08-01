@@ -1,41 +1,36 @@
 import 'package:flutter/material.dart';
 
+import 'app_tokens.dart';
+import 'app_typography.dart';
+
+/// Uygulama temasının tek üretim noktası.
+///
+/// Renkler artık burada sabit değil; [AppTokens] içinden gelir ve gün dilimine
+/// göre değişir. Widget'lar renk okumak için `context.tokens` kullanır.
 class AppTheme {
-  static const Color primaryDark = Color(0xFF1A1A2E);
-  static const Color primaryMedium = Color(0xFF16213E);
-  static const Color primaryLight = Color(0xFF0F3460);
-  static const Color accent = Color(0xFFE94560);
+  const AppTheme._();
+
+  // ── Geçiş dönemi sabitleri ────────────────────────────────────────────────
+  // Ekranlar token'lara taşınana kadar (0.3.0 görsel turu) yerinde kalır.
+  // Yeni kod bunları kullanmaz.
+
+  @Deprecated('context.tokens.accent kullanın')
   static const Color gold = Color(0xFFD4AF37);
-  static const Color goldLight = Color(0xFFFFD700);
-  static const Color white = Color(0xFFFFFFFF);
-  static const Color offWhite = Color(0xFFF5F5F5);
-  static const Color grey = Color(0xFF9E9E9E);
-  static const Color darkGrey = Color(0xFF424242);
 
-  static const LinearGradient primaryGradient = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [Color(0xFF1A1A2E), Color(0xFF16213E), Color(0xFF0F3460)],
-  );
+  @Deprecated('context.tokens.backgroundStops kullanın')
+  static const Color primaryDark = Color(0xFF1A1A2E);
 
+  @Deprecated('context.tokens.surface kullanın')
+  static const Color primaryMedium = Color(0xFF16213E);
+
+  @Deprecated('context.tokens.backgroundGradient kullanın')
   static const LinearGradient nightGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [Color(0xFF0D1B2A), Color(0xFF1B263B), Color(0xFF415A77)],
   );
 
-  static const LinearGradient sunriseGradient = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [Color(0xFF2C3E50), Color(0xFF3498DB), Color(0xFFE74C3C)],
-  );
-
-  static const LinearGradient cardGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [Color(0xFF1E3A5F), Color(0xFF2E5077)],
-  );
-
+  @Deprecated('context.tokens.surface ve context.tokens.border kullanın')
   static BoxDecoration glassDecoration({
     double opacity = 0.15,
     double borderRadius = 20,
@@ -51,86 +46,71 @@ class AppTheme {
     );
   }
 
-  static BoxShadow softShadow = BoxShadow(
-    color: Colors.black.withValues(alpha: 0.2),
-    blurRadius: 20,
-    offset: const Offset(0, 10),
-  );
+  // ── Tema üretimi ──────────────────────────────────────────────────────────
 
-  static ThemeData get darkTheme {
+  /// Verilen token setinden uygulama temasını üretir.
+  ///
+  /// Token'lar `extensions` içinde taşınır; `AnimatedTheme` palet değişimini
+  /// [AppTokens.lerp] üzerinden yumuşatır.
+  static ThemeData build(AppTokens tokens, Brightness brightness) {
+    final isDark = brightness == Brightness.dark;
+
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.dark,
-      scaffoldBackgroundColor: primaryDark,
-      colorScheme: ColorScheme.dark(
-        primary: gold,
-        secondary: accent,
-        surface: primaryMedium,
-        onPrimary: primaryDark,
-        onSecondary: white,
-        onSurface: white,
+      brightness: brightness,
+      fontFamily: AppTypography.fontFamily,
+      scaffoldBackgroundColor: tokens.backgroundStops.last,
+      extensions: <ThemeExtension<dynamic>>[tokens],
+      colorScheme: ColorScheme(
+        brightness: brightness,
+        primary: tokens.accent,
+        onPrimary: tokens.backgroundStops.last,
+        secondary: tokens.accent,
+        onSecondary: tokens.backgroundStops.last,
+        error: isDark ? const Color(0xFFEF9A9A) : const Color(0xFFB3261E),
+        onError: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFFFFFFF),
+        surface: tokens.backgroundStops.last,
+        onSurface: tokens.textPrimary,
       ),
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
-        titleTextStyle: TextStyle(
-          color: white,
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
+        titleTextStyle: AppTypography.screenTitle.copyWith(
+          color: tokens.textPrimary,
         ),
-        iconTheme: IconThemeData(color: white),
+        iconTheme: IconThemeData(color: tokens.textPrimary),
       ),
-      cardTheme: CardThemeData(
-        color: primaryMedium,
-        elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      textTheme: TextTheme(
+        displayLarge: AppTypography.counter.copyWith(color: tokens.accent),
+        titleLarge: AppTypography.screenTitle.copyWith(
+          color: tokens.textPrimary,
+        ),
+        titleMedium: AppTypography.rowTitle.copyWith(color: tokens.textPrimary),
+        bodyLarge: AppTypography.rowTitle.copyWith(color: tokens.textPrimary),
+        bodyMedium: AppTypography.rowSubtitle.copyWith(
+          color: tokens.textSecondary,
+        ),
+        bodySmall: AppTypography.hint.copyWith(color: tokens.textTertiary),
+        labelSmall: AppTypography.sectionLabel.copyWith(
+          color: tokens.textTertiary,
+        ),
       ),
-      textTheme: const TextTheme(
-        displayLarge: TextStyle(
-          color: white,
-          fontSize: 72,
-          fontWeight: FontWeight.bold,
-        ),
-        displayMedium: TextStyle(
-          color: white,
-          fontSize: 48,
-          fontWeight: FontWeight.bold,
-        ),
-        displaySmall: TextStyle(
-          color: white,
-          fontSize: 36,
-          fontWeight: FontWeight.bold,
-        ),
-        headlineMedium: TextStyle(
-          color: white,
-          fontSize: 24,
-          fontWeight: FontWeight.w600,
-        ),
-        titleLarge: TextStyle(
-          color: white,
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
-        ),
-        titleMedium: TextStyle(
-          color: white,
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-        ),
-        bodyLarge: TextStyle(color: white, fontSize: 16),
-        bodyMedium: TextStyle(color: offWhite, fontSize: 14),
-        bodySmall: TextStyle(color: grey, fontSize: 12),
+      dividerTheme: DividerThemeData(color: tokens.divider, thickness: 1),
+      listTileTheme: ListTileThemeData(
+        iconColor: tokens.accent,
+        textColor: tokens.textPrimary,
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: gold,
-        foregroundColor: primaryDark,
-        elevation: 8,
+        backgroundColor: tokens.accent,
+        foregroundColor: tokens.backgroundStops.last,
+        elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: gold,
-          foregroundColor: primaryDark,
+          backgroundColor: tokens.accent,
+          foregroundColor: tokens.backgroundStops.last,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -139,30 +119,25 @@ class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.1),
+        fillColor: tokens.surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
-        hintStyle: TextStyle(color: grey.withValues(alpha: 0.7)),
+        hintStyle: AppTypography.rowSubtitle.copyWith(
+          color: tokens.textTertiary,
+        ),
       ),
-      dividerTheme: DividerThemeData(
-        color: Colors.white.withValues(alpha: 0.1),
-        thickness: 1,
-      ),
-      listTileTheme: const ListTileThemeData(iconColor: gold, textColor: white),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return gold;
-          }
-          return grey;
+          return states.contains(WidgetState.selected)
+              ? tokens.accent
+              : tokens.textTertiary;
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
-          if (states.contains(WidgetState.selected)) {
-            return gold.withValues(alpha: 0.3);
-          }
-          return grey.withValues(alpha: 0.3);
+          return states.contains(WidgetState.selected)
+              ? tokens.accent.withValues(alpha: 0.3)
+              : tokens.mutedTrack;
         }),
       ),
     );
