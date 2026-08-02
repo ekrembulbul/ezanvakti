@@ -1,16 +1,19 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
-import '../../core/theme/app_theme.dart';
-import '../../core/models/prayer_time.dart';
+
 import '../../core/models/location.dart';
+import '../../core/models/prayer_time.dart';
 import '../../core/utils/prayer_utils.dart';
-import '../../core/constants/app_constants.dart';
-import '../widgets/home/countdown_card.dart';
-import '../widgets/home/prayer_times_card.dart';
-import '../widgets/home/location_header.dart';
-import '../widgets/home/date_widget.dart';
-import '../widgets/home/home_menu_sheet.dart';
+import '../widgets/common/app_surface.dart';
 import '../widgets/common/state_widgets.dart';
+import '../widgets/home/countdown_hero.dart';
+import '../widgets/home/day_ruler.dart';
+import '../widgets/home/home_menu_sheet.dart';
+import '../widgets/home/home_top_bar.dart';
+import '../widgets/home/prayer_grid.dart';
+import '../widgets/home/tomorrow_strip.dart';
+import '../widgets/home/upcoming_card.dart';
 
 class HomeScreen extends StatefulWidget {
   final Location location;
@@ -54,10 +57,9 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    // Coarse refresh for the "current prayer" highlight as prayer times pass.
-    // The per-second countdown ticks inside CountdownCard itself, so the whole
-    // screen no longer rebuilds every second.
-    _timer = Timer.periodic(const Duration(seconds: 10), (timer) {
+    // Aktif vakit vurgusu ve cetvel göstergesi için kaba yenileme; saniyelik
+    // tik CountdownHero'nun kendi içinde.
+    _timer = Timer.periodic(const Duration(seconds: 10), (_) {
       if (mounted) setState(() {});
     });
   }
@@ -66,6 +68,17 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _timer?.cancel();
     super.dispose();
+  }
+
+  /// Tasarımdaki üst çubuk biçimi: "Kadıköy, İstanbul".
+  ///
+  /// `Location.displayName` "İstanbul / Kadıköy" üretiyor ve başka ekranlarda
+  /// da kullanıldığı için modele dokunulmadı.
+  String get _locationLabel {
+    final location = widget.location;
+    final custom = location.customName;
+    if (custom != null && custom.isNotEmpty) return custom;
+    return '${location.district}, ${location.province}';
   }
 
   void _openMenu() {
@@ -80,25 +93,27 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: _HomeAppBar(
-        location: widget.location,
-        onGpsRefresh: widget.onGpsRefresh,
-        onMenuTap: _openMenu,
-      ),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(gradient: AppTheme.nightGradient),
-        child: SafeArea(top: true, bottom: true, child: _buildBody()),
+      backgroundColor: Colors.transparent,
+      body: AppSurface(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Column(
+            children: [
+              HomeTopBar(
+                locationName: _locationLabel,
+                onLocationTap: widget.onLocationTap,
+                onMenuTap: _openMenu,
+              ),
+              Expanded(child: _buildBody()),
+            ],
+          ),
+        ),
       ),
     );
   }
 
   Widget _buildBody() {
-    if (widget.isLoading) {
-      return const LoadingState();
-    }
+    if (widget.isLoading) return const LoadingState();
 
     if (widget.errorMessage != null) {
       return ErrorState(
@@ -107,169 +122,50 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    if (widget.todaysPrayerTime == null) {
-      // İlk yüklemede veri henüz gelmediyse boş ekran yerine yükleniyor göster
-      if (widget.lastUpdateTime == null) {
-        return const LoadingState();
-      }
+    final today = widget.todaysPrayerTime;
+    if (today == null) {
+      // İlk yüklemede veri henüz gelmediyse boş ekran yerine yükleniyor göster.
+      if (widget.lastUpdateTime == null) return const LoadingState();
       return const EmptyState(
         icon: Icons.hourglass_empty_rounded,
         message: 'Veri bulunamadı',
       );
     }
 
-    // Scroll yok: içerik her ekran boyutunda tam ekrana yayılır. Vakit kartı
-    // kalan alanı doldurur, satırlar mevcut yüksekliğe göre esner.
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        children: [
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Expanded(
-                child: LocationWidget(
-                  location: widget.location,
-                  onTap: widget.onLocationTap,
-                ),
-              ),
-              const SizedBox(width: 12),
-              DateWidget(date: widget.todaysPrayerTime!.date),
-            ],
-          ),
-          const SizedBox(height: 14),
-          // Sayaç ve vakit kartı kalan alanı oransal paylaşır; ekran boyutuna
-          // göre ikisi birlikte büyür/küçülür.
-          Expanded(flex: 4, child: _buildCountdown()),
-          const SizedBox(height: 14),
-          Expanded(
-            flex: 7,
-            child: PrayerTimesCard(
-              prayerTime: widget.todaysPrayerTime!,
-              currentPrayer: PrayerUtils.getCurrentPrayer(
-                widget.todaysPrayerTime!,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCountdown() {
-    final nextPrayerTime = PrayerUtils.getNextPrayerTime(
-      widget.todaysPrayerTime,
+    final now = DateTime.now();
+    final nextTime = PrayerUtils.getNextPrayerTime(
+      today,
       widget.tomorrowsPrayerTime,
     );
-    final nextPrayerName = PrayerUtils.getNextPrayerName(
-      widget.todaysPrayerTime,
-    );
+    final nextName = PrayerUtils.getNextPrayerName(today);
+    final tomorrow = widget.tomorrowsPrayerTime;
 
-    if (nextPrayerTime == null || nextPrayerName == null) {
-      return const SizedBox.shrink();
-    }
-
-    return CountdownCard(
-      nextPrayerTime: nextPrayerTime,
-      nextPrayerName: nextPrayerName,
-    );
-  }
-}
-
-class _HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final Location location;
-  final VoidCallback? onGpsRefresh;
-  final VoidCallback onMenuTap;
-
-  const _HomeAppBar({
-    required this.location,
-    required this.onMenuTap,
-    this.onGpsRefresh,
-  });
-
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-
-  @override
-  Widget build(BuildContext context) {
-    return AppBar(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      centerTitle: false,
-      title: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: Image.asset(
-              'assets/icon/app_icon.png',
-              width: 44,
-              height: 44,
-            ),
+    return Column(
+      children: [
+        const SizedBox(height: 8),
+        HomeDateLine(date: today.date),
+        const SizedBox(height: 20),
+        if (nextTime != null && nextName != null)
+          CountdownHero(nextPrayerTime: nextTime, nextPrayerName: nextName),
+        const SizedBox(height: 26),
+        DayRuler(prayerTime: today, now: now),
+        const SizedBox(height: 24),
+        PrayerGrid(
+          prayerTime: today,
+          now: now,
+          currentPrayer: PrayerUtils.getCurrentPrayer(today),
+        ),
+        const Spacer(),
+        if (tomorrow != null) ...[
+          TomorrowStrip(
+            tomorrow: tomorrow,
+            onCalendarTap: widget.onCalendarTap ?? () {},
           ),
-          const SizedBox(width: 10),
-          const Flexible(
-            child: Text(
-              AppConstants.appTitle,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-              ),
-            ),
-          ),
+          const SizedBox(height: 20),
         ],
-      ),
-      actions: [
-        if (location.type == LocationType.gps && onGpsRefresh != null)
-          _AppBarAction(
-            icon: Icons.gps_fixed_rounded,
-            onTap: onGpsRefresh!,
-            tooltip: 'GPS Yenile',
-          ),
-        _AppBarAction(
-          icon: Icons.menu_rounded,
-          onTap: onMenuTap,
-          tooltip: 'Menü',
-        ),
-        const SizedBox(width: 8),
+        UpcomingCard(onSeeAll: widget.onNotificationSettingsTap ?? () {}),
+        const SizedBox(height: 12),
       ],
-    );
-  }
-}
-
-class _AppBarAction extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-  final String? tooltip;
-
-  const _AppBarAction({required this.icon, required this.onTap, this.tooltip});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Tooltip(
-            message: tooltip ?? '',
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: Colors.white, size: 20),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
