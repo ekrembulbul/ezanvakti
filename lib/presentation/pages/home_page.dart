@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/providers/app_state.dart';
 import '../../core/di/service_locator.dart';
-import '../../core/theme/app_theme.dart';
 import '../../core/models/location.dart';
 import '../../core/models/calculation_settings.dart';
 import '../../core/interfaces/local_storage.dart';
@@ -25,6 +24,8 @@ import '../screens/alarms_screen.dart';
 import '../services/location_service.dart';
 import '../services/data_loader_service.dart';
 import '../controllers/location_monitor_controller.dart';
+import '../widgets/common/app_surface.dart';
+import '../widgets/common/sliding_segment.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -425,13 +426,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.primaryDark,
-      body: IndexedStack(
-        index: _tabIndex,
-        children: [
-          Consumer<AppState>(
-            builder: (context, appState, child) {
-              return HomeScreen(
+      backgroundColor: Colors.transparent,
+      body: AppSurface(
+        safeAreaTop: false,
+        safeAreaBottom: false,
+        child: IndexedStack(
+          index: _tabIndex,
+          children: [
+            Consumer<AppState>(
+              builder: (context, appState, child) {
+                return HomeScreen(
                 location: appState.activeLocation!,
                 todaysPrayerTime: appState.todaysPrayerTime,
                 tomorrowsPrayerTime: appState.tomorrowsPrayerTime,
@@ -447,82 +451,30 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               );
             },
           ),
-          const AlarmsScreen(),
-        ],
+            const AlarmsScreen(),
+          ],
+        ),
       ),
       bottomNavigationBar: _buildBottomNav(),
     );
   }
 
   Widget _buildBottomNav() {
-    // Ana ekranın nightGradient'iyle uyumlu derin gece zemini; üstte ince ayraç.
-    return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF0D1B2A),
-        border: Border(
-          top: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.25),
-            blurRadius: 16,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
       child: SafeArea(
         top: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-          child: Row(
-            children: [
-              _navItem(0, Icons.access_time_rounded, 'Vakitler'),
-              _navItem(1, Icons.alarm_rounded, 'Alarmlar'),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _navItem(int index, IconData icon, String label) {
-    final selected = _tabIndex == index;
-    final color = selected ? AppTheme.gold : Colors.white54;
-    return Expanded(
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: () => setState(() => _tabIndex = index),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeOut,
-          margin: const EdgeInsets.symmetric(horizontal: 6),
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          decoration: BoxDecoration(
-            color: selected
-                ? AppTheme.gold.withValues(alpha: 0.14)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: selected
-                  ? AppTheme.gold.withValues(alpha: 0.45)
-                  : Colors.transparent,
+        child: SlidingSegment<int>(
+          items: const [
+            SegmentItem(
+              value: 0,
+              label: 'Vakitler',
+              icon: Icons.schedule_rounded,
             ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 20, color: color),
-              const SizedBox(height: 2),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                  color: color,
-                ),
-              ),
-            ],
-          ),
+            SegmentItem(value: 1, label: 'Alarmlar', icon: Icons.alarm_rounded),
+          ],
+          selected: _tabIndex,
+          onChanged: (index) => setState(() => _tabIndex = index),
         ),
       ),
     );
