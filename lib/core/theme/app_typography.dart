@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 /// Uygulamanın font ölçeği ve adlandırılmış metin stilleri.
 ///
-/// Tasarım markup'ında 21 ad-hoc boyut vardı (yarım pikseller dahil); hepsi
+/// Tasarım markup'ında 22 ad-hoc boyut vardı (yarım pikseller dahil); hepsi
 /// aşağıdaki 10 basamağa normalize edildi. Ekranlarda çıplak `fontSize`
 /// yazılmaz, bu sabitler kullanılır.
 ///
@@ -136,6 +136,23 @@ class AppTypography {
     fontVariations: _w600,
   );
 
+  /// "SIRADAKİ" kartındaki satır başlığı (markup 14.5 → ölçekte 14).
+  static const TextStyle upcomingRowTitle = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 14,
+    fontWeight: FontWeight.w700,
+    fontVariations: _w700,
+    letterSpacing: -0.14,
+  );
+
+  /// Sayacın altındaki "Akşam ezanı 20:27'de" satırı (markup 14 w500).
+  static const TextStyle heroSubtitle = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    fontVariations: _w500,
+  );
+
   /// Yardım ve alt bilgi metinleri.
   static const TextStyle hint = TextStyle(
     fontFamily: fontFamily,
@@ -159,6 +176,8 @@ class AppTypography {
     rulerTime,
     tabLabel,
     dateLine,
+    upcomingRowTitle,
+    heroSubtitle,
     hint,
   ];
 }
