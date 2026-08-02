@@ -96,7 +96,9 @@ Future<void> _captureHomeAndMenu(WidgetTester tester, Shot shot) async {
   await _wait(tester, const Duration(seconds: 2));
   await shot('06-menu');
 
-  await tester.tap(find.text('Takvim'));
+  // Ana ekranin "YARIN" seridinde de "Takvim" kisayolu var; menudeki ogeyi
+  // yalnizca ona ait olan alt metinden hedefliyoruz.
+  await tester.tap(find.text('30 günlük namaz vakitleri'));
   await _wait(tester, const Duration(seconds: 4));
   await shot('07-takvim');
 

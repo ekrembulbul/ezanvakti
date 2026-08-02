@@ -24,6 +24,7 @@ import '../screens/alarms_screen.dart';
 import '../services/location_service.dart';
 import '../services/data_loader_service.dart';
 import '../controllers/location_monitor_controller.dart';
+import '../../core/theme/tokens_context.dart';
 import '../widgets/common/app_surface.dart';
 import '../widgets/common/sliding_segment.dart';
 
@@ -426,7 +427,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      // Alt gezinme AppSurface'in disinda kaldigi icin zemini Scaffold verir;
+      // seffaf birakilirsa arkasinda hicbir sey boyanmiyor.
+      backgroundColor: context.tokens.backgroundStops.last,
       body: AppSurface(
         safeAreaTop: false,
         safeAreaBottom: false,
