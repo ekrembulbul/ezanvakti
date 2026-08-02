@@ -61,11 +61,17 @@ class Location {
   bool get hasCalculationOverride =>
       method != null || school != null || latitudeAdjustmentMethod != null;
 
+  /// Kullanıcıya gösterilen ad, ör. "Kadıköy, İstanbul".
+  ///
+  /// Sıra ve ayıraç, arama listesindeki `PlaceSuggestion.displayLabel` ile
+  /// aynı: kullanıcı seçerken "Kadıköy, İstanbul, Türkiye" görüyor, kaydettikten
+  /// sonra aynı yerin farklı sırada görünmesi kafa karıştırıyordu. Ülke adı
+  /// kayıttan sonra ayırt edici olmadığı için düşürülür.
   String get displayName {
     if (customName != null && customName!.isNotEmpty) {
       return customName!;
     }
-    return '$province / $district';
+    return '$district, $province';
   }
 
   Map<String, dynamic> toJson() {
