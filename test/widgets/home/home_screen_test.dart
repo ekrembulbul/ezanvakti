@@ -58,7 +58,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Kadıköy, İstanbul'), findsOneWidget);
+    expect(find.text('İstanbul / Kadıköy'), findsOneWidget);
     expect(find.text('SONRAKİ'), findsOneWidget);
     // Izgaraya ozgu bir vakit: "İMSAK" geri sayim etiketinde de cikabilir,
     // hangi vaktin sirada oldugu testin calistigi saate bagli.

@@ -70,17 +70,6 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  /// Tasarımdaki üst çubuk biçimi: "Kadıköy, İstanbul".
-  ///
-  /// `Location.displayName` "İstanbul / Kadıköy" üretiyor ve başka ekranlarda
-  /// da kullanıldığı için modele dokunulmadı.
-  String get _locationLabel {
-    final location = widget.location;
-    final custom = location.customName;
-    if (custom != null && custom.isNotEmpty) return custom;
-    return '${location.district}, ${location.province}';
-  }
-
   void _openMenu() {
     showHomeMenu(
       context,
@@ -100,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             children: [
               HomeTopBar(
-                locationName: _locationLabel,
+                locationName: widget.location.displayName,
                 onLocationTap: widget.onLocationTap,
                 onMenuTap: _openMenu,
               ),
