@@ -159,8 +159,12 @@ final AppTokens _afternoonLight = _lightPalette(
 /// Tasarımda mürekkep `#2D191E` idi ama Metin1 `#201A1E`; diğer üç palette
 /// ikisi birebir aynı olduğu için sapma kurala uyduruldu. Görsel bedeli yok:
 /// kırmızı kanalda 13/255 fark %9 alfayla bindiğinde ekrana 1.17/255 düşer.
+///
+/// Accent tasarımda `#9E4266` idi; ölçülen kontrastı 5.02:1, spec'in accent
+/// eşiği 5.1:1. Her kanal 0.96 ile çarpılarak `#983F62`'ye indirildi → 5.33:1.
+/// Ton korunuyor; sekiz paletin tek eşik ihlali böyle kapandı.
 final AppTokens _eveningLight = _lightPalette(
-  accent: const Color(0xFF9E4266),
+  accent: const Color(0xFF983F62),
   textPrimary: const Color(0xFF201A1E),
   textSecondary: const Color(0xFF5A4A50),
   textTertiary: const Color(0xFF6B5A60),
