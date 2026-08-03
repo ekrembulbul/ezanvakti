@@ -129,8 +129,8 @@ flutter_launcher_icons:
   web:
     generate: true
     image_path: assets/icon/app_icon.png
-    background_color: "#150F1F"
-    theme_color: "#4A2144"
+    background_color: "#0E1014"
+    theme_color: "#262A34"
   windows:
     generate: true
     image_path: assets/icon/app_icon.png
@@ -139,14 +139,14 @@ flutter_launcher_icons:
     generate: true
     image_path: assets/icon/app_icon.png
 
-# Acilis ekrani (launch/splash): erguvan zemin + hilal.
-# Renk, ERGUVAN koyu paletinin orta durak degeridir (_eveningDark
-# backgroundStops[1]); radyal gradyanin ekran ortasindaki tonu bu, boylece
-# splash'tan ilk kareye gecis sicramaz.
+# Acilis ekrani (launch/splash): ikonun kendi murekkep zemini + hilal.
+# Sabit tek renk sekiz paletin hicbirine ait olamaz; palete baglamak yerine
+# ikonla ayni aileye baglaniyor, boylece splash ile uygulama ikonu ayni
+# kimligi tasiyor.
 # Yeniden uretmek icin: dart run flutter_native_splash:create
 flutter_native_splash:
-  color: "#241634"
+  color: "#181B22"
   image: assets/icon/app_icon_foreground.png
   android_12:
-    color: "#241634"
+    color: "#181B22"
     image: assets/icon/app_icon_foreground.png
