@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../core/theme/tokens_context.dart';
 
 class SimpleAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -18,6 +19,8 @@ class SimpleAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
+
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
@@ -27,21 +30,21 @@ class SimpleAppBar extends StatelessWidget implements PreferredSizeWidget {
               icon: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.1),
+                  color: tokens.surface,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+                child: Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  size: 18,
+                  color: tokens.textPrimary,
+                ),
               ),
               onPressed: () => Navigator.of(context).pop(),
             )
           : null,
       title: Text(
         title,
-        style: const TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
-          color: Colors.white,
-        ),
+        style: AppTypography.screenTitle.copyWith(color: tokens.textPrimary),
       ),
       centerTitle: true,
       actions: actions,
@@ -65,6 +68,8 @@ class AppBarActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Material(
@@ -78,13 +83,13 @@ class AppBarActionButton extends StatelessWidget {
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
                 color: highlighted
-                    ? AppTheme.gold.withValues(alpha: 0.2)
-                    : Colors.white.withValues(alpha: 0.1),
+                    ? tokens.accent.withValues(alpha: 0.2)
+                    : tokens.surface,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 icon,
-                color: highlighted ? AppTheme.gold : Colors.white,
+                color: highlighted ? tokens.accent : tokens.textPrimary,
                 size: 20,
               ),
             ),
