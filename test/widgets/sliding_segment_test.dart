@@ -125,4 +125,71 @@ void main() {
 
     expect(find.byType(Icon), findsNothing);
   });
+
+  /// Spec §4.4: alt gezinme yatagi 52/r26/dolgu 4 -> pill 42, tema secici
+  /// 40/r12/dolgu 3 -> pill 32. Iki olcu de 1px kenarligi iki kez duser;
+  /// hesaba katilmadiginda pill yatagin alt kenarligina tasiyordu.
+  testWidgets('Pill yatagin ic kutusuna tam oturur', (tester) async {
+    await tester.pumpWidget(
+      wrapWithTheme(
+        SlidingSegment<_Tab>(
+          items: items,
+          selected: _Tab.times,
+          onChanged: (_) {},
+        ),
+      ),
+    );
+
+    final track = tester.getRect(find.byType(SlidingSegment<_Tab>));
+    final pill = tester.getRect(find.byKey(kSegmentPillKey));
+
+    expect(track.height, 52);
+    expect(pill.height, 42);
+    expect(pill.top - track.top, 5, reason: 'dolgu 4 + kenarlik 1');
+    expect(track.bottom - pill.bottom, 5, reason: 'ust ve alt bosluk esit');
+  });
+
+  testWidgets('Ikon ve etiket pill ile ayni merkezde', (tester) async {
+    await tester.pumpWidget(
+      wrapWithTheme(
+        SlidingSegment<_Tab>(
+          items: items,
+          selected: _Tab.times,
+          onChanged: (_) {},
+        ),
+      ),
+    );
+
+    final pill = tester.getRect(find.byKey(kSegmentPillKey));
+    final icon = tester.getRect(find.byIcon(Icons.schedule));
+    final label = tester.getRect(find.text('Vakitler'));
+
+    // Ikon + bosluk + etiket tek bir grup; grubun ortasi pill'in ortasinda.
+    final groupCenterX = (icon.left + label.right) / 2;
+    expect(groupCenterX, closeTo(pill.center.dx, 0.5));
+    expect(icon.center.dy, closeTo(pill.center.dy, 0.5));
+  });
+
+  testWidgets('Tema seciciye ozgu olculer de spec ile ayni', (tester) async {
+    await tester.pumpWidget(
+      wrapWithTheme(
+        SlidingSegment<String>(
+          items: const [
+            SegmentItem(value: 'dark', label: 'Koyu'),
+            SegmentItem(value: 'light', label: 'Açık'),
+            SegmentItem(value: 'system', label: 'Sistem'),
+          ],
+          selected: 'light',
+          onChanged: (_) {},
+          height: 40,
+          radius: 12,
+          padding: 3,
+        ),
+      ),
+    );
+
+    final pill = tester.getRect(find.byKey(kSegmentPillKey));
+
+    expect(pill.height, 32);
+  });
 }

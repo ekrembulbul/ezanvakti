@@ -7,6 +7,14 @@ import '../../../core/theme/tokens_context.dart';
 /// kontrol tepkili hissetmelidir.
 const Duration _kSegmentAnimation = Duration(milliseconds: 220);
 
+/// Yatağın kenarlık kalınlığı. Kenarlık `padding`'in dışında çizildiği için
+/// pill'in yüksekliği ve yarıçapı hesaplanırken iki kez düşülmelidir; spec
+/// §4.4'teki 42/r21 (ve tema seçicideki 32/r8) ölçüleri bunu içeriyor.
+const double _kTrackBorderWidth = 1;
+
+/// Pill'i test edilebilir kılar; ölçüsü spec'e bağlı olduğu için doğrulanıyor.
+const Key kSegmentPillKey = Key('segment_pill');
+
 /// [SlidingSegment] içindeki tek bir bölme.
 class SegmentItem<T> {
   final T value;
@@ -48,7 +56,7 @@ class SlidingSegment<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     final index = items.indexWhere((item) => item.value == selected);
-    final pillHeight = height - padding * 2;
+    final pillRadius = radius - padding - _kTrackBorderWidth;
 
     return Container(
       height: height,
@@ -56,24 +64,33 @@ class SlidingSegment<T> extends StatelessWidget {
       decoration: BoxDecoration(
         color: tokens.surface,
         borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: tokens.border),
+        border: Border.all(color: tokens.border, width: _kTrackBorderWidth),
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final slotWidth = constraints.maxWidth / items.length;
 
           return Stack(
+            // Konumlandırılmamış çocuklar yatağın iç kutusunu doldursun.
+            // Varsayılan gevşek kısıtta etiket satırı kendi yüksekliğine
+            // küçülüp üste yapışıyor, pill'in merkezinden yukarıda kalıyordu.
+            fit: StackFit.expand,
             children: [
               AnimatedPositioned(
                 duration: _kSegmentAnimation,
                 curve: Curves.easeOutCubic,
                 left: index < 0 ? 0 : slotWidth * index,
                 width: slotWidth,
-                height: pillHeight,
+                // Dikeyde yatağın iç kutusunu birebir doldurur. Yükseklik
+                // hesaplamak yerine top/bottom kullanılıyor ki kenarlık ya da
+                // dolgu değişse de pill taşmasın.
+                top: 0,
+                bottom: 0,
                 child: DecoratedBox(
+                  key: kSegmentPillKey,
                   decoration: BoxDecoration(
                     color: tokens.accent.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(radius - padding),
+                    borderRadius: BorderRadius.circular(pillRadius),
                     border: Border.all(
                       color: tokens.accent.withValues(alpha: 0.30),
                     ),
