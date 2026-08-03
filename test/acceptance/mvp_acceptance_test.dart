@@ -246,6 +246,38 @@ void main() {
 
       expect(stack.notifications.cancelAllCount, 0);
     });
+
+    test('Ag yokken konum degisimi eldeki vakitleri silmiyor', () async {
+      final stack = buildStack();
+      await stack.storage.init();
+      await stack.storage.saveActiveLocation(istanbul);
+
+      final today = _atMidnight(DateTime.now());
+      final end = today.add(const Duration(days: 6));
+
+      await stack.prayerTimes.getPrayerTimes(
+        location: istanbul,
+        startDate: today,
+        endDate: end,
+      );
+
+      // Konum degisti ama ag yok. LocationMonitorService artik onbellegi
+      // onden silmiyor; yukleme forceRefresh ile yapilir ve yeni veri
+      // gelmezse eskisi yerinde kalir.
+      stack.provider.failWith = NetworkException('Baglanti yok');
+      final afterChange = await stack.prayerTimes.getPrayerTimes(
+        location: istanbul,
+        startDate: today,
+        endDate: end,
+        forceRefresh: true,
+      );
+
+      expect(
+        afterChange,
+        hasLength(7),
+        reason: 'Onbellek yeni veri gelmeden silinmemeli',
+      );
+    });
   });
 
   group('MVP kabul — bildirim izni yok', () {
