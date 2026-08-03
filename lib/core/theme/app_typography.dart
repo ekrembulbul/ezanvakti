@@ -145,6 +145,15 @@ class AppTypography {
     letterSpacing: -0.14,
   );
 
+  /// "SIRADAKİ" kartında sağdaki kalan süre (markup 13 w700).
+  static const TextStyle upcomingRemaining = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 13,
+    fontWeight: FontWeight.w700,
+    fontVariations: _w700,
+    fontFeatures: _tabular,
+  );
+
   /// Sayacın altındaki "Akşam ezanı 20:27'de" satırı (markup 14 w500).
   static const TextStyle heroSubtitle = TextStyle(
     fontFamily: fontFamily,
@@ -177,6 +186,7 @@ class AppTypography {
     tabLabel,
     dateLine,
     upcomingRowTitle,
+    upcomingRemaining,
     heroSubtitle,
     hint,
   ];

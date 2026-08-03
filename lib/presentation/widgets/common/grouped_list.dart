@@ -51,6 +51,14 @@ class GroupedRow extends StatelessWidget {
   final Widget? trailing;
   final VoidCallback? onTap;
 
+  /// İkonun rengi. Varsayılan Metin2; satırın türünü vurgulamak gerektiğinde
+  /// (ör. "SIRADAKİ" kartındaki alarm satırı) `accent` verilir.
+  final Color? iconColor;
+
+  /// Satır yüksekliği. Varsayılan tam genişlikli listeler içindir; "SIRADAKİ"
+  /// kartı gibi sıkışık yerlerde spec §6.1/7'deki 62 kullanılır.
+  final double height;
+
   /// Pasif satırlar (kapalı bildirim gibi) söndürülür.
   final bool dimmed;
 
@@ -61,6 +69,8 @@ class GroupedRow extends StatelessWidget {
     this.subtitle,
     this.trailing,
     this.onTap,
+    this.iconColor,
+    this.height = 74,
     this.dimmed = false,
   });
 
@@ -69,7 +79,7 @@ class GroupedRow extends StatelessWidget {
     final tokens = context.tokens;
 
     final row = SizedBox(
-      height: 74,
+      height: height,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
@@ -77,7 +87,11 @@ class GroupedRow extends StatelessWidget {
             if (icon != null) ...[
               SizedBox(
                 width: 22,
-                child: Icon(icon, size: 20, color: tokens.textSecondary),
+                child: Icon(
+                  icon,
+                  size: 20,
+                  color: iconColor ?? tokens.textSecondary,
+                ),
               ),
               const SizedBox(width: 14),
             ],

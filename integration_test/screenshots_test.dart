@@ -56,7 +56,9 @@ void main() {
     await tester.pumpWidget(const app.MyApp());
     await _wait(tester, const Duration(seconds: 8));
 
-    await tester.tap(find.byIcon(Icons.alarm_rounded));
+    // Ana ekrandaki SIRADAKI karti da alarm ikonu cizebiliyor; alt gezinme
+    // sekmesi etiketinden hedefleniyor.
+    await tester.tap(find.text('Alarmlar'));
     await _wait(tester, const Duration(seconds: 3));
     await shot(tester, '18-alarmlar-dolu');
   });
@@ -195,7 +197,7 @@ Future<void> _captureSettings(WidgetTester tester, Shot shot) async {
 
 /// Alarm sekmesi: bos liste ve alarm ekleme (sabit saat / vakte gore).
 Future<void> _captureAlarms(WidgetTester tester, Shot shot) async {
-  await tester.tap(find.byIcon(Icons.alarm_rounded));
+  await tester.tap(find.text('Alarmlar'));
   await _wait(tester, const Duration(seconds: 3));
   await shot('15-alarmlar-bos');
 

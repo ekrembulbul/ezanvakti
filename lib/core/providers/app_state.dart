@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../models/alarm.dart';
 import '../models/location.dart';
 import '../models/prayer_time.dart';
 import '../models/notification_setting.dart';
@@ -9,6 +10,7 @@ class AppState extends ChangeNotifier {
   PrayerTime? _tomorrowsPrayerTime;
   List<PrayerTime> _prayerTimes = [];
   List<NotificationSetting> _notificationSettings = [];
+  List<Alarm> _alarms = [];
   DateTime? _lastUpdateTime;
   bool _isRefreshing = false;
   String? _errorMessage;
@@ -19,6 +21,7 @@ class AppState extends ChangeNotifier {
   PrayerTime? get tomorrowsPrayerTime => _tomorrowsPrayerTime;
   List<PrayerTime> get prayerTimes => _prayerTimes;
   List<NotificationSetting> get notificationSettings => _notificationSettings;
+  List<Alarm> get alarms => _alarms;
   DateTime? get lastUpdateTime => _lastUpdateTime;
   /// Bir veri yüklemesi uçuşta mı.
   bool get isRefreshing => _isRefreshing;
@@ -53,6 +56,11 @@ class AppState extends ChangeNotifier {
 
   void setNotificationSettings(List<NotificationSetting> settings) {
     _notificationSettings = settings;
+    notifyListeners();
+  }
+
+  void setAlarms(List<Alarm> alarms) {
+    _alarms = alarms;
     notifyListeners();
   }
 

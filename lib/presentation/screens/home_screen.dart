@@ -2,9 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../core/models/alarm.dart';
 import '../../core/models/location.dart';
+import '../../core/models/notification_setting.dart';
 import '../../core/models/prayer_time.dart';
 import '../../core/utils/prayer_utils.dart';
+import '../services/upcoming_resolver.dart';
 import '../widgets/common/app_surface.dart';
 import '../widgets/common/state_widgets.dart';
 import '../widgets/home/countdown_hero.dart';
@@ -27,6 +30,14 @@ class HomeScreen extends StatefulWidget {
   final VoidCallback? onRefresh;
   final VoidCallback? onGpsRefresh;
   final VoidCallback? onLocationTap;
+
+  /// "SIRADAKİ" kartının kaynağı: pencere içindeki tüm günler, açık bildirim
+  /// ayarları ve kayıtlı alarmlar.
+  final List<PrayerTime> prayerTimes;
+  final List<NotificationSetting> notificationSettings;
+  final List<Alarm> alarms;
+  final void Function(Alarm alarm, bool isActive)? onAlarmToggled;
+
   final bool isLoading;
 
   /// Arka planda yenileme sürüyor. Ekrandaki vakitler yerinde kalır, üst
@@ -48,6 +59,10 @@ class HomeScreen extends StatefulWidget {
     this.onRefresh,
     this.onGpsRefresh,
     this.onLocationTap,
+    this.prayerTimes = const [],
+    this.notificationSettings = const [],
+    this.alarms = const [],
+    this.onAlarmToggled,
     this.isLoading = false,
     this.isRefreshing = false,
     this.errorMessage,
@@ -159,7 +174,21 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 20),
         ],
-        UpcomingCard(onSeeAll: widget.onNotificationSettingsTap ?? () {}),
+        UpcomingCard(
+          now: now,
+          notification: resolveNextNotification(
+            settings: widget.notificationSettings,
+            prayerTimes: widget.prayerTimes,
+            now: now,
+          ),
+          alarm: resolveNextAlarm(
+            alarms: widget.alarms,
+            prayerTimes: widget.prayerTimes,
+            now: now,
+          ),
+          onAlarmToggled: widget.onAlarmToggled,
+          onSeeAll: widget.onNotificationSettingsTap ?? () {},
+        ),
         // Artan boşluk altta toplanır; içerik yukarı yaslı kalır.
         const Spacer(),
       ],

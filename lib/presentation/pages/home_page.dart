@@ -8,7 +8,9 @@ import '../../core/interfaces/local_storage.dart';
 import '../../core/utils/app_logger.dart';
 import '../../features/prayer_times/domain/prayer_times_repository.dart';
 import '../../features/notifications/domain/notification_scheduler.dart';
+import '../../core/models/alarm.dart';
 import '../../features/alarms/domain/alarm_scheduler.dart';
+import '../../features/alarms/domain/alarms_manager.dart';
 import '../../features/notifications/domain/notification_settings_manager.dart';
 import '../../features/location/domain/location_repository.dart';
 import '../../features/location/domain/location_service.dart';
@@ -216,6 +218,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       appState.setLastUpdateTime(data.lastUpdate);
       appState.setNotificationPermission(data.hasPermission);
       appState.setNotificationSettings(data.settings);
+      appState.setAlarms(
+        await ServiceLocator().get<AlarmsManager>().getAlarms(),
+      );
       appState.setRefreshing(false);
 
       // Palet gün dilimini vakitlerden hesaplar; beslenmezse hep akşam
@@ -246,6 +251,26 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   /// Kullanıcının tetiklediği yenileme (aşağı çekme, takvim ekranı).
   Future<void> _refreshData() => _loadPrayerData(forceRefresh: true);
+
+  /// "SIRADAKİ" kartındaki alarm anahtarı. Alarmlar sekmesindekiyle aynı iş:
+  /// kaydet, sonra güncel vakitlerle yeniden planla.
+  Future<void> _toggleAlarm(Alarm alarm, bool isActive) async {
+    final appState = context.read<AppState>();
+    final manager = ServiceLocator().get<AlarmsManager>();
+
+    await manager.setActive(alarm, isActive);
+    appState.setAlarms(await manager.getAlarms());
+
+    final prayerTimes = appState.prayerTimes;
+    if (prayerTimes.isEmpty) return;
+    try {
+      await ServiceLocator().get<AlarmScheduler>().scheduleAlarms(
+        prayerTimes: prayerTimes,
+      );
+    } catch (e) {
+      AppLogger().warning('Alarm yeniden planlanamadı', e);
+    }
+  }
 
   void _navigateToCalendar() {
     final appState = context.read<AppState>();
@@ -414,22 +439,26 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             Consumer<AppState>(
               builder: (context, appState, child) {
                 return HomeScreen(
-                location: appState.activeLocation!,
-                todaysPrayerTime: appState.todaysPrayerTime,
-                tomorrowsPrayerTime: appState.tomorrowsPrayerTime,
-                lastUpdateTime: appState.lastUpdateTime,
-                isLoading: appState.isLoading,
-                isRefreshing: appState.isRefreshing,
-                errorMessage: appState.errorMessage,
-                onRefresh: _refreshData,
-                onGpsRefresh: _manualGpsRefresh,
-                onCalendarTap: _navigateToCalendar,
-                onNotificationSettingsTap: _navigateToNotificationSettings,
-                onSettingsTap: _navigateToSettings,
-                onLocationTap: _navigateToLocationList,
-              );
-            },
-          ),
+                  location: appState.activeLocation!,
+                  todaysPrayerTime: appState.todaysPrayerTime,
+                  tomorrowsPrayerTime: appState.tomorrowsPrayerTime,
+                  lastUpdateTime: appState.lastUpdateTime,
+                  isLoading: appState.isLoading,
+                  isRefreshing: appState.isRefreshing,
+                  prayerTimes: appState.prayerTimes,
+                  notificationSettings: appState.notificationSettings,
+                  alarms: appState.alarms,
+                  onAlarmToggled: _toggleAlarm,
+                  errorMessage: appState.errorMessage,
+                  onRefresh: _refreshData,
+                  onGpsRefresh: _manualGpsRefresh,
+                  onCalendarTap: _navigateToCalendar,
+                  onNotificationSettingsTap: _navigateToNotificationSettings,
+                  onSettingsTap: _navigateToSettings,
+                  onLocationTap: _navigateToLocationList,
+                );
+              },
+            ),
             const AlarmsScreen(),
           ],
         ),
