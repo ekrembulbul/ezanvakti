@@ -15,7 +15,6 @@ import '../widgets/home/day_ruler.dart';
 import '../widgets/home/home_menu_sheet.dart';
 import '../widgets/home/home_top_bar.dart';
 import '../widgets/home/prayer_grid.dart';
-import '../widgets/home/tomorrow_strip.dart';
 import '../widgets/home/upcoming_card.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -149,7 +148,6 @@ class _HomeScreenState extends State<HomeScreen> {
       widget.tomorrowsPrayerTime,
     );
     final nextName = PrayerUtils.getNextPrayerName(today);
-    final tomorrow = widget.tomorrowsPrayerTime;
 
     return Column(
       children: [
@@ -167,13 +165,6 @@ class _HomeScreenState extends State<HomeScreen> {
           currentPrayer: PrayerUtils.getCurrentPrayer(today),
         ),
         const SizedBox(height: 24),
-        if (tomorrow != null) ...[
-          TomorrowStrip(
-            tomorrow: tomorrow,
-            onCalendarTap: widget.onCalendarTap ?? () {},
-          ),
-          const SizedBox(height: 20),
-        ],
         UpcomingCard(
           now: now,
           notification: resolveNextNotification(

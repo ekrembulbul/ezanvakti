@@ -268,7 +268,7 @@ void main() {
       expect(sizes, hasLength(1));
       expect(sizes.single, const Size(2, 7));
       expect(colors, hasLength(1));
-      expect(colors.single, tokensFor().textTertiary);
+      expect(colors.single, tokensFor().textTertiary.withValues(alpha: 0.7));
     });
 
     testWidgets('Ilerleme dolgusu ayri bir katman degil', (tester) async {

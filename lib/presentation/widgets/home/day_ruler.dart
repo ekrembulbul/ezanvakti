@@ -32,6 +32,7 @@ const double _kTrackTop = _kTrackCenter - _kTrackHeight / 2;
 const double _kTickTop = _kTrackTop + _kTrackHeight + 2;
 const double _kTickWidth = 2;
 const double _kTickHeight = 7;
+const double _kTickOpacity = 0.7;
 
 /// Vakit sınırlarındaki boşluğun genişliği (piksel).
 const double _kMarkGap = 3;
@@ -161,7 +162,8 @@ class DayRuler extends StatelessWidget {
         width: _kTickWidth,
         height: _kTickHeight,
         decoration: BoxDecoration(
-          color: tokens.textTertiary,
+          // Hafif soluk: cizgiler seridin okunusunu bolmemeli.
+          color: tokens.textTertiary.withValues(alpha: _kTickOpacity),
           borderRadius: BorderRadius.circular(1),
         ),
       ),

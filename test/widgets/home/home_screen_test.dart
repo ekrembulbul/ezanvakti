@@ -45,9 +45,7 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
 
-  testWidgets('Veri varken sayac, izgara ve yarin seridi gorunur', (
-    tester,
-  ) async {
+  testWidgets('Veri varken sayac, izgara ve SIRADAKI gorunur', (tester) async {
     await pumpHome(
       tester,
       HomeScreen(
@@ -63,7 +61,6 @@ void main() {
     // Izgaraya ozgu bir vakit: "İMSAK" geri sayim etiketinde de cikabilir,
     // hangi vaktin sirada oldugu testin calistigi saate bagli.
     expect(find.text('GÜNEŞ'), findsOneWidget);
-    expect(find.text('YARIN'), findsOneWidget);
     expect(find.text('SIRADAKİ'), findsOneWidget);
   });
 
@@ -107,20 +104,6 @@ void main() {
     await tester.pump();
 
     expect(opened, isTrue);
-  });
-
-  testWidgets('Yarin verisi yoksa yarin seridi cizilmez', (tester) async {
-    await pumpHome(
-      tester,
-      HomeScreen(
-        location: _location,
-        todaysPrayerTime: _day(2),
-        lastUpdateTime: DateTime(2026, 8, 2),
-      ),
-    );
-
-    expect(find.text('YARIN'), findsNothing);
-    expect(find.text('SIRADAKİ'), findsOneWidget);
   });
 
   testWidgets('Veri varken yenileme ekrani bosaltmaz', (tester) async {

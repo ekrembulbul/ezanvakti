@@ -4,7 +4,6 @@ import 'package:ezanvakti/presentation/widgets/home/countdown_hero.dart';
 import 'package:ezanvakti/presentation/widgets/home/day_ruler.dart';
 import 'package:ezanvakti/presentation/widgets/home/home_top_bar.dart';
 import 'package:ezanvakti/presentation/widgets/home/prayer_grid.dart';
-import 'package:ezanvakti/presentation/widgets/home/tomorrow_strip.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -99,16 +98,6 @@ void main() {
       tester,
       DayRuler(prayerTime: _times(), now: DateTime(2026, 8, 2, 17, 34)),
       const Size(200, 40),
-    );
-
-    expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('TomorrowStrip dar kutuda tasmaz', (tester) async {
-    await pumpInBox(
-      tester,
-      TomorrowStrip(tomorrow: _times(), onCalendarTap: () {}),
-      const Size(220, 120),
     );
 
     expect(tester.takeException(), isNull);
