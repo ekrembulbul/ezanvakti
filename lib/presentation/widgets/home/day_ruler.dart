@@ -11,11 +11,15 @@ import '../../../core/theme/tokens_context.dart';
 // kalıyordu: koyu zeminde zaten sönük, gece için bir de kısılınca neredeyse
 // görünmez oluyordu.
 
-/// Gece uçları — çentiklerle aynı ağırlık.
-const double _kNightOpacity = 0.7;
+/// Değerler parlaklık ekseninde ölçülerek seçildi: `mutedTrack` tabanlı eski
+/// tonlar (neredeyse görünmez) ile tam Metin3 (fazla baskın) arasının tam
+/// ortası.
+///
+/// Gece uçları.
+const double _kNightOpacity = 0.5;
 
 /// Gündüz penceresinin henüz gelmemiş kısmı; geceden bir tık güçlü.
-const double _kUpcomingOpacity = 1.0;
+const double _kUpcomingOpacity = 0.7;
 
 // ── Dikey yerleşim ─────────────────────────────────────────────────────────
 // Yukarıdan aşağı: saat etiketi · nokta/yatak · çentikler. Ölçüler birbirinden
