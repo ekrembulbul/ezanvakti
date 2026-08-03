@@ -76,6 +76,6 @@
 - [x] Lokasyon değişince bildirimler doğru güncelleniyor (entegrasyon tamamlandı)
 - [x] Bildirim izni yoksa kullanıcı bilgilendiriliyor ve doğru aksiyona yönlendiriliyor (entegrasyon tamamlandı)
 - [x] Yeni kaynak eklemek tasarım olarak mümkün (PrayerTimeProvider abstract interface mevcut)
-- [ ] Test: MVP kriterlerinin uçtan uca senaryolarla (online/offline, lokasyon değişimi, izin yok) doğrulandığı kabul testleri geçiyor mu?
+- [x] Test: MVP kriterlerinin uçtan uca senaryolarla (online/offline, lokasyon değişimi, izin yok) doğrulandığı kabul testleri geçiyor mu? (`test/acceptance/mvp_acceptance_test.dart`)
 
 **MVP Tamamlandı!** Main app entegrasyonu (state management, routing, ekranları birbirine bağlama) tamamlandı. Uygulama çalışır durumda.
