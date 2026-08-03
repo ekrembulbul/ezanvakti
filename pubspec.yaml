@@ -121,13 +121,16 @@ flutter_launcher_icons:
   ios: true
   remove_alpha_ios: true
   min_sdk_android: 21
-  adaptive_icon_background: "#0B1526"
-  adaptive_icon_foreground: assets/icon/app_icon.png
+  # Adaptive ikon iki katman ister: on plan 108dp tuvalin ~66%'lik guvenli
+  # dairesine kirpilir, bu yuzden tam kaplama gorsel on plan olarak
+  # kullanilamaz. Zemin gradyan, on plan yalnizca hilal.
+  adaptive_icon_background: assets/icon/app_icon_background.png
+  adaptive_icon_foreground: assets/icon/app_icon_foreground.png
   web:
     generate: true
     image_path: assets/icon/app_icon.png
-    background_color: "#FFFFFF"
-    theme_color: "#FFFFFF"
+    background_color: "#150F1F"
+    theme_color: "#4A2144"
   windows:
     generate: true
     image_path: assets/icon/app_icon.png
@@ -136,11 +139,14 @@ flutter_launcher_icons:
     generate: true
     image_path: assets/icon/app_icon.png
 
-# Acilis ekrani (launch/splash): lacivert zemin + altin motif.
+# Acilis ekrani (launch/splash): erguvan zemin + hilal.
+# Renk, ERGUVAN koyu paletinin orta durak degeridir (_eveningDark
+# backgroundStops[1]); radyal gradyanin ekran ortasindaki tonu bu, boylece
+# splash'tan ilk kareye gecis sicramaz.
 # Yeniden uretmek icin: dart run flutter_native_splash:create
 flutter_native_splash:
-  color: "#0B1526"
-  image: assets/icon/splash_logo.png
+  color: "#241634"
+  image: assets/icon/app_icon_foreground.png
   android_12:
-    color: "#0B1526"
-    image: assets/icon/splash_logo.png
+    color: "#241634"
+    image: assets/icon/app_icon_foreground.png
