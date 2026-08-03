@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/app_theme.dart';
+import '../../core/theme/app_typography.dart';
+import '../../core/theme/tokens_context.dart';
 import '../../core/models/prayer_time.dart';
 import '../../core/models/location.dart';
-import '../widgets/calendar/calendar_day_card.dart';
+import '../widgets/calendar/calendar_table.dart';
+import '../widgets/common/app_bar_widgets.dart';
+import '../widgets/common/app_surface.dart';
 import '../widgets/common/state_widgets.dart';
 
 class CalendarScreen extends StatefulWidget {
@@ -27,13 +30,12 @@ class CalendarScreen extends StatefulWidget {
 
 class _CalendarScreenState extends State<CalendarScreen> {
   final ScrollController _scrollController = ScrollController();
-  final Map<int, GlobalKey> _itemKeys = {};
   int? _todayIndex;
-  bool _didAutoScroll = false;
 
   @override
   void initState() {
     super.initState();
+    _todayIndex = _findTodayIndex();
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToToday());
   }
 
@@ -43,71 +45,52 @@ class _CalendarScreenState extends State<CalendarScreen> {
     super.dispose();
   }
 
-  void _scrollToToday() {
-    if (_todayIndex == null || !_scrollController.hasClients) return;
-
-    final key = _itemKeys[_todayIndex];
-
-    if (key?.currentContext != null) {
-      Scrollable.ensureVisible(
-        key!.currentContext!,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeOutCubic,
-        alignment: 0.5,
-        alignmentPolicy: ScrollPositionAlignmentPolicy.explicit,
-      );
-    } else {
-      const itemHeight = 0.0;
-      final offset = (_todayIndex! * itemHeight);
-      _scrollController.jumpTo(
-        offset.clamp(0, _scrollController.position.maxScrollExtent),
-      );
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final key = _itemKeys[_todayIndex];
-        if (key?.currentContext != null) {
-          Scrollable.ensureVisible(
-            key!.currentContext!,
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeOutCubic,
-            alignment: 0.5,
-            alignmentPolicy: ScrollPositionAlignmentPolicy.explicit,
-          );
-        }
-      });
+  int? _findTodayIndex() {
+    final now = DateTime.now();
+    for (var i = 0; i < widget.prayerTimes.length; i++) {
+      final date = widget.prayerTimes[i].date;
+      if (date.year == now.year &&
+          date.month == now.month &&
+          date.day == now.day) {
+        return i;
+      }
     }
+    return null;
   }
 
-  bool _isToday(DateTime date) {
-    final now = DateTime.now();
-    return date.year == now.year &&
-        date.month == now.month &&
-        date.day == now.day;
+  /// Satır yüksekliği sabit ([kCalendarRowHeight]) olduğu için hedef ofset
+  /// doğrudan hesaplanabiliyor; `GlobalKey` + `ensureVisible` gerekmiyor.
+  void _scrollToToday() {
+    final index = _todayIndex;
+    if (index == null || !_scrollController.hasClients) return;
+
+    final target = (index * kCalendarRowHeight).clamp(
+      0.0,
+      _scrollController.position.maxScrollExtent,
+    );
+    _scrollController.animateTo(
+      target,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    for (int i = 0; i < widget.prayerTimes.length; i++) {
-      if (_isToday(widget.prayerTimes[i].date)) {
-        _todayIndex = i;
-        if (!_didAutoScroll) {
-          WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToToday());
-          _didAutoScroll = true;
-        }
-        break;
-      }
-    }
-
     return Scaffold(
+      backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       appBar: _CalendarAppBar(
         location: widget.location,
+        dayCount: widget.prayerTimes.length,
         showTodayButton: _todayIndex != null,
         onTodayTap: _scrollToToday,
       ),
-      body: Container(
-        decoration: const BoxDecoration(gradient: AppTheme.nightGradient),
-        child: SafeArea(child: _buildBody()),
+      body: AppSurface(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: _buildBody(),
+        ),
       ),
     );
   }
@@ -131,29 +114,23 @@ class _CalendarScreenState extends State<CalendarScreen> {
       );
     }
 
-    return ListView.builder(
+    return CalendarTable(
+      days: widget.prayerTimes,
+      now: DateTime.now(),
       controller: _scrollController,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      itemCount: widget.prayerTimes.length,
-      itemBuilder: (context, index) {
-        final prayerTime = widget.prayerTimes[index];
-        return CalendarDayCard(
-          key: _itemKeys.putIfAbsent(index, () => GlobalKey()),
-          prayerTime: prayerTime,
-          isToday: _isToday(prayerTime.date),
-        );
-      },
     );
   }
 }
 
 class _CalendarAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Location location;
+  final int dayCount;
   final bool showTodayButton;
   final VoidCallback? onTodayTap;
 
   const _CalendarAppBar({
     required this.location,
+    required this.dayCount,
     required this.showTodayButton,
     this.onTodayTap,
   });
@@ -163,6 +140,8 @@ class _CalendarAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
+
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
@@ -170,50 +149,39 @@ class _CalendarAppBar extends StatelessWidget implements PreferredSizeWidget {
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.1),
+            color: tokens.surface,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
+          child: Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 18,
+            color: tokens.textPrimary,
+          ),
         ),
         onPressed: () => Navigator.of(context).pop(),
       ),
       title: Column(
         children: [
-          const Text(
+          Text(
             'Vakit Takvimi',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
+            style: AppTypography.screenTitle.copyWith(
+              color: tokens.textPrimary,
             ),
           ),
           Text(
-            '${location.district}, ${location.province}',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.white.withValues(alpha: 0.7),
-            ),
+            '${location.displayName} · $dayCount gün',
+            style: AppTypography.hint.copyWith(color: tokens.textTertiary),
           ),
         ],
       ),
       centerTitle: true,
       actions: [
         if (showTodayButton)
-          IconButton(
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppTheme.gold.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.today_rounded,
-                size: 18,
-                color: AppTheme.gold,
-              ),
-            ),
-            onPressed: onTodayTap,
+          AppBarActionButton(
+            icon: Icons.today_rounded,
+            onTap: onTodayTap ?? () {},
             tooltip: 'Bugüne Git',
+            highlighted: true,
           ),
         const SizedBox(width: 8),
       ],

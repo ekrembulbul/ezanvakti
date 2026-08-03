@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../core/theme/tokens_context.dart';
 
 /// Ana ekrandaki gezinme butonlarını (Takvim, Bildirimler, Ayarlar) toplayan
 /// modern alt menü. GPS yenileme butonu ana ekranda kaldığı için buraya alınmaz.
@@ -35,19 +36,21 @@ class _HomeMenuSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
+
     return SafeArea(
       top: false,
       child: Container(
         margin: const EdgeInsets.all(12),
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
+          gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [AppTheme.primaryMedium, AppTheme.primaryDark],
+            colors: [tokens.backgroundStops[1], tokens.backgroundStops.last],
           ),
           borderRadius: BorderRadius.circular(28),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+          border: Border.all(color: tokens.border),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -56,7 +59,7 @@ class _HomeMenuSheet extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
+                color: tokens.textTertiary,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -118,6 +121,8 @@ class _MenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -126,19 +131,19 @@ class _MenuItem extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.05),
+            color: tokens.surface,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+            border: Border.all(color: tokens.border),
           ),
           child: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(11),
                 decoration: BoxDecoration(
-                  color: AppTheme.gold.withValues(alpha: 0.15),
+                  color: tokens.accent.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(icon, color: AppTheme.gold, size: 22),
+                child: Icon(icon, color: tokens.accent, size: 22),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -147,18 +152,15 @@ class _MenuItem extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
+                      style: AppTypography.rowTitle.copyWith(
+                        color: tokens.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.white.withValues(alpha: 0.5),
+                      style: AppTypography.rowSubtitle.copyWith(
+                        color: tokens.textSecondary,
                       ),
                     ),
                   ],
@@ -166,7 +168,7 @@ class _MenuItem extends StatelessWidget {
               ),
               Icon(
                 Icons.chevron_right_rounded,
-                color: Colors.white.withValues(alpha: 0.3),
+                color: tokens.textTertiary,
                 size: 22,
               ),
             ],
