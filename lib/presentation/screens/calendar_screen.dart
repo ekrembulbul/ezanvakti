@@ -88,7 +88,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
       ),
       body: AppSurface(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          // Takvim altı saat kolonu yan yana taşıyor; sayfa payı diğer
+          // ekranlardan dar tutuluyor ki kolonlara nefes kalsın.
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           child: _buildBody(),
         ),
       ),

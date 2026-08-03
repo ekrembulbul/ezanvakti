@@ -11,6 +11,13 @@ import '../common/section_label.dart';
 /// Bir takvim satırının yüksekliği. Bugüne kaydırma bu değerle hesaplanır.
 const double kCalendarRowHeight = 76;
 
+/// Tarih kolonunun genişliği; başlık ve satırlarda aynı olmak zorunda.
+const double _kDayColumnWidth = 64;
+
+/// Saat kolonlarının iki yanındaki boşluk. Değerler `FittedBox` ile kolonu
+/// doldurduğu için boşluk verilmezse saatler bitişik görünüyor.
+const double _kColumnGap = 4;
+
 /// Takvimin sabit başlık satırı: vakit adları.
 class CalendarHeaderRow extends StatelessWidget {
   const CalendarHeaderRow({super.key});
@@ -26,17 +33,20 @@ class CalendarHeaderRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const SizedBox(width: 64),
+          const SizedBox(width: _kDayColumnWidth),
           for (final type in PrayerType.values)
             Expanded(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  SectionLabel.toTurkishUpperCase(
-                    PrayerUtils.getPrayerName(type),
-                  ),
-                  style: AppTypography.gridPrayerName.copyWith(
-                    color: tokens.textTertiary,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: _kColumnGap),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    SectionLabel.toTurkishUpperCase(
+                      PrayerUtils.getPrayerName(type),
+                    ),
+                    style: AppTypography.gridPrayerName.copyWith(
+                      color: tokens.textTertiary,
+                    ),
                   ),
                 ),
               ),
@@ -107,17 +117,20 @@ class _CalendarRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          SizedBox(width: 64, child: _dayLabel(context)),
+          SizedBox(width: _kDayColumnWidth, child: _dayLabel(context)),
           for (final type in PrayerType.values)
             Expanded(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  DateFormat(
-                    'HH:mm',
-                  ).format(PrayerUtils.getPrayerTime(day, type)),
-                  style: AppTypography.gridValue.copyWith(
-                    color: _isToday ? tokens.textPrimary : tokens.textValue,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: _kColumnGap),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    DateFormat(
+                      'HH:mm',
+                    ).format(PrayerUtils.getPrayerTime(day, type)),
+                    style: AppTypography.gridValue.copyWith(
+                      color: _isToday ? tokens.textPrimary : tokens.textValue,
+                    ),
                   ),
                 ),
               ),

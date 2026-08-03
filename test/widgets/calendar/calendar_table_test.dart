@@ -39,6 +39,39 @@ void main() {
     await tester.pump();
   }
 
+  /// Alti saat kolonu `Expanded` + `FittedBox` ile kolonu doldurdugu icin
+  /// kolon ici bosluk verilmezse saatler bitisik goruntu veriyordu. Olcum,
+  /// takvim ekraninin gercek ic genisliginde (402 - 2*12) yapilir.
+  testWidgets('Yan yana saatler arasinda bosluk kalir', (tester) async {
+    tester.view.physicalSize = const Size(1206, 2622);
+    tester.view.devicePixelRatio = 3.0;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      wrapWithTheme(
+        Center(
+          child: SizedBox(
+            width: 378,
+            child: CalendarTable(
+              days: [_day(2)],
+              now: DateTime(2026, 8, 3, 17, 34),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final fajr = tester.getRect(find.text('04:08'));
+    final sunrise = tester.getRect(find.text('05:53'));
+
+    expect(
+      sunrise.left - fajr.right,
+      greaterThanOrEqualTo(7),
+      reason: 'Kolon ici bosluk kaldirilirsa bu deger 6 pikselin altina duser',
+    );
+  });
+
   testWidgets('Sabit baslik satiri alti vakit adini gosterir', (tester) async {
     await pumpTable(tester);
 
