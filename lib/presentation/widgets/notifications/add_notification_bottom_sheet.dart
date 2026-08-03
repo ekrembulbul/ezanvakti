@@ -365,7 +365,7 @@ class _AddNotificationBottomSheetState
                     Text(
                       _errorText!,
                       style: TextStyle(
-                        color: Colors.red.withValues(alpha: 0.9),
+                        color: Theme.of(context).colorScheme.error,
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                       ),

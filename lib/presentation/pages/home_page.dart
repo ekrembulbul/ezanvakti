@@ -52,7 +52,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     _initializeServices();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       logger.debug('PostFrameCallback executing');
-      _loadInitialData();
+      _loadPrayerData();
       _startLocationMonitoring();
     });
   }
@@ -121,7 +121,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       logger: AppLogger(),
       onLocationChanged: (newLocation) async {
         appState.setActiveLocation(newLocation);
-        await _loadInitialData();
+        await _loadPrayerData(forceRefresh: true);
       },
     );
     await _locationMonitorController?.startMonitoring(appState.activeLocation);
@@ -147,7 +147,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       await locationRepository.setActiveLocation(savedLocation);
       appState.setActiveLocation(savedLocation);
 
-      await _loadInitialData();
+      await _loadPrayerData(forceRefresh: true);
 
       if (mounted) {
         ScaffoldMessenger.of(context)
@@ -157,7 +157,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               content: Text(
                 'GPS konumu güncellendi: ${gpsLocation.displayName}',
               ),
-              backgroundColor: Colors.green,
             ),
           );
       }
@@ -173,7 +172,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               content: Text(
                 'GPS yenileme hatası: ${e.toString().replaceAll('Exception: ', '')}',
               ),
-              backgroundColor: Colors.red,
+              backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
       }
@@ -184,93 +183,58 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _loadInitialData() async {
+  /// Vakit penceresini yükler ve bildirim/alarm planlamasını tazeler.
+  ///
+  /// Tek giriş noktası: açılış, GPS güncellemesi, konum değişimi, hesaplama
+  /// ayarı değişimi ve kullanıcının manuel yenilemesi hep buradan geçer.
+  Future<void> _loadPrayerData({bool forceRefresh = false}) async {
     final logger = AppLogger();
     final appState = context.read<AppState>();
     final location = appState.activeLocation;
 
     if (location == null) {
-      logger.warning('No active location found, skipping initial data load');
+      logger.warning('No active location found, skipping data load');
       return;
     }
 
-    appState.setLoading(true);
+    appState.setRefreshing(true);
     appState.clearError();
 
     try {
-      final data = await _dataLoaderService.loadInitialData(location);
-
-      logger.debug(
-        'Data received - todayPrayer: ${data['todayPrayer'] != null ? "YES" : "NULL"}, prayerTimes count: ${(data['prayerTimes'] as List).length}',
+      final data = await _dataLoaderService.loadPrayerData(
+        location,
+        forceRefresh: forceRefresh,
       );
 
-      appState.setTodaysPrayerTime(data['todayPrayer']);
-      appState.setTomorrowsPrayerTime(data['tomorrowPrayer']);
-      appState.setPrayerTimes(data['prayerTimes']);
-      appState.setLastUpdateTime(data['lastUpdate']);
-      appState.setNotificationPermission(data['hasPermission']);
-      appState.setNotificationSettings(data['settings']);
+      appState.setTodaysPrayerTime(data.today);
+      appState.setTomorrowsPrayerTime(data.tomorrow);
+      appState.setPrayerTimes(data.all);
+      appState.setLastUpdateTime(data.lastUpdate);
+      appState.setNotificationPermission(data.hasPermission);
+      appState.setNotificationSettings(data.settings);
+      appState.setRefreshing(false);
 
-      logger.debug(
-        'AppState updated - todaysPrayerTime: ${appState.todaysPrayerTime != null ? "YES" : "NULL"}',
-      );
+      logger.debug('Prayer data loaded: ${data.all.length} days');
 
-      appState.setLoading(false);
-      logger.debug('Initial data loaded successfully');
+      if (data.all.isEmpty) return;
 
-      _loadMoreDataInBackground(location);
-    } catch (e) {
-      logger.error('Failed to load initial data', e);
-      appState.setError('Veri yüklenirken hata oluştu: $e');
-      appState.setLoading(false);
-    }
-  }
-
-  Future<void> _loadMoreDataInBackground(Location location) async {
-    final today = DateTime.now();
-    final todayNormalized = DateTime(today.year, today.month, today.day);
-
-    final prayerTimes = await _dataLoaderService.loadBackgroundData(
-      location,
-      todayNormalized,
-    );
-
-    if (mounted && prayerTimes.isNotEmpty) {
-      final appState = context.read<AppState>();
-      appState.setPrayerTimes(prayerTimes);
-
-      // Prayer times are available only after background load; schedule notifications now.
       final scheduler = ServiceLocator().get<NotificationScheduler>();
       await scheduler.scheduleNotifications(
         location: location,
-        prayerTimes: prayerTimes,
+        prayerTimes: data.all,
       );
-      // Alarmları da güncel vakitlerle planla.
       await ServiceLocator().get<AlarmScheduler>().scheduleAlarms(
-        prayerTimes: prayerTimes,
+        prayerTimes: data.all,
       );
-    }
-  }
-
-  Future<void> _refreshData() async {
-    final logger = AppLogger();
-    logger.debug('User triggered refresh');
-    final appState = context.read<AppState>();
-    final location = appState.activeLocation;
-
-    if (location == null) {
-      logger.warning('No location for refresh');
-      return;
-    }
-
-    try {
-      final repository = ServiceLocator().get<PrayerTimesRepository>();
-      await repository.refreshPrayerTimes(location);
-      await _loadInitialData();
     } catch (e) {
-      appState.setError('Yenileme başarısız: $e');
+      logger.error('Failed to load prayer data', e);
+      appState.setError('Veri yüklenirken hata oluştu: $e');
+      appState.setRefreshing(false);
     }
   }
+
+  /// Kullanıcının tetiklediği yenileme (aşağı çekme, takvim ekranı).
+  Future<void> _refreshData() => _loadPrayerData(forceRefresh: true);
 
   void _navigateToCalendar() {
     final appState = context.read<AppState>();
@@ -371,7 +335,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     appState.setTodaysPrayerTime(null);
     appState.setTomorrowsPrayerTime(null);
 
-    await _loadInitialData();
+    await _loadPrayerData(forceRefresh: true);
   }
 
   void _navigateToLocationList() async {
@@ -402,7 +366,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       // Tek kanonik yol: aktif konumu ayarlama, hesaplama parametresi değişince
       // önbellek geçersizleştirme ve eski konumun bildirimlerini iptal etme
       // domain LocationService'e delege edilir. Vakit verisinin yüklenmesi ve
-      // bildirimlerin yeniden planlanması aşağıdaki _loadInitialData'da kalır
+      // bildirimlerin yeniden planlanması aşağıdaki _loadPrayerData'da kalır
       // (tek veri yükleme penceresi; çift çekim olmaz).
       await locationService.changeLocation(newLocation);
       appState.setActiveLocation(newLocation);
@@ -411,7 +375,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       appState.setTodaysPrayerTime(null);
       appState.setTomorrowsPrayerTime(null);
 
-      await _loadInitialData();
+      await _loadPrayerData(forceRefresh: true);
 
       logger.debug('Location switched successfully');
     } catch (e) {
@@ -444,6 +408,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 tomorrowsPrayerTime: appState.tomorrowsPrayerTime,
                 lastUpdateTime: appState.lastUpdateTime,
                 isLoading: appState.isLoading,
+                isRefreshing: appState.isRefreshing,
                 errorMessage: appState.errorMessage,
                 onRefresh: _refreshData,
                 onGpsRefresh: _manualGpsRefresh,

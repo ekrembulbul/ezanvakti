@@ -6,6 +6,44 @@ import '../../../core/utils/app_logger.dart';
 import '../data/gps_label.dart';
 import 'location_repository.dart';
 
+/// GPS karşılaştırması için gereken tek şey koordinat; `Position`'ın kalan
+/// alanları kullanılmadığı için karar mantığı geolocator'dan bağımsız tutulur.
+typedef Coordinates = ({double latitude, double longitude});
+
+/// Bu mesafeden kısa hareketler şehir değişimi sayılmaz.
+const double kSignificantDistanceMeters = 5000;
+
+/// Ard arda gelen fix'lerde en fazla bu sıklıkta güncelleme yapılır.
+const Duration kMinLocationUpdateInterval = Duration(minutes: 30);
+
+/// Kullanıcı gerçekten taşındı mı?
+///
+/// [previous] `null` ise karşılaştıracak referans yok demektir — yalnızca hiç
+/// GPS konumu kaydedilmemişken olur, o zaman ilk fix kabul edilir. Uygulama
+/// açılışında referans kayıtlı konumdan tohumlandığı için sıradan bir açılış
+/// bu yoldan geçmez.
+bool isSignificantLocationChange({
+  required Coordinates? previous,
+  required Coordinates current,
+  required DateTime? lastUpdate,
+  required DateTime now,
+}) {
+  if (previous == null) return true;
+
+  if (lastUpdate != null &&
+      now.difference(lastUpdate) < kMinLocationUpdateInterval) {
+    return false;
+  }
+
+  final distance = Geolocator.distanceBetween(
+    previous.latitude,
+    previous.longitude,
+    current.latitude,
+    current.longitude,
+  );
+  return distance >= kSignificantDistanceMeters;
+}
+
 class LocationMonitorService {
   final LocationRepository locationRepository;
   final AppLogger logger = AppLogger();
@@ -15,11 +53,8 @@ class LocationMonitorService {
   static const String _gpsLocationId = 'gps';
 
   StreamSubscription<Position>? _positionStreamSubscription;
-  Position? _lastPosition;
+  Coordinates? _lastCoordinates;
   DateTime? _lastUpdateTime;
-
-  static const double _significantDistanceMeters = 5000; // 5km
-  static const Duration _minUpdateInterval = Duration(minutes: 30);
 
   final _locationChangeController = StreamController<Location>.broadcast();
   Stream<Location> get onLocationChanged => _locationChangeController.stream;
@@ -40,6 +75,16 @@ class LocationMonitorService {
       if (gpsLocation == null) {
         logger.debug('No GPS location saved, monitoring disabled');
         return;
+      }
+
+      // Referansı kayıtlı konumdan tohumla. Aksi halde açılıştaki ilk fix
+      // karşılaştıracak bir şey bulamayıp her zaman "önemli değişim" sayılır;
+      // kullanıcı yerinden kımıldamasa bile önbellek yenilenir ve ekran
+      // yeniden yüklenir.
+      final latitude = gpsLocation.latitude;
+      final longitude = gpsLocation.longitude;
+      if (latitude != null && longitude != null) {
+        _lastCoordinates = (latitude: latitude, longitude: longitude);
       }
 
       _positionStreamSubscription =
@@ -69,7 +114,16 @@ class LocationMonitorService {
 
   Future<void> _onPositionChanged(Position position) async {
     try {
-      if (!_shouldUpdate(position)) {
+      final current = (
+        latitude: position.latitude,
+        longitude: position.longitude,
+      );
+      if (!isSignificantLocationChange(
+        previous: _lastCoordinates,
+        current: current,
+        lastUpdate: _lastUpdateTime,
+        now: DateTime.now(),
+      )) {
         return;
       }
 
@@ -88,7 +142,7 @@ class LocationMonitorService {
             existingGpsLocation.province == newLocation.province &&
             existingGpsLocation.district == newLocation.district) {
           logger.debug('GPS location unchanged, skipping update');
-          _lastPosition = position;
+          _lastCoordinates = current;
           _lastUpdateTime = DateTime.now();
           return;
         }
@@ -103,14 +157,13 @@ class LocationMonitorService {
           gpsLocation,
         );
 
-        // Konum değişti: eski koordinata ait önbellek vakitleri artık geçersiz.
-        // Temizlenir ki dinleyen taraf yeniden yüklerken yeni koordinatla taze
-        // veri çeksin (cache location_id ile anahtarlı, koordinatla değil).
-        await locationRepository.clearPrayerTimeCache(saved.id);
-
-        _lastPosition = position;
+        _lastCoordinates = current;
         _lastUpdateTime = DateTime.now();
 
+        // Önbellek burada SİLİNMEZ. Dinleyen taraf (HomePage) yüklemeyi
+        // `forceRefresh` ile yapar: yeni veri başarıyla gelirse aynı günlerin
+        // üzerine yazılır, ağ yoksa eski veri yerinde kalır. Önce silmek, ağ
+        // hatasında kullanıcıyı verisiz bırakıyordu.
         _locationChangeController.add(saved);
 
         logger.debug('GPS location updated: ${saved.displayName}');
@@ -118,28 +171,6 @@ class LocationMonitorService {
     } catch (e) {
       logger.error('Failed to process location change', e);
     }
-  }
-
-  bool _shouldUpdate(Position position) {
-    if (_lastPosition == null) {
-      return true;
-    }
-
-    if (_lastUpdateTime != null) {
-      final timeSinceLastUpdate = DateTime.now().difference(_lastUpdateTime!);
-      if (timeSinceLastUpdate < _minUpdateInterval) {
-        return false;
-      }
-    }
-
-    final distance = Geolocator.distanceBetween(
-      _lastPosition!.latitude,
-      _lastPosition!.longitude,
-      position.latitude,
-      position.longitude,
-    );
-
-    return distance >= _significantDistanceMeters;
   }
 
   Future<Location?> _getLocationFromCoordinates(

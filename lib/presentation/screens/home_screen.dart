@@ -28,6 +28,11 @@ class HomeScreen extends StatefulWidget {
   final VoidCallback? onGpsRefresh;
   final VoidCallback? onLocationTap;
   final bool isLoading;
+
+  /// Arka planda yenileme sürüyor. Ekrandaki vakitler yerinde kalır, üst
+  /// çubukta ince bir gösterge çizilir.
+  final bool isRefreshing;
+
   final String? errorMessage;
 
   const HomeScreen({
@@ -44,6 +49,7 @@ class HomeScreen extends StatefulWidget {
     this.onGpsRefresh,
     this.onLocationTap,
     this.isLoading = false,
+    this.isRefreshing = false,
     this.errorMessage,
   });
 
@@ -92,6 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 locationName: widget.location.displayName,
                 onLocationTap: widget.onLocationTap,
                 onMenuTap: _openMenu,
+                isRefreshing: widget.isRefreshing,
               ),
               Expanded(child: _buildBody()),
             ],

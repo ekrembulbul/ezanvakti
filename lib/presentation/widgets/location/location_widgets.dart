@@ -164,11 +164,11 @@ class LocationSelectionConfirm extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              '${location.province} / ${location.district}',
-              style: TextStyle(
-                color: tokens.accent,
-                fontWeight: FontWeight.w500,
-              ),
+              // Uygulamanin her yerindeki tek bicim: "Kadıköy, İstanbul".
+              location.displayName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTypography.rowTitle.copyWith(color: tokens.accent),
             ),
           ),
         ],

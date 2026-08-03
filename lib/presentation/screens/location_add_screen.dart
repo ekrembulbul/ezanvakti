@@ -341,7 +341,9 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
       messenger.showSnackBar(
         SnackBar(
           content: Text(message),
-          backgroundColor: isError ? Colors.red.shade700 : tokens.accent,
+          backgroundColor: isError
+              ? Theme.of(context).colorScheme.error
+              : tokens.accent,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),

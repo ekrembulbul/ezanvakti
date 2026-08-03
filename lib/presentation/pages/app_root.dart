@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/providers/app_state.dart';
 import '../../core/di/service_locator.dart';
+import '../../core/theme/tokens_context.dart';
 import '../../features/location/domain/location_repository.dart';
 import '../screens/location_add_screen.dart';
 import 'home_page.dart';
@@ -49,7 +50,12 @@ class _AppRootState extends State<AppRoot> {
   @override
   Widget build(BuildContext context) {
     if (_isChecking) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(
+        backgroundColor: context.tokens.backgroundStops.last,
+        body: Center(
+          child: CircularProgressIndicator(color: context.tokens.accent),
+        ),
+      );
     }
 
     return Consumer<AppState>(
