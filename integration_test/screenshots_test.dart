@@ -1,6 +1,9 @@
 import 'package:ezanvakti/core/di/service_locator.dart';
 import 'package:ezanvakti/core/models/alarm.dart';
+import 'package:ezanvakti/core/models/appearance_settings.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart' show PrayerType;
+import 'package:ezanvakti/core/theme/day_phase.dart';
+import 'package:ezanvakti/core/theme/theme_controller.dart';
 import 'package:ezanvakti/features/alarms/domain/alarms_manager.dart';
 import 'package:ezanvakti/main.dart' as app;
 import 'package:flutter/material.dart';
@@ -56,6 +59,33 @@ void main() {
     await tester.tap(find.byIcon(Icons.alarm_rounded));
     await _wait(tester, const Duration(seconds: 3));
     await shot(tester, '18-alarmlar-dolu');
+  });
+
+  // Sekiz palet kombinasyonu (4 dilim x koyu/acik). Konum ilk testte
+  // kaydedildigi icin agac dogrudan ana ekranla aciliyor. Palet, kullanicinin
+  // Ayarlar > Gorunum'de kullandigi ayni public API ile zorlanir; uretim
+  // kodunda test-only bir kanca yok.
+  testWidgets('sekiz palet kombinasyonu', (tester) async {
+    final theme = ServiceLocator().get<ThemeController>();
+    await theme.setTimeBasedColor(false);
+
+    await tester.pumpWidget(const app.MyApp());
+    await _wait(tester, const Duration(seconds: 8));
+
+    for (final mode in [AppThemeMode.dark, AppThemeMode.light]) {
+      await theme.setThemeMode(mode);
+      for (final phase in DayPhase.values) {
+        await theme.setFixedPalette(phase);
+        // AnimatedTheme gecisi kPaletteTransition kadar surer; kare gecis
+        // bitmeden alinirsa ara renk yakalanir.
+        await _wait(tester, kPaletteTransition + const Duration(seconds: 1));
+        await shot(tester, '19-palet-${phase.name}-${mode.name}');
+      }
+    }
+
+    // Bir sonraki kosum temiz baslasin diye varsayilana don.
+    await theme.setThemeMode(AppThemeMode.dark);
+    await theme.setTimeBasedColor(true);
   });
 }
 
