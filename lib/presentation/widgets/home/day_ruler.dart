@@ -16,7 +16,7 @@ import '../../../core/theme/tokens_context.dart';
 /// ortası.
 ///
 /// Gece uçları.
-const double _kNightOpacity = 0.5;
+const double _kNightOpacity = 0.4;
 
 /// Gündüz penceresinin henüz gelmemiş kısmı; geceden bir tık güçlü.
 const double _kUpcomingOpacity = 0.7;
