@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'app_tokens.dart';
 import 'app_typography.dart';
@@ -39,6 +40,15 @@ class AppTheme {
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        // AppBar ekrandayken kendi stilini uyguluyor ve main.dart'taki genel
+        // ayari eziyor; ikisi ayni degeri vermeli.
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: isDark
+              ? Brightness.light
+              : Brightness.dark,
+          statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+        ),
         centerTitle: true,
         titleTextStyle: AppTypography.screenTitle.copyWith(
           color: tokens.textPrimary,

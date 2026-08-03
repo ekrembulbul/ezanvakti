@@ -45,9 +45,16 @@ class MyApp extends StatelessWidget {
           SystemChrome.setSystemUIOverlayStyle(
             SystemUiOverlayStyle(
               statusBarColor: Colors.transparent,
+              // Android: simgelerin rengi. iOS: `statusBarBrightness` ve o
+              // simgeyi degil **zemini** tarif eder, bu yuzden ters deger
+              // verilir. Yalnizca ilki ayarlandigi icin iOS'ta acik temada
+              // saat/pil beyaz kaliyor ve gorunmuyordu.
               statusBarIconBrightness: isDark
                   ? Brightness.light
                   : Brightness.dark,
+              statusBarBrightness: isDark
+                  ? Brightness.dark
+                  : Brightness.light,
               systemNavigationBarColor: controller.tokens.backgroundStops.last,
               systemNavigationBarIconBrightness: isDark
                   ? Brightness.light
