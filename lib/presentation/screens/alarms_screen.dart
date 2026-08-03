@@ -5,11 +5,18 @@ import '../../core/di/service_locator.dart';
 import '../../core/interfaces/alarm_service.dart';
 import '../../core/models/alarm.dart';
 import '../../core/providers/app_state.dart';
-import '../../core/theme/app_theme.dart';
 import '../../features/alarms/domain/alarm_scheduler.dart';
 import '../../features/alarms/domain/alarms_manager.dart';
 import '../utils/prayer_name_helper.dart';
+import '../../core/theme/app_typography.dart';
+import '../../core/theme/tokens_context.dart';
 import '../widgets/common/app_bar_widgets.dart';
+import '../widgets/common/app_surface.dart';
+import '../widgets/common/grouped_list.dart';
+import '../widgets/common/info_banner.dart';
+import '../widgets/common/section_label.dart';
+import '../widgets/common/state_widgets.dart';
+import '../widgets/common/swipe_to_delete.dart';
 import 'alarm_edit_screen.dart';
 
 class AlarmsScreen extends StatefulWidget {
@@ -106,46 +113,96 @@ class _AlarmsScreenState extends State<AlarmsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final banner = _permissionBanner();
     return Scaffold(
+      backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       appBar: const SimpleAppBar(title: 'Alarmlar', showBack: false),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _addOrEdit(),
-        backgroundColor: AppTheme.gold,
-        foregroundColor: AppTheme.primaryDark,
         icon: const Icon(Icons.add),
         label: const Text('Alarm ekle'),
       ),
-      body: Container(
-        decoration: const BoxDecoration(gradient: AppTheme.nightGradient),
-        child: SafeArea(
-          child: _loading
-              ? const Center(
-                  child: CircularProgressIndicator(color: AppTheme.gold),
-                )
-              : Column(
+      body: AppSurface(
+        child: _loading
+            ? const LoadingState()
+            : Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    ?banner,
-                    Expanded(
-                      child: _alarms.isEmpty
-                          ? _empty()
-                          : ListView.separated(
-                              padding: const EdgeInsets.fromLTRB(12, 12, 12, 96),
-                              itemCount: _alarms.length,
-                              separatorBuilder: (_, _) =>
-                                  const SizedBox(height: 10),
-                              itemBuilder: (_, i) => _AlarmCard(
-                                alarm: _alarms[i],
-                                onTap: () => _addOrEdit(_alarms[i]),
-                                onToggle: (v) => _toggle(_alarms[i], v),
-                                onDelete: () => _delete(_alarms[i]),
-                              ),
-                            ),
-                    ),
+                    ?_permissionBanner(),
+                    Expanded(child: _alarms.isEmpty ? _empty() : _list()),
+                    _footer(),
                   ],
                 ),
+              ),
+      ),
+    );
+  }
+
+  Widget _list() {
+    final tokens = context.tokens;
+
+    return ListView(
+      padding: const EdgeInsets.only(top: 12, bottom: 96),
+      children: [
+        SectionLabel('${_alarms.length} alarm'),
+        const SizedBox(height: 10),
+        GroupedList(
+          children: [
+            for (final alarm in _alarms)
+              SwipeToDelete(
+                itemKey: ValueKey(alarm.id),
+                confirmText:
+                    '${alarmTimeLabel(alarm)} alarmını silmek istiyor musunuz?',
+                onDelete: () => _delete(alarm),
+                child: GroupedRow(
+                  icon: Icons.alarm_rounded,
+                  title: Text(alarmTimeLabel(alarm)),
+                  subtitle: Text(alarmSubtitle(alarm)),
+                  onTap: () => _addOrEdit(alarm),
+                  dimmed: !alarm.isActive,
+                  trailing: Switch(
+                    value: alarm.isActive,
+                    onChanged: (value) => _toggle(alarm, value),
+                  ),
+                ),
+              ),
+          ],
         ),
+        const SizedBox(height: 12),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2),
+          child: Text(
+            'Silmek için satırı sola kaydırın. Alarmlar vakit güncellendiğinde '
+            'otomatik yeniden planlanır.',
+            style: AppTypography.hint.copyWith(
+              color: tokens.textTertiary,
+              height: 1.5,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _footer() {
+    final tokens = context.tokens;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+      child: Row(
+        children: [
+          Icon(Icons.bedtime_rounded, size: 16, color: tokens.textTertiary),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              // Sıradaki alarmın saatini yazan sürüm ayrı bir turda gelecek.
+              'Alarmlar vakit verisi güncellendikçe yeniden planlanır.',
+              style: AppTypography.hint.copyWith(color: tokens.textTertiary),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -154,147 +211,37 @@ class _AlarmsScreenState extends State<AlarmsScreen> {
   /// Her şey yolundaysa null döner (banner gizli).
   Widget? _permissionBanner() {
     if (!_supported) {
-      return _banner(
-        icon: Icons.info_outline_rounded,
-        text:
-            'Sesli alarm bu cihazda desteklenmiyor (iOS 26 ve üzeri gerekir). '
-            'Alarmlar kaydedilir ancak çalmaz.',
+      return const Padding(
+        padding: EdgeInsets.only(top: 12),
+        child: InfoBanner(
+          icon: Icons.info_outline_rounded,
+          text:
+              'Sesli alarm bu cihazda desteklenmiyor (iOS 26 ve üzeri gerekir). '
+              'Alarmlar kaydedilir ancak çalmaz.',
+        ),
       );
     }
     if (!_granted) {
-      return _banner(
-        icon: Icons.notifications_off_rounded,
-        text: 'Alarmların çalması için izin gerekiyor.',
-        action: TextButton(
-          onPressed: _requestPermission,
-          child: const Text('İzin ver', style: TextStyle(color: AppTheme.gold)),
+      return Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: InfoBanner(
+          icon: Icons.notifications_off_rounded,
+          text: 'Alarmların çalması için izin gerekiyor.',
+          action: TextButton(
+            onPressed: _requestPermission,
+            child: const Text('İzin ver'),
+          ),
         ),
       );
     }
     return null;
   }
 
-  Widget _banner({required IconData icon, required String text, Widget? action}) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: AppTheme.gold.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.gold.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: AppTheme.gold, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.85),
-                fontSize: 12.5,
-              ),
-            ),
-          ),
-          ?action,
-        ],
-      ),
-    );
-  }
-
   Widget _empty() {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.alarm_off_rounded,
-            size: 56,
-            color: Colors.white.withValues(alpha: 0.3),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Henüz alarm yok',
-            style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Sabit saatli veya vakte göre alarm ekle',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.4),
-              fontSize: 12,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AlarmCard extends StatelessWidget {
-  final Alarm alarm;
-  final VoidCallback onTap;
-  final ValueChanged<bool> onToggle;
-  final VoidCallback onDelete;
-
-  const _AlarmCard({
-    required this.alarm,
-    required this.onTap,
-    required this.onToggle,
-    required this.onDelete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white.withValues(alpha: 0.05),
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      alarmTimeLabel(alarm),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      alarmSubtitle(alarm),
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.55),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                icon: Icon(
-                  Icons.delete_outline_rounded,
-                  color: Colors.white.withValues(alpha: 0.4),
-                ),
-                onPressed: onDelete,
-              ),
-              Switch(
-                value: alarm.isActive,
-                activeThumbColor: AppTheme.gold,
-                onChanged: onToggle,
-              ),
-            ],
-          ),
-        ),
-      ),
+    return const EmptyState(
+      icon: Icons.alarm_off_rounded,
+      message: 'Henüz alarm yok',
+      subtitle: 'Sabit saatli veya vakte göre alarm ekle',
     );
   }
 }
