@@ -161,7 +161,7 @@ Future<void> _captureAlarms(WidgetTester tester, Shot shot) async {
   await _wait(tester, const Duration(seconds: 3));
   await shot('15-alarmlar-bos');
 
-  await tester.tap(find.text('Alarm ekle'));
+  await tester.tap(find.byTooltip('Alarm ekle'));
   await _wait(tester, const Duration(seconds: 3));
   await shot('16-alarm-ekle-sabit-saat');
 

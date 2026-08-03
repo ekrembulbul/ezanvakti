@@ -312,7 +312,19 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      appBar: const SimpleAppBar(title: 'Bildirimler'),
+      appBar: SimpleAppBar(
+        title: 'Bildirimler',
+        // Tasarimda ekleme eylemi app bar'in saginda; FAB son satiri ortuyordu.
+        actions: [
+          AppBarActionButton(
+            key: const Key('add_notification_button'),
+            icon: Icons.add_rounded,
+            onTap: _showAddDialog,
+            tooltip: 'Bildirim ekle',
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: AppSurface(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -347,12 +359,6 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        key: const Key('add_notification_button'),
-        onPressed: _showAddDialog,
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Bildirim Ekle'),
-      ),
     );
   }
 
@@ -371,7 +377,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
     final sorted = _sortedSettings();
 
     return ListView(
-      padding: const EdgeInsets.only(bottom: 96),
+      padding: const EdgeInsets.only(bottom: 24),
       children: [
         Text(
           'Her vakit için tam vaktinde veya X dakika önce hatırlatma '

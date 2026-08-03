@@ -116,11 +116,19 @@ class _AlarmsScreenState extends State<AlarmsScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      appBar: const SimpleAppBar(title: 'Alarmlar', showBack: false),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _addOrEdit(),
-        icon: const Icon(Icons.add),
-        label: const Text('Alarm ekle'),
+      appBar: SimpleAppBar(
+        title: 'Alarmlar',
+        showBack: false,
+        // Tasarimda ekleme eylemi app bar'in saginda; FAB alt bilgi satirini
+        // ortuyordu.
+        actions: [
+          AppBarActionButton(
+            icon: Icons.add_rounded,
+            onTap: () => _addOrEdit(),
+            tooltip: 'Alarm ekle',
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: AppSurface(
         child: _loading
@@ -144,7 +152,7 @@ class _AlarmsScreenState extends State<AlarmsScreen> {
     final tokens = context.tokens;
 
     return ListView(
-      padding: const EdgeInsets.only(top: 12, bottom: 96),
+      padding: const EdgeInsets.only(top: 12, bottom: 24),
       children: [
         SectionLabel('${_alarms.length} alarm'),
         const SizedBox(height: 10),
