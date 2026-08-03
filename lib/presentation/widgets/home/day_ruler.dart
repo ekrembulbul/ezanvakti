@@ -6,8 +6,16 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 
-/// Gece uçlarının yatak rengine göre ne kadar sönük çizileceği.
-const double _kNightDim = 0.45;
+// ── Yatak ve çentik tonları ────────────────────────────────────────────────
+// Üçü de aynı rampada. `mutedTrack` (mürekkep %9) bu şerit için fazla zayıf
+// kalıyordu: koyu zeminde zaten sönük, gece için bir de kısılınca neredeyse
+// görünmez oluyordu.
+
+/// Gece uçları — çentiklerle aynı ağırlık.
+const double _kNightOpacity = 0.7;
+
+/// Gündüz penceresinin henüz gelmemiş kısmı; geceden bir tık güçlü.
+const double _kUpcomingOpacity = 1.0;
 
 // ── Dikey yerleşim ─────────────────────────────────────────────────────────
 // Yukarıdan aşağı: saat etiketi · nokta/yatak · çentikler. Ölçüler birbirinden
@@ -214,9 +222,11 @@ class DayRuler extends StatelessWidget {
                       progress: progress,
                     ),
                     elapsedColor: tokens.accent,
-                    upcomingColor: tokens.mutedTrack,
-                    nightColor: tokens.mutedTrack.withValues(
-                      alpha: tokens.mutedTrack.a * _kNightDim,
+                    upcomingColor: tokens.textTertiary.withValues(
+                      alpha: _kUpcomingOpacity,
+                    ),
+                    nightColor: tokens.textTertiary.withValues(
+                      alpha: _kNightOpacity,
                     ),
                   ),
                 ),
