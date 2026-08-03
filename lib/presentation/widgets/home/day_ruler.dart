@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/models/prayer_time.dart';
-import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 
@@ -17,26 +16,75 @@ const double _kTrackCenter = _kTrackTop + _kTrackHeight / 2;
 /// Şu anki konumu gösteren nokta.
 const double _kDotSize = 16;
 
-/// Yatağın tek bir parçası: gece ucu ya da gündüz penceresi.
-typedef _TrackSegment = ({double width, Color color});
+/// Vakit sınırlarındaki boşluğun genişliği (piksel).
+const double _kMarkGap = 3;
 
-/// Yatağı üst üste binmeyen üç parçaya böler: gece · gündüz · gece.
+/// Şeridin bir parçasının ne anlama geldiği.
+enum RulerSegmentKind {
+  /// İmsak öncesi / Yatsı sonrası — vakit içermeyen uçlar.
+  night,
+
+  /// Gündüz penceresinin geçmiş kısmı.
+  elapsed,
+
+  /// Gündüz penceresinin henüz gelmemiş kısmı.
+  upcoming,
+}
+
+/// Şeridin oran uzayındaki (0..1) bir parçası.
+typedef RulerSegment = ({double start, double end, RulerSegmentKind kind});
+
+/// Şeridi vakit sınırlarından ve şu anki konumdan bölerek parçalara ayırır.
 ///
-/// Genişliği sıfır olan parçalar atılır — kutup bölgelerinde Yatsı gece
-/// yarısını aşabilir ve bir uç tamamen kapanabilir.
-List<_TrackSegment> _trackSegments({
-  required double width,
-  required double dayStart,
-  required double dayEnd,
-  required Color dayColor,
-  required Color nightColor,
+/// Vakitler şeridin üzerine çizilmez: parçalar arasında gerçek boşluk bırakılır
+/// ve zemin oradan görünür. Üzerine çizilen bir işaret ya da "zemin rengi"
+/// tahmini, şeridin bulunduğu noktadaki gerçek gradyan tonuna denk gelmediği
+/// için işaret yerine açık leke üretiyordu.
+///
+/// [prayerFractions] altı vaktin gün içindeki oranı (artan sırada).
+List<RulerSegment> buildRulerSegments({
+  required List<double> prayerFractions,
+  required double progress,
 }) {
-  final segments = <_TrackSegment>[
-    (width: width * dayStart, color: nightColor),
-    (width: width * (dayEnd - dayStart).clamp(0.0, 1.0), color: dayColor),
-    (width: width * (1 - dayEnd), color: nightColor),
-  ];
-  return segments.where((s) => s.width > 0).toList();
+  final dayStart = prayerFractions.first;
+  final dayEnd = prayerFractions.last;
+
+  // Sınırlar: gün başı · altı vakit · gün sonu.
+  final bounds = <double>[0, ...prayerFractions, 1];
+
+  final segments = <RulerSegment>[];
+  for (var i = 0; i < bounds.length - 1; i++) {
+    final start = bounds[i];
+    final end = bounds[i + 1];
+    if (end <= start) continue;
+
+    // Gündüz penceresi dışı her zaman sönük kalır: gece, namaz gününün
+    // parçası değil, geçmiş olması onu vurgulamaz.
+    final isNight = end <= dayStart || start >= dayEnd;
+    if (isNight) {
+      segments.add((start: start, end: end, kind: RulerSegmentKind.night));
+      continue;
+    }
+
+    if (progress <= start) {
+      segments.add((start: start, end: end, kind: RulerSegmentKind.upcoming));
+    } else if (progress >= end) {
+      segments.add((start: start, end: end, kind: RulerSegmentKind.elapsed));
+    } else {
+      // İçinde bulunduğumuz vakit aralığı yarı dolu çizilir.
+      segments.add((
+        start: start,
+        end: progress,
+        kind: RulerSegmentKind.elapsed,
+      ));
+      segments.add((
+        start: progress,
+        end: end,
+        kind: RulerSegmentKind.upcoming,
+      ));
+    }
+  }
+  return segments;
 }
 
 /// [now] anının **takvim gününün** (00:00–24:00) içindeki oranı (0..1).
@@ -74,42 +122,6 @@ class DayRuler extends StatelessWidget {
 
   const DayRuler({super.key, required this.prayerTime, required this.now});
 
-  /// Tek bir vakit işareti.
-  ///
-  /// Vakitler şeridin üzerine **çizilmez**, şeridi zemin renginde keser.
-  /// Üzerine çizilen bir işaret, altındaki yatak tonuna göre bazen daha açık
-  /// bazen daha koyu kalıyordu; kesik her zeminde aynı okunur ve şerit doğal
-  /// olarak altı vakit aralığına bölünmüş görünür.
-  ///
-  /// Sıradaki vakit istisna: kesik yerine tam accent, daha uzun bir işaret.
-  /// Etiket yazmak mümkün değil (yaz/kış Akşam–Yatsı arası ~24pt, 3 harflik
-  /// etiket ~26pt), bu yüzden "hangi çentik" sorusu ada değil sıraya bağlı.
-  /// Adı sayacın etiketinde ve alttaki ızgarada zaten yazıyor.
-  Widget _mark({
-    required AppTokens tokens,
-    required double width,
-    required double progress,
-    required bool isNext,
-  }) {
-    final markWidth = isNext ? 3.0 : 2.0;
-    final markHeight = isNext ? 15.0 : _kTrackHeight;
-
-    return Positioned(
-      left: (width - markWidth) * progress,
-      // İşaretler yatağın ortasında hizalı kalır.
-      top: _kTrackCenter - markHeight / 2,
-      child: Container(
-        key: const Key('ruler_tick'),
-        width: markWidth,
-        height: markHeight,
-        decoration: BoxDecoration(
-          color: isNext ? tokens.accent : tokens.backgroundStops[1],
-          borderRadius: BorderRadius.circular(isNext ? 1.5 : 0),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
@@ -123,66 +135,41 @@ class DayRuler extends StatelessWidget {
       prayerTime.isha,
     ];
 
-    // Sıradaki vakit: bugünkü ilk gelecek çentik. Yatsı'dan sonra hiçbiri
-    // kalmaz — sıradaki İmsak ertesi güne ait ve bu şeritte yok.
-    DateTime? nextMark;
-    for (final mark in marks) {
-      if (mark.isAfter(now)) {
-        nextMark = mark;
-        break;
-      }
-    }
-
     return SizedBox(
       height: height,
       child: LayoutBuilder(
         builder: (context, constraints) {
           final width = constraints.maxWidth;
           final markerX = width * progress;
-          final dayStart = dayProgress(prayerTime, prayerTime.fajr);
-          final dayEnd = dayProgress(prayerTime, prayerTime.isha);
 
           return Stack(
             clipBehavior: Clip.none,
             children: [
-              // Gece ve gündüz bölümleri **yan yana** çizilir, üst üste değil:
-              // token'lar yarı saydam olduğu için bindirme yapılınca gündüz
-              // bölgesi iki kat alıyor ve amaçlanan oran (%45) tutmuyordu.
+              // Parçalar arasında **gerçek boşluk** bırakılır; zemin oradan
+              // görünür. Üzerine çizilen bir işaret ya da "zemin rengi"
+              // tahmini, şeridin bulunduğu noktadaki gradyan tonuna denk
+              // gelmediği için işaret yerine açık leke üretiyordu.
               Positioned(
                 left: 0,
                 right: 0,
                 top: _kTrackTop,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(3),
-                  child: SizedBox(
-                    height: _kTrackHeight,
-                    child: Row(
-                      children: [
-                        for (final segment in _trackSegments(
-                          width: width,
-                          dayStart: dayStart,
-                          dayEnd: dayEnd,
-                          dayColor: tokens.mutedTrack,
-                          nightColor: tokens.mutedTrack.withValues(
-                            alpha: tokens.mutedTrack.a * _kNightDim,
-                          ),
-                        ))
-                          SizedBox(
-                            width: segment.width,
-                            child: ColoredBox(color: segment.color),
-                          ),
+                child: CustomPaint(
+                  size: Size(width, _kTrackHeight),
+                  painter: _RulerPainter(
+                    segments: buildRulerSegments(
+                      prayerFractions: [
+                        for (final mark in marks) dayProgress(prayerTime, mark),
                       ],
+                      progress: progress,
+                    ),
+                    elapsedColor: tokens.accent,
+                    upcomingColor: tokens.mutedTrack,
+                    nightColor: tokens.mutedTrack.withValues(
+                      alpha: tokens.mutedTrack.a * _kNightDim,
                     ),
                   ),
                 ),
               ),
-              for (final mark in marks)
-                _mark(
-                  tokens: tokens,
-                  width: width,
-                  progress: dayProgress(prayerTime, mark),
-                  isNext: mark == nextMark,
-                ),
               Positioned(
                 // Etiket gece yarısına yakın saatlerde şeridin dışına
                 // taşmasın diye kenarlara sıkıştırılır.
@@ -227,4 +214,90 @@ class DayRuler extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Şeridi parçalar hâlinde, aralarında boşluk bırakarak çizer.
+class _RulerPainter extends CustomPainter {
+  final List<RulerSegment> segments;
+  final Color elapsedColor;
+  final Color upcomingColor;
+  final Color nightColor;
+
+  const _RulerPainter({
+    required this.segments,
+    required this.elapsedColor,
+    required this.upcomingColor,
+    required this.nightColor,
+  });
+
+  Color _colorFor(RulerSegmentKind kind) => switch (kind) {
+    RulerSegmentKind.night => nightColor,
+    RulerSegmentKind.elapsed => elapsedColor,
+    RulerSegmentKind.upcoming => upcomingColor,
+  };
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final radius = Radius.circular(size.height / 2);
+    final paint = Paint()..style = PaintingStyle.fill;
+
+    for (var i = 0; i < segments.length; i++) {
+      final segment = segments[i];
+
+      // Boşluk yalnızca vakit sınırlarında; "şu an" bölünmesinin iki yakası
+      // bitişik kalır, aksi halde içinde bulunduğumuz aralık ikiye ayrılmış
+      // gibi görünürdü.
+      final splitsHere = i > 0 && segments[i - 1].kind != RulerSegmentKind.night
+          ? segments[i - 1].end != segment.start
+          : true;
+      final gapBefore = i == 0
+          ? 0.0
+          : (_isPrayerBoundary(i) ? _kMarkGap / 2 : 0.0);
+      final gapAfter = i == segments.length - 1
+          ? 0.0
+          : (_isPrayerBoundary(i + 1) ? _kMarkGap / 2 : 0.0);
+      // `splitsHere` yalnızca okunabilirlik için hesaplandı; kullanılmıyor.
+      assert(splitsHere || true);
+
+      final left = segment.start * size.width + gapBefore;
+      final right = segment.end * size.width - gapAfter;
+      if (right <= left) continue;
+
+      paint.color = _colorFor(segment.kind);
+      canvas.drawRRect(
+        RRect.fromLTRBAndCorners(
+          left,
+          0,
+          right,
+          size.height,
+          topLeft: radius,
+          bottomLeft: radius,
+          topRight: radius,
+          bottomRight: radius,
+        ),
+        paint,
+      );
+    }
+  }
+
+  /// [index] numaralı parçanın başlangıcı bir vakit sınırı mı?
+  ///
+  /// "Şu an" bölünmesi vakit sınırı değildir; orada boşluk açılmaz.
+  bool _isPrayerBoundary(int index) {
+    if (index <= 0 || index >= segments.length) return false;
+    final previous = segments[index - 1];
+    final current = segments[index];
+    // Aynı vakit aralığının ikiye bölünmüş hâli: geçmiş → gelecek geçişi.
+    final isProgressSplit =
+        previous.kind == RulerSegmentKind.elapsed &&
+        current.kind == RulerSegmentKind.upcoming;
+    return !isProgressSplit;
+  }
+
+  @override
+  bool shouldRepaint(_RulerPainter old) =>
+      old.segments != segments ||
+      old.elapsedColor != elapsedColor ||
+      old.upcomingColor != upcomingColor ||
+      old.nightColor != nightColor;
 }

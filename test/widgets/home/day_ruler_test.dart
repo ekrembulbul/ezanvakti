@@ -69,6 +69,96 @@ void main() {
     });
   });
 
+  /// Vakitler seridin uzerine cizilmez; parcalar arasinda gercek bosluk
+  /// birakilir. Zemin rengi tahmin edilmeye calisildiginda, seridin
+  /// bulundugu noktadaki gradyan tonuna denk gelmiyor ve isaret yerine acik
+  /// leke uretiyordu.
+  group('buildRulerSegments', () {
+    // Imsak 4/24, Gunes 6/24, Ogle 13/24, Ikindi 17/24, Aksam 20/24,
+    // Yatsi 22/24.
+    const fractions = [4 / 24, 6 / 24, 13 / 24, 17 / 24, 20 / 24, 22 / 24];
+
+    test('Gun basi ve sonu gece olarak isaretlenir', () {
+      final segments = buildRulerSegments(
+        prayerFractions: fractions,
+        progress: 17.5 / 24,
+      );
+
+      expect(segments.first.kind, RulerSegmentKind.night);
+      expect(segments.first.start, 0);
+      expect(segments.first.end, closeTo(4 / 24, 0.001));
+
+      expect(segments.last.kind, RulerSegmentKind.night);
+      expect(segments.last.end, 1);
+      expect(segments.last.start, closeTo(22 / 24, 0.001));
+    });
+
+    test('Gece, gecmis olsa bile vurgulanmaz', () {
+      // Gece yarisi coktan gecti ama sol uc yine de sonuk kalmali: gece
+      // namaz gununun parcasi degil.
+      final segments = buildRulerSegments(
+        prayerFractions: fractions,
+        progress: 23 / 24,
+      );
+
+      expect(segments.first.kind, RulerSegmentKind.night);
+      expect(segments.last.kind, RulerSegmentKind.night);
+    });
+
+    test('Icinde bulunulan aralik ikiye bolunur', () {
+      final segments = buildRulerSegments(
+        prayerFractions: fractions,
+        progress: 18 / 24,
+      );
+
+      // Ikindi (17) - Aksam (20) araligi 18'de bolunur.
+      final split = segments.where(
+        (s) => s.start == 18 / 24 || s.end == 18 / 24,
+      );
+      expect(split, hasLength(2));
+      expect(
+        segments.firstWhere((s) => s.end == 18 / 24).kind,
+        RulerSegmentKind.elapsed,
+      );
+      expect(
+        segments.firstWhere((s) => s.start == 18 / 24).kind,
+        RulerSegmentKind.upcoming,
+      );
+    });
+
+    test('Parcalar bosluksuz ve artan sirada gunu kapsar', () {
+      final segments = buildRulerSegments(
+        prayerFractions: fractions,
+        progress: 12 / 24,
+      );
+
+      expect(segments.first.start, 0);
+      expect(segments.last.end, 1);
+      for (var i = 1; i < segments.length; i++) {
+        expect(segments[i].start, closeTo(segments[i - 1].end, 0.0001));
+      }
+    });
+
+    test('Yatsi gectikten sonra gunduz penceresi tamamen gecmis', () {
+      final segments = buildRulerSegments(
+        prayerFractions: fractions,
+        progress: 22.5 / 24,
+      );
+
+      final day = segments.where((s) => s.kind != RulerSegmentKind.night);
+      expect(
+        day,
+        everyElement(
+          isA<RulerSegment>().having(
+            (s) => s.kind,
+            'kind',
+            RulerSegmentKind.elapsed,
+          ),
+        ),
+      );
+    });
+  });
+
   group('DayRuler', () {
     testWidgets('Uclarda Imsak/Yatsi saati yazmaz', (tester) async {
       await tester.pumpWidget(
@@ -89,121 +179,13 @@ void main() {
       expect(find.text('17:34'), findsOneWidget);
     });
 
-    testWidgets('Yatak gece-gunduz-gece olarak bolunur, ustuste binmez', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        wrapWithTheme(_ruler(DateTime(2026, 8, 2, 17, 34))),
-      );
-
-      final boxes = tester
-          .widgetList<ColoredBox>(
-            find.descendant(
-              of: find.byType(ClipRRect),
-              matching: find.byType(ColoredBox),
-            ),
-          )
-          .toList();
-
-      expect(boxes, hasLength(3), reason: 'gece · gunduz · gece');
-
-      final rects = find
-          .descendant(
-            of: find.byType(ClipRRect),
-            matching: find.byType(ColoredBox),
-          )
-          .evaluate()
-          .map((e) => tester.getRect(find.byWidget(e.widget)))
-          .toList();
-
-      // Parcalar seridi tam olarak doldurur; bindirme olsaydi toplam daha
-      // buyuk cikardi ve gunduz bolgesi iki kat ton alirdi.
-      final total = rects.fold<double>(0, (sum, r) => sum + r.width);
-      expect(total, closeTo(360, 0.5));
-
-      // Gunduz penceresi iki gece ucundan da belirgin sekilde koyu.
-      final night = boxes.first.color.a;
-      final day = boxes[1].color.a;
-      expect(night / day, closeTo(0.45, 0.01));
-      expect(boxes.last.color.a, closeTo(night, 0.001));
-    });
-
-    testWidgets('Alti vakit centigi cizilir', (tester) async {
-      await tester.pumpWidget(
-        wrapWithTheme(_ruler(DateTime(2026, 8, 2, 17, 34))),
-      );
-
-      expect(find.byKey(const Key('ruler_tick')), findsNWidgets(6));
-    });
-
-    testWidgets('Siradaki vakit centigi uzun ve tam accent', (tester) async {
-      // 17:34 -> gecmis: Imsak/Gunes/Ogle/Ikindi, siradaki: Aksam (20:00).
-      await tester.pumpWidget(
-        wrapWithTheme(_ruler(DateTime(2026, 8, 2, 17, 34))),
-      );
-
-      final ticks = tester
-          .widgetList<Container>(find.byKey(const Key('ruler_tick')))
-          .toList();
-      final sizes = find
-          .byKey(const Key('ruler_tick'))
-          .evaluate()
-          .map((e) => tester.getSize(find.byWidget(e.widget)))
-          .toList();
-      final accent = tokensFor().accent;
-
-      final nextIndex = sizes.indexWhere((s) => s.height > 13);
-      expect(nextIndex, 4, reason: 'Aksam centigi one cikmali');
-      expect(sizes.where((s) => s.height > 13), hasLength(1));
-
-      final next = (ticks[nextIndex].decoration as BoxDecoration).color;
-      expect(next, accent, reason: 'Tam accent, soluk degil');
-    });
-
-    testWidgets('Yatsi gectikten sonra hicbir centik one cikmaz', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        wrapWithTheme(_ruler(DateTime(2026, 8, 2, 23, 0))),
-      );
-
-      final sizes = find
-          .byKey(const Key('ruler_tick'))
-          .evaluate()
-          .map((e) => tester.getSize(find.byWidget(e.widget)))
-          .toList();
-
-      // Siradaki Imsak ertesi gune ait; bu seritte temsil edilmiyor.
-      expect(sizes.where((s) => s.height > 13), isEmpty);
-    });
-
-    testWidgets('Siradaki disindaki vakitler seridi zemin renginde keser', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        wrapWithTheme(_ruler(DateTime(2026, 8, 2, 17, 34))),
-      );
-
-      final tokens = tokensFor();
-      final ticks = tester
-          .widgetList<Container>(find.byKey(const Key('ruler_tick')))
-          .map((c) => (c.decoration! as BoxDecoration).color)
-          .toList();
-
-      // Uzerine cizilen bir isaret, altindaki yatak tonuna gore bazen daha
-      // acik bazen daha koyu kaliyordu. Kesik her zeminde ayni okunur.
-      final cuts = ticks.where((c) => c == tokens.backgroundStops[1]);
-      expect(cuts, hasLength(5));
-      expect(ticks[4], tokens.accent, reason: 'Aksam siradaki');
-    });
-
-    testWidgets('Ilerleme dolgusu cizilmez', (tester) async {
+    testWidgets('Ilerleme dolgusu ayri bir katman degil', (tester) async {
       await tester.pumpWidget(
         wrapWithTheme(_ruler(DateTime(2026, 8, 2, 22, 18))),
       );
 
-      // Dolu accent cubugu aksam saatlerinde seridin %93'unu kaplayip gece
-      // ucunu ve centikleri ortuyordu; konum bilgisini zaten nokta veriyor.
+      // Serit tek bir CustomPaint; ustune binen dolgu/centik katmani yok.
+      // Once dolu accent cubugu gece ucunu ve centikleri ortuyordu.
       final gradients = tester
           .widgetList<Container>(find.byType(Container))
           .where((c) => c.decoration is BoxDecoration)
