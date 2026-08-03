@@ -202,7 +202,15 @@ class _LocationListScreenState extends State<LocationListScreen> {
               widget.onLocationSelected(location);
               Navigator.popUntil(context, (route) => route.isFirst);
             },
-      trailing: isActive ? _activeBadge() : _editButton(location),
+      // Aktif konum da duzenlenebilmeli (hesaplama parametreleri); rozet
+      // ayar ikonunun yerini almaz, yanina gelir.
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (isActive) ...[_activeBadge(), const SizedBox(width: 8)],
+          _editButton(location),
+        ],
+      ),
     );
 
     if (isActive) return row;
