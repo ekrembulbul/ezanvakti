@@ -219,11 +219,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       appState.setRefreshing(false);
 
       // Palet gün dilimini vakitlerden hesaplar; beslenmezse hep akşam
-      // fallback'inde (D5) kalır. Gece dilimi ertesi İmsak'ta bittiği için
-      // sunum kuralına bağlı `tomorrow` değil, her zaman dolu `nextDay`.
+      // fallback'inde (D5) kalır.
       ServiceLocator().get<ThemeController>().updatePrayerTimes(
         today: data.today,
-        tomorrow: data.nextDay,
+        tomorrow: data.tomorrow,
       );
 
       logger.debug('Prayer data loaded: ${data.all.length} days');

@@ -16,7 +16,13 @@ double dayProgress(PrayerTime prayerTime, DateTime now) {
 }
 
 /// Günün İmsak→Yatsı şeridi: ilerleme, vakit çentikleri ve şu anki saat.
+///
+/// Uçlardaki İmsak/Yatsı saatleri kaldırıldı: aynı iki değer hemen altındaki
+/// vakit ızgarasında zaten var ve şeridin uçlarında bağlamsız duruyorlardı.
 class DayRuler extends StatelessWidget {
+  /// Şerit yüksekliği: üstte saat etiketi, ortada 5px yatak.
+  static const double height = 26;
+
   final PrayerTime prayerTime;
   final DateTime now;
 
@@ -36,7 +42,7 @@ class DayRuler extends StatelessWidget {
     ];
 
     return SizedBox(
-      height: 40,
+      height: height,
       child: LayoutBuilder(
         builder: (context, constraints) {
           final width = constraints.maxWidth;
@@ -127,34 +133,10 @@ class DayRuler extends StatelessWidget {
                   ),
                 ),
               ),
-              Positioned(
-                left: 0,
-                top: 27,
-                child: Text(
-                  DateFormat('HH:mm').format(prayerTime.fajr),
-                  style: _edgeStyle(context),
-                ),
-              ),
-              Positioned(
-                right: 0,
-                top: 27,
-                child: Text(
-                  DateFormat('HH:mm').format(prayerTime.isha),
-                  style: _edgeStyle(context),
-                ),
-              ),
             ],
           );
         },
       ),
-    );
-  }
-
-  TextStyle _edgeStyle(BuildContext context) {
-    return AppTypography.rulerTime.copyWith(
-      color: context.tokens.textTertiary,
-      fontWeight: FontWeight.w600,
-      fontVariations: const [FontVariation('wght', 600)],
     );
   }
 }

@@ -8,9 +8,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../support/fakes.dart';
 
-/// [PrayerData]'nin iki farkli "yarin" alani var ve karistirilmasi sessiz bir
-/// hataya yol aciyor: `tomorrow` sunum kuralina bagli (yalnizca Yatsi'dan
-/// sonra dolu), `nextDay` ise palet icin her zaman dolu olmali.
+/// `tomorrow` iki yerin dayanagi: ana ekranin YARIN seridi (spec §6.1/6, gun
+/// boyu gorunur) ve paletin gece dilimini ertesi Imsak'ta bitirmesi. Bos
+/// kalirsa serit kaybolur ve palet aksam fallback'ine duser.
 void main() {
   const location = Location(
     id: 'loc-1',
@@ -32,7 +32,7 @@ void main() {
     );
   }
 
-  test('nextDay saat kacta olursa olsun dolu gelir', () async {
+  test('tomorrow saat kacta olursa olsun dolu gelir', () async {
     final storage = FakeStorage();
     await storage.init();
     final loader = buildLoader(storage, FakeProvider());
@@ -41,28 +41,15 @@ void main() {
 
     expect(data.today, isNotNull);
     expect(
-      data.nextDay,
+      data.tomorrow,
       isNotNull,
-      reason: 'Gece diliminin ertesi İmsak\'ta bittigini palet buradan ogrenir',
+      reason: 'YARIN seridi gun boyu gorunur; palet de bunu kullanir',
     );
     expect(
-      data.nextDay!.date.difference(data.today!.date).inDays,
+      data.tomorrow!.date.difference(data.today!.date).inDays,
       1,
-      reason: 'nextDay bugunun ertesi gunu olmali',
+      reason: 'tomorrow bugunun ertesi gunu olmali',
     );
-  });
-
-  test('Yatsi gecmediyse tomorrow bos kalir', () async {
-    final storage = FakeStorage();
-    await storage.init();
-    final loader = buildLoader(storage, FakeProvider());
-
-    final data = await loader.loadPrayerData(location);
-
-    // FakeProvider Yatsi'yi 22:01'e koyuyor. Test bu saatten once kosuyorsa
-    // "YARIN" seridi gorunmemeli; sonra kosuyorsa gorunmeli.
-    final afterIsha = DateTime.now().isAfter(data.today!.isha);
-    expect(data.tomorrow != null, afterIsha);
   });
 
   test('Palet, yuklenen vakitlerle dogru dilimi cozuyor', () async {
@@ -79,7 +66,7 @@ void main() {
     expect(
       resolveDayPhase(
         today: today,
-        tomorrow: data.nextDay,
+        tomorrow: data.tomorrow,
         now: betweenDhuhrAndAsr,
       ),
       DayPhase.afternoon,

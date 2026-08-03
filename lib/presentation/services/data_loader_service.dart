@@ -10,14 +10,10 @@ import '../../features/prayer_times/domain/prayer_times_repository.dart';
 typedef PrayerData = ({
   PrayerTime? today,
 
-  /// Ana ekranın "YARIN" şeridi için. **Yalnızca Yatsı'dan sonra** doludur;
-  /// gün içinde şeridin görünmemesi gerektiği için bilinçli olarak `null`.
+  /// Ertesi günün vakti. Ana ekrandaki "YARIN" şeridi (spec §6.1/6) gün boyu
+  /// görünür; palet de gece diliminin ertesi İmsak'ta bittiğini buradan
+  /// öğrenir. Yalnızca veri penceresi ertesi günü kapsamıyorsa `null`.
   PrayerTime? tomorrow,
-
-  /// Ertesi günün vakti, saat kaç olursa olsun. Palet, gece diliminin
-  /// ertesi İmsak'ta bitmesini bilmek zorunda ([nextDayPhaseBoundary]);
-  /// sunum kuralına bağlı [tomorrow] bunun yerine kullanılamaz.
-  PrayerTime? nextDay,
 
   List<PrayerTime> all,
   DateTime? lastUpdate,
@@ -69,11 +65,7 @@ class DataLoaderService {
     _logger.debug('Prayer window loaded: ${all.length} days');
 
     final today = _dayAt(all, todayDate);
-    final nextDay = _dayAt(all, todayDate.add(const Duration(days: 1)));
-
-    // Yarın yalnızca Yatsı'dan sonra gösterilir; gün içinde doldurmak ana
-    // ekrandaki "YARIN" şeridini sürekli görünür yapardı.
-    final tomorrow = today != null && now.isAfter(today.isha) ? nextDay : null;
+    final tomorrow = _dayAt(all, todayDate.add(const Duration(days: 1)));
 
     final lastUpdate = await _prayerTimesRepository.getLastUpdateTime();
     final hasPermission = await _notificationService.isPermissionGranted();
@@ -87,7 +79,6 @@ class DataLoaderService {
     return (
       today: today,
       tomorrow: tomorrow,
-      nextDay: nextDay,
       all: all,
       lastUpdate: lastUpdate,
       hasPermission: hasPermission,

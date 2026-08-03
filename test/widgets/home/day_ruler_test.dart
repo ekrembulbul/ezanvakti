@@ -53,11 +53,15 @@ void main() {
   });
 
   group('DayRuler', () {
-    testWidgets('Uc saatleri gosterir', (tester) async {
-      await tester.pumpWidget(wrapWithTheme(_ruler(DateTime(2026, 8, 2, 17, 34))));
+    testWidgets('Uclarda Imsak/Yatsi saati yazmaz', (tester) async {
+      await tester.pumpWidget(
+        wrapWithTheme(_ruler(DateTime(2026, 8, 2, 17, 34))),
+      );
 
-      expect(find.text('04:00'), findsOneWidget);
-      expect(find.text('22:00'), findsOneWidget);
+      // Ayni iki deger hemen altindaki vakit izgarasinda zaten var; seridin
+      // uclarinda baglamsiz duruyorlardi.
+      expect(find.text('04:00'), findsNothing);
+      expect(find.text('22:00'), findsNothing);
     });
 
     testWidgets('Su anki saati gosterge etiketi olarak yazar', (tester) async {
