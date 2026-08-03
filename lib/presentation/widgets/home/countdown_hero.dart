@@ -6,6 +6,24 @@ import 'package:intl/intl.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 
+/// Saniye sınırının ne kadar ardından uyanılacağı.
+///
+/// Tam sınırda uyanmak, timer'ın birkaç milisaniye erken tetiklenmesi
+/// durumunda hâlâ bir önceki saniyede örnekleme yapma riski taşır.
+const Duration kTickMargin = Duration(milliseconds: 20);
+
+/// [now]'dan bir sonraki duvar saati saniye sınırına kalan süre (+[kTickMargin]).
+///
+/// Geri sayımın gösterdiği değer yalnızca duvar saatinin saniyesine bağlıdır:
+/// hedef vaktin milisaniyesi sıfırdır (vakitler `DateTime(y, m, d, hour,
+/// minute)` ile kurulur), dolayısıyla `floor(hedef − şimdi)` bir saniye
+/// boyunca sabit kalır ve tam sınırda değişir. Yenileme bu sınıra kilitlenmezse
+/// örnekleme fazı sınıra yakın düştüğünde ardışık iki örnek sınırın iki yanına
+/// düşer: bir değer iki kez çizilir, komşusu hiç çizilmez.
+Duration delayToNextSecond(DateTime now) {
+  return Duration(milliseconds: 1000 - now.millisecond) + kTickMargin;
+}
+
 /// Ana ekranın ortalanmış geri sayım bloğu.
 ///
 /// Eski üç kutulu tasarımın yerini alır: tek satır `SS:DD:SS`, üstünde
@@ -30,9 +48,20 @@ class _CountdownHeroState extends State<CountdownHero> {
   @override
   void initState() {
     super.initState();
-    // Saniyelik tik yalnızca bu widget'ı yeniden çizer, ekranın tamamını değil.
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (mounted) setState(() {});
+    _scheduleTick();
+  }
+
+  /// Bir sonraki saniye sınırına kilitli tek seferlik tik; her uyanışta
+  /// yeniden kurulur. `Timer.periodic` yerine bunun kullanılmasının nedeni
+  /// [delayToNextSecond] belgesinde.
+  ///
+  /// Tik yalnızca bu widget'ı yeniden çizer, ekranın tamamını değil.
+  void _scheduleTick() {
+    _timer?.cancel();
+    _timer = Timer(delayToNextSecond(DateTime.now()), () {
+      if (!mounted) return;
+      setState(() {});
+      _scheduleTick();
     });
   }
 
