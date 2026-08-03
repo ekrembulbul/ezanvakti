@@ -220,6 +220,26 @@ void main() {
       expect(find.text('17:34'), findsOneWidget);
     });
 
+    testWidgets('Saat etiketi noktanin altinda kalmaz', (tester) async {
+      await tester.pumpWidget(
+        wrapWithTheme(_ruler(DateTime(2026, 8, 2, 17, 34))),
+      );
+
+      final label = tester.getRect(find.text('17:34'));
+      // Nokta: yatagin merkezine hizali 16px daire. Etiketin alt kenari
+      // noktanin ust kenarindan yukarida olmali.
+      final dot = tester.getRect(
+        find.byWidgetPredicate(
+          (w) =>
+              w is Container &&
+              w.decoration is BoxDecoration &&
+              (w.decoration! as BoxDecoration).shape == BoxShape.circle,
+        ),
+      );
+
+      expect(label.bottom, lessThanOrEqualTo(dot.top));
+    });
+
     testWidgets('Alti vakit centigi cizilir', (tester) async {
       await tester.pumpWidget(
         wrapWithTheme(_ruler(DateTime(2026, 8, 2, 17, 34))),

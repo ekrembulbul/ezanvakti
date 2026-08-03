@@ -9,13 +9,24 @@ import '../../../core/theme/tokens_context.dart';
 /// Gece uçlarının yatak rengine göre ne kadar sönük çizileceği.
 const double _kNightDim = 0.45;
 
-/// Yatağın kalınlığı ve dikey merkezi.
-const double _kTrackTop = 16;
-const double _kTrackHeight = 5;
-const double _kTrackCenter = _kTrackTop + _kTrackHeight / 2;
+// ── Dikey yerleşim ─────────────────────────────────────────────────────────
+// Yukarıdan aşağı: saat etiketi · nokta/yatak · çentikler. Ölçüler birbirinden
+// türetilir; elle yazılmış değerlerde etiket noktanın altında kalıyordu.
+
+/// Saat etiketinin kutusu. `height: 1.0` ile satır kutusu font boyuna eşitlenir
+/// (varsayılan ~1.36 çarpanı kutuyu 15px'e çıkarıp noktanın üstüne bindiriyordu).
+const double _kLabelHeight = 12;
+
+/// Etiket ile noktanın üst kenarı arasındaki boşluk.
+const double _kLabelGap = 3;
 
 /// Şu anki konumu gösteren nokta.
 const double _kDotSize = 16;
+
+/// Nokta yataktan kalın; dikey merkez ona göre belirlenir.
+const double _kTrackCenter = _kLabelHeight + _kLabelGap + _kDotSize / 2;
+const double _kTrackHeight = 5;
+const double _kTrackTop = _kTrackCenter - _kTrackHeight / 2;
 
 /// Yatağın altındaki vakit çentikleri.
 const double _kTickTop = _kTrackTop + _kTrackHeight + 2;
@@ -122,7 +133,7 @@ double dayProgress(PrayerTime prayerTime, DateTime now) {
 /// vakit ızgarasında zaten var.
 class DayRuler extends StatelessWidget {
   /// Şerit yüksekliği: üstte saat etiketi, ortada yatak, altta çentikler.
-  static const double height = 28;
+  static const double height = _kTickTop + _kTickHeight;
 
   final PrayerTime prayerTime;
   final DateTime now;
@@ -217,11 +228,13 @@ class DayRuler extends StatelessWidget {
                 top: 0,
                 child: SizedBox(
                   width: 40,
+                  height: _kLabelHeight,
                   child: Text(
                     DateFormat('HH:mm').format(now),
                     textAlign: TextAlign.center,
                     style: AppTypography.rulerTime.copyWith(
                       color: tokens.accent,
+                      height: 1,
                     ),
                   ),
                 ),
