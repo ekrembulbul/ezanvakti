@@ -1,13 +1,6 @@
 import 'package:ezanvakti/core/errors/prayer_times_errors.dart';
-import 'package:ezanvakti/core/interfaces/local_storage.dart';
-import 'package:ezanvakti/core/interfaces/notification_service.dart';
-import 'package:ezanvakti/core/interfaces/prayer_time_provider.dart';
-import 'package:ezanvakti/core/models/alarm.dart';
-import 'package:ezanvakti/core/models/appearance_settings.dart';
-import 'package:ezanvakti/core/models/calculation_settings.dart';
 import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart';
-import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/features/location/domain/location_repository.dart';
 import 'package:ezanvakti/features/location/domain/location_service.dart';
 import 'package:ezanvakti/features/notifications/domain/notification_scheduler.dart';
@@ -16,6 +9,7 @@ import 'package:ezanvakti/presentation/widgets/notifications/permission_warning_
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../support/fakes.dart';
 import '../widgets/theme_harness.dart';
 
 /// `docs/PLAN_CHECKLIST.md`'deki MVP kabul kriterlerinin uctan uca karsiligi.
@@ -43,18 +37,18 @@ void main() {
   /// Senaryolarin ortak kurulumu: bos depo, 30 gunluk veri uretebilen saglayici
   /// ve cagrilari sayan bildirim servisi.
   ({
-    _FakeStorage storage,
-    _FakeProvider provider,
-    _FakeNotificationService notifications,
+    FakeStorage storage,
+    FakeProvider provider,
+    FakeNotificationService notifications,
     PrayerTimesRepository prayerTimes,
   })
   buildStack() {
-    final storage = _FakeStorage();
-    final provider = _FakeProvider();
+    final storage = FakeStorage();
+    final provider = FakeProvider();
     return (
       storage: storage,
       provider: provider,
-      notifications: _FakeNotificationService(),
+      notifications: FakeNotificationService(),
       prayerTimes: PrayerTimesRepository(provider: provider, storage: storage),
     );
   }
@@ -65,7 +59,7 @@ void main() {
       await stack.storage.init();
       await stack.storage.saveActiveLocation(istanbul);
 
-      final today = _atMidnight(DateTime.now());
+      final today = atMidnight(DateTime.now());
       final times = await stack.prayerTimes.getPrayerTimes(
         location: istanbul,
         startDate: today,
@@ -100,7 +94,7 @@ void main() {
         NotificationSetting(prayerType: PrayerType.asr, isActive: false),
       ]);
 
-      final today = _atMidnight(DateTime.now());
+      final today = atMidnight(DateTime.now());
       final times = await stack.prayerTimes.getPrayerTimes(
         location: istanbul,
         startDate: today,
@@ -134,7 +128,7 @@ void main() {
       final stack = buildStack();
       await stack.storage.init();
 
-      final today = _atMidnight(DateTime.now());
+      final today = atMidnight(DateTime.now());
       final end = today.add(const Duration(days: 6));
 
       // Once online: onbellek dolar.
@@ -165,7 +159,7 @@ void main() {
       await stack.storage.init();
       stack.provider.failWith = NetworkException('Baglanti yok');
 
-      final today = _atMidnight(DateTime.now());
+      final today = atMidnight(DateTime.now());
 
       expect(
         () => stack.prayerTimes.getPrayerTimes(
@@ -187,7 +181,7 @@ void main() {
         NotificationSetting(prayerType: PrayerType.dhuhr, isActive: true),
       ]);
 
-      final today = _atMidnight(DateTime.now());
+      final today = atMidnight(DateTime.now());
       final end = today.add(const Duration(days: 6));
 
       final istanbulTimes = await stack.prayerTimes.getPrayerTimes(
@@ -252,7 +246,7 @@ void main() {
       await stack.storage.init();
       await stack.storage.saveActiveLocation(istanbul);
 
-      final today = _atMidnight(DateTime.now());
+      final today = atMidnight(DateTime.now());
       final end = today.add(const Duration(days: 6));
 
       await stack.prayerTimes.getPrayerTimes(
@@ -284,7 +278,7 @@ void main() {
     testWidgets(
       'Izin yoksa kullanici uyarilir ve izin istemeye yonlendirilir',
       (tester) async {
-        final notifications = _FakeNotificationService()
+        final notifications = FakeNotificationService()
           ..permissionGranted = false;
         bool? reportedResult;
 
@@ -334,293 +328,4 @@ void main() {
       expect(stack.notifications.cancelAllCount, 1);
     });
   });
-}
-
-DateTime _atMidnight(DateTime value) =>
-    DateTime(value.year, value.month, value.day);
-
-/// Verilen gun icin sabit saatlerde bir [PrayerTime] uretir.
-PrayerTime _prayerTimeFor(DateTime day) {
-  DateTime at(int hour, int minute) =>
-      DateTime(day.year, day.month, day.day, hour, minute);
-  return PrayerTime(
-    date: _atMidnight(day),
-    fajr: at(4, 11),
-    sunrise: at(5, 55),
-    dhuhr: at(13, 15),
-    asr: at(17, 9),
-    maghrib: at(20, 25),
-    isha: at(22, 1),
-  );
-}
-
-/// Istege bagli olarak hata firlatabilen, cagri sayan saglayici.
-class _FakeProvider implements PrayerTimeProvider {
-  int fetchCount = 0;
-  Exception? failWith;
-
-  @override
-  String get providerName => 'fake';
-
-  @override
-  Future<List<PrayerTime>> fetchPrayerTimes({
-    required Location location,
-    required DateTime startDate,
-    required DateTime endDate,
-  }) async {
-    fetchCount++;
-    final failure = failWith;
-    if (failure != null) throw failure;
-
-    final days = endDate.difference(startDate).inDays;
-    return List.generate(
-      days + 1,
-      (i) => _prayerTimeFor(startDate.add(Duration(days: i))),
-    );
-  }
-
-  @override
-  Future<PrayerTime?> fetchDailyPrayerTime({
-    required Location location,
-    required DateTime date,
-  }) async {
-    fetchCount++;
-    final failure = failWith;
-    if (failure != null) throw failure;
-    return _prayerTimeFor(date);
-  }
-}
-
-/// Bellekte tutan depo. Vakitler konum + gun anahtariyla saklanir.
-class _FakeStorage implements LocalStorage {
-  final Map<String, Map<String, PrayerTime>> _times = {};
-  final List<Location> _locations = [];
-  final List<Alarm> _alarms = [];
-  List<NotificationSetting> _notificationSettings = [];
-  Location? _activeLocation;
-  DateTime? _lastUpdate;
-  CalculationSettings _calculationSettings = CalculationSettings.defaults;
-  AppearanceSettings _appearanceSettings = const AppearanceSettings();
-  bool _defaultsInitialized = false;
-
-  static String _dayKey(DateTime date) =>
-      '${date.year}-${date.month}-${date.day}';
-
-  @override
-  Future<void> init() async {}
-
-  @override
-  Future<void> savePrayerTimes(
-    List<PrayerTime> prayerTimes,
-    String locationId,
-  ) async {
-    final bucket = _times.putIfAbsent(locationId, () => {});
-    for (final time in prayerTimes) {
-      bucket[_dayKey(time.date)] = time;
-    }
-  }
-
-  @override
-  Future<List<PrayerTime>> getPrayerTimes({
-    required String locationId,
-    required DateTime startDate,
-    required DateTime endDate,
-  }) async {
-    final bucket = _times[locationId];
-    if (bucket == null) return [];
-    return bucket.values
-        .where(
-          (t) =>
-              !t.date.isBefore(_atMidnight(startDate)) &&
-              !t.date.isAfter(_atMidnight(endDate)),
-        )
-        .toList()
-      ..sort((a, b) => a.date.compareTo(b.date));
-  }
-
-  @override
-  Future<PrayerTime?> getDailyPrayerTime({
-    required String locationId,
-    required DateTime date,
-  }) async {
-    return _times[locationId]?[_dayKey(date)];
-  }
-
-  @override
-  Future<void> deleteOldPrayerTimes(DateTime cutoffDate) async {
-    for (final bucket in _times.values) {
-      bucket.removeWhere((_, time) => time.date.isBefore(cutoffDate));
-    }
-  }
-
-  @override
-  Future<void> deletePrayerTimesForLocation(String locationId) async {
-    _times.remove(locationId);
-  }
-
-  @override
-  Future<void> deleteAllPrayerTimes() async => _times.clear();
-
-  @override
-  Future<CalculationSettings> getCalculationSettings() async =>
-      _calculationSettings;
-
-  @override
-  Future<void> saveCalculationSettings(CalculationSettings settings) async {
-    _calculationSettings = settings;
-  }
-
-  @override
-  Future<AppearanceSettings> getAppearanceSettings() async =>
-      _appearanceSettings;
-
-  @override
-  Future<void> saveAppearanceSettings(AppearanceSettings settings) async {
-    _appearanceSettings = settings;
-  }
-
-  @override
-  Future<void> saveActiveLocation(Location location) async {
-    _activeLocation = location;
-    if (!_locations.any((l) => l.id == location.id)) _locations.add(location);
-  }
-
-  @override
-  Future<Location?> getActiveLocation() async => _activeLocation;
-
-  @override
-  Future<List<Location>> getSavedLocations() async => List.of(_locations);
-
-  @override
-  Future<void> saveLocation(Location location) async {
-    _locations.add(location);
-  }
-
-  @override
-  Future<void> updateLocation(Location location) async {
-    final index = _locations.indexWhere((l) => l.id == location.id);
-    if (index >= 0) _locations[index] = location;
-    if (_activeLocation?.id == location.id) _activeLocation = location;
-  }
-
-  @override
-  Future<void> deleteLocation(String locationId) async {
-    _locations.removeWhere((l) => l.id == locationId);
-  }
-
-  @override
-  Future<void> saveNotificationSettings(
-    List<NotificationSetting> settings,
-  ) async {
-    _notificationSettings = List.of(settings);
-  }
-
-  @override
-  Future<List<NotificationSetting>> getNotificationSettings() async =>
-      List.of(_notificationSettings);
-
-  @override
-  Future<void> addNotificationSetting(NotificationSetting setting) async {
-    _notificationSettings.add(setting);
-  }
-
-  @override
-  Future<void> deleteNotificationSetting({
-    required PrayerType prayerType,
-    required int minutesBefore,
-  }) async {
-    _notificationSettings.removeWhere(
-      (s) => s.prayerType == prayerType && s.minutesBefore == minutesBefore,
-    );
-  }
-
-  @override
-  Future<bool> isNotificationDefaultsInitialized() async =>
-      _defaultsInitialized;
-
-  @override
-  Future<void> markNotificationDefaultsInitialized() async {
-    _defaultsInitialized = true;
-  }
-
-  @override
-  Future<void> saveLastUpdateTime(DateTime time) async => _lastUpdate = time;
-
-  @override
-  Future<DateTime?> getLastUpdateTime() async => _lastUpdate;
-
-  @override
-  Future<List<Alarm>> getAlarms() async => List.of(_alarms);
-
-  @override
-  Future<void> saveAlarm(Alarm alarm) async {
-    final index = _alarms.indexWhere((a) => a.id == alarm.id);
-    if (index >= 0) {
-      _alarms[index] = alarm;
-    } else {
-      _alarms.add(alarm);
-    }
-  }
-
-  @override
-  Future<void> deleteAlarm(String id) async {
-    _alarms.removeWhere((a) => a.id == id);
-  }
-}
-
-/// Planlanan bildirimleri ve izin cagrilarini kaydeden servis.
-class _FakeNotificationService implements NotificationService {
-  final List<ScheduledNotification> scheduled = [];
-  int cancelAllCount = 0;
-  int permissionRequestCount = 0;
-  bool permissionGranted = true;
-
-  @override
-  Future<void> init() async {}
-
-  @override
-  Future<bool> requestPermission() async {
-    permissionRequestCount++;
-    return permissionGranted;
-  }
-
-  @override
-  Future<bool> isPermissionGranted() async => permissionGranted;
-
-  @override
-  Future<void> scheduleNotification({
-    required String id,
-    required DateTime scheduledTime,
-    required String title,
-    required String body,
-  }) async {
-    scheduled.add(
-      ScheduledNotification(
-        id: id,
-        scheduledTime: scheduledTime,
-        // Kimlik "<prayer>_<offset>_<gun>" bicimindedir; testler id uzerinden
-        // dogruladigi icin burada varsayilan degerler yeterli.
-        prayerType: PrayerType.fajr,
-        minutesBefore: 0,
-      ),
-    );
-  }
-
-  @override
-  Future<void> cancelNotification(String id) async {
-    scheduled.removeWhere((n) => n.id == id);
-  }
-
-  @override
-  Future<void> cancelAllNotifications() async {
-    cancelAllCount++;
-    scheduled.clear();
-  }
-
-  @override
-  Future<List<ScheduledNotification>> getPendingNotifications() async =>
-      List.of(scheduled);
-
-  @override
-  Future<void> openExactAlarmSettings() async {}
 }

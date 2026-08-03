@@ -24,6 +24,7 @@ import '../screens/alarms_screen.dart';
 import '../services/location_service.dart';
 import '../services/data_loader_service.dart';
 import '../controllers/location_monitor_controller.dart';
+import '../../core/theme/theme_controller.dart';
 import '../../core/theme/tokens_context.dart';
 import '../widgets/common/app_surface.dart';
 import '../widgets/common/sliding_segment.dart';
@@ -80,6 +81,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     // mevcut vakitlerle yeniden planlamak, kullanıcı uzun süre açmasa bile
     // 7 günlük pencereyi güncel tutar.
     if (state == AppLifecycleState.resumed) {
+      // Dilim sınırı timer'ı uygulama askıdayken tetiklenmez; ön plana
+      // dönünce paleti yeniden hesaplat.
+      ServiceLocator().get<ThemeController>().refresh();
       _rescheduleOnResume();
     }
   }
@@ -213,6 +217,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       appState.setNotificationPermission(data.hasPermission);
       appState.setNotificationSettings(data.settings);
       appState.setRefreshing(false);
+
+      // Palet gün dilimini vakitlerden hesaplar; beslenmezse hep akşam
+      // fallback'inde (D5) kalır. Gece dilimi ertesi İmsak'ta bittiği için
+      // sunum kuralına bağlı `tomorrow` değil, her zaman dolu `nextDay`.
+      ServiceLocator().get<ThemeController>().updatePrayerTimes(
+        today: data.today,
+        tomorrow: data.nextDay,
+      );
 
       logger.debug('Prayer data loaded: ${data.all.length} days');
 
