@@ -177,7 +177,7 @@ void main() {
       expect(sizes.where((s) => s.height > 13), isEmpty);
     });
 
-    testWidgets('Gecmis centikler vurgulu, gelecek olanlar sonuk', (
+    testWidgets('Siradaki disindaki vakitler seridi zemin renginde keser', (
       tester,
     ) async {
       await tester.pumpWidget(
@@ -190,11 +190,27 @@ void main() {
           .map((c) => (c.decoration! as BoxDecoration).color)
           .toList();
 
-      // Imsak/Gunes/Ogle/Ikindi gecti (soluk accent), Aksam siradaki
-      // (tam accent), yalnizca Yatsi henuz sonuk.
-      expect(ticks.take(4), everyElement(isNot(tokens.mutedTrack)));
-      expect(ticks[4], tokens.accent);
-      expect(ticks[5], tokens.mutedTrack);
+      // Uzerine cizilen bir isaret, altindaki yatak tonuna gore bazen daha
+      // acik bazen daha koyu kaliyordu. Kesik her zeminde ayni okunur.
+      final cuts = ticks.where((c) => c == tokens.backgroundStops[1]);
+      expect(cuts, hasLength(5));
+      expect(ticks[4], tokens.accent, reason: 'Aksam siradaki');
+    });
+
+    testWidgets('Ilerleme dolgusu cizilmez', (tester) async {
+      await tester.pumpWidget(
+        wrapWithTheme(_ruler(DateTime(2026, 8, 2, 22, 18))),
+      );
+
+      // Dolu accent cubugu aksam saatlerinde seridin %93'unu kaplayip gece
+      // ucunu ve centikleri ortuyordu; konum bilgisini zaten nokta veriyor.
+      final gradients = tester
+          .widgetList<Container>(find.byType(Container))
+          .where((c) => c.decoration is BoxDecoration)
+          .map((c) => c.decoration! as BoxDecoration)
+          .where((d) => d.gradient != null);
+
+      expect(gradients, isEmpty);
     });
   });
 }

@@ -9,6 +9,14 @@ import '../../../core/theme/tokens_context.dart';
 /// Gece uçlarının yatak rengine göre ne kadar sönük çizileceği.
 const double _kNightDim = 0.45;
 
+/// Yatağın kalınlığı ve dikey merkezi.
+const double _kTrackTop = 16;
+const double _kTrackHeight = 5;
+const double _kTrackCenter = _kTrackTop + _kTrackHeight / 2;
+
+/// Şu anki konumu gösteren nokta.
+const double _kDotSize = 16;
+
 /// Yatağın tek bir parçası: gece ucu ya da gündüz penceresi.
 typedef _TrackSegment = ({double width, Color color});
 
@@ -66,37 +74,37 @@ class DayRuler extends StatelessWidget {
 
   const DayRuler({super.key, required this.prayerTime, required this.now});
 
-  /// Tek bir vakit çentiği.
+  /// Tek bir vakit işareti.
   ///
-  /// Sıradaki vakit daha uzun ve tam accent çizilir: etiketler şeride
-  /// sığmıyor (yaz/kış Akşam–Yatsı arası ~24pt, 3 harflik etiket ~26pt),
-  /// bu yüzden "hangi çentik" sorusu ada değil sıraya bağlanıyor. Adı
-  /// sayacın etiketinde ve alttaki ızgarada zaten yazıyor.
-  Widget _tick({
+  /// Vakitler şeridin üzerine **çizilmez**, şeridi zemin renginde keser.
+  /// Üzerine çizilen bir işaret, altındaki yatak tonuna göre bazen daha açık
+  /// bazen daha koyu kalıyordu; kesik her zeminde aynı okunur ve şerit doğal
+  /// olarak altı vakit aralığına bölünmüş görünür.
+  ///
+  /// Sıradaki vakit istisna: kesik yerine tam accent, daha uzun bir işaret.
+  /// Etiket yazmak mümkün değil (yaz/kış Akşam–Yatsı arası ~24pt, 3 harflik
+  /// etiket ~26pt), bu yüzden "hangi çentik" sorusu ada değil sıraya bağlı.
+  /// Adı sayacın etiketinde ve alttaki ızgarada zaten yazıyor.
+  Widget _mark({
     required AppTokens tokens,
     required double width,
     required double progress,
-    required bool isPast,
     required bool isNext,
   }) {
-    final tickWidth = isNext ? 3.0 : 2.0;
-    final tickHeight = isNext ? 15.0 : 13.0;
+    final markWidth = isNext ? 3.0 : 2.0;
+    final markHeight = isNext ? 15.0 : _kTrackHeight;
 
     return Positioned(
-      left: (width - tickWidth) * progress,
-      // Çentikler yatağın ortasında (18.5) hizalı kalır.
-      top: 18.5 - tickHeight / 2,
+      left: (width - markWidth) * progress,
+      // İşaretler yatağın ortasında hizalı kalır.
+      top: _kTrackCenter - markHeight / 2,
       child: Container(
         key: const Key('ruler_tick'),
-        width: tickWidth,
-        height: tickHeight,
+        width: markWidth,
+        height: markHeight,
         decoration: BoxDecoration(
-          color: isNext
-              ? tokens.accent
-              : isPast
-              ? tokens.accent.withValues(alpha: 0.55)
-              : tokens.mutedTrack,
-          borderRadius: BorderRadius.circular(1.5),
+          color: isNext ? tokens.accent : tokens.backgroundStops[1],
+          borderRadius: BorderRadius.circular(isNext ? 1.5 : 0),
         ),
       ),
     );
@@ -143,11 +151,11 @@ class DayRuler extends StatelessWidget {
               Positioned(
                 left: 0,
                 right: 0,
-                top: 16,
+                top: _kTrackTop,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(3),
                   child: SizedBox(
-                    height: 5,
+                    height: _kTrackHeight,
                     child: Row(
                       children: [
                         for (final segment in _trackSegments(
@@ -168,29 +176,11 @@ class DayRuler extends StatelessWidget {
                   ),
                 ),
               ),
-              Positioned(
-                left: 0,
-                top: 16,
-                child: Container(
-                  width: markerX,
-                  height: 5,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        tokens.accent.withValues(alpha: 0.4),
-                        tokens.accent,
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                ),
-              ),
               for (final mark in marks)
-                _tick(
+                _mark(
                   tokens: tokens,
                   width: width,
                   progress: dayProgress(prayerTime, mark),
-                  isPast: !mark.isAfter(now),
                   isNext: mark == nextMark,
                 ),
               Positioned(
@@ -210,11 +200,11 @@ class DayRuler extends StatelessWidget {
                 ),
               ),
               Positioned(
-                left: markerX - 8,
-                top: 10.5,
+                left: markerX - _kDotSize / 2,
+                top: _kTrackCenter - _kDotSize / 2,
                 child: Container(
-                  width: 16,
-                  height: 16,
+                  width: _kDotSize,
+                  height: _kDotSize,
                   decoration: BoxDecoration(
                     color: tokens.accent,
                     shape: BoxShape.circle,
