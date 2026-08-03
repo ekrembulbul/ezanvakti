@@ -112,8 +112,11 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Transparent SimpleAppBar arkasında gradient'in üst rengi görünür → kesintisiz.
+      // Transparent SimpleAppBar arkasında gradient'in üst rengi görünür →
+      // kesintisiz. `extendBodyBehindAppBar` olmadan gradyan app bar'ın
+      // altından başlıyor ve üstte saydam Scaffold siyah bir şerit bırakıyordu.
       backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       appBar: SimpleAppBar(
         title: widget.alarm == null ? 'Alarm ekle' : 'Alarmı düzenle',
         actions: [

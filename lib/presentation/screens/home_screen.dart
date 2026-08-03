@@ -151,7 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
           now: now,
           currentPrayer: PrayerUtils.getCurrentPrayer(today),
         ),
-        const Spacer(),
+        const SizedBox(height: 24),
         if (tomorrow != null) ...[
           TomorrowStrip(
             tomorrow: tomorrow,
@@ -160,7 +160,8 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 20),
         ],
         UpcomingCard(onSeeAll: widget.onNotificationSettingsTap ?? () {}),
-        const SizedBox(height: 12),
+        // Artan boşluk altta toplanır; içerik yukarı yaslı kalır.
+        const Spacer(),
       ],
     );
   }
