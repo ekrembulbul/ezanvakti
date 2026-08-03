@@ -8,7 +8,8 @@ import '../../../core/theme/tokens_context.dart';
 import '../../../core/utils/prayer_utils.dart';
 import '../common/section_label.dart';
 
-/// Bir takvim satırının yüksekliği. Bugüne kaydırma bu değerle hesaplanır.
+/// Bir takvim satırının yüksekliği. `itemExtent` olarak verilir; sabit olması
+/// uzun listede kaydırmayı ucuzlatır.
 const double kCalendarRowHeight = 76;
 
 /// Tarih kolonunun genişliği; başlık ve satırlarda aynı olmak zorunda.
@@ -64,14 +65,8 @@ class CalendarHeaderRow extends StatelessWidget {
 class CalendarTable extends StatelessWidget {
   final List<PrayerTime> days;
   final DateTime now;
-  final ScrollController? controller;
 
-  const CalendarTable({
-    super.key,
-    required this.days,
-    required this.now,
-    this.controller,
-  });
+  const CalendarTable({super.key, required this.days, required this.now});
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +75,6 @@ class CalendarTable extends StatelessWidget {
         const CalendarHeaderRow(),
         Expanded(
           child: ListView.builder(
-            controller: controller,
             padding: const EdgeInsets.only(bottom: 24),
             itemCount: days.length,
             itemExtent: kCalendarRowHeight,

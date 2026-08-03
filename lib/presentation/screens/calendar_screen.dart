@@ -4,7 +4,6 @@ import '../../core/theme/tokens_context.dart';
 import '../../core/models/prayer_time.dart';
 import '../../core/models/location.dart';
 import '../widgets/calendar/calendar_table.dart';
-import '../widgets/common/app_bar_widgets.dart';
 import '../widgets/common/app_surface.dart';
 import '../widgets/common/state_widgets.dart';
 
@@ -29,52 +28,6 @@ class CalendarScreen extends StatefulWidget {
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
-  final ScrollController _scrollController = ScrollController();
-  int? _todayIndex;
-
-  @override
-  void initState() {
-    super.initState();
-    _todayIndex = _findTodayIndex();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToToday());
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  int? _findTodayIndex() {
-    final now = DateTime.now();
-    for (var i = 0; i < widget.prayerTimes.length; i++) {
-      final date = widget.prayerTimes[i].date;
-      if (date.year == now.year &&
-          date.month == now.month &&
-          date.day == now.day) {
-        return i;
-      }
-    }
-    return null;
-  }
-
-  /// Satır yüksekliği sabit ([kCalendarRowHeight]) olduğu için hedef ofset
-  /// doğrudan hesaplanabiliyor; `GlobalKey` + `ensureVisible` gerekmiyor.
-  void _scrollToToday() {
-    final index = _todayIndex;
-    if (index == null || !_scrollController.hasClients) return;
-
-    final target = (index * kCalendarRowHeight).clamp(
-      0.0,
-      _scrollController.position.maxScrollExtent,
-    );
-    _scrollController.animateTo(
-      target,
-      duration: const Duration(milliseconds: 500),
-      curve: Curves.easeOutCubic,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -83,8 +36,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
       appBar: _CalendarAppBar(
         location: widget.location,
         dayCount: widget.prayerTimes.length,
-        showTodayButton: _todayIndex != null,
-        onTodayTap: _scrollToToday,
       ),
       body: AppSurface(
         child: Padding(
@@ -116,26 +67,18 @@ class _CalendarScreenState extends State<CalendarScreen> {
       );
     }
 
-    return CalendarTable(
-      days: widget.prayerTimes,
-      now: DateTime.now(),
-      controller: _scrollController,
-    );
+    // Liste en bastan gosterilir; bugune otomatik kaydirma yok. Veri zaten
+    // bugunden basliyor ve kaydirma, acilista icerigin altindan kaymasi gibi
+    // duruyordu.
+    return CalendarTable(days: widget.prayerTimes, now: DateTime.now());
   }
 }
 
 class _CalendarAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Location location;
   final int dayCount;
-  final bool showTodayButton;
-  final VoidCallback? onTodayTap;
 
-  const _CalendarAppBar({
-    required this.location,
-    required this.dayCount,
-    required this.showTodayButton,
-    this.onTodayTap,
-  });
+  const _CalendarAppBar({required this.location, required this.dayCount});
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -177,16 +120,6 @@ class _CalendarAppBar extends StatelessWidget implements PreferredSizeWidget {
         ],
       ),
       centerTitle: true,
-      actions: [
-        if (showTodayButton)
-          AppBarActionButton(
-            icon: Icons.today_rounded,
-            onTap: onTodayTap ?? () {},
-            tooltip: 'Bugüne Git',
-            highlighted: true,
-          ),
-        const SizedBox(width: 8),
-      ],
     );
   }
 }
