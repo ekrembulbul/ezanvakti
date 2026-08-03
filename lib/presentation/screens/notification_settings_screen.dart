@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/app_theme.dart';
+import '../../core/theme/app_typography.dart';
+import '../../core/theme/tokens_context.dart';
 import '../../core/models/notification_setting.dart';
 import '../../core/models/prayer_time.dart';
-import '../../core/utils/prayer_utils.dart';
 import '../../features/notifications/domain/notification_settings_manager.dart';
 import '../../features/notifications/domain/notification_scheduler.dart';
 import '../../core/interfaces/notification_service.dart';
@@ -12,6 +12,11 @@ import '../../core/providers/app_state.dart';
 import 'package:provider/provider.dart';
 import '../utils/prayer_name_helper.dart';
 import '../widgets/common/app_bar_widgets.dart';
+import '../widgets/common/app_surface.dart';
+import '../widgets/common/grouped_list.dart';
+import '../widgets/common/info_banner.dart';
+import '../widgets/common/section_label.dart';
+import '../widgets/common/swipe_to_delete.dart';
 import '../widgets/common/state_widgets.dart';
 import '../widgets/notifications/permission_warning_card.dart';
 import '../widgets/notifications/notification_tile.dart';
@@ -249,7 +254,9 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       messenger.showSnackBar(
         SnackBar(
           content: Text(message),
-          backgroundColor: isError ? Colors.red.shade700 : AppTheme.gold,
+          backgroundColor: isError
+              ? Theme.of(context).colorScheme.error
+              : context.tokens.accent,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
@@ -270,43 +277,6 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       return a.minutesBefore.compareTo(b.minutesBefore);
     });
     return sorted;
-  }
-
-  Future<bool> _confirmDelete(NotificationSetting setting) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.primaryMedium,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
-          'Bildirimi Sil',
-          style: TextStyle(color: Colors.white),
-        ),
-        content: Text(
-          '${PrayerUtils.getPrayerName(setting.prayerType)} bildirimi silinsin mi?',
-          style: const TextStyle(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('İptal', style: TextStyle(color: Colors.white54)),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Sil'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      await _deleteNotification(setting.prayerType, setting.minutesBefore);
-    }
-    return false;
   }
 
   void _showAddDialog() {
@@ -340,13 +310,16 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       appBar: const SimpleAppBar(title: 'Bildirimler'),
-      body: Container(
-        decoration: const BoxDecoration(gradient: AppTheme.nightGradient),
-        child: SafeArea(
+      body: AppSurface(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const SizedBox(height: 12),
               if (!_hasPermission)
                 PermissionWarningCard(
                   onRequestPermission: widget.onRequestPermission,
@@ -358,10 +331,17 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
                     }
                   },
                 ),
-              if (_hasPermission && !_exactAlarmAllowed)
-                _ExactAlarmWarningCard(
-                  onOpenSettings: _notificationService.openExactAlarmSettings,
+              if (_hasPermission && !_exactAlarmAllowed) ...[
+                InfoBanner(
+                  icon: Icons.alarm_off_rounded,
+                  text: 'Tam zamanlı alarm kapalı. Bildirimler gecikebilir.',
+                  action: TextButton(
+                    onPressed: _notificationService.openExactAlarmSettings,
+                    child: const Text('Aç'),
+                  ),
                 ),
+                const SizedBox(height: 16),
+              ],
               Expanded(child: _buildBody()),
             ],
           ),
@@ -370,21 +350,14 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       floatingActionButton: FloatingActionButton.extended(
         key: const Key('add_notification_button'),
         onPressed: _showAddDialog,
-        backgroundColor: AppTheme.gold,
-        foregroundColor: AppTheme.primaryDark,
         icon: const Icon(Icons.add_rounded),
-        label: const Text(
-          'Bildirim Ekle',
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
+        label: const Text('Bildirim Ekle'),
       ),
     );
   }
 
   Widget _buildBody() {
-    if (_isLoading) {
-      return const LoadingState();
-    }
+    if (_isLoading) return const LoadingState();
 
     if (_settings.isEmpty) {
       return const EmptyState(
@@ -394,83 +367,53 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
-      itemCount: _sortedSettings().length,
-      itemBuilder: (context, index) {
-        final setting = _sortedSettings()[index];
-        return NotificationTile(
-          setting: setting,
-          hasPermission: _hasPermission,
-          onToggle: () => _toggleNotification(setting),
-          onDelete: () => _confirmDelete(setting),
-          onTap: () => _showEditDialog(setting),
-        );
-      },
+    final tokens = context.tokens;
+    final sorted = _sortedSettings();
+
+    return ListView(
+      padding: const EdgeInsets.only(bottom: 96),
+      children: [
+        Text(
+          'Her vakit için tam vaktinde veya X dakika önce hatırlatma '
+          'alabilirsiniz.',
+          style: AppTypography.hint.copyWith(
+            color: tokens.textTertiary,
+            height: 1.5,
+          ),
+        ),
+        const SizedBox(height: 20),
+        SectionLabel('${sorted.length} hatırlatma'),
+        const SizedBox(height: 10),
+        GroupedList(
+          children: [
+            for (final setting in sorted)
+              SwipeToDelete(
+                itemKey: ValueKey(
+                  '${setting.prayerType.name}-${setting.minutesBefore}',
+                ),
+                confirmText:
+                    '${PrayerNameHelper.getName(setting.prayerType)} '
+                    'bildirimini silmek istiyor musunuz?',
+                onDelete: () => _deleteNotification(
+                  setting.prayerType,
+                  setting.minutesBefore,
+                ),
+                child: NotificationTile(
+                  setting: setting,
+                  hasPermission: _hasPermission,
+                  onToggle: () => _toggleNotification(setting),
+                  onTap: () => _showEditDialog(setting),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Silmek için satırı sola kaydırın.',
+          style: AppTypography.hint.copyWith(color: tokens.textTertiary),
+        ),
+      ],
     );
   }
 }
 
-/// Android 12+ exact alarm izni kapalıyken gösterilen uyarı. Tıklanınca sistem
-/// ayarlarını açar; kullanıcı dönünce durum yeniden kontrol edilir.
-class _ExactAlarmWarningCard extends StatelessWidget {
-  final VoidCallback onOpenSettings;
-
-  const _ExactAlarmWarningCard({required this.onOpenSettings});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(20, 20, 20, 4),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.orange.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(9),
-            decoration: BoxDecoration(
-              color: Colors.orange.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(
-              Icons.alarm_off_rounded,
-              color: Colors.orange,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 14),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Tam zamanlı alarm kapalı',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                    color: Colors.white,
-                  ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  'Bildirimler gecikebilir. Tam zamanında almak için izni açın.',
-                  style: TextStyle(fontSize: 12, color: Colors.white70),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          TextButton(
-            onPressed: onOpenSettings,
-            style: TextButton.styleFrom(foregroundColor: Colors.orange),
-            child: const Text('Aç'),
-          ),
-        ],
-      ),
-    );
-  }
-}
