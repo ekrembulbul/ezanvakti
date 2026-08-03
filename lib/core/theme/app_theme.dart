@@ -10,42 +10,6 @@ import 'app_typography.dart';
 class AppTheme {
   const AppTheme._();
 
-  // ── Geçiş dönemi sabitleri ────────────────────────────────────────────────
-  // Ekranlar token'lara taşınana kadar (0.3.0 görsel turu) yerinde kalır.
-  // Yeni kod bunları kullanmaz.
-
-  @Deprecated('context.tokens.accent kullanın')
-  static const Color gold = Color(0xFFD4AF37);
-
-  @Deprecated('context.tokens.backgroundStops kullanın')
-  static const Color primaryDark = Color(0xFF1A1A2E);
-
-  @Deprecated('context.tokens.surface kullanın')
-  static const Color primaryMedium = Color(0xFF16213E);
-
-  @Deprecated('context.tokens.backgroundGradient kullanın')
-  static const LinearGradient nightGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [Color(0xFF0D1B2A), Color(0xFF1B263B), Color(0xFF415A77)],
-  );
-
-  @Deprecated('context.tokens.surface ve context.tokens.border kullanın')
-  static BoxDecoration glassDecoration({
-    double opacity = 0.15,
-    double borderRadius = 20,
-    Color? borderColor,
-  }) {
-    return BoxDecoration(
-      color: Colors.white.withValues(alpha: opacity),
-      borderRadius: BorderRadius.circular(borderRadius),
-      border: Border.all(
-        color: borderColor ?? Colors.white.withValues(alpha: 0.2),
-        width: 1,
-      ),
-    );
-  }
-
   // ── Tema üretimi ──────────────────────────────────────────────────────────
 
   /// Verilen token setinden uygulama temasını üretir.

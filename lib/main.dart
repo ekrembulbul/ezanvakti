@@ -12,16 +12,6 @@ import 'presentation/pages/app_root.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Set system UI overlay style for immersive dark theme
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: Color(0xFF120E1B),
-      systemNavigationBarIconBrightness: Brightness.light,
-    ),
-  );
-
   await initializeDateFormatting('tr_TR', null);
 
   final serviceLocator = ServiceLocator();
@@ -47,6 +37,22 @@ class MyApp extends StatelessWidget {
           // Cihazin gece/gunduz tercihi degisince "Sistem" modu izlesin.
           controller.setPlatformBrightness(
             MediaQuery.platformBrightnessOf(context),
+          );
+
+          // Sistem cubugu aktif paletin zemini ve parlakligiyla uyumlu kalsin;
+          // palet gun icinde degistigi icin her yapida guncellenir.
+          final isDark = controller.brightness == Brightness.dark;
+          SystemChrome.setSystemUIOverlayStyle(
+            SystemUiOverlayStyle(
+              statusBarColor: Colors.transparent,
+              statusBarIconBrightness: isDark
+                  ? Brightness.light
+                  : Brightness.dark,
+              systemNavigationBarColor: controller.tokens.backgroundStops.last,
+              systemNavigationBarIconBrightness: isDark
+                  ? Brightness.light
+                  : Brightness.dark,
+            ),
           );
 
           return MaterialApp(
