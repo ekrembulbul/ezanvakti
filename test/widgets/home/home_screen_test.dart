@@ -122,4 +122,49 @@ void main() {
     expect(find.text('YARIN'), findsNothing);
     expect(find.text('SIRADAKİ'), findsOneWidget);
   });
+
+  testWidgets('Veri varken yenileme ekrani bosaltmaz', (tester) async {
+    await pumpHome(
+      tester,
+      HomeScreen(
+        location: _location,
+        todaysPrayerTime: _day(2),
+        lastUpdateTime: DateTime(2026, 8, 2),
+        isRefreshing: true,
+      ),
+    );
+
+    // Vakitler yerinde; yenileme tam ekran yukleme ile degistirmiyor.
+    expect(find.text('13:15'), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+  });
+
+  testWidgets('Yenileme surerken ust cubukta ince gosterge cizilir', (
+    tester,
+  ) async {
+    await pumpHome(
+      tester,
+      HomeScreen(
+        location: _location,
+        todaysPrayerTime: _day(2),
+        lastUpdateTime: DateTime(2026, 8, 2),
+        isRefreshing: true,
+      ),
+    );
+
+    expect(find.byType(LinearProgressIndicator), findsOneWidget);
+  });
+
+  testWidgets('Yenileme bitince gosterge kaybolur', (tester) async {
+    await pumpHome(
+      tester,
+      HomeScreen(
+        location: _location,
+        todaysPrayerTime: _day(2),
+        lastUpdateTime: DateTime(2026, 8, 2),
+      ),
+    );
+
+    expect(find.byType(LinearProgressIndicator), findsNothing);
+  });
 }

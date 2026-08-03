@@ -1,20 +1,30 @@
-import '../../core/models/location.dart';
-import '../../core/models/prayer_time.dart';
-import '../../features/prayer_times/domain/prayer_times_repository.dart';
 import '../../core/interfaces/notification_service.dart';
-import '../../features/notifications/domain/notification_settings_manager.dart';
+import '../../core/models/location.dart';
+import '../../core/models/notification_setting.dart';
+import '../../core/models/prayer_time.dart';
 import '../../core/utils/app_logger.dart';
+import '../../features/notifications/domain/notification_settings_manager.dart';
+import '../../features/prayer_times/domain/prayer_times_repository.dart';
+
+/// Ana ekranın ihtiyaç duyduğu her şey tek yüklemede.
+typedef PrayerData = ({
+  PrayerTime? today,
+  PrayerTime? tomorrow,
+  List<PrayerTime> all,
+  DateTime? lastUpdate,
+  bool hasPermission,
+  List<NotificationSetting> settings,
+});
 
 class DataLoaderService {
-  /// Arka planda tutulan vakit penceresi: bugünden önce çekilen gün sayısı.
-  /// Geçmiş yalnızca gece yarısı/timezone kenar durumları ve "dünün vakitleri"
-  /// için küçük bir tampondur.
-  static const int _backgroundDaysBefore = 2;
+  /// Bugünden önce çekilen gün sayısı. Gece yarısı/timezone kenar durumları
+  /// ve "dünün vakitleri" için küçük bir tampon.
+  static const int _daysBefore = 2;
 
   /// Bugünden sonra çekilen gün sayısı. Bildirim planlama penceresini
   /// (NotificationScheduler.scheduleDaysAhead = 7 gün) tamponuyla kapsamalıdır;
   /// aksi halde ileri tarihli bildirimler için veri bulunamaz.
-  static const int _backgroundDaysAfter = 10;
+  static const int _daysAfter = 10;
 
   final PrayerTimesRepository _prayerTimesRepository;
   final NotificationService _notificationService;
@@ -31,29 +41,31 @@ class DataLoaderService {
        _settingsManager = settingsManager,
        _logger = logger;
 
-  Future<Map<String, dynamic>> loadInitialData(Location location) async {
-    _logger.debug(
-      'Loading initial data for ${location.province}/${location.district}',
-    );
-
-    final today = DateTime.now();
-    final todayNormalized = DateTime(today.year, today.month, today.day);
-
-    final todayPrayer = await _prayerTimesRepository.getDailyPrayerTime(
-      location: location,
-      date: todayNormalized,
-    );
-
-    PrayerTime? tomorrowPrayer;
+  /// Tek aralık çağrısıyla pencerenin tamamını çeker ve bugün/yarın'ı bu
+  /// listeden türetir. Ayrı bir "bugün" isteği atılmaz: aralık çağrısı zaten
+  /// bugünü de kapsıyor ve iki tur ağ trafiği rate-limit baskısını artırıyordu.
+  Future<PrayerData> loadPrayerData(
+    Location location, {
+    bool forceRefresh = false,
+  }) async {
     final now = DateTime.now();
-    if (todayPrayer != null && now.isAfter(todayPrayer.isha)) {
-      _logger.debug('After Isha, fetching tomorrow\'s prayer times');
-      final tomorrow = todayNormalized.add(const Duration(days: 1));
-      tomorrowPrayer = await _prayerTimesRepository.getDailyPrayerTime(
-        location: location,
-        date: tomorrow,
-      );
-    }
+    final todayDate = DateTime(now.year, now.month, now.day);
+
+    final all = await _prayerTimesRepository.getPrayerTimes(
+      location: location,
+      startDate: todayDate.subtract(const Duration(days: _daysBefore)),
+      endDate: todayDate.add(const Duration(days: _daysAfter)),
+      forceRefresh: forceRefresh,
+    );
+    _logger.debug('Prayer window loaded: ${all.length} days');
+
+    final today = _dayAt(all, todayDate);
+
+    // Yarın yalnızca Yatsı'dan sonra gösterilir; gün içinde doldurmak ana
+    // ekrandaki "YARIN" şeridini sürekli görünür yapardı.
+    final tomorrow = today != null && now.isAfter(today.isha)
+        ? _dayAt(all, todayDate.add(const Duration(days: 1)))
+        : null;
 
     final lastUpdate = await _prayerTimesRepository.getLastUpdateTime();
     final hasPermission = await _notificationService.isPermissionGranted();
@@ -64,39 +76,24 @@ class DataLoaderService {
     await _settingsManager.ensureDefaultsSeeded();
     final settings = await _settingsManager.getSettings();
 
-    return {
-      'todayPrayer': todayPrayer,
-      'tomorrowPrayer': tomorrowPrayer,
-      'prayerTimes': <PrayerTime>[],
-      'lastUpdate': lastUpdate,
-      'hasPermission': hasPermission,
-      'settings': settings,
-    };
+    return (
+      today: today,
+      tomorrow: tomorrow,
+      all: all,
+      lastUpdate: lastUpdate,
+      hasPermission: hasPermission,
+      settings: settings,
+    );
   }
 
-  Future<List<PrayerTime>> loadBackgroundData(
-    Location location,
-    DateTime startDate,
-  ) async {
-    _logger.debug(
-      'Loading background data: $_backgroundDaysBefore days before + '
-      '$_backgroundDaysAfter days after '
-      '(${_backgroundDaysBefore + 1 + _backgroundDaysAfter} days total)',
-    );
-    try {
-      final prayerTimes = await _prayerTimesRepository.getPrayerTimes(
-        location: location,
-        startDate: startDate.subtract(
-          const Duration(days: _backgroundDaysBefore),
-        ),
-        endDate: startDate.add(const Duration(days: _backgroundDaysAfter)),
-        forceRefresh: false,
-      );
-      _logger.debug('Background load completed: ${prayerTimes.length} days');
-      return prayerTimes;
-    } catch (e) {
-      _logger.warning('Background loading failed (ignored)', e);
-      return [];
+  PrayerTime? _dayAt(List<PrayerTime> times, DateTime date) {
+    for (final time in times) {
+      if (time.date.year == date.year &&
+          time.date.month == date.month &&
+          time.date.day == date.day) {
+        return time;
+      }
     }
+    return null;
   }
 }

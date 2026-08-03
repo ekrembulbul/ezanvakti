@@ -10,7 +10,7 @@ class AppState extends ChangeNotifier {
   List<PrayerTime> _prayerTimes = [];
   List<NotificationSetting> _notificationSettings = [];
   DateTime? _lastUpdateTime;
-  bool _isLoading = false;
+  bool _isRefreshing = false;
   String? _errorMessage;
   bool _hasNotificationPermission = false;
 
@@ -20,7 +20,13 @@ class AppState extends ChangeNotifier {
   List<PrayerTime> get prayerTimes => _prayerTimes;
   List<NotificationSetting> get notificationSettings => _notificationSettings;
   DateTime? get lastUpdateTime => _lastUpdateTime;
-  bool get isLoading => _isLoading;
+  /// Bir veri yüklemesi uçuşta mı.
+  bool get isRefreshing => _isRefreshing;
+
+  /// Ekranda gösterilecek hiçbir şey yokken süren yükleme. Yalnızca bu durumda
+  /// tam ekran yükleme gösterilir; veri varken yenileme ekranı boşaltmaz.
+  bool get isLoading => _isRefreshing && _todaysPrayerTime == null;
+
   String? get errorMessage => _errorMessage;
   bool get hasNotificationPermission => _hasNotificationPermission;
   bool get hasActiveLocation => _activeLocation != null;
@@ -55,8 +61,8 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  void setLoading(bool loading) {
-    _isLoading = loading;
+  void setRefreshing(bool refreshing) {
+    _isRefreshing = refreshing;
     notifyListeners();
   }
 

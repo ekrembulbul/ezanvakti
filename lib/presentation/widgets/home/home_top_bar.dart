@@ -11,67 +11,90 @@ class HomeTopBar extends StatelessWidget {
   final VoidCallback? onLocationTap;
   final VoidCallback onMenuTap;
 
+  /// Arka planda vakit yenilemesi sürerken ince bir gösterge çizilir.
+  final bool isRefreshing;
+
   const HomeTopBar({
     super.key,
     required this.locationName,
     required this.onLocationTap,
     required this.onMenuTap,
+    this.isRefreshing = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
 
+    // Gösterge `Positioned` olduğu için satır yüksekliği değişmez; yenileme
+    // başlayıp bitince ekranın geri kalanı kaymaz.
     return SizedBox(
       height: 56,
-      child: Row(
+      child: Stack(
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(9),
-            child: Image.asset(
-              'assets/icon/app_icon.png',
-              width: 30,
-              height: 30,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Flexible(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: onLocationTap,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Flexible(
-                    child: Text(
-                      locationName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTypography.rowTitle.copyWith(
-                        color: tokens.textPrimary,
+          Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(9),
+                child: Image.asset(
+                  'assets/icon/app_icon.png',
+                  width: 30,
+                  height: 30,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Flexible(
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: onLocationTap,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          locationName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypography.rowTitle.copyWith(
+                            color: tokens.textPrimary,
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 5),
+                      Icon(
+                        Icons.expand_more_rounded,
+                        size: 18,
+                        color: tokens.textSecondary,
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 5),
-                  Icon(
-                    Icons.expand_more_rounded,
-                    size: 18,
-                    color: tokens.textSecondary,
-                  ),
-                ],
+                ),
+              ),
+              const Spacer(),
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: onMenuTap,
+                child: Icon(
+                  Icons.menu_rounded,
+                  size: 23,
+                  color: tokens.textSecondary,
+                ),
+              ),
+            ],
+          ),
+          if (isRefreshing)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: SizedBox(
+                height: 2,
+                child: LinearProgressIndicator(
+                  backgroundColor: Colors.transparent,
+                  color: tokens.accent,
+                ),
               ),
             ),
-          ),
-          const Spacer(),
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: onMenuTap,
-            child: Icon(
-              Icons.menu_rounded,
-              size: 23,
-              color: tokens.textSecondary,
-            ),
-          ),
         ],
       ),
     );
