@@ -137,6 +137,14 @@ Future<void> _captureSettings(WidgetTester tester, Shot shot) async {
   await _wait(tester, const Duration(seconds: 3));
   await shot('11-ayarlar');
 
+  // Acik temanin gercek uygulamada calistigini kanitlar; sonra koyuya donulur
+  // ki kalan kareler ayni palette kalsin.
+  await tester.tap(find.text('Açık'));
+  await _wait(tester, const Duration(seconds: 3));
+  await shot('11b-ayarlar-acik');
+  await tester.tap(find.text('Koyu'));
+  await _wait(tester, const Duration(seconds: 2));
+
   await tester.tap(find.text('Hesaplama'));
   await _wait(tester, const Duration(seconds: 3));
   await shot('12-hesaplama');
