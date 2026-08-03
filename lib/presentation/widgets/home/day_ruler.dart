@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/models/prayer_time.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 
@@ -16,12 +17,16 @@ const double _kTrackCenter = _kTrackTop + _kTrackHeight / 2;
 /// Şu anki konumu gösteren nokta.
 const double _kDotSize = 16;
 
+/// Yatağın altındaki vakit çentikleri; alt kenarları hizalı, boyları değişir.
+const double _kTickTop = _kTrackTop + _kTrackHeight + 2;
+const double _kTickHeight = 7;
+
 /// Vakit sınırlarındaki boşluğun genişliği (piksel).
 const double _kMarkGap = 3;
 
 /// Şeridin bir parçasının ne anlama geldiği.
 enum RulerSegmentKind {
-  /// İmsak öncesi / Yatsı sonrası — vakit içermeyen uçlar.
+  /// Akşam (gün batımı) → ertesi İmsak arası. Yatsı bu aralığın içindedir.
   night,
 
   /// Gündüz penceresinin geçmiş kısmı.
@@ -42,13 +47,14 @@ typedef RulerSegment = ({double start, double end, RulerSegmentKind kind});
 /// için işaret yerine açık leke üretiyordu.
 ///
 /// [prayerFractions] altı vaktin gün içindeki oranı (artan sırada).
+/// [dayStart]/[dayEnd] gündüz penceresi — İmsak ve Akşam (gün batımı).
+/// Yatsı gündüz değil, gecenin içindeki bir sınırdır.
 List<RulerSegment> buildRulerSegments({
   required List<double> prayerFractions,
+  required double dayStart,
+  required double dayEnd,
   required double progress,
 }) {
-  final dayStart = prayerFractions.first;
-  final dayEnd = prayerFractions.last;
-
   // Sınırlar: gün başı · altı vakit · gün sonu.
   final bounds = <double>[0, ...prayerFractions, 1];
 
@@ -58,8 +64,8 @@ List<RulerSegment> buildRulerSegments({
     final end = bounds[i + 1];
     if (end <= start) continue;
 
-    // Gündüz penceresi dışı her zaman sönük kalır: gece, namaz gününün
-    // parçası değil, geçmiş olması onu vurgulamaz.
+    // Gündüz penceresi dışı her zaman sönük kalır; geçmiş olması gece
+    // bölümünü vurgulamaz.
     final isNight = end <= dayStart || start >= dayEnd;
     if (isNight) {
       segments.add((start: start, end: end, kind: RulerSegmentKind.night));
@@ -114,13 +120,44 @@ double dayProgress(PrayerTime prayerTime, DateTime now) {
 /// Uçlardaki İmsak/Yatsı saatleri yazılmaz: aynı iki değer hemen altındaki
 /// vakit ızgarasında zaten var.
 class DayRuler extends StatelessWidget {
-  /// Şerit yüksekliği: üstte saat etiketi, ortada 5px yatak.
-  static const double height = 26;
+  /// Şerit yüksekliği: üstte saat etiketi, ortada yatak, altta çentikler.
+  static const double height = 28;
 
   final PrayerTime prayerTime;
   final DateTime now;
 
   const DayRuler({super.key, required this.prayerTime, required this.now});
+
+  /// Yatağın **altındaki** vakit çentiği.
+  ///
+  /// Yatağın üzerine değil altına çizilir: yarı saydam bir işaret yatağın
+  /// üzerinde kontrast değil ek opaklık üretiyor, mark yerine açık leke gibi
+  /// duruyordu. Altta zemine karşı çizildiği için her palette aynı okunur.
+  Widget _tick({
+    required AppTokens tokens,
+    required double width,
+    required double fraction,
+    required bool isCurrent,
+  }) {
+    final tickWidth = isCurrent ? 3.0 : 2.0;
+    final tickHeight = isCurrent ? 7.0 : 5.0;
+
+    return Positioned(
+      left: (width - tickWidth) * fraction,
+      top: _kTickTop + (_kTickHeight - tickHeight),
+      child: Container(
+        key: const Key('ruler_tick'),
+        width: tickWidth,
+        height: tickHeight,
+        decoration: BoxDecoration(
+          color: isCurrent
+              ? tokens.accent
+              : tokens.textTertiary.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(1.5),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -134,6 +171,14 @@ class DayRuler extends StatelessWidget {
       prayerTime.maghrib,
       prayerTime.isha,
     ];
+    final fractions = [for (final mark in marks) dayProgress(prayerTime, mark)];
+
+    // İçinde bulunduğumuz vakit: geçmiş son çentik. Çentiği belirginleşir,
+    // alttaki ızgaradaki vurguyla aynı vakti işaret eder.
+    var currentIndex = -1;
+    for (var i = 0; i < marks.length; i++) {
+      if (!marks[i].isAfter(now)) currentIndex = i;
+    }
 
     return SizedBox(
       height: height,
@@ -157,9 +202,11 @@ class DayRuler extends StatelessWidget {
                   size: Size(width, _kTrackHeight),
                   painter: _RulerPainter(
                     segments: buildRulerSegments(
-                      prayerFractions: [
-                        for (final mark in marks) dayProgress(prayerTime, mark),
-                      ],
+                      prayerFractions: fractions,
+                      // Gündüz = İmsak → Akşam (gün batımı). Yatsı gündüzün
+                      // sonu değil, gecenin içindeki bir sınır.
+                      dayStart: fractions[0],
+                      dayEnd: fractions[4],
                       progress: progress,
                     ),
                     elapsedColor: tokens.accent,
@@ -170,6 +217,13 @@ class DayRuler extends StatelessWidget {
                   ),
                 ),
               ),
+              for (var i = 0; i < fractions.length; i++)
+                _tick(
+                  tokens: tokens,
+                  width: width,
+                  fraction: fractions[i],
+                  isCurrent: i == currentIndex,
+                ),
               Positioned(
                 // Etiket gece yarısına yakın saatlerde şeridin dışına
                 // taşmasın diye kenarlara sıkıştırılır.

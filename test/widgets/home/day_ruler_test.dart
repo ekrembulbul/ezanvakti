@@ -73,6 +73,8 @@ void main() {
   /// birakilir. Zemin rengi tahmin edilmeye calisildiginda, seridin
   /// bulundugu noktadaki gradyan tonuna denk gelmiyor ve isaret yerine acik
   /// leke uretiyordu.
+  /// Gunduz penceresi Imsak -> Aksam (gun batimi); Yatsi gunduzun sonu degil,
+  /// gecenin icindeki bir sinir.
   group('buildRulerSegments', () {
     // Imsak 4/24, Gunes 6/24, Ogle 13/24, Ikindi 17/24, Aksam 20/24,
     // Yatsi 22/24.
@@ -81,6 +83,8 @@ void main() {
     test('Gun basi ve sonu gece olarak isaretlenir', () {
       final segments = buildRulerSegments(
         prayerFractions: fractions,
+        dayStart: fractions[0],
+        dayEnd: fractions[4],
         progress: 17.5 / 24,
       );
 
@@ -90,7 +94,36 @@ void main() {
 
       expect(segments.last.kind, RulerSegmentKind.night);
       expect(segments.last.end, 1);
-      expect(segments.last.start, closeTo(22 / 24, 0.001));
+
+      // Aksam'dan (20/24) sonrasi gece; Yatsi bu geceyi ikiye boler ama
+      // ikisi de gece.
+      final afterMaghrib = segments.where((s) => s.start >= 20 / 24);
+      expect(afterMaghrib, hasLength(2));
+      expect(
+        afterMaghrib,
+        everyElement(
+          isA<RulerSegment>().having(
+            (s) => s.kind,
+            'kind',
+            RulerSegmentKind.night,
+          ),
+        ),
+      );
+    });
+
+    test('Yatsi gunduz penceresine dahil degil', () {
+      // 21:00 -> Aksam gecti, Yatsi gecmedi. Bu an gece bolgesinde.
+      final segments = buildRulerSegments(
+        prayerFractions: fractions,
+        dayStart: fractions[0],
+        dayEnd: fractions[4],
+        progress: 21 / 24,
+      );
+
+      final atNow = segments.firstWhere(
+        (s) => s.start <= 21 / 24 && s.end >= 21 / 24,
+      );
+      expect(atNow.kind, RulerSegmentKind.night);
     });
 
     test('Gece, gecmis olsa bile vurgulanmaz', () {
@@ -98,6 +131,8 @@ void main() {
       // namaz gununun parcasi degil.
       final segments = buildRulerSegments(
         prayerFractions: fractions,
+        dayStart: fractions[0],
+        dayEnd: fractions[4],
         progress: 23 / 24,
       );
 
@@ -108,6 +143,8 @@ void main() {
     test('Icinde bulunulan aralik ikiye bolunur', () {
       final segments = buildRulerSegments(
         prayerFractions: fractions,
+        dayStart: fractions[0],
+        dayEnd: fractions[4],
         progress: 18 / 24,
       );
 
@@ -129,6 +166,8 @@ void main() {
     test('Parcalar bosluksuz ve artan sirada gunu kapsar', () {
       final segments = buildRulerSegments(
         prayerFractions: fractions,
+        dayStart: fractions[0],
+        dayEnd: fractions[4],
         progress: 12 / 24,
       );
 
@@ -139,9 +178,11 @@ void main() {
       }
     });
 
-    test('Yatsi gectikten sonra gunduz penceresi tamamen gecmis', () {
+    test('Aksam gectikten sonra gunduz penceresi tamamen gecmis', () {
       final segments = buildRulerSegments(
         prayerFractions: fractions,
+        dayStart: fractions[0],
+        dayEnd: fractions[4],
         progress: 22.5 / 24,
       );
 
@@ -177,6 +218,51 @@ void main() {
       );
 
       expect(find.text('17:34'), findsOneWidget);
+    });
+
+    testWidgets('Alti vakit centigi cizilir', (tester) async {
+      await tester.pumpWidget(
+        wrapWithTheme(_ruler(DateTime(2026, 8, 2, 17, 34))),
+      );
+
+      expect(find.byKey(const Key('ruler_tick')), findsNWidgets(6));
+    });
+
+    testWidgets('Icinde bulunulan vaktin centigi belirgin', (tester) async {
+      // 17:34 -> Ikindi (17:00) gecti, Aksam (20:00) gecmedi.
+      await tester.pumpWidget(
+        wrapWithTheme(_ruler(DateTime(2026, 8, 2, 17, 34))),
+      );
+
+      final sizes = find
+          .byKey(const Key('ruler_tick'))
+          .evaluate()
+          .map((e) => tester.getSize(find.byWidget(e.widget)))
+          .toList();
+      final colors = tester
+          .widgetList<Container>(find.byKey(const Key('ruler_tick')))
+          .map((c) => (c.decoration! as BoxDecoration).color)
+          .toList();
+
+      final highlighted = sizes.indexWhere((s) => s.height > 5);
+      expect(highlighted, 3, reason: 'Ikindi centigi');
+      expect(sizes.where((s) => s.height > 5), hasLength(1));
+      expect(colors[3], tokensFor().accent);
+    });
+
+    testWidgets('Imsak oncesinde hicbir centik belirgin degil', (tester) async {
+      await tester.pumpWidget(
+        wrapWithTheme(_ruler(DateTime(2026, 8, 2, 2, 0))),
+      );
+
+      final sizes = find
+          .byKey(const Key('ruler_tick'))
+          .evaluate()
+          .map((e) => tester.getSize(find.byWidget(e.widget)))
+          .toList();
+
+      // Gunun ilk vakti henuz gelmedi; icinde bulunulan vakit yok.
+      expect(sizes.where((s) => s.height > 5), isEmpty);
     });
 
     testWidgets('Ilerleme dolgusu ayri bir katman degil', (tester) async {
