@@ -26,29 +26,46 @@ Widget _ruler(DateTime now) => SizedBox(
 );
 
 void main() {
+  /// Serit takvim gununu kapsar: 00:00 solda, 24:00 sagda. Imsak->Yatsi
+  /// aralik olarak alinsaydi gosterge Yatsi'dan gece yarisina kadar sag uca
+  /// yapisip donuyordu.
   group('dayProgress', () {
-    test('Imsak aninda 0', () {
-      expect(dayProgress(_times(), DateTime(2026, 8, 2, 4, 0)), 0.0);
+    test('Gece yarisinda 0', () {
+      expect(dayProgress(_times(), DateTime(2026, 8, 2, 0, 0)), 0.0);
     });
 
-    test('Yatsi aninda 1', () {
-      expect(dayProgress(_times(), DateTime(2026, 8, 2, 22, 0)), 1.0);
-    });
-
-    test('Tam ortada 0.5', () {
-      // 04:00 + 9 saat = 13:00
+    test('Oglen 12:00 tam ortada', () {
       expect(
-        dayProgress(_times(), DateTime(2026, 8, 2, 13, 0)),
+        dayProgress(_times(), DateTime(2026, 8, 2, 12, 0)),
         closeTo(0.5, 0.001),
       );
     });
 
-    test('Imsak oncesi 0 a kirpilir', () {
-      expect(dayProgress(_times(), DateTime(2026, 8, 2, 2, 0)), 0.0);
+    test('Imsak (04:00) gunun altida biri', () {
+      expect(
+        dayProgress(_times(), DateTime(2026, 8, 2, 4, 0)),
+        closeTo(4 / 24, 0.001),
+      );
     });
 
-    test('Yatsi sonrasi 1 e kirpilir', () {
-      expect(dayProgress(_times(), DateTime(2026, 8, 2, 23, 30)), 1.0);
+    test('Yatsi (22:00) sag ucta degil', () {
+      final atIsha = dayProgress(_times(), DateTime(2026, 8, 2, 22, 0));
+
+      expect(atIsha, closeTo(22 / 24, 0.001));
+      expect(atIsha, lessThan(1.0), reason: 'Gece hala serit uzerinde');
+    });
+
+    test('Yatsi ile gece yarisi arasinda ilerlemeye devam eder', () {
+      final atIsha = dayProgress(_times(), DateTime(2026, 8, 2, 22, 0));
+      final later = dayProgress(_times(), DateTime(2026, 8, 2, 23, 30));
+
+      expect(later, greaterThan(atIsha), reason: 'Gosterge donmamali');
+      expect(later, lessThan(1.0));
+    });
+
+    test('Gun disi degerler kirpilir', () {
+      expect(dayProgress(_times(), DateTime(2026, 8, 1, 23, 0)), 0.0);
+      expect(dayProgress(_times(), DateTime(2026, 8, 3, 1, 0)), 1.0);
     });
   });
 

@@ -5,20 +5,35 @@ import '../../../core/models/prayer_time.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 
-/// [now] anının İmsak→Yatsı aralığındaki oranı (0..1).
+/// Gece uçlarının yatak rengine göre ne kadar sönük çizileceği.
+const double _kNightDim = 0.45;
+
+/// [now] anının **takvim gününün** (00:00–24:00) içindeki oranı (0..1).
 ///
-/// Aralığın dışında kırpılır: İmsak'tan önce 0, Yatsı'dan sonra 1.
+/// Aralık İmsak→Yatsı değil gün başı→gün sonu: aksi halde Yatsı'dan gece
+/// yarısına kadar gösterge sağ uca yapışıp donuyor, gece yarısı ile İmsak
+/// arasında da sol uçta duruyordu. Yaz/kış farkını doğru taşımak için gün
+/// uzunluğu takvimden hesaplanır (DST günleri 23 veya 25 saat olabilir).
 double dayProgress(PrayerTime prayerTime, DateTime now) {
-  final span = prayerTime.isha.difference(prayerTime.fajr).inSeconds;
+  final date = prayerTime.date;
+  final start = DateTime(date.year, date.month, date.day);
+  final end = DateTime(date.year, date.month, date.day + 1);
+
+  final span = end.difference(start).inSeconds;
   if (span <= 0) return 0;
-  final passed = now.difference(prayerTime.fajr).inSeconds;
+
+  final passed = now.difference(start).inSeconds;
   return (passed / span).clamp(0.0, 1.0);
 }
 
-/// Günün İmsak→Yatsı şeridi: ilerleme, vakit çentikleri ve şu anki saat.
+/// Günün 00:00–24:00 şeridi: ilerleme, vakit çentikleri ve şu anki saat.
 ///
-/// Uçlardaki İmsak/Yatsı saatleri kaldırıldı: aynı iki değer hemen altındaki
-/// vakit ızgarasında zaten var ve şeridin uçlarında bağlamsız duruyorlardı.
+/// İmsak öncesi ve Yatsı sonrası uçlar daha sönük çizilir; böylece hiçbir
+/// vakit içermeyen bu bölümler boşluk değil "gece" olarak okunur. Kışın bu
+/// iki uç şeridin yarısına yaklaşır.
+///
+/// Uçlardaki İmsak/Yatsı saatleri yazılmaz: aynı iki değer hemen altındaki
+/// vakit ızgarasında zaten var.
 class DayRuler extends StatelessWidget {
   /// Şerit yüksekliği: üstte saat etiketi, ortada 5px yatak.
   static const double height = 26;
@@ -47,10 +62,15 @@ class DayRuler extends StatelessWidget {
         builder: (context, constraints) {
           final width = constraints.maxWidth;
           final markerX = width * progress;
+          final dayStart = dayProgress(prayerTime, prayerTime.fajr);
+          final dayEnd = dayProgress(prayerTime, prayerTime.isha);
 
           return Stack(
             clipBehavior: Clip.none,
             children: [
+              // Yatağın tamamı gece tonunda; üzerine İmsak→Yatsı penceresi
+              // normal tonda bindirilir. İki uç böylece kendiliğinden sönük
+              // kalır.
               Positioned(
                 left: 0,
                 right: 0,
@@ -58,9 +78,20 @@ class DayRuler extends StatelessWidget {
                 child: Container(
                   height: 5,
                   decoration: BoxDecoration(
-                    color: tokens.mutedTrack,
+                    color: tokens.mutedTrack.withValues(
+                      alpha: tokens.mutedTrack.a * _kNightDim,
+                    ),
                     borderRadius: BorderRadius.circular(3),
                   ),
+                ),
+              ),
+              Positioned(
+                left: width * dayStart,
+                top: 16,
+                child: Container(
+                  width: width * (dayEnd - dayStart),
+                  height: 5,
+                  color: tokens.mutedTrack,
                 ),
               ),
               Positioned(
@@ -98,7 +129,9 @@ class DayRuler extends StatelessWidget {
                   ),
                 ),
               Positioned(
-                left: markerX - 20,
+                // Etiket gece yarısına yakın saatlerde şeridin dışına
+                // taşmasın diye kenarlara sıkıştırılır.
+                left: (markerX - 20).clamp(0.0, (width - 40).clamp(0.0, width)),
                 top: 0,
                 child: SizedBox(
                   width: 40,
