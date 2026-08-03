@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/models/calculation_params.dart';
-import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/tokens_context.dart';
 
 /// Konuma özel hesaplama parametrelerini (yöntem, İkindi mezhebi, yüksek enlem
 /// düzeltmesi) seçtiren ortak form. Hem konum ekleme hem düzenleme ekranı
@@ -27,6 +27,8 @@ class CalculationParamsSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -59,12 +61,12 @@ class CalculationParamsSelector extends StatelessWidget {
           child: ExpansionTile(
             tilePadding: EdgeInsets.zero,
             childrenPadding: const EdgeInsets.only(top: 8),
-            iconColor: AppTheme.gold,
-            collapsedIconColor: Colors.white.withValues(alpha: 0.5),
+            iconColor: tokens.accent,
+            collapsedIconColor: tokens.textTertiary,
             title: Text(
               'Gelişmiş',
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.7),
+                color: tokens.textPrimary.withValues(alpha: 0.7),
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -104,13 +106,15 @@ class _LabeledDropdown<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
           style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.6),
+            color: tokens.textPrimary.withValues(alpha: 0.6),
             fontSize: 13,
           ),
         ),
@@ -118,20 +122,20 @@ class _LabeledDropdown<T> extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.08),
+            color: tokens.surface,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            border: Border.all(color: tokens.border),
           ),
           child: DropdownButtonHideUnderline(
             child: DropdownButton<T>(
               value: value,
               isExpanded: true,
-              dropdownColor: AppTheme.primaryMedium,
+              dropdownColor: tokens.backgroundStops[1],
               icon: Icon(
                 Icons.keyboard_arrow_down_rounded,
-                color: Colors.white.withValues(alpha: 0.5),
+                color: tokens.textTertiary,
               ),
-              style: const TextStyle(color: Colors.white, fontSize: 15),
+              style: TextStyle(color: tokens.textPrimary, fontSize: 15),
               items: items,
               onChanged: onChanged,
             ),
