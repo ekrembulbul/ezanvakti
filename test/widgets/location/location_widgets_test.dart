@@ -87,6 +87,8 @@ void main() {
       ),
     );
 
-    expect(find.textContaining('Kadıköy'), findsWidgets);
+    // Uygulamanin her yerinde ayni bicim; onay satiri "İstanbul / Kadıköy"
+    // seklinde ters sirada ve egik cizgiyle gosteriyordu.
+    expect(find.text('Kadıköy, İstanbul'), findsOneWidget);
   });
 }
