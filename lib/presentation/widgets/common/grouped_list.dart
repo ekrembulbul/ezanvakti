@@ -87,6 +87,10 @@ class GroupedRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   DefaultTextStyle.merge(
+                    // Satır sabit yükseklikte; uzun metin taşmak yerine
+                    // kırpılır.
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: AppTypography.rowTitle.copyWith(
                       color: tokens.textPrimary,
                     ),
@@ -95,6 +99,8 @@ class GroupedRow extends StatelessWidget {
                   if (subtitle != null) ...[
                     const SizedBox(height: 3),
                     DefaultTextStyle.merge(
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: AppTypography.rowSubtitle.copyWith(
                         color: tokens.textSecondary,
                       ),
