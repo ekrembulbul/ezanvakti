@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../core/theme/tokens_context.dart';
 import '../../../core/models/location.dart';
 
 class LocationChoiceButton extends StatelessWidget {
@@ -22,6 +23,8 @@ class LocationChoiceButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
+
     return GestureDetector(
       onTap: isLoading ? null : onTap,
       child: Container(
@@ -30,17 +33,17 @@ class LocationChoiceButton extends StatelessWidget {
           gradient: isHighlighted
               ? LinearGradient(
                   colors: [
-                    AppTheme.gold.withValues(alpha: 0.2),
-                    AppTheme.gold.withValues(alpha: 0.1),
+                    tokens.accent.withValues(alpha: 0.2),
+                    tokens.accent.withValues(alpha: 0.1),
                   ],
                 )
               : null,
-          color: isHighlighted ? null : Colors.white.withValues(alpha: 0.08),
+          color: isHighlighted ? null : tokens.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isHighlighted
-                ? AppTheme.gold.withValues(alpha: 0.3)
-                : Colors.white.withValues(alpha: 0.1),
+                ? tokens.accent.withValues(alpha: 0.3)
+                : tokens.border,
           ),
         ),
         child: Row(
@@ -49,8 +52,8 @@ class LocationChoiceButton extends StatelessWidget {
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: isHighlighted
-                    ? AppTheme.gold.withValues(alpha: 0.3)
-                    : Colors.white.withValues(alpha: 0.1),
+                    ? tokens.accent.withValues(alpha: 0.3)
+                    : tokens.border,
                 borderRadius: BorderRadius.circular(14),
               ),
               child: isLoading
@@ -59,12 +62,16 @@ class LocationChoiceButton extends StatelessWidget {
                       height: 24,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        color: isHighlighted ? AppTheme.gold : Colors.white70,
+                        color: isHighlighted
+                            ? tokens.accent
+                            : tokens.textSecondary,
                       ),
                     )
                   : Icon(
                       icon,
-                      color: isHighlighted ? AppTheme.gold : Colors.white70,
+                      color: isHighlighted
+                          ? tokens.accent
+                          : tokens.textSecondary,
                       size: 24,
                     ),
             ),
@@ -78,16 +85,13 @@ class LocationChoiceButton extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w600,
-                      color: isHighlighted ? AppTheme.gold : Colors.white,
+                      color: isHighlighted ? tokens.accent : tokens.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.white.withValues(alpha: 0.5),
-                    ),
+                    style: TextStyle(fontSize: 13, color: tokens.textTertiary),
                   ),
                 ],
               ),
@@ -95,8 +99,8 @@ class LocationChoiceButton extends StatelessWidget {
             Icon(
               Icons.arrow_forward_ios_rounded,
               color: isHighlighted
-                  ? AppTheme.gold.withValues(alpha: 0.5)
-                  : Colors.white.withValues(alpha: 0.3),
+                  ? tokens.accent.withValues(alpha: 0.5)
+                  : tokens.textTertiary,
               size: 18,
             ),
           ],
@@ -113,21 +117,23 @@ class LocationErrorCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final errorColor = Theme.of(context).colorScheme.error;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.red.withValues(alpha: 0.15),
+        color: errorColor.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+        border: Border.all(color: errorColor.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.error_outline_rounded, color: Colors.red, size: 20),
+          Icon(Icons.error_outline_rounded, color: errorColor, size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               error,
-              style: const TextStyle(color: Colors.red, fontSize: 13),
+              style: AppTypography.rowSubtitle.copyWith(color: errorColor),
             ),
           ),
         ],
@@ -143,26 +149,24 @@ class LocationSelectionConfirm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.gold.withValues(alpha: 0.1),
+        color: tokens.accent.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.gold.withValues(alpha: 0.3)),
+        border: Border.all(color: tokens.accent.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
-          const Icon(
-            Icons.check_circle_rounded,
-            color: AppTheme.gold,
-            size: 20,
-          ),
+          Icon(Icons.check_circle_rounded, color: tokens.accent, size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               '${location.province} / ${location.district}',
-              style: const TextStyle(
-                color: AppTheme.gold,
+              style: TextStyle(
+                color: tokens.accent,
                 fontWeight: FontWeight.w500,
               ),
             ),
