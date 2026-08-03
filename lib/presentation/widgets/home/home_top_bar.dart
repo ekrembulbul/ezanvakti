@@ -5,7 +5,10 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 import '../../../core/utils/hijri_formatter.dart';
 
-/// Ana ekranın üst çubuğu: uygulama ikonu · konum · menü.
+/// Ana ekranın üst çubuğu: konum · menü.
+///
+/// Uygulama ikonu ekranda gösterilmez; yalnızca launcher ve açılış ekranında
+/// kullanılır.
 class HomeTopBar extends StatelessWidget {
   final String locationName;
   final VoidCallback? onLocationTap;
@@ -34,15 +37,6 @@ class HomeTopBar extends StatelessWidget {
         children: [
           Row(
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(9),
-                child: Image.asset(
-                  'assets/icon/app_icon.png',
-                  width: 30,
-                  height: 30,
-                ),
-              ),
-              const SizedBox(width: 12),
               Flexible(
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,

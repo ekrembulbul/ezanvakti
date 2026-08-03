@@ -10,7 +10,7 @@ proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 - **Vakte göre renk:** arayüz paleti gün içinde namaz vakitleriyle birlikte ilerler — ÇİVİT (İmsak–Öğle), KURŞUNİ (Öğle–İkindi), ERGUVAN (İkindi–Yatsı), SÜMBÜL (Yatsı–İmsak). Her paletin açık temada bir karşılığı var: NİLÜFER, SEDEF, GÜLKURUSU, LEYLAK.
 - **Açık tema** ve **Sistem** tema modu. Ayarlar → Görünüm'den seçilir.
 - "Vakte göre renk" kapatıldığında dört paletten biri **sabit** olarak seçilebilir.
-- Yeni **uygulama ikonu** ve uyumlu açılış ekranı. Renkleri sekiz paletin hiçbirine ait değil (mürekkep zemin + altın hilal); ikon uygulama içinde o anki paletin zemininde durduğu için hepsiyle uyumlu olmak zorunda.
+- Yeni **ERGUVAN uygulama ikonu** ve uyumlu açılış ekranı. İkon yalnızca launcher ve açılış ekranında görünür; uygulama içi başlıklardan kaldırıldı.
 
 ### Değiştirildi
 - Uygulama tipografisi **Manrope**'a geçti; sayaç ve saat kolonları sabit genişlikli rakam kullanıyor, rakamlar değişirken satır oynamıyor.

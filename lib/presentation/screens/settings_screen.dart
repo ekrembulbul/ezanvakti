@@ -158,23 +158,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Column(
       children: [
-        Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: tokens.surface,
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: tokens.accent.withValues(alpha: 0.2)),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.asset(
-              'assets/icon/app_icon.png',
-              width: 56,
-              height: 56,
-            ),
-          ),
-        ),
-        const SizedBox(height: 14),
         Text(
           AppConstants.appTitle,
           textAlign: TextAlign.center,
@@ -183,9 +166,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         const SizedBox(height: 4),
         Text(
           _version.isEmpty ? 'Sürüm yükleniyor...' : 'Sürüm $_version',
-          style: AppTypography.rowSubtitle.copyWith(
-            color: tokens.textTertiary,
-          ),
+          style: AppTypography.rowSubtitle.copyWith(color: tokens.textTertiary),
         ),
       ],
     );

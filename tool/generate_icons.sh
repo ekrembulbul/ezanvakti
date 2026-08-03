@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Uygulama ikonunu uretir.
 #
-# Geometri, design/Ezan Vakti - Son Tasarim.html icindeki __bundler_thumbnail
-# SVG'sinin birebir aynisidir; renkler paletten bagimsizdir (bkz. asagi).
+# Geometri ve renkler, design/Ezan Vakti - Son Tasarim.html icindeki
+# __bundler_thumbnail SVG'sinin birebir aynisidir (ERGUVAN, spec D7).
 #
 # Build'in parcasi degil: varliklar degisecekse elle calistirilir, ciktilar
 # commit'lenir. Rasterizer olarak headless Chrome kullanilir; makinede
@@ -27,13 +27,9 @@ if [ ! -x "$CHROME" ]; then
 fi
 
 # Hilal: buyuk daireden kaydirilmis bir daire cikarilir. Yildiz sagda kucuk daire.
-# Ikon sekiz paletin (4 dilim x koyu/acik) hepsinin uzerinde durmak zorunda:
-# uygulama ici ust cubukta ve Ayarlar basliginda o anki paletin zemininde
-# duruyor. Bu yuzden renkleri hicbir palete ait degil.
-#
-# Hilal altin: dort koyu paletin accent'i de (mavi, mavi-gri, pembe, leylak)
-# soguk pastel; sicak altin hicbiriyle yarismiyor ve sekizinde de okunuyor.
-GLYPH_COLOR='#E8C87E'
+# Ikon artik uygulama ici ekranlarda gorunmuyor (yalnizca launcher ve splash),
+# bu yuzden sekiz paletle uyumlu olmak zorunda degil: ERGUVAN kimligi korunur.
+GLYPH_COLOR='#E09FB8'
 
 GLYPH="<defs><mask id=\"m\">
   <circle cx=\"233\" cy=\"256\" r=\"141\" fill=\"#fff\"/>
@@ -42,10 +38,9 @@ GLYPH="<defs><mask id=\"m\">
 <circle cx=\"233\" cy=\"256\" r=\"141\" fill=\"$GLYPH_COLOR\" mask=\"url(#m)\"/>
 <circle cx=\"361\" cy=\"179\" r=\"18\" fill=\"$GLYPH_COLOR\"/>"
 
-# Murekkep gradyani: notr-soguk, hafif kaldirilmis siyah. Tam siyah, koyu
-# temalarin zeminine gomuluyordu.
+# Erguvan gradyani: sol ustte acik, sag altta koyu.
 GRADIENT='<defs><radialGradient id="t" cx="30%" cy="0%" r="115%">
-  <stop offset="0" stop-color="#262A34"/><stop offset="1" stop-color="#0E1014"/>
+  <stop offset="0" stop-color="#5A2A50"/><stop offset="1" stop-color="#150F1F"/>
 </radialGradient></defs>
 <rect width="512" height="512" fill="url(#t)"/>'
 

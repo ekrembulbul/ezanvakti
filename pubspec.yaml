@@ -77,8 +77,8 @@ flutter:
   # assets:
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
-  assets:
-    - assets/icon/app_icon.png
+  # Ikon artik uygulama ici ekranlarda cizilmiyor; launcher ve splash
+  # varliklari derleme aninda diskten okundugu icin bundle'a gerek yok.
 
   # Manrope degisken font (wght ekseni 200-800). Tek dosya, 165 KB; dort
   # statik agirlik yerine bu tercih edildi (~400 KB yerine 165 KB ve gercek
@@ -129,8 +129,8 @@ flutter_launcher_icons:
   web:
     generate: true
     image_path: assets/icon/app_icon.png
-    background_color: "#0E1014"
-    theme_color: "#262A34"
+    background_color: "#150F1F"
+    theme_color: "#4A2144"
   windows:
     generate: true
     image_path: assets/icon/app_icon.png
@@ -139,14 +139,12 @@ flutter_launcher_icons:
     generate: true
     image_path: assets/icon/app_icon.png
 
-# Acilis ekrani (launch/splash): ikonun kendi murekkep zemini + hilal.
-# Sabit tek renk sekiz paletin hicbirine ait olamaz; palete baglamak yerine
-# ikonla ayni aileye baglaniyor, boylece splash ile uygulama ikonu ayni
-# kimligi tasiyor.
+# Acilis ekrani (launch/splash): erguvan zemin + hilal, ikonla ayni aile.
+# Renk ERGUVAN koyu paletinin orta duragidir (_eveningDark backgroundStops[1]).
 # Yeniden uretmek icin: dart run flutter_native_splash:create
 flutter_native_splash:
-  color: "#181B22"
+  color: "#241634"
   image: assets/icon/app_icon_foreground.png
   android_12:
-    color: "#181B22"
+    color: "#241634"
     image: assets/icon/app_icon_foreground.png
