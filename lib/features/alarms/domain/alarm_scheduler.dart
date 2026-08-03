@@ -3,6 +3,7 @@ import '../../../core/interfaces/local_storage.dart';
 import '../../../core/models/alarm.dart';
 import '../../../core/models/notification_setting.dart' show PrayerType;
 import '../../../core/models/prayer_time.dart';
+import '../../../core/utils/app_logger.dart';
 
 /// Alarmların bir sonraki tetiklenme anını hesaplar ve native [AlarmService] ile
 /// planlar. Tekrarlı alarmlarda yalnızca "bir sonraki" çalış planlanır; alarm
@@ -10,8 +11,13 @@ import '../../../core/models/prayer_time.dart';
 class AlarmScheduler {
   final AlarmService alarmService;
   final LocalStorage storage;
+  final AppLogger _logger;
 
-  AlarmScheduler({required this.alarmService, required this.storage});
+  AlarmScheduler({
+    required this.alarmService,
+    required this.storage,
+    AppLogger? logger,
+  }) : _logger = logger ?? AppLogger();
 
   /// Kayıtlı tüm alarmlar için önce mevcut planları temizler, sonra aktif
   /// alarmların bir sonraki tetiklenmesini planlar.
@@ -36,15 +42,22 @@ class AlarmScheduler {
         prayerTimesByDate: byDate,
       );
       if (fire == null) continue;
-      await alarmService.scheduleAlarm(
-        id: alarm.id,
-        scheduledTime: fire,
-        label: alarm.label,
-        soundId: alarm.soundId,
-        vibrate: alarm.vibrate,
-        snoozeEnabled: alarm.snoozeEnabled,
-        snoozeMinutes: alarm.snoozeMinutes,
-      );
+      // Tek bir alarm planlanamazsa (ör. kullanıcı alarm iznini reddetti)
+      // diğerleri etkilenmemeli. Hata yutulmaz, uyarı olarak loglanır: sessiz
+      // başarısızlık hata ayıklamayı imkânsız kılar.
+      try {
+        await alarmService.scheduleAlarm(
+          id: alarm.id,
+          scheduledTime: fire,
+          label: alarm.label,
+          soundId: alarm.soundId,
+          vibrate: alarm.vibrate,
+          snoozeEnabled: alarm.snoozeEnabled,
+          snoozeMinutes: alarm.snoozeMinutes,
+        );
+      } catch (e) {
+        _logger.warning('Alarm planlanamadı (id: ${alarm.id})', e);
+      }
     }
   }
 
