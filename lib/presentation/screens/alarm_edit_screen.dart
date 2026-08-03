@@ -7,9 +7,13 @@ import '../../core/di/service_locator.dart';
 import '../../core/interfaces/alarm_service.dart';
 import '../../core/models/alarm.dart';
 import '../../core/models/notification_setting.dart' show PrayerType;
-import '../../core/theme/app_theme.dart';
+import '../../core/theme/app_tokens.dart';
+import '../../core/theme/tokens_context.dart';
 import '../utils/prayer_name_helper.dart';
 import '../widgets/common/app_bar_widgets.dart';
+import '../widgets/common/app_surface.dart';
+import '../widgets/common/section_label.dart';
+import '../widgets/common/sliding_segment.dart';
 
 class AlarmEditScreen extends StatefulWidget {
   final Alarm? alarm;
@@ -59,6 +63,10 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
     }
   }
 
+  /// Bu ekranda çok sayıda yardımcı metot renk okuyor; her birinde
+  /// `context.tokens` yazmak yerine tek kısayol.
+  AppTokens get tokens => context.tokens;
+
   @override
   void dispose() {
     _label.dispose();
@@ -105,18 +113,20 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       // Transparent SimpleAppBar arkasında gradient'in üst rengi görünür → kesintisiz.
-      backgroundColor: const Color(0xFF0D1B2A),
+      backgroundColor: Colors.transparent,
       appBar: SimpleAppBar(
         title: widget.alarm == null ? 'Alarm ekle' : 'Alarmı düzenle',
         actions: [
           TextButton(
             onPressed: _save,
-            child: const Text('Kaydet', style: TextStyle(color: AppTheme.gold)),
+            child: Text(
+              'Kaydet',
+              style: TextStyle(color: context.tokens.accent),
+            ),
           ),
         ],
       ),
-      body: Container(
-        decoration: const BoxDecoration(gradient: AppTheme.nightGradient),
+      body: AppSurface(
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
@@ -142,21 +152,13 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   }
 
   Widget _kindToggle() {
-    return SegmentedButton<AlarmKind>(
-      style: SegmentedButton.styleFrom(
-        backgroundColor: Colors.white.withValues(alpha: 0.05),
-        foregroundColor: Colors.white,
-        selectedBackgroundColor: AppTheme.gold,
-        selectedForegroundColor: AppTheme.primaryDark,
-        side: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
-        textStyle: const TextStyle(fontWeight: FontWeight.w600),
-      ),
-      segments: const [
-        ButtonSegment(value: AlarmKind.fixed, label: Text('Sabit saat')),
-        ButtonSegment(value: AlarmKind.anchored, label: Text('Vakte göre')),
+    return SlidingSegment<AlarmKind>(
+      items: const [
+        SegmentItem(value: AlarmKind.fixed, label: 'Sabit saat'),
+        SegmentItem(value: AlarmKind.anchored, label: 'Vakte göre'),
       ],
-      selected: {_kind},
-      onSelectionChanged: (s) => setState(() => _kind = s.first),
+      selected: _kind,
+      onChanged: (kind) => setState(() => _kind = kind),
     );
   }
 
@@ -169,7 +171,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.05),
+            color: tokens.surface,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
@@ -177,13 +179,13 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
             children: [
               Text(
                 '${_hour.toString().padLeft(2, '0')}:${_minute.toString().padLeft(2, '0')}',
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: tokens.textPrimary,
                   fontSize: 28,
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              const Icon(Icons.schedule, color: AppTheme.gold),
+              Icon(Icons.schedule, color: tokens.accent),
             ],
           ),
         ),
@@ -204,8 +206,8 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
           'Vakit',
           DropdownButtonFormField<PrayerType>(
             initialValue: _anchor,
-            dropdownColor: AppTheme.primaryMedium,
-            style: const TextStyle(color: Colors.white),
+            dropdownColor: tokens.backgroundStops[1],
+            style: TextStyle(color: tokens.textPrimary),
             decoration: _fieldDecoration('Vakit'),
             items: PrayerNameHelper.getAllPrayerTypes()
                 .map(
@@ -270,17 +272,17 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: selected
-              ? AppTheme.gold.withValues(alpha: 0.2)
-              : Colors.white.withValues(alpha: 0.05),
+              ? tokens.accent.withValues(alpha: 0.2)
+              : tokens.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: selected ? AppTheme.gold : Colors.white.withValues(alpha: 0.1),
+            color: selected ? tokens.accent : tokens.border,
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: selected ? AppTheme.gold : Colors.white,
+            color: selected ? tokens.accent : tokens.textPrimary,
             fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
           ),
         ),
@@ -292,9 +294,9 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: tokens.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppTheme.gold.withValues(alpha: 0.35)),
+        border: Border.all(color: tokens.accent.withValues(alpha: 0.35)),
       ),
       child: Column(
         children: [
@@ -303,12 +305,12 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
               Container(
                 padding: const EdgeInsets.all(9),
                 decoration: BoxDecoration(
-                  color: AppTheme.gold.withValues(alpha: 0.18),
+                  color: tokens.accent.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.access_time_rounded,
-                  color: AppTheme.gold,
+                  color: tokens.accent,
                   size: 18,
                 ),
               ),
@@ -318,8 +320,8 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                 children: [
                   Text(
                     isBefore ? 'Vakitten önce' : 'Vakitten sonra',
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: tokens.textPrimary,
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
                     ),
@@ -327,7 +329,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                   Text(
                     '1 - $maxOffset dk',
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.55),
+                      color: tokens.textSecondary,
                       fontSize: 11,
                     ),
                   ),
@@ -347,7 +349,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
               useMagnifier: true,
               itemExtent: 36,
               selectionOverlay: CupertinoPickerDefaultSelectionOverlay(
-                background: Colors.white.withValues(alpha: 0.08),
+                background: tokens.surface,
               ),
               onSelectedItemChanged: (index) {
                 setState(() => _offset = (isBefore ? -1 : 1) * (index + 1));
@@ -357,8 +359,8 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                 (i) => Center(
                   child: Text(
                     '${i + 1} dk',
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: tokens.textPrimary,
                       fontWeight: FontWeight.w600,
                       fontSize: 16,
                     ),
@@ -375,19 +377,25 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   bool get _isEveryDay => _weekdays.length == 7;
   bool get _isWeekdaysOnly =>
       _weekdays.length == 5 && _weekdays.containsAll(const {1, 2, 3, 4, 5});
+  bool get _isWeekendOnly =>
+      _weekdays.length == 2 && _weekdays.containsAll(const {6, 7});
 
   Widget _weekdaysSelector() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
           children: [
             _quickChip('Her gün', _isEveryDay, () {
               setState(() => _weekdays = {1, 2, 3, 4, 5, 6, 7});
             }),
-            const SizedBox(width: 8),
             _quickChip('Hafta içi', _isWeekdaysOnly, () {
               setState(() => _weekdays = {1, 2, 3, 4, 5});
+            }),
+            _quickChip('Hafta sonu', _isWeekendOnly, () {
+              setState(() => _weekdays = {6, 7});
             }),
           ],
         ),
@@ -414,17 +422,17 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
         decoration: BoxDecoration(
           color: active
-              ? AppTheme.gold.withValues(alpha: 0.2)
-              : Colors.white.withValues(alpha: 0.05),
+              ? tokens.accent.withValues(alpha: 0.2)
+              : tokens.surface,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: active ? AppTheme.gold : Colors.white.withValues(alpha: 0.1),
+            color: active ? tokens.accent : tokens.border,
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: active ? AppTheme.gold : Colors.white,
+            color: active ? tokens.accent : tokens.textPrimary,
             fontWeight: active ? FontWeight.w600 : FontWeight.w400,
             fontSize: 13,
           ),
@@ -443,19 +451,19 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: selected
-              ? AppTheme.gold.withValues(alpha: 0.2)
-              : Colors.white.withValues(alpha: 0.05),
+              ? tokens.accent.withValues(alpha: 0.2)
+              : tokens.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: selected
-                ? AppTheme.gold
-                : Colors.white.withValues(alpha: 0.08),
+                ? tokens.accent
+                : tokens.surface,
           ),
         ),
         child: Text(
           names[day - 1],
           style: TextStyle(
-            color: selected ? AppTheme.gold : Colors.white70,
+            color: selected ? tokens.accent : tokens.textSecondary,
             fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
             fontSize: 13,
           ),
@@ -478,7 +486,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   Widget _labelField() {
     return TextField(
       controller: _label,
-      style: const TextStyle(color: Colors.white),
+      style: TextStyle(color: tokens.textPrimary),
       decoration: _fieldDecoration('Örn. Sahur'),
     );
   }
@@ -488,8 +496,8 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
     return DropdownButtonFormField<String>(
       initialValue: _soundId,
       isExpanded: true,
-      dropdownColor: AppTheme.primaryMedium,
-      style: const TextStyle(color: Colors.white),
+      dropdownColor: tokens.backgroundStops[1],
+      style: TextStyle(color: tokens.textPrimary),
       decoration: _fieldDecoration('Ses'),
       items: [
         const DropdownMenuItem(value: 'adhan', child: Text('Ezan')),
@@ -503,13 +511,13 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-        const DropdownMenuItem(
+        DropdownMenuItem(
           value: _pickSoundValue,
           child: Row(
             children: [
-              Icon(Icons.library_music_outlined, size: 18, color: AppTheme.gold),
-              SizedBox(width: 8),
-              Text('Cihazdan ses seç…'),
+              Icon(Icons.library_music_outlined, size: 18, color: tokens.accent),
+              const SizedBox(width: 8),
+              const Text('Cihazdan ses seç…'),
             ],
           ),
         ),
@@ -554,8 +562,8 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
       'Erteleme süresi',
       DropdownButton<int>(
         value: _snoozeMinutes,
-        dropdownColor: AppTheme.primaryMedium,
-        style: const TextStyle(color: Colors.white),
+        dropdownColor: tokens.backgroundStops[1],
+        style: TextStyle(color: tokens.textPrimary),
         items: const [5, 10, 15, 20]
             .map((m) => DropdownMenuItem(value: m, child: Text('$m dk')))
             .toList(),
@@ -567,27 +575,16 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   Widget _section(String title, Widget child) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.6),
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const SizedBox(height: 8),
-        child,
-      ],
+      children: [SectionLabel(title), const SizedBox(height: 8), child],
     );
   }
 
   Widget _switchTile(String title, bool value, ValueChanged<bool> onChanged) {
     return SwitchListTile(
       contentPadding: EdgeInsets.zero,
-      title: Text(title, style: const TextStyle(color: Colors.white)),
+      title: Text(title, style: TextStyle(color: tokens.textPrimary)),
       value: value,
-      activeThumbColor: AppTheme.gold,
+      activeThumbColor: tokens.accent,
       onChanged: onChanged,
     );
   }
@@ -598,7 +595,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title, style: const TextStyle(color: Colors.white)),
+          Text(title, style: TextStyle(color: tokens.textPrimary)),
           trailing,
         ],
       ),
@@ -608,9 +605,9 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   InputDecoration _fieldDecoration(String hint) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4)),
+      hintStyle: TextStyle(color: tokens.textTertiary),
       filled: true,
-      fillColor: Colors.white.withValues(alpha: 0.05),
+      fillColor: tokens.surface,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,
