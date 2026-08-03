@@ -5,7 +5,9 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart' hide Location;
 import 'package:provider/provider.dart';
 
-import '../../core/theme/app_theme.dart';
+import '../../core/theme/app_tokens.dart';
+import '../../core/theme/app_typography.dart';
+import '../../core/theme/tokens_context.dart';
 import '../../core/models/location.dart' as app_location;
 import '../../core/models/regional_defaults.dart';
 import '../../core/providers/app_state.dart';
@@ -14,6 +16,7 @@ import '../../features/location/data/photon_geocoding_service.dart';
 import '../../features/location/data/place_suggestion.dart';
 import '../../features/location/domain/location_repository.dart';
 import '../widgets/common/app_bar_widgets.dart';
+import '../widgets/common/app_surface.dart';
 import '../widgets/location/location_widgets.dart';
 
 class LocationAddScreen extends StatefulWidget {
@@ -63,6 +66,10 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
     super.initState();
     _loadBiasLocation();
   }
+
+  /// Bu ekranda çok sayıda yardımcı metot renk okuyor; her birinde
+  /// `context.tokens` yazmak yerine tek kısayol.
+  AppTokens get tokens => context.tokens;
 
   @override
   void dispose() {
@@ -212,31 +219,39 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
     }
     final coordsLabel =
         '${latitude.toStringAsFixed(3)}, ${longitude.toStringAsFixed(3)}';
-    return (province: 'GPS Konumu', district: coordsLabel, countryCode: null);
+    // displayName "$district, $province" urettigi icin okunabilir sira:
+    // "GPS Konumu, 41.008, 28.978".
+    return (province: coordsLabel, district: 'GPS Konumu', countryCode: null);
   }
 
   Future<bool> _showLocationRationale() async {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppTheme.primaryMedium,
+        backgroundColor: tokens.backgroundStops[1],
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Konum İzni', style: TextStyle(color: Colors.white)),
-        content: const Text(
+        title: Text(
+          'Konum İzni',
+          style: AppTypography.rowTitle.copyWith(color: tokens.textPrimary),
+        ),
+        content: Text(
           'Namaz vakitlerini bulunduğunuz konuma göre gösterebilmek için konum iznine ihtiyaç var. '
           'İzni vererek bulunduğunuz il/ilçe otomatik seçilecektir.',
-          style: TextStyle(color: Colors.white70),
+          style: AppTypography.rowSubtitle.copyWith(
+            color: tokens.textSecondary,
+            height: 1.5,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('İptal', style: TextStyle(color: Colors.white54)),
+            child: const Text('İptal'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.gold,
-              foregroundColor: AppTheme.primaryDark,
+              backgroundColor: tokens.accent,
+              foregroundColor: tokens.backgroundStops.last,
             ),
             child: const Text('İzin Ver'),
           ),
@@ -326,7 +341,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
       messenger.showSnackBar(
         SnackBar(
           content: Text(message),
-          backgroundColor: isError ? Colors.red.shade700 : AppTheme.gold,
+          backgroundColor: isError ? Colors.red.shade700 : tokens.accent,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
@@ -345,15 +360,12 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
         title: _showManualSelection ? 'Konum Ara' : 'Yeni Konum',
         showBack: widget.fromLocationList && !_showManualSelection,
       ),
-      body: Container(
-        decoration: const BoxDecoration(gradient: AppTheme.nightGradient),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: _showManualSelection
-                ? _buildManualSelection()
-                : _buildChoiceScreen(),
-          ),
+      body: AppSurface(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: _showManualSelection
+              ? _buildManualSelection()
+              : _buildChoiceScreen(),
         ),
       ),
     );
@@ -368,25 +380,25 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                AppTheme.gold.withValues(alpha: 0.2),
-                AppTheme.gold.withValues(alpha: 0.05),
+                tokens.accent.withValues(alpha: 0.2),
+                tokens.accent.withValues(alpha: 0.05),
               ],
             ),
             shape: BoxShape.circle,
           ),
-          child: const Icon(
+          child: Icon(
             Icons.add_location_alt_rounded,
             size: 64,
-            color: AppTheme.gold,
+            color: tokens.accent,
           ),
         ),
         const SizedBox(height: 32),
-        const Text(
+        Text(
           'Yeni Konum Ekle',
-          style: TextStyle(
-            fontSize: 26,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+          style: AppTypography.counterLabel.copyWith(
+            fontSize: 24,
+            letterSpacing: -0.5,
+            color: tokens.textPrimary,
           ),
         ),
         const SizedBox(height: 12),
@@ -394,7 +406,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
           'GPS ile otomatik tespit edin veya\nadres arayarak konum seçin',
           style: TextStyle(
             fontSize: 15,
-            color: Colors.white.withValues(alpha: 0.6),
+            color: tokens.textSecondary,
             height: 1.5,
           ),
           textAlign: TextAlign.center,
@@ -451,27 +463,24 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
+        color: tokens.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(color: tokens.border),
       ),
       child: TextField(
         controller: _searchController,
         autofocus: true,
-        style: const TextStyle(color: Colors.white),
+        style: TextStyle(color: tokens.textPrimary),
         onChanged: _onSearchChanged,
         decoration: InputDecoration(
           hintText: 'Şehir, ilçe veya yer ara...',
-          hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4)),
+          hintStyle: TextStyle(color: tokens.textTertiary),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 20,
             vertical: 18,
           ),
-          prefixIcon: Icon(
-            Icons.search_rounded,
-            color: Colors.white.withValues(alpha: 0.5),
-          ),
+          prefixIcon: Icon(Icons.search_rounded, color: tokens.textTertiary),
           suffixIcon: _buildSearchSuffix(),
         ),
       ),
@@ -480,24 +489,21 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
 
   Widget? _buildSearchSuffix() {
     if (_isSearching) {
-      return const Padding(
-        padding: EdgeInsets.all(14),
+      return Padding(
+        padding: const EdgeInsets.all(14),
         child: SizedBox(
           width: 18,
           height: 18,
           child: CircularProgressIndicator(
             strokeWidth: 2,
-            color: AppTheme.gold,
+            color: tokens.accent,
           ),
         ),
       );
     }
     if (_searchController.text.isNotEmpty) {
       return IconButton(
-        icon: Icon(
-          Icons.close_rounded,
-          color: Colors.white.withValues(alpha: 0.5),
-        ),
+        icon: Icon(Icons.close_rounded, color: tokens.textTertiary),
         onPressed: () {
           _searchController.clear();
           _onSearchChanged('');
@@ -519,7 +525,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
             message,
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.4),
+              color: tokens.textTertiary,
               fontSize: 14,
               height: 1.5,
             ),
@@ -542,22 +548,22 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.06),
+          color: tokens.surface,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+          border: Border.all(color: tokens.surface),
         ),
         child: Row(
           children: [
             Icon(
               Icons.location_on_outlined,
-              color: Colors.white.withValues(alpha: 0.5),
+              color: tokens.textTertiary,
               size: 20,
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
                 suggestion.displayLabel,
-                style: const TextStyle(color: Colors.white, fontSize: 15),
+                style: TextStyle(color: tokens.textPrimary, fontSize: 15),
               ),
             ),
           ],
@@ -577,7 +583,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
             onPressed: _clearSelection,
             icon: const Icon(Icons.search_rounded, size: 16),
             label: const Text('Değiştir'),
-            style: TextButton.styleFrom(foregroundColor: AppTheme.gold),
+            style: TextButton.styleFrom(foregroundColor: tokens.accent),
           ),
         ),
         const SizedBox(height: 8),
@@ -588,7 +594,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
             Icon(
               Icons.info_outline_rounded,
               size: 15,
-              color: Colors.white.withValues(alpha: 0.4),
+              color: tokens.textTertiary,
             ),
             const SizedBox(width: 8),
             Expanded(
@@ -596,7 +602,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
                 'Hesaplama yöntemi genel ayardan alınır. Bu konuma özel '
                 'değiştirmek için kaydettikten sonra düzenleyin.',
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.4),
+                  color: tokens.textTertiary,
                   fontSize: 12,
                   height: 1.4,
                 ),
@@ -612,23 +618,23 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
+        color: tokens.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(color: tokens.border),
       ),
       child: TextField(
         controller: _customNameController,
-        style: const TextStyle(color: Colors.white),
+        style: TextStyle(color: tokens.textPrimary),
         decoration: InputDecoration(
           labelText: 'Özel İsim (Opsiyonel)',
-          labelStyle: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
+          labelStyle: TextStyle(color: tokens.textTertiary),
           hintText: 'Örn: Ev, İş, Anne Evi',
-          hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
+          hintStyle: TextStyle(color: tokens.textTertiary),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.all(20),
           prefixIcon: Icon(
             Icons.label_outline_rounded,
-            color: Colors.white.withValues(alpha: 0.5),
+            color: tokens.textTertiary,
           ),
         ),
       ),
@@ -639,10 +645,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
     return Text(
       '© OpenStreetMap katkıcıları',
       textAlign: TextAlign.center,
-      style: TextStyle(
-        color: Colors.white.withValues(alpha: 0.3),
-        fontSize: 11,
-      ),
+      style: TextStyle(color: tokens.textTertiary, fontSize: 11),
     );
   }
 
@@ -653,8 +656,8 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
           child: OutlinedButton(
             onPressed: _resetManualSelection,
             style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.white70,
-              side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+              foregroundColor: tokens.textSecondary,
+              side: BorderSide(color: tokens.border),
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
@@ -669,10 +672,10 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
           child: ElevatedButton(
             onPressed: _selectedPlace != null ? _onManualSave : null,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.gold,
-              foregroundColor: AppTheme.primaryDark,
-              disabledBackgroundColor: Colors.white.withValues(alpha: 0.1),
-              disabledForegroundColor: Colors.white.withValues(alpha: 0.3),
+              backgroundColor: tokens.accent,
+              foregroundColor: tokens.backgroundStops.last,
+              disabledBackgroundColor: tokens.border,
+              disabledForegroundColor: tokens.textTertiary,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
