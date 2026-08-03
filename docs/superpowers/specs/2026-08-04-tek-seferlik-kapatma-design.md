@@ -94,6 +94,12 @@ class SkippedOccurrence {
 
 Kimlik = `kind + reference + fireAt`.
 
+> **Değişmez kural — anahtar yalan söylemez.** Hem kart hem planlayıcı, atlanmış
+> olup olmadığını **aynı kimlikle** sorar ve kimliği **aynı vakit verisinden**
+> türetir. Dolayısıyla ikisi hiçbir koşulda ayrışamaz: kayıt eşleşiyorsa alarm
+> çalmaz ve anahtar kapalı görünür; eşleşmiyorsa alarm çalar ve anahtar **açık**
+> görünür. "Kapalı görünüyor ama çalacak" durumu yapısal olarak mümkün değildir.
+
 ### 5.2 Saklama
 
 `LocalStorage`'a iki metot eklenir:
@@ -180,7 +186,7 @@ HomePage._toggleSkip(kind, reference, fireAt, skipped)
 | Aynı alarm iki gün üst üste atlanmak istenirse | İki ayrı kayıt (`fireAt` farklı); biri diğerini etkilemez |
 | Kalıcı kapatılan bir alarm atlanmışken | Atlama kaydı ortada kalır ama zararsız; süresi dolunca temizlenir |
 | Bozuk JSON | Boş liste kabul edilir, uygulama atlamasız açılır (bkz. `AppearanceSettings.fromMap` deseni) |
-| Vakit verisi yeniden çekildi ve saat kaydı | `fireAt` değişirse eski kayıt eşleşmez, bildirim/alarm çalar. Kabul edildi: alternatifi (gün+vakit bazlı eşleşme) sapması değişen alarmlarda yanlış örneği atlardı |
+| Vakit verisi yeniden çekildi ve saat kaydı | `fireAt` değişir, eski kayıt eşleşmez → **alarm çalar ve anahtar açık görünür.** Kullanıcı yanıltılmaz; isterse yeni saati tekrar atlar. Eski kayıt süresi dolunca temizlenir. Alternatifi (gün+vakit bazlı eşleşme) sapması değişen alarmlarda yanlış örneği sessizce atlardı — kabul edilmedi |
 
 ## 7. Test stratejisi
 
@@ -203,6 +209,12 @@ HomePage._toggleSkip(kind, reference, fireAt, skipped)
 - `resolveNextAlarm` atlanmış alarmı **döndürmeye devam eder** (kart onu
   gösterebilsin); `scheduleAlarms` ise **planlamaz**. Aynı senaryoda iki ayrı
   beklenti.
+
+**Anahtar yalan söylemez (§5.1 değişmez kuralı):**
+- Atlama kaydı yazıldıktan sonra vakit kayarsa (`fireAt` değişir): aynı
+  senaryoda hem `scheduleAlarms`'ın alarmı **planladığı** hem de kartın
+  anahtarı **açık** gösterdiği doğrulanır. İkisi tek bir testte birlikte
+  kontrol edilir ki ileride biri değişirse diğeri de düşsün.
 
 **Widget (`test/widgets/home/upcoming_card_test.dart`):**
 - Atlanmışken alt metnin `Yalnızca bu sefer atlanacak · …` olması ve anahtarın
