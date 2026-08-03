@@ -1,9 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_theme.dart';
+import '../../../core/theme/app_tokens.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../core/theme/tokens_context.dart';
 import '../../../core/models/prayer_time.dart';
 import '../../../core/models/notification_setting.dart';
 import '../../../core/utils/prayer_utils.dart';
+import '../common/section_label.dart';
 import '../../../core/constants/notification_constants.dart';
 
 class AddNotificationBottomSheet extends StatefulWidget {
@@ -94,8 +97,8 @@ class _AddNotificationBottomSheetState
         top: 24,
         bottom: 16 + viewInsets,
       ),
-      decoration: const BoxDecoration(
-        gradient: AppTheme.nightGradient,
+      decoration: BoxDecoration(
+        gradient: tokens.backgroundGradient,
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: SafeArea(
@@ -110,7 +113,7 @@ class _AddNotificationBottomSheetState
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.white24,
+                    color: tokens.border,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -118,23 +121,23 @@ class _AddNotificationBottomSheetState
               const SizedBox(height: 24),
               Text(
                 title,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                style: AppTypography.counterLabel.copyWith(
+                  fontSize: 20,
+                  letterSpacing: -0.4,
+                  color: tokens.textPrimary,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 'Hangi vakitte bildirim almak istiyorsunuz?',
-                style: TextStyle(color: Colors.white.withValues(alpha: 0.6)),
+                style: TextStyle(color: tokens.textSecondary),
               ),
               const SizedBox(height: 24),
-              _buildSectionLabel('Namaz Vakti'),
+              const Center(child: SectionLabel('Namaz Vakti')),
               const SizedBox(height: 12),
               _buildPrayerTypeSelector(),
               const SizedBox(height: 24),
-              _buildSectionLabel('Bildirim Zamanı'),
+              const Center(child: SectionLabel('Bildirim Zamanı')),
               const SizedBox(height: 12),
               _buildTimeSelector(),
               const SizedBox(height: 32),
@@ -143,8 +146,8 @@ class _AddNotificationBottomSheetState
                 child: ElevatedButton(
                   onPressed: _onSave,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.gold,
-                    foregroundColor: AppTheme.primaryDark,
+                    backgroundColor: tokens.accent,
+                    foregroundColor: tokens.backgroundStops.last,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
@@ -161,20 +164,6 @@ class _AddNotificationBottomSheetState
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionLabel(String label) {
-    return Center(
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: AppTheme.gold.withValues(alpha: 0.8),
-          letterSpacing: 1,
         ),
       ),
     );
@@ -197,13 +186,11 @@ class _AddNotificationBottomSheetState
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? AppTheme.gold.withValues(alpha: 0.2)
-                    : Colors.white.withValues(alpha: 0.1),
+                    ? tokens.accent.withValues(alpha: 0.2)
+                    : tokens.border,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isSelected
-                      ? AppTheme.gold
-                      : Colors.white.withValues(alpha: 0.1),
+                  color: isSelected ? tokens.accent : tokens.border,
                 ),
               ),
               child: Row(
@@ -212,13 +199,13 @@ class _AddNotificationBottomSheetState
                   Icon(
                     PrayerUtils.getPrayerIcon(type),
                     size: 18,
-                    color: isSelected ? AppTheme.gold : Colors.white54,
+                    color: isSelected ? tokens.accent : tokens.textTertiary,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     PrayerUtils.getPrayerName(type),
                     style: TextStyle(
-                      color: isSelected ? AppTheme.gold : Colors.white,
+                      color: isSelected ? tokens.accent : tokens.textPrimary,
                       fontWeight: isSelected
                           ? FontWeight.w600
                           : FontWeight.w400,
@@ -277,12 +264,14 @@ class _AddNotificationBottomSheetState
               constraints: const BoxConstraints(maxWidth: 200),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.08),
+                color: tokens.surface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: _errorText != null
-                      ? Colors.red.withValues(alpha: 0.6)
-                      : AppTheme.gold.withValues(alpha: 0.4),
+                      ? Theme.of(
+                          context,
+                        ).colorScheme.error.withValues(alpha: 0.6)
+                      : tokens.accent.withValues(alpha: 0.4),
                   width: 1.2,
                 ),
               ),
@@ -295,35 +284,41 @@ class _AddNotificationBottomSheetState
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: AppTheme.gold.withValues(alpha: 0.18),
+                          color: tokens.accent.withValues(alpha: 0.18),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.access_time_rounded,
-                          color: AppTheme.gold,
+                          color: tokens.accent,
                           size: 20,
                         ),
                       ),
                       const SizedBox(width: 10),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Dakika seçin',
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.8),
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
+                      Flexible(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Dakika seçin',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.rowSubtitle.copyWith(
+                                color: tokens.textPrimary,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
-                          ),
-                          Text(
-                            '1 - $maxOffset dk',
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.55),
-                              fontSize: 11,
+                            Text(
+                              '1 - $maxOffset dk',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.sectionLabel.copyWith(
+                                color: tokens.textSecondary,
+                                letterSpacing: 0,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -342,7 +337,7 @@ class _AddNotificationBottomSheetState
                       useMagnifier: true,
                       itemExtent: 36,
                       selectionOverlay: CupertinoPickerDefaultSelectionOverlay(
-                        background: Colors.white.withValues(alpha: 0.08),
+                        background: tokens.surface,
                       ),
                       onSelectedItemChanged: (index) {
                         setState(() {
@@ -355,8 +350,8 @@ class _AddNotificationBottomSheetState
                         (i) => Center(
                           child: Text(
                             '${i + 1} dk',
-                            style: const TextStyle(
-                              color: Colors.white,
+                            style: TextStyle(
+                              color: tokens.textPrimary,
                               fontWeight: FontWeight.w600,
                               fontSize: 16,
                             ),
@@ -396,25 +391,24 @@ class _AddNotificationBottomSheetState
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppTheme.gold.withValues(alpha: 0.2)
-              : Colors.white.withValues(alpha: 0.1),
+              ? tokens.accent.withValues(alpha: 0.2)
+              : tokens.border,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected
-                ? AppTheme.gold
-                : Colors.white.withValues(alpha: 0.1),
-          ),
+          border: Border.all(color: isSelected ? tokens.accent : tokens.border),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? AppTheme.gold : Colors.white,
+            color: isSelected ? tokens.accent : tokens.textPrimary,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
           ),
         ),
       ),
     );
   }
+
+  /// Yardımcı metotların hepsi renk okuyor; tek kısayol.
+  AppTokens get tokens => context.tokens;
 
   @override
   void dispose() {

@@ -3,9 +3,13 @@ import 'package:flutter/material.dart';
 import '../../core/models/calculation_params.dart';
 import '../../core/models/calculation_settings.dart';
 import '../../core/models/location.dart';
-import '../../core/theme/app_theme.dart';
+import '../../core/theme/app_tokens.dart';
+import '../../core/theme/app_typography.dart';
+import '../../core/theme/tokens_context.dart';
 import '../../features/location/domain/location_repository.dart';
 import '../widgets/common/app_bar_widgets.dart';
+import '../widgets/common/app_surface.dart';
+import '../widgets/common/grouped_list.dart';
 import '../widgets/location/calculation_params_selector.dart';
 
 /// Kayıtlı bir konumun hesaplama parametrelerini ve özel ismini düzenler.
@@ -59,6 +63,9 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
 
     _loadGlobalSettings();
   }
+
+  /// Yardımcı metotların hepsi renk okuyor; tek kısayol.
+  AppTokens get tokens => context.tokens;
 
   @override
   void dispose() {
@@ -123,7 +130,7 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
           ..showSnackBar(
             SnackBar(
               content: Text('Kaydedilemedi: $e'),
-              backgroundColor: Colors.red.shade700,
+              backgroundColor: Theme.of(context).colorScheme.error,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -138,50 +145,48 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      appBar: SimpleAppBar(title: 'Konumu Düzenle'),
-      body: Container(
-        decoration: const BoxDecoration(gradient: AppTheme.nightGradient),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: ListView(
-                    children: [
-                      _buildLocationHeader(),
-                      const SizedBox(height: 24),
-                      _buildCustomNameField(),
-                      const SizedBox(height: 20),
-                      _buildUseGlobalSwitch(),
-                      const SizedBox(height: 12),
-                      if (_useGlobal)
-                        _buildGlobalSummary()
-                      else
-                        CalculationParamsSelector(
-                          method: _method,
-                          school: _school,
-                          latitudeAdjustment: _latitudeAdjustment,
-                          onMethodChanged: (value) => setState(() {
-                            _method = value;
-                            _school = AsrSchool.fromValue(
-                              CalculationDefaults.schoolForMethod(value),
-                            );
-                          }),
-                          onSchoolChanged: (value) =>
-                              setState(() => _school = value),
-                          onLatitudeAdjustmentChanged: (value) =>
-                              setState(() => _latitudeAdjustment = value),
-                        ),
-                    ],
-                  ),
+      appBar: const SimpleAppBar(title: 'Konumu Düzenle'),
+      body: AppSurface(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: ListView(
+                  children: [
+                    _buildLocationHeader(),
+                    const SizedBox(height: 24),
+                    _buildCustomNameField(),
+                    const SizedBox(height: 20),
+                    _buildUseGlobalSwitch(),
+                    const SizedBox(height: 12),
+                    if (_useGlobal)
+                      _buildGlobalSummary()
+                    else
+                      CalculationParamsSelector(
+                        method: _method,
+                        school: _school,
+                        latitudeAdjustment: _latitudeAdjustment,
+                        onMethodChanged: (value) => setState(() {
+                          _method = value;
+                          _school = AsrSchool.fromValue(
+                            CalculationDefaults.schoolForMethod(value),
+                          );
+                        }),
+                        onSchoolChanged: (value) =>
+                            setState(() => _school = value),
+                        onLatitudeAdjustmentChanged: (value) =>
+                            setState(() => _latitudeAdjustment = value),
+                      ),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                _buildSaveButton(),
-              ],
-            ),
+              ),
+              const SizedBox(height: 12),
+              _buildSaveButton(),
+            ],
           ),
         ),
       ),
@@ -193,9 +198,9 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.gold.withValues(alpha: 0.1),
+        color: tokens.accent.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppTheme.gold.withValues(alpha: 0.3)),
+        border: Border.all(color: tokens.accent.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -203,18 +208,14 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
             location.type == LocationType.gps
                 ? Icons.my_location_rounded
                 : Icons.location_on_rounded,
-            color: AppTheme.gold,
+            color: tokens.accent,
             size: 22,
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              '${location.province} / ${location.district}',
-              style: const TextStyle(
-                color: AppTheme.gold,
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
-              ),
+              location.displayName,
+              style: AppTypography.rowTitle.copyWith(color: tokens.accent),
             ),
           ),
         ],
@@ -226,23 +227,23 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
+        color: tokens.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(color: tokens.border),
       ),
       child: TextField(
         controller: _customNameController,
-        style: const TextStyle(color: Colors.white),
+        style: AppTypography.rowTitle.copyWith(color: tokens.textPrimary),
         decoration: InputDecoration(
           labelText: 'Özel İsim (Opsiyonel)',
-          labelStyle: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
+          labelStyle: TextStyle(color: tokens.textTertiary),
           hintText: 'Örn: Ev, İş, Anne Evi',
-          hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
+          hintStyle: TextStyle(color: tokens.textTertiary),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.all(20),
           prefixIcon: Icon(
             Icons.label_outline_rounded,
-            color: Colors.white.withValues(alpha: 0.5),
+            color: tokens.textTertiary,
           ),
         ),
       ),
@@ -250,35 +251,20 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
   }
 
   Widget _buildUseGlobalSwitch() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-      ),
-      // ListTile arka planini ve ink efektini en yakin Material'a cizer;
-      // renkli kapsayici bunu gizledigi icin kendi seffaf Material'ina sarilir.
-      child: Material(
-        type: MaterialType.transparency,
-        child: SwitchListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text(
-            'Genel hesaplama ayarını kullan',
-            style: TextStyle(color: Colors.white, fontSize: 15),
-          ),
-          subtitle: Text(
+    return GroupedList(
+      children: [
+        GroupedRow(
+          icon: Icons.public_rounded,
+          title: const Text('Genel hesaplama ayarını kullan'),
+          subtitle: const Text(
             'Kapatırsan bu konuma özel yöntem/mezhep seçebilirsin',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.5),
-              fontSize: 12,
-            ),
           ),
-          value: _useGlobal,
-          activeThumbColor: AppTheme.gold,
-          onChanged: (value) => setState(() => _useGlobal = value),
+          trailing: Switch(
+            value: _useGlobal,
+            onChanged: (value) => setState(() => _useGlobal = value),
+          ),
         ),
-      ),
+      ],
     );
   }
 
@@ -288,23 +274,18 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: tokens.surface,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
         children: [
-          Icon(
-            Icons.public_rounded,
-            size: 18,
-            color: Colors.white.withValues(alpha: 0.5),
-          ),
+          Icon(Icons.public_rounded, size: 18, color: tokens.textTertiary),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               'Genel ayar: $methodName · $schoolLabel',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.6),
-                fontSize: 13,
+              style: AppTypography.rowSubtitle.copyWith(
+                color: tokens.textSecondary,
               ),
             ),
           ),
@@ -317,15 +298,12 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
     return ElevatedButton(
       onPressed: _save,
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppTheme.gold,
-        foregroundColor: AppTheme.primaryDark,
+        backgroundColor: tokens.accent,
+        foregroundColor: tokens.backgroundStops.last,
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
-      child: const Text(
-        'Kaydet',
-        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-      ),
+      child: const Text('Kaydet'),
     );
   }
 }
