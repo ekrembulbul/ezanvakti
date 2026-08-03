@@ -62,9 +62,12 @@ class SlidingSegment<T> extends StatelessWidget {
       height: height,
       padding: EdgeInsets.all(padding),
       decoration: BoxDecoration(
-        color: tokens.surface,
+        color: tokens.trackSurface,
         borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: tokens.border, width: _kTrackBorderWidth),
+        border: Border.all(
+          color: tokens.trackBorder,
+          width: _kTrackBorderWidth,
+        ),
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -89,14 +92,14 @@ class SlidingSegment<T> extends StatelessWidget {
                 child: DecoratedBox(
                   key: kSegmentPillKey,
                   decoration: BoxDecoration(
-                    color: tokens.accent.withValues(alpha: 0.14),
+                    color: tokens.selectedControl,
                     borderRadius: BorderRadius.circular(pillRadius),
                     border: Border.all(
                       color: tokens.accent.withValues(alpha: 0.30),
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.35),
+                        color: tokens.controlShadow,
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),

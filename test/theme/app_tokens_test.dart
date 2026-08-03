@@ -10,7 +10,11 @@ void main() {
       for (final phase in DayPhase.values) {
         for (final brightness in Brightness.values) {
           final tokens = paletteFor(phase, brightness);
-          expect(tokens.backgroundStops.length, 3, reason: '$phase/$brightness');
+          expect(
+            tokens.backgroundStops.length,
+            3,
+            reason: '$phase/$brightness',
+          );
         }
       }
     });
@@ -38,16 +42,34 @@ void main() {
       expect(tokens.backgroundStops.last, const Color(0xFF08141F));
     });
 
-    test('Acik temada murekkep paletin Metin1 rengidir', () {
-      // Kural: acik tema yuzey/kenarlik/ayirac renkleri textPrimary uzerinden
-      // turetilir. GULKURUSU'ndaki tasarim sapmasi kurala uyduruldu.
+    test('Acik temada yikamalar paletin Metin1 rengidir', () {
+      // Kural: acik tema kenarlik/ayirac/oyuk yuzey renkleri textPrimary
+      // uzerinden turetilir. GULKURUSU'ndaki tasarim sapmasi kurala uyduruldu.
       for (final phase in DayPhase.values) {
         final tokens = paletteFor(phase, Brightness.light);
 
-        expect(tokens.surface.a, lessThan(0.2), reason: '$phase yuzey alfasi');
-        expect(tokens.surface.r, closeTo(tokens.textPrimary.r, 0.001));
-        expect(tokens.surface.g, closeTo(tokens.textPrimary.g, 0.001));
-        expect(tokens.surface.b, closeTo(tokens.textPrimary.b, 0.001));
+        for (final entry in {
+          'kenarlik': tokens.border,
+          'ayirac': tokens.divider,
+          'yatak': tokens.trackSurface,
+          'ikincil yuzey': tokens.secondarySurface,
+        }.entries) {
+          final wash = entry.value;
+          expect(wash.a, lessThan(0.2), reason: '$phase ${entry.key} alfasi');
+          expect(wash.r, closeTo(tokens.textPrimary.r, 0.001));
+          expect(wash.g, closeTo(tokens.textPrimary.g, 0.001));
+          expect(wash.b, closeTo(tokens.textPrimary.b, 0.001));
+        }
+      }
+    });
+
+    test('Acik temada kart yuzeyi opak beyaz', () {
+      // Yikama kurali kart yuzeyine uygulanmiyor: mürekkep %5, acik zeminde
+      // butun ekrani grileştiriyordu. Tasarim dort acik palette de #FFFFFF.
+      for (final phase in DayPhase.values) {
+        final tokens = paletteFor(phase, Brightness.light);
+
+        expect(tokens.surface, const Color(0xFFFFFFFF), reason: '$phase');
       }
     });
 
@@ -65,6 +87,46 @@ void main() {
       final tokens = paletteFor(DayPhase.evening, Brightness.light);
 
       expect(tokens.textPrimary, const Color(0xFF201A1E));
+    });
+  });
+
+  group('Kayan segment token\'lari', () {
+    test('Koyu temada golge siyah, acik temada paletin murekkebi', () {
+      for (final phase in DayPhase.values) {
+        final dark = paletteFor(phase, Brightness.dark);
+        final light = paletteFor(phase, Brightness.light);
+
+        // Koyu: notr siyah.
+        expect(dark.controlShadow.r, 0, reason: phase.name);
+        expect(dark.controlShadow.g, 0, reason: phase.name);
+        expect(dark.controlShadow.b, 0, reason: phase.name);
+
+        // Acik: siyah degil, paletin Metin1'i. Siyah golge saydam hap'in
+        // altinda kirli gri bir leke birakiyordu.
+        expect(light.controlShadow.r, light.textPrimary.r, reason: phase.name);
+        expect(light.controlShadow.g, light.textPrimary.g, reason: phase.name);
+        expect(light.controlShadow.b, light.textPrimary.b, reason: phase.name);
+        expect(
+          light.controlShadow.a,
+          lessThan(dark.controlShadow.a),
+          reason: 'Acik temada golge cok daha hafif olmali (${phase.name})',
+        );
+      }
+    });
+
+    test('Secili hap dolgusu accent, acik temada daha soluk', () {
+      for (final phase in DayPhase.values) {
+        final dark = paletteFor(phase, Brightness.dark);
+        final light = paletteFor(phase, Brightness.light);
+
+        expect(dark.selectedControl.r, dark.accent.r, reason: phase.name);
+        expect(light.selectedControl.r, light.accent.r, reason: phase.name);
+        expect(
+          light.selectedControl.a,
+          lessThan(dark.selectedControl.a),
+          reason: phase.name,
+        );
+      }
     });
   });
 

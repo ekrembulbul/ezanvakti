@@ -15,6 +15,16 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Kart kenarlığı.
   final Color border;
 
+  /// Kayan segmentin yatağı gibi "oyuk" yüzeyler.
+  ///
+  /// Koyu temada [surface] ile aynı; açık temada ayrışır — kart opak beyazken
+  /// yatak mürekkep yıkaması olarak kalır (tasarımda kart `#FFFFFF`, yatak
+  /// mürekkep %5).
+  final Color trackSurface;
+
+  /// [trackSurface]'in kenarlığı.
+  final Color trackBorder;
+
   /// Satır ayıracı.
   final Color divider;
 
@@ -36,6 +46,16 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Liste ve ızgaradaki saat değerleri.
   final Color textValue;
 
+  /// Kayan segmentteki seçili hap'ın dolgusu.
+  final Color selectedControl;
+
+  /// Kayan segmentteki seçili hap'ın gölgesi.
+  ///
+  /// Koyu temada siyah, açık temada paletin **mürekkebi** — yüzeylerdeki
+  /// kuralın (§4.1) aynısı. Açık temada siyah gölge, saydam hap'ın altında
+  /// kirli gri bir leke bırakıyor.
+  final Color controlShadow;
+
   /// Zemin radial gradyanının üç durağı (%0, %44, %100).
   final List<Color> backgroundStops;
 
@@ -43,6 +63,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
     required this.accent,
     required this.surface,
     required this.border,
+    required this.trackSurface,
+    required this.trackBorder,
     required this.divider,
     required this.secondarySurface,
     required this.mutedTrack,
@@ -50,6 +72,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
     required this.textSecondary,
     required this.textTertiary,
     required this.textValue,
+    required this.selectedControl,
+    required this.controlShadow,
     required this.backgroundStops,
   });
 
@@ -67,6 +91,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
     Color? accent,
     Color? surface,
     Color? border,
+    Color? trackSurface,
+    Color? trackBorder,
     Color? divider,
     Color? secondarySurface,
     Color? mutedTrack,
@@ -74,12 +100,16 @@ class AppTokens extends ThemeExtension<AppTokens> {
     Color? textSecondary,
     Color? textTertiary,
     Color? textValue,
+    Color? selectedControl,
+    Color? controlShadow,
     List<Color>? backgroundStops,
   }) {
     return AppTokens(
       accent: accent ?? this.accent,
       surface: surface ?? this.surface,
       border: border ?? this.border,
+      trackSurface: trackSurface ?? this.trackSurface,
+      trackBorder: trackBorder ?? this.trackBorder,
       divider: divider ?? this.divider,
       secondarySurface: secondarySurface ?? this.secondarySurface,
       mutedTrack: mutedTrack ?? this.mutedTrack,
@@ -87,6 +117,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
       textSecondary: textSecondary ?? this.textSecondary,
       textTertiary: textTertiary ?? this.textTertiary,
       textValue: textValue ?? this.textValue,
+      selectedControl: selectedControl ?? this.selectedControl,
+      controlShadow: controlShadow ?? this.controlShadow,
       backgroundStops: backgroundStops ?? this.backgroundStops,
     );
   }
@@ -98,6 +130,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
       accent: Color.lerp(accent, other.accent, t)!,
       surface: Color.lerp(surface, other.surface, t)!,
       border: Color.lerp(border, other.border, t)!,
+      trackSurface: Color.lerp(trackSurface, other.trackSurface, t)!,
+      trackBorder: Color.lerp(trackBorder, other.trackBorder, t)!,
       divider: Color.lerp(divider, other.divider, t)!,
       secondarySurface: Color.lerp(
         secondarySurface,
@@ -109,6 +143,8 @@ class AppTokens extends ThemeExtension<AppTokens> {
       textSecondary: Color.lerp(textSecondary, other.textSecondary, t)!,
       textTertiary: Color.lerp(textTertiary, other.textTertiary, t)!,
       textValue: Color.lerp(textValue, other.textValue, t)!,
+      selectedControl: Color.lerp(selectedControl, other.selectedControl, t)!,
+      controlShadow: Color.lerp(controlShadow, other.controlShadow, t)!,
       backgroundStops: [
         for (var i = 0; i < backgroundStops.length; i++)
           Color.lerp(backgroundStops[i], other.backgroundStops[i], t)!,

@@ -7,11 +7,36 @@ import 'day_phase.dart';
 /// bindirilen **mürekkep** rengidir. Koyu temada mürekkep her palette beyaz,
 /// açık temada paletin kendi Metin1 rengidir — böylece kartlar gri değil,
 /// zeminin renkli gölgesi olur.
+/// Koyu temada kart yüzeyi ve kenarlığı mürekkep yıkamasıdır.
 const double _surfaceAlpha = 0.05;
 const double _borderAlpha = 0.07;
+
+/// Açık temada kart **opak beyaz**, kenarlığı biraz daha belirgin. Mürekkep
+/// yıkaması burada gri bir sis yaratıyordu; tasarım dört açık palette de
+/// `#FFFFFF` + mürekkep %9 kullanıyor.
+const Color _lightSurface = Color(0xFFFFFFFF);
+const double _lightBorderAlpha = 0.09;
+
+/// Segment yatağı her iki temada da mürekkep yıkaması (tasarım: %5 / %7).
+const double _trackSurfaceAlpha = 0.05;
+const double _trackBorderAlpha = 0.07;
+
 const double _dividerAlpha = 0.09;
 const double _secondarySurfaceAlpha = 0.04;
-const double _mutedTrackAlpha = 0.09;
+
+/// Cetvel yatağı: koyu temada %9, açık temada %12 (açık zeminde %9 kayboluyor).
+const double _mutedTrackDarkAlpha = 0.09;
+const double _mutedTrackLightAlpha = 0.12;
+
+/// Kayan segmentte seçili hap: koyu temada accent %14, açık temada %11.
+const double _selectedControlDarkAlpha = 0.14;
+const double _selectedControlLightAlpha = 0.11;
+
+/// Hap gölgesi. Koyu temada siyah %35; açık temada paletin mürekkebi %13.
+/// Açık temada siyah gölge saydam hap'ın altında kirli gri bir leke bırakıyor
+/// — tasarım da açık varyantlarda mürekkebi kullanıyor.
+const double _controlShadowDarkAlpha = 0.35;
+const double _controlShadowLightAlpha = 0.13;
 
 /// Koyu temada mürekkep her palette beyazdır.
 const Color _darkInk = Color(0xFFFFFFFF);
@@ -26,18 +51,29 @@ AppTokens _palette({
   required Color textTertiary,
   required Color textValue,
   required List<Color> backgroundStops,
+  required bool isDark,
 }) {
   return AppTokens(
     accent: accent,
-    surface: ink.withValues(alpha: _surfaceAlpha),
-    border: ink.withValues(alpha: _borderAlpha),
+    surface: isDark ? ink.withValues(alpha: _surfaceAlpha) : _lightSurface,
+    border: ink.withValues(alpha: isDark ? _borderAlpha : _lightBorderAlpha),
+    trackSurface: ink.withValues(alpha: _trackSurfaceAlpha),
+    trackBorder: ink.withValues(alpha: _trackBorderAlpha),
     divider: ink.withValues(alpha: _dividerAlpha),
     secondarySurface: ink.withValues(alpha: _secondarySurfaceAlpha),
-    mutedTrack: ink.withValues(alpha: _mutedTrackAlpha),
+    mutedTrack: ink.withValues(
+      alpha: isDark ? _mutedTrackDarkAlpha : _mutedTrackLightAlpha,
+    ),
     textPrimary: textPrimary,
     textSecondary: textSecondary,
     textTertiary: textTertiary,
     textValue: textValue,
+    selectedControl: accent.withValues(
+      alpha: isDark ? _selectedControlDarkAlpha : _selectedControlLightAlpha,
+    ),
+    controlShadow: isDark
+        ? const Color(0xFF000000).withValues(alpha: _controlShadowDarkAlpha)
+        : ink.withValues(alpha: _controlShadowLightAlpha),
     backgroundStops: backgroundStops,
   );
 }
@@ -53,6 +89,7 @@ AppTokens _lightPalette({
 }) {
   return _palette(
     accent: accent,
+    isDark: false,
     ink: textPrimary,
     textPrimary: textPrimary,
     textSecondary: textSecondary,
@@ -68,6 +105,7 @@ AppTokens _lightPalette({
 final AppTokens _morningDark = _palette(
   accent: const Color(0xFF93C4E8),
   ink: _darkInk,
+  isDark: true,
   textPrimary: const Color(0xFFE8F0F8),
   textSecondary: const Color(0xFFA5BDD2),
   textTertiary: const Color(0xFF8DA8C2),
@@ -83,6 +121,7 @@ final AppTokens _morningDark = _palette(
 final AppTokens _afternoonDark = _palette(
   accent: const Color(0xFFD8E8EE),
   ink: _darkInk,
+  isDark: true,
   textPrimary: const Color(0xFFF0F5F7),
   textSecondary: const Color(0xFFAFC3CB),
   textTertiary: const Color(0xFF98AEB7),
@@ -98,6 +137,7 @@ final AppTokens _afternoonDark = _palette(
 final AppTokens _eveningDark = _palette(
   accent: const Color(0xFFE09FB8),
   ink: _darkInk,
+  isDark: true,
   textPrimary: const Color(0xFFF3EEF4),
   textSecondary: const Color(0xFFB5A8C1),
   textTertiary: const Color(0xFFA294AF),
@@ -113,6 +153,7 @@ final AppTokens _eveningDark = _palette(
 final AppTokens _nightDark = _palette(
   accent: const Color(0xFFCDA6E4),
   ink: _darkInk,
+  isDark: true,
   textPrimary: const Color(0xFFF2ECF6),
   textSecondary: const Color(0xFFB3A5C1),
   textTertiary: const Color(0xFF9D8FAB),
