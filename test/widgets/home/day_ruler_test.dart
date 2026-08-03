@@ -228,8 +228,7 @@ void main() {
       expect(find.byKey(const Key('ruler_tick')), findsNWidgets(6));
     });
 
-    testWidgets('Icinde bulunulan vaktin centigi belirgin', (tester) async {
-      // 17:34 -> Ikindi (17:00) gecti, Aksam (20:00) gecmedi.
+    testWidgets('Alti centik de ayni: 2x7 ve ayni renk', (tester) async {
       await tester.pumpWidget(
         wrapWithTheme(_ruler(DateTime(2026, 8, 2, 17, 34))),
       );
@@ -238,31 +237,18 @@ void main() {
           .byKey(const Key('ruler_tick'))
           .evaluate()
           .map((e) => tester.getSize(find.byWidget(e.widget)))
-          .toList();
+          .toSet();
       final colors = tester
           .widgetList<Container>(find.byKey(const Key('ruler_tick')))
           .map((c) => (c.decoration! as BoxDecoration).color)
-          .toList();
+          .toSet();
 
-      final highlighted = sizes.indexWhere((s) => s.height > 5);
-      expect(highlighted, 3, reason: 'Ikindi centigi');
-      expect(sizes.where((s) => s.height > 5), hasLength(1));
-      expect(colors[3], tokensFor().accent);
-    });
-
-    testWidgets('Imsak oncesinde hicbir centik belirgin degil', (tester) async {
-      await tester.pumpWidget(
-        wrapWithTheme(_ruler(DateTime(2026, 8, 2, 2, 0))),
-      );
-
-      final sizes = find
-          .byKey(const Key('ruler_tick'))
-          .evaluate()
-          .map((e) => tester.getSize(find.byWidget(e.widget)))
-          .toList();
-
-      // Gunun ilk vakti henuz gelmedi; icinde bulunulan vakit yok.
-      expect(sizes.where((s) => s.height > 5), isEmpty);
+      // Icinde bulunulan vakti ayrica isaretlemeye gerek yok: seridin kendi
+      // renk gecisi ve alttaki izgara bunu zaten soyluyor.
+      expect(sizes, hasLength(1));
+      expect(sizes.single, const Size(2, 7));
+      expect(colors, hasLength(1));
+      expect(colors.single, tokensFor().textTertiary);
     });
 
     testWidgets('Ilerleme dolgusu ayri bir katman degil', (tester) async {

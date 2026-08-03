@@ -17,8 +17,9 @@ const double _kTrackCenter = _kTrackTop + _kTrackHeight / 2;
 /// Şu anki konumu gösteren nokta.
 const double _kDotSize = 16;
 
-/// Yatağın altındaki vakit çentikleri; alt kenarları hizalı, boyları değişir.
+/// Yatağın altındaki vakit çentikleri.
 const double _kTickTop = _kTrackTop + _kTrackHeight + 2;
+const double _kTickWidth = 2;
 const double _kTickHeight = 7;
 
 /// Vakit sınırlarındaki boşluğun genişliği (piksel).
@@ -133,27 +134,24 @@ class DayRuler extends StatelessWidget {
   /// Yatağın üzerine değil altına çizilir: yarı saydam bir işaret yatağın
   /// üzerinde kontrast değil ek opaklık üretiyor, mark yerine açık leke gibi
   /// duruyordu. Altta zemine karşı çizildiği için her palette aynı okunur.
+  ///
+  /// Altı çentik de aynı: hangi vaktin içinde olduğumuzu şeridin kendi
+  /// renk geçişi ve alttaki ızgara zaten söylüyor.
   Widget _tick({
     required AppTokens tokens,
     required double width,
     required double fraction,
-    required bool isCurrent,
   }) {
-    final tickWidth = isCurrent ? 3.0 : 2.0;
-    final tickHeight = isCurrent ? 7.0 : 5.0;
-
     return Positioned(
-      left: (width - tickWidth) * fraction,
-      top: _kTickTop + (_kTickHeight - tickHeight),
+      left: (width - _kTickWidth) * fraction,
+      top: _kTickTop,
       child: Container(
         key: const Key('ruler_tick'),
-        width: tickWidth,
-        height: tickHeight,
+        width: _kTickWidth,
+        height: _kTickHeight,
         decoration: BoxDecoration(
-          color: isCurrent
-              ? tokens.accent
-              : tokens.textTertiary.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(1.5),
+          color: tokens.textTertiary,
+          borderRadius: BorderRadius.circular(1),
         ),
       ),
     );
@@ -172,13 +170,6 @@ class DayRuler extends StatelessWidget {
       prayerTime.isha,
     ];
     final fractions = [for (final mark in marks) dayProgress(prayerTime, mark)];
-
-    // İçinde bulunduğumuz vakit: geçmiş son çentik. Çentiği belirginleşir,
-    // alttaki ızgaradaki vurguyla aynı vakti işaret eder.
-    var currentIndex = -1;
-    for (var i = 0; i < marks.length; i++) {
-      if (!marks[i].isAfter(now)) currentIndex = i;
-    }
 
     return SizedBox(
       height: height,
@@ -217,13 +208,8 @@ class DayRuler extends StatelessWidget {
                   ),
                 ),
               ),
-              for (var i = 0; i < fractions.length; i++)
-                _tick(
-                  tokens: tokens,
-                  width: width,
-                  fraction: fractions[i],
-                  isCurrent: i == currentIndex,
-                ),
+              for (final fraction in fractions)
+                _tick(tokens: tokens, width: width, fraction: fraction),
               Positioned(
                 // Etiket gece yarısına yakın saatlerde şeridin dışına
                 // taşmasın diye kenarlara sıkıştırılır.
