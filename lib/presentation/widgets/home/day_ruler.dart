@@ -7,23 +7,14 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 
 // ── Yatak ve çentik tonları ────────────────────────────────────────────────
-// Üçü de aynı rampada. `mutedTrack` (mürekkep %9) bu şerit için fazla zayıf
-// kalıyordu: koyu zeminde zaten sönük, gece için bir de kısılınca neredeyse
-// görünmez oluyordu.
+// Üç rol, üç ağırlık. Gündüz vurgu rengini taşır; gece ve çentikler nötr
+// Metin3 rampasında kalır ki gündüz penceresi tek başına öne çıksın.
 
-/// Değerler parlaklık ekseninde ölçülerek seçildi: `mutedTrack` tabanlı eski
-/// tonlar (neredeyse görünmez) ile tam Metin3 (fazla baskın) arasının tam
-/// ortası.
-///
 /// Gece uçları.
-const double _kNightOpacity = 0.4;
+const double _kNightOpacity = 0.7;
 
-/// Gündüz penceresinin henüz gelmemiş kısmı; geceden bir tık güçlü.
-const double _kUpcomingOpacity = 0.7;
-
-// ── Dikey yerleşim ─────────────────────────────────────────────────────────
-// Yukarıdan aşağı: saat etiketi · nokta/yatak · çentikler. Ölçüler birbirinden
-// türetilir; elle yazılmış değerlerde etiket noktanın altında kalıyordu.
+/// Vakit çentikleri.
+const double _kTickOpacity = 0.4;
 
 /// Saat etiketinin kutusu. `height: 1.0` ile satır kutusu font boyuna eşitlenir
 /// (varsayılan ~1.36 çarpanı kutuyu 15px'e çıkarıp noktanın üstüne bindiriyordu).
@@ -44,27 +35,26 @@ const double _kTrackTop = _kTrackCenter - _kTrackHeight / 2;
 const double _kTickTop = _kTrackTop + _kTrackHeight + 2;
 const double _kTickWidth = 2;
 const double _kTickHeight = 7;
-const double _kTickOpacity = 0.7;
 
 /// Vakit sınırlarındaki boşluğun genişliği (piksel).
 const double _kMarkGap = 3;
 
 /// Şeridin bir parçasının ne anlama geldiği.
+///
+/// Geçmiş/gelmemiş ayrımı yok: nerede olduğumuzu gösterge noktası söylüyor,
+/// şeridin işi günün gündüz/gece yapısını göstermek.
 enum RulerSegmentKind {
-  /// Akşam (gün batımı) → ertesi İmsak arası. Yatsı bu aralığın içindedir.
+  /// İmsak → Akşam (gün batımı).
+  day,
+
+  /// Akşam → ertesi İmsak. Yatsı bu aralığın içindedir.
   night,
-
-  /// Gündüz penceresinin geçmiş kısmı.
-  elapsed,
-
-  /// Gündüz penceresinin henüz gelmemiş kısmı.
-  upcoming,
 }
 
 /// Şeridin oran uzayındaki (0..1) bir parçası.
 typedef RulerSegment = ({double start, double end, RulerSegmentKind kind});
 
-/// Şeridi vakit sınırlarından ve şu anki konumdan bölerek parçalara ayırır.
+/// Şeridi vakit sınırlarından bölerek parçalara ayırır.
 ///
 /// Vakitler şeridin üzerine çizilmez: parçalar arasında gerçek boşluk bırakılır
 /// ve zemin oradan görünür. Üzerine çizilen bir işaret ya da "zemin rengi"
@@ -78,7 +68,6 @@ List<RulerSegment> buildRulerSegments({
   required List<double> prayerFractions,
   required double dayStart,
   required double dayEnd,
-  required double progress,
 }) {
   // Sınırlar: gün başı · altı vakit · gün sonu.
   final bounds = <double>[0, ...prayerFractions, 1];
@@ -89,31 +78,12 @@ List<RulerSegment> buildRulerSegments({
     final end = bounds[i + 1];
     if (end <= start) continue;
 
-    // Gündüz penceresi dışı her zaman sönük kalır; geçmiş olması gece
-    // bölümünü vurgulamaz.
     final isNight = end <= dayStart || start >= dayEnd;
-    if (isNight) {
-      segments.add((start: start, end: end, kind: RulerSegmentKind.night));
-      continue;
-    }
-
-    if (progress <= start) {
-      segments.add((start: start, end: end, kind: RulerSegmentKind.upcoming));
-    } else if (progress >= end) {
-      segments.add((start: start, end: end, kind: RulerSegmentKind.elapsed));
-    } else {
-      // İçinde bulunduğumuz vakit aralığı yarı dolu çizilir.
-      segments.add((
-        start: start,
-        end: progress,
-        kind: RulerSegmentKind.elapsed,
-      ));
-      segments.add((
-        start: progress,
-        end: end,
-        kind: RulerSegmentKind.upcoming,
-      ));
-    }
+    segments.add((
+      start: start,
+      end: end,
+      kind: isNight ? RulerSegmentKind.night : RulerSegmentKind.day,
+    ));
   }
   return segments;
 }
@@ -223,12 +193,8 @@ class DayRuler extends StatelessWidget {
                       // sonu değil, gecenin içindeki bir sınır.
                       dayStart: fractions[0],
                       dayEnd: fractions[4],
-                      progress: progress,
                     ),
-                    elapsedColor: tokens.accent,
-                    upcomingColor: tokens.textTertiary.withValues(
-                      alpha: _kUpcomingOpacity,
-                    ),
+                    dayColor: tokens.accent,
                     nightColor: tokens.textTertiary.withValues(
                       alpha: _kNightOpacity,
                     ),
@@ -288,21 +254,18 @@ class DayRuler extends StatelessWidget {
 /// Şeridi parçalar hâlinde, aralarında boşluk bırakarak çizer.
 class _RulerPainter extends CustomPainter {
   final List<RulerSegment> segments;
-  final Color elapsedColor;
-  final Color upcomingColor;
+  final Color dayColor;
   final Color nightColor;
 
   const _RulerPainter({
     required this.segments,
-    required this.elapsedColor,
-    required this.upcomingColor,
+    required this.dayColor,
     required this.nightColor,
   });
 
   Color _colorFor(RulerSegmentKind kind) => switch (kind) {
+    RulerSegmentKind.day => dayColor,
     RulerSegmentKind.night => nightColor,
-    RulerSegmentKind.elapsed => elapsedColor,
-    RulerSegmentKind.upcoming => upcomingColor,
   };
 
   @override
@@ -350,23 +313,11 @@ class _RulerPainter extends CustomPainter {
   }
 
   /// [index] numaralı parçanın başlangıcı bir vakit sınırı mı?
-  ///
-  /// "Şu an" bölünmesi vakit sınırı değildir; orada boşluk açılmaz.
-  bool _isPrayerBoundary(int index) {
-    if (index <= 0 || index >= segments.length) return false;
-    final previous = segments[index - 1];
-    final current = segments[index];
-    // Aynı vakit aralığının ikiye bölünmüş hâli: geçmiş → gelecek geçişi.
-    final isProgressSplit =
-        previous.kind == RulerSegmentKind.elapsed &&
-        current.kind == RulerSegmentKind.upcoming;
-    return !isProgressSplit;
-  }
+  bool _isPrayerBoundary(int index) => index > 0 && index < segments.length;
 
   @override
   bool shouldRepaint(_RulerPainter old) =>
       old.segments != segments ||
-      old.elapsedColor != elapsedColor ||
-      old.upcomingColor != upcomingColor ||
+      old.dayColor != dayColor ||
       old.nightColor != nightColor;
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/providers/app_state.dart';
@@ -25,6 +27,7 @@ import '../screens/location_list_screen.dart';
 import '../screens/alarms_screen.dart';
 import '../services/location_service.dart';
 import '../services/data_loader_service.dart';
+import '../services/day_rollover.dart';
 import '../controllers/location_monitor_controller.dart';
 import '../../core/theme/theme_controller.dart';
 import '../../core/theme/tokens_context.dart';
@@ -40,6 +43,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   LocationMonitorController? _locationMonitorController;
+  Timer? _midnightTimer;
   bool _isRefreshingGps = false;
   int _tabIndex = 0;
   DateTime? _lastResumeReschedule;
@@ -57,6 +61,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       logger.debug('PostFrameCallback executing');
       _loadPrayerData();
       _startLocationMonitoring();
+      _scheduleMidnightRefresh();
     });
   }
 
@@ -73,8 +78,23 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _midnightTimer?.cancel();
     _locationMonitorController?.stopMonitoring();
     super.dispose();
+  }
+
+  /// Gece yarısında vakit verisini tazeler.
+  ///
+  /// Vakit tablosu miladi takvim gününe bağlı; gün dönünce ekrandaki her şey
+  /// (tarih satırı, ızgara, gün cetveli) dünü göstermeye devam ediyordu.
+  /// Yeni günün verisi zaten önbellekteki pencerede olduğu için ağ gerekmez.
+  void _scheduleMidnightRefresh() {
+    _midnightTimer?.cancel();
+    _midnightTimer = Timer(delayToNextMidnight(DateTime.now()), () {
+      if (!mounted) return;
+      _loadPrayerData();
+      _scheduleMidnightRefresh();
+    });
   }
 
   @override
@@ -86,6 +106,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       // Dilim sınırı timer'ı uygulama askıdayken tetiklenmez; ön plana
       // dönünce paleti yeniden hesaplat.
       ServiceLocator().get<ThemeController>().refresh();
+
+      // Gün dönümü timer'ı da askıdayken tetiklenmez: uygulama gece açık
+      // bırakılıp sabah öne getirilirse veri dünde kalırdı.
+      _scheduleMidnightRefresh();
+      final appState = context.read<AppState>();
+      if (isPrayerDataStale(appState.todaysPrayerTime, DateTime.now())) {
+        _loadPrayerData();
+        return;
+      }
+
       _rescheduleOnResume();
     }
   }
