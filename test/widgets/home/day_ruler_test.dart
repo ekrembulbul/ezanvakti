@@ -82,13 +82,56 @@ void main() {
     });
 
     testWidgets('Su anki saati gosterge etiketi olarak yazar', (tester) async {
-      await tester.pumpWidget(wrapWithTheme(_ruler(DateTime(2026, 8, 2, 17, 34))));
+      await tester.pumpWidget(
+        wrapWithTheme(_ruler(DateTime(2026, 8, 2, 17, 34))),
+      );
 
       expect(find.text('17:34'), findsOneWidget);
     });
 
+    testWidgets('Yatak gece-gunduz-gece olarak bolunur, ustuste binmez', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        wrapWithTheme(_ruler(DateTime(2026, 8, 2, 17, 34))),
+      );
+
+      final boxes = tester
+          .widgetList<ColoredBox>(
+            find.descendant(
+              of: find.byType(ClipRRect),
+              matching: find.byType(ColoredBox),
+            ),
+          )
+          .toList();
+
+      expect(boxes, hasLength(3), reason: 'gece · gunduz · gece');
+
+      final rects = find
+          .descendant(
+            of: find.byType(ClipRRect),
+            matching: find.byType(ColoredBox),
+          )
+          .evaluate()
+          .map((e) => tester.getRect(find.byWidget(e.widget)))
+          .toList();
+
+      // Parcalar seridi tam olarak doldurur; bindirme olsaydi toplam daha
+      // buyuk cikardi ve gunduz bolgesi iki kat ton alirdi.
+      final total = rects.fold<double>(0, (sum, r) => sum + r.width);
+      expect(total, closeTo(360, 0.5));
+
+      // Gunduz penceresi iki gece ucundan da belirgin sekilde koyu.
+      final night = boxes.first.color.a;
+      final day = boxes[1].color.a;
+      expect(night / day, closeTo(0.45, 0.01));
+      expect(boxes.last.color.a, closeTo(night, 0.001));
+    });
+
     testWidgets('Alti vakit centigi cizilir', (tester) async {
-      await tester.pumpWidget(wrapWithTheme(_ruler(DateTime(2026, 8, 2, 17, 34))));
+      await tester.pumpWidget(
+        wrapWithTheme(_ruler(DateTime(2026, 8, 2, 17, 34))),
+      );
 
       expect(find.byKey(const Key('ruler_tick')), findsNWidgets(6));
     });
@@ -96,7 +139,9 @@ void main() {
     testWidgets('Gecmis centikler vurgulu, gelecek olanlar sonuk', (
       tester,
     ) async {
-      await tester.pumpWidget(wrapWithTheme(_ruler(DateTime(2026, 8, 2, 17, 34))));
+      await tester.pumpWidget(
+        wrapWithTheme(_ruler(DateTime(2026, 8, 2, 17, 34))),
+      );
 
       final tokens = tokensFor();
       final ticks = tester

@@ -8,6 +8,28 @@ import '../../../core/theme/tokens_context.dart';
 /// Gece uçlarının yatak rengine göre ne kadar sönük çizileceği.
 const double _kNightDim = 0.45;
 
+/// Yatağın tek bir parçası: gece ucu ya da gündüz penceresi.
+typedef _TrackSegment = ({double width, Color color});
+
+/// Yatağı üst üste binmeyen üç parçaya böler: gece · gündüz · gece.
+///
+/// Genişliği sıfır olan parçalar atılır — kutup bölgelerinde Yatsı gece
+/// yarısını aşabilir ve bir uç tamamen kapanabilir.
+List<_TrackSegment> _trackSegments({
+  required double width,
+  required double dayStart,
+  required double dayEnd,
+  required Color dayColor,
+  required Color nightColor,
+}) {
+  final segments = <_TrackSegment>[
+    (width: width * dayStart, color: nightColor),
+    (width: width * (dayEnd - dayStart).clamp(0.0, 1.0), color: dayColor),
+    (width: width * (1 - dayEnd), color: nightColor),
+  ];
+  return segments.where((s) => s.width > 0).toList();
+}
+
 /// [now] anının **takvim gününün** (00:00–24:00) içindeki oranı (0..1).
 ///
 /// Aralık İmsak→Yatsı değil gün başı→gün sonu: aksi halde Yatsı'dan gece
@@ -68,30 +90,35 @@ class DayRuler extends StatelessWidget {
           return Stack(
             clipBehavior: Clip.none,
             children: [
-              // Yatağın tamamı gece tonunda; üzerine İmsak→Yatsı penceresi
-              // normal tonda bindirilir. İki uç böylece kendiliğinden sönük
-              // kalır.
+              // Gece ve gündüz bölümleri **yan yana** çizilir, üst üste değil:
+              // token'lar yarı saydam olduğu için bindirme yapılınca gündüz
+              // bölgesi iki kat alıyor ve amaçlanan oran (%45) tutmuyordu.
               Positioned(
                 left: 0,
                 right: 0,
                 top: 16,
-                child: Container(
-                  height: 5,
-                  decoration: BoxDecoration(
-                    color: tokens.mutedTrack.withValues(
-                      alpha: tokens.mutedTrack.a * _kNightDim,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(3),
+                  child: SizedBox(
+                    height: 5,
+                    child: Row(
+                      children: [
+                        for (final segment in _trackSegments(
+                          width: width,
+                          dayStart: dayStart,
+                          dayEnd: dayEnd,
+                          dayColor: tokens.mutedTrack,
+                          nightColor: tokens.mutedTrack.withValues(
+                            alpha: tokens.mutedTrack.a * _kNightDim,
+                          ),
+                        ))
+                          SizedBox(
+                            width: segment.width,
+                            child: ColoredBox(color: segment.color),
+                          ),
+                      ],
                     ),
-                    borderRadius: BorderRadius.circular(3),
                   ),
-                ),
-              ),
-              Positioned(
-                left: width * dayStart,
-                top: 16,
-                child: Container(
-                  width: width * (dayEnd - dayStart),
-                  height: 5,
-                  color: tokens.mutedTrack,
                 ),
               ),
               Positioned(
