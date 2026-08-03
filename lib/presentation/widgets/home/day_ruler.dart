@@ -11,10 +11,10 @@ import '../../../core/theme/tokens_context.dart';
 // Metin3 rampasında kalır ki gündüz penceresi tek başına öne çıksın.
 
 /// Gece uçları.
-const double _kNightOpacity = 0.7;
+const double _kNightOpacity = 0.4;
 
 /// Vakit çentikleri.
-const double _kTickOpacity = 0.4;
+const double _kTickOpacity = 0.7;
 
 /// Saat etiketinin kutusu. `height: 1.0` ile satır kutusu font boyuna eşitlenir
 /// (varsayılan ~1.36 çarpanı kutuyu 15px'e çıkarıp noktanın üstüne bindiriyordu).
