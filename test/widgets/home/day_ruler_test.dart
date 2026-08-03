@@ -136,6 +136,47 @@ void main() {
       expect(find.byKey(const Key('ruler_tick')), findsNWidgets(6));
     });
 
+    testWidgets('Siradaki vakit centigi uzun ve tam accent', (tester) async {
+      // 17:34 -> gecmis: Imsak/Gunes/Ogle/Ikindi, siradaki: Aksam (20:00).
+      await tester.pumpWidget(
+        wrapWithTheme(_ruler(DateTime(2026, 8, 2, 17, 34))),
+      );
+
+      final ticks = tester
+          .widgetList<Container>(find.byKey(const Key('ruler_tick')))
+          .toList();
+      final sizes = find
+          .byKey(const Key('ruler_tick'))
+          .evaluate()
+          .map((e) => tester.getSize(find.byWidget(e.widget)))
+          .toList();
+      final accent = tokensFor().accent;
+
+      final nextIndex = sizes.indexWhere((s) => s.height > 13);
+      expect(nextIndex, 4, reason: 'Aksam centigi one cikmali');
+      expect(sizes.where((s) => s.height > 13), hasLength(1));
+
+      final next = (ticks[nextIndex].decoration as BoxDecoration).color;
+      expect(next, accent, reason: 'Tam accent, soluk degil');
+    });
+
+    testWidgets('Yatsi gectikten sonra hicbir centik one cikmaz', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        wrapWithTheme(_ruler(DateTime(2026, 8, 2, 23, 0))),
+      );
+
+      final sizes = find
+          .byKey(const Key('ruler_tick'))
+          .evaluate()
+          .map((e) => tester.getSize(find.byWidget(e.widget)))
+          .toList();
+
+      // Siradaki Imsak ertesi gune ait; bu seritte temsil edilmiyor.
+      expect(sizes.where((s) => s.height > 13), isEmpty);
+    });
+
     testWidgets('Gecmis centikler vurgulu, gelecek olanlar sonuk', (
       tester,
     ) async {
@@ -149,9 +190,11 @@ void main() {
           .map((c) => (c.decoration! as BoxDecoration).color)
           .toList();
 
-      // Imsak/Gunes/Ogle/Ikindi gecti, Aksam/Yatsi gelecek.
+      // Imsak/Gunes/Ogle/Ikindi gecti (soluk accent), Aksam siradaki
+      // (tam accent), yalnizca Yatsi henuz sonuk.
       expect(ticks.take(4), everyElement(isNot(tokens.mutedTrack)));
-      expect(ticks.skip(4), everyElement(tokens.mutedTrack));
+      expect(ticks[4], tokens.accent);
+      expect(ticks[5], tokens.mutedTrack);
     });
   });
 }

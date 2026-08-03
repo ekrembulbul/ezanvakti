@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/models/prayer_time.dart';
+import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 
@@ -65,6 +66,42 @@ class DayRuler extends StatelessWidget {
 
   const DayRuler({super.key, required this.prayerTime, required this.now});
 
+  /// Tek bir vakit çentiği.
+  ///
+  /// Sıradaki vakit daha uzun ve tam accent çizilir: etiketler şeride
+  /// sığmıyor (yaz/kış Akşam–Yatsı arası ~24pt, 3 harflik etiket ~26pt),
+  /// bu yüzden "hangi çentik" sorusu ada değil sıraya bağlanıyor. Adı
+  /// sayacın etiketinde ve alttaki ızgarada zaten yazıyor.
+  Widget _tick({
+    required AppTokens tokens,
+    required double width,
+    required double progress,
+    required bool isPast,
+    required bool isNext,
+  }) {
+    final tickWidth = isNext ? 3.0 : 2.0;
+    final tickHeight = isNext ? 15.0 : 13.0;
+
+    return Positioned(
+      left: (width - tickWidth) * progress,
+      // Çentikler yatağın ortasında (18.5) hizalı kalır.
+      top: 18.5 - tickHeight / 2,
+      child: Container(
+        key: const Key('ruler_tick'),
+        width: tickWidth,
+        height: tickHeight,
+        decoration: BoxDecoration(
+          color: isNext
+              ? tokens.accent
+              : isPast
+              ? tokens.accent.withValues(alpha: 0.55)
+              : tokens.mutedTrack,
+          borderRadius: BorderRadius.circular(1.5),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
@@ -77,6 +114,16 @@ class DayRuler extends StatelessWidget {
       prayerTime.maghrib,
       prayerTime.isha,
     ];
+
+    // Sıradaki vakit: bugünkü ilk gelecek çentik. Yatsı'dan sonra hiçbiri
+    // kalmaz — sıradaki İmsak ertesi güne ait ve bu şeritte yok.
+    DateTime? nextMark;
+    for (final mark in marks) {
+      if (mark.isAfter(now)) {
+        nextMark = mark;
+        break;
+      }
+    }
 
     return SizedBox(
       height: height,
@@ -139,21 +186,12 @@ class DayRuler extends StatelessWidget {
                 ),
               ),
               for (final mark in marks)
-                Positioned(
-                  left: (width - 2) * dayProgress(prayerTime, mark),
-                  top: 12,
-                  child: Container(
-                    key: const Key('ruler_tick'),
-                    width: 2,
-                    height: 13,
-                    decoration: BoxDecoration(
-                      // Gecmis vakitler vurgulu, gelecek olanlar sonuk.
-                      color: mark.isAfter(now)
-                          ? tokens.mutedTrack
-                          : tokens.accent.withValues(alpha: 0.55),
-                      borderRadius: BorderRadius.circular(1),
-                    ),
-                  ),
+                _tick(
+                  tokens: tokens,
+                  width: width,
+                  progress: dayProgress(prayerTime, mark),
+                  isPast: !mark.isAfter(now),
+                  isNext: mark == nextMark,
                 ),
               Positioned(
                 // Etiket gece yarısına yakın saatlerde şeridin dışına
