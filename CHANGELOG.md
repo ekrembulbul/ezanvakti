@@ -4,6 +4,28 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.3.0] - 2026-08-03
+
+### Eklendi
+- **Vakte göre renk:** arayüz paleti gün içinde namaz vakitleriyle birlikte ilerler — ÇİVİT (İmsak–Öğle), KURŞUNİ (Öğle–İkindi), ERGUVAN (İkindi–Yatsı), SÜMBÜL (Yatsı–İmsak). Her paletin açık temada bir karşılığı var: NİLÜFER, SEDEF, GÜLKURUSU, LEYLAK.
+- **Açık tema** ve **Sistem** tema modu. Ayarlar → Görünüm'den seçilir.
+- "Vakte göre renk" kapatıldığında dört paletten biri **sabit** olarak seçilebilir.
+- Yeni **ERGUVAN uygulama ikonu** ve uyumlu açılış ekranı.
+
+### Değiştirildi
+- Uygulama tipografisi **Manrope**'a geçti; sayaç ve saat kolonları sabit genişlikli rakam kullanıyor, rakamlar değişirken satır oynamıyor.
+- Tüm ekranlar tek bir yüzey düzenine taşındı: kart içinde kart yok, gruplar ayıraçla bölünüyor.
+- Sekme ve seçim şeritleri **kayan hap** animasyonuna geçti.
+- Alarm, bildirim ve konum listelerinde "ekle" düğmesi üst çubuğa taşındı; kayan düğme artık son satırın üzerini kapatmıyor.
+- Konum adları her yerde aynı sırada gösteriliyor: "Kadıköy, İstanbul".
+- Palet değişimleri 400 ms yumuşak geçişle uygulanıyor.
+
+### Düzeltildi
+- Aktif konum satırı yeniden düzenlenebiliyor; AKTİF rozeti düzenleme ikonunun yerini almıyor.
+- Uzun konum ve alarm etiketleri satırdan taşmak yerine kırpılıyor.
+- GPS ile konum değişimi artık manuel değişimle aynı kanonik yolu izliyor; hesaplama önbelleği ve eski konumun bildirimleri doğru temizleniyor.
+- Alarm planlaması başarısız olduğunda hata sessizce yutulmuyor, loglanıyor.
+
 ## [0.2.1] - 2026-06-11
 
 ### Değiştirildi
