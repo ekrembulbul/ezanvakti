@@ -4,7 +4,7 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
-## [0.3.0] - 2026-08-03
+## [0.3.0] - 2026-08-04
 
 ### Eklendi
 - **Vakte göre renk:** arayüz paleti gün içinde namaz vakitleriyle birlikte ilerler — ÇİVİT (İmsak–Öğle), KURŞUNİ (Öğle–İkindi), ERGUVAN (İkindi–Yatsı), SÜMBÜL (Yatsı–İmsak). Her paletin açık temada bir karşılığı var: NİLÜFER, SEDEF, GÜLKURUSU, LEYLAK.
