@@ -38,4 +38,16 @@ void main() {
 
     expect(location.displayName, 'Ev');
   });
+
+  test('Il merkezinde tekrar eden ad tek kez yazilir', () {
+    const location = Location(id: '1', province: 'Ankara', district: 'Ankara');
+
+    expect(location.displayName, 'Ankara');
+  });
+
+  test('Bos ilce yalnizca ili birakir', () {
+    const location = Location(id: '1', province: 'Ankara', district: '  ');
+
+    expect(location.displayName, 'Ankara');
+  });
 }

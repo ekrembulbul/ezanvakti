@@ -63,15 +63,25 @@ class Location {
 
   /// Kullanıcıya gösterilen ad, ör. "Kadıköy, İstanbul".
   ///
-  /// Sıra ve ayıraç, arama listesindeki `PlaceSuggestion.displayLabel` ile
-  /// aynı: kullanıcı seçerken "Kadıköy, İstanbul, Türkiye" görüyor, kaydettikten
-  /// sonra aynı yerin farklı sırada görünmesi kafa karıştırıyordu. Ülke adı
-  /// kayıttan sonra ayırt edici olmadığı için düşürülür.
+  /// Sıra, ayıraç ve tekrar ayıklama, arama listesindeki
+  /// `PlaceSuggestion.displayLabel` ile aynı: kullanıcı seçerken
+  /// "Kadıköy, İstanbul, Türkiye" görüyor, kaydettikten sonra aynı yerin
+  /// farklı sırada görünmesi kafa karıştırıyordu. Ülke adı kayıttan sonra
+  /// ayırt edici olmadığı için düşürülür.
+  ///
+  /// İl merkezlerinde iki alan da aynı geliyor (Photon `name` = `state` =
+  /// "Ankara"); "Ankara, Ankara" yerine tek ad gösterilir.
   String get displayName {
     if (customName != null && customName!.isNotEmpty) {
       return customName!;
     }
-    return '$district, $province';
+
+    final parts = <String>[];
+    for (final part in [district, province]) {
+      final trimmed = part.trim();
+      if (trimmed.isNotEmpty && !parts.contains(trimmed)) parts.add(trimmed);
+    }
+    return parts.join(', ');
   }
 
   Map<String, dynamic> toJson() {
