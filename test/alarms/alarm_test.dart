@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ezanvakti/core/models/alarm.dart';
+import 'package:ezanvakti/core/models/skipped_occurrence.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart'
     show PrayerType;
 import 'package:ezanvakti/core/models/prayer_time.dart';
@@ -179,6 +180,82 @@ void main() {
 
       expect(service.cancelAllCount, equals(1));
       expect(service.scheduled, isEmpty);
+    });
+  });
+
+  group('AlarmScheduler.computeNextFire — atlama', () {
+    const alarm = Alarm(
+      id: 'sahur',
+      kind: AlarmKind.fixed,
+      label: 'Sahur',
+      hour: 6,
+      minute: 30,
+    );
+
+    test('Atlanan calma ani gecilir, bir sonraki dondurulur', () {
+      final fire = AlarmScheduler.computeNextFire(
+        alarm: alarm,
+        now: DateTime(2026, 8, 5, 7),
+        prayerTimesByDate: const {},
+        skips: {
+          SkippedOccurrence(
+            kind: SkipKind.alarm,
+            reference: alarm.id,
+            fireAt: DateTime(2026, 8, 6, 6, 30),
+          ),
+        },
+      );
+
+      expect(fire, DateTime(2026, 8, 7, 6, 30));
+    });
+
+    test('Art arda iki atlama ucuncuyu bulur', () {
+      final fire = AlarmScheduler.computeNextFire(
+        alarm: alarm,
+        now: DateTime(2026, 8, 5, 7),
+        prayerTimesByDate: const {},
+        skips: {
+          SkippedOccurrence(
+            kind: SkipKind.alarm,
+            reference: alarm.id,
+            fireAt: DateTime(2026, 8, 6, 6, 30),
+          ),
+          SkippedOccurrence(
+            kind: SkipKind.alarm,
+            reference: alarm.id,
+            fireAt: DateTime(2026, 8, 7, 6, 30),
+          ),
+        },
+      );
+
+      expect(fire, DateTime(2026, 8, 8, 6, 30));
+    });
+
+    test('Baska alarmin atlamasi etkilemez', () {
+      final fire = AlarmScheduler.computeNextFire(
+        alarm: alarm,
+        now: DateTime(2026, 8, 5, 7),
+        prayerTimesByDate: const {},
+        skips: {
+          SkippedOccurrence(
+            kind: SkipKind.alarm,
+            reference: 'baska-alarm',
+            fireAt: DateTime(2026, 8, 6, 6, 30),
+          ),
+        },
+      );
+
+      expect(fire, DateTime(2026, 8, 6, 6, 30));
+    });
+
+    test('Skip verilmezse davranis degismez', () {
+      final fire = AlarmScheduler.computeNextFire(
+        alarm: alarm,
+        now: DateTime(2026, 8, 5, 7),
+        prayerTimesByDate: const {},
+      );
+
+      expect(fire, DateTime(2026, 8, 6, 6, 30));
     });
   });
 }

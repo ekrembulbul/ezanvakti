@@ -3,6 +3,8 @@ import '../../../core/interfaces/local_storage.dart';
 import '../../../core/models/alarm.dart';
 import '../../../core/models/notification_setting.dart' show PrayerType;
 import '../../../core/models/prayer_time.dart';
+import '../../../core/models/skipped_occurrence.dart';
+import '../../notifications/domain/skip_rules.dart';
 import '../../../core/utils/app_logger.dart';
 
 /// Alarmların bir sonraki tetiklenme anını hesaplar ve native [AlarmService] ile
@@ -21,7 +23,10 @@ class AlarmScheduler {
 
   /// Kayıtlı tüm alarmlar için önce mevcut planları temizler, sonra aktif
   /// alarmların bir sonraki tetiklenmesini planlar.
-  Future<void> scheduleAlarms({required List<PrayerTime> prayerTimes}) async {
+  Future<void> scheduleAlarms({
+    required List<PrayerTime> prayerTimes,
+    Set<SkippedOccurrence> skips = const {},
+  }) async {
     final alarms = await storage.getAlarms();
 
     // Boş olsa bile önce temizle (silinen alarmlar ortada kalmasın).
@@ -40,6 +45,7 @@ class AlarmScheduler {
         alarm: alarm,
         now: now,
         prayerTimesByDate: byDate,
+        skips: skips,
       );
       if (fire == null) continue;
       // Tek bir alarm planlanamazsa (ör. kullanıcı alarm iznini reddetti)
@@ -69,6 +75,7 @@ class AlarmScheduler {
     required DateTime now,
     required Map<DateTime, PrayerTime> prayerTimesByDate,
     int searchDays = 8,
+    Set<SkippedOccurrence> skips = const {},
   }) {
     final today = _dateKey(now);
     for (var i = 0; i < searchDays; i++) {
@@ -93,7 +100,19 @@ class AlarmScheduler {
         ).add(Duration(minutes: alarm.offsetMinutes));
       }
 
-      if (candidate.isAfter(now)) return candidate;
+      if (!candidate.isAfter(now)) continue;
+
+      // "Yalnızca bu sefer" atlanan çalma anı geçilir; alarm bir sonraki
+      // uygun günde normal çalar.
+      final skipped = isSkipped(
+        skips,
+        kind: SkipKind.alarm,
+        reference: alarm.id,
+        fireAt: candidate,
+      );
+      if (skipped) continue;
+
+      return candidate;
     }
     return null;
   }
