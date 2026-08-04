@@ -4,6 +4,11 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.3.1] - 2026-08-04
+
+### Düzeltildi
+- Vakitler sekmesindeki **ayarlar (dişli) ikonu** ekranın sağ kenarına yaslanmıyor, diğer içeriğin hizasından yaklaşık iki kat içeride duruyordu.
+
 ## [0.3.0] - 2026-08-04
 
 ### Eklendi
