@@ -1,0 +1,167 @@
+import 'package:flutter/material.dart';
+
+import '../../../core/theme/app_typography.dart';
+import '../../../core/theme/tokens_context.dart';
+
+/// Gösterge geçişinin süresi. `SlidingSegment` ile aynı sabit: biçimleri
+/// farklı, hareket dilleri ortak.
+const Duration _kNavAnimation = Duration(milliseconds: 220);
+
+// Dikey yerleşim; toplam [AppNavBar.height] bunların toplamıdır.
+const double _kTopPadding = 8;
+const double _kIconSize = 22;
+const double _kIconLabelGap = 5;
+const double _kLabelHeight = 12;
+const double _kLabelIndicatorGap = 3;
+const double _kIndicatorHeight = 2;
+const double _kBottomPadding = 6;
+
+const double _kIndicatorWidth = 18;
+
+/// Göstergenin konumu spec'e bağlı olduğu için test edilebilir.
+const Key kNavIndicatorKey = Key('nav_indicator');
+
+/// Alt gezinme çubuğundaki tek bir hedef.
+class NavItem {
+  final String label;
+  final IconData icon;
+
+  const NavItem({required this.label, required this.icon});
+}
+
+/// Alt gezinme çubuğu: ikon üstte, etiket altta, seçili öğenin altında kayan
+/// ince bir çizgi.
+///
+/// `SlidingSegment`'ten kasten ayrıdır: o ekran içi bir filtre, bu gezinme.
+/// İkisi aynı görünseydi kullanıcı hangisinin "neredeyim" hangisinin "ne
+/// gösteriyorum" olduğunu ayırt edemezdi.
+class AppNavBar extends StatelessWidget {
+  static const double height =
+      _kTopPadding +
+      _kIconSize +
+      _kIconLabelGap +
+      _kLabelHeight +
+      _kLabelIndicatorGap +
+      _kIndicatorHeight +
+      _kBottomPadding;
+
+  final List<NavItem> items;
+  final int selected;
+  final ValueChanged<int> onChanged;
+
+  const AppNavBar({
+    super.key,
+    required this.items,
+    required this.selected,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border(top: BorderSide(color: tokens.divider)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: height,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final slotWidth = constraints.maxWidth / items.length;
+
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  Row(
+                    children: [
+                      for (var i = 0; i < items.length; i++)
+                        Expanded(
+                          child: _NavButton(
+                            item: items[i],
+                            isSelected: i == selected,
+                            onTap: () => onChanged(i),
+                          ),
+                        ),
+                    ],
+                  ),
+                  AnimatedPositioned(
+                    duration: _kNavAnimation,
+                    curve: Curves.easeOutCubic,
+                    left:
+                        slotWidth * selected +
+                        (slotWidth - _kIndicatorWidth) / 2,
+                    bottom: _kBottomPadding,
+                    width: _kIndicatorWidth,
+                    height: _kIndicatorHeight,
+                    child: DecoratedBox(
+                      key: kNavIndicatorKey,
+                      decoration: BoxDecoration(
+                        color: tokens.accent,
+                        borderRadius: BorderRadius.circular(
+                          _kIndicatorHeight / 2,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavButton extends StatelessWidget {
+  final NavItem item;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _NavButton({
+    required this.item,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final color = isSelected ? tokens.accent : tokens.textTertiary;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.only(top: _kTopPadding),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(item.icon, size: _kIconSize, color: color),
+            const SizedBox(height: _kIconLabelGap),
+            SizedBox(
+              height: _kLabelHeight,
+              child: Text(
+                item.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTypography.tabLabel.copyWith(
+                  fontSize: 11,
+                  height: 1.0,
+                  color: color,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                  fontVariations: [
+                    FontVariation('wght', isSelected ? 700 : 600),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
