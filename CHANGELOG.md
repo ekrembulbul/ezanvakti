@@ -14,6 +14,8 @@ proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 - Yeni **ERGUVAN uygulama ikonu** ve uyumlu açılış ekranı. İkon yalnızca launcher ve açılış ekranında görünür; uygulama içi başlıklardan kaldırıldı.
 
 ### Değiştirildi
+- **Gezinme yeniden düzenlendi:** alt çubukta **Vakitler · Takvim · Hatırlatıcılar** olmak üzere üç sekme var. Hamburger menü kaldırıldı; Ayarlar'a Vakitler sekmesinin sağ üstündeki dişli ikonundan gidiliyor. Geri tuşu ikinci veya üçüncü sekmedeyken Vakitler'e döner.
+- **Bildirimler ve Alarmlar tek "Hatırlatıcılar" ekranında birleşti**; aralarında üstteki segment ile geçiliyor. Sağ üstteki "+" seçili bölümün tipini ekler.
 - Uygulama tipografisi **Manrope**'a geçti; sayaç ve saat kolonları sabit genişlikli rakam kullanıyor, rakamlar değişirken satır oynamıyor.
 - Tüm ekranlar tek bir yüzey düzenine taşındı: kart içinde kart yok, gruplar ayıraçla bölünüyor.
 - Sekme ve seçim şeritleri **kayan hap** animasyonuna geçti.
@@ -22,6 +24,7 @@ proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 - Palet değişimleri 400 ms yumuşak geçişle uygulanıyor.
 
 ### Düzeltildi
+- Bildirim veya alarm eklendikten, silindikten ya da kapatıldıktan sonra ana ekrandaki **SIRADAKİ** kartı eski listeyi göstermeye devam ediyordu. Listeler artık tek yerde tutuluyor.
 - Aktif konum satırı yeniden düzenlenebiliyor; AKTİF rozeti düzenleme ikonunun yerini almıyor.
 - Uzun konum ve alarm etiketleri satırdan taşmak yerine kırpılıyor.
 - GPS ile konum değişimi artık manuel değişimle aynı kanonik yolu izliyor; hesaplama önbelleği ve eski konumun bildirimleri doğru temizleniyor.
