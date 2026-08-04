@@ -4,6 +4,15 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.3.2] - 2026-08-04
+
+### Değiştirildi
+- Varsayılan tema modu **Sistem** oldu; uygulama ilk açılışta cihazın açık/koyu tercihini izliyor. Ayarlar → Görünüm'den her zaman değiştirilebilir.
+- Açık temada kayan segmentteki seçili hapın altındaki gri gölge kaldırıldı.
+
+### Düzeltildi
+- Açık temada **dakika seçme tekerleğinde** seçili dakika görünmüyordu; seçim bandı satırın üzerini opak beyazla örtüyordu. Hem bildirim ekleme hem alarm ekranında düzeltildi.
+
 ## [0.3.1] - 2026-08-04
 
 ### Düzeltildi
