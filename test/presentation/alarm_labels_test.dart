@@ -1,7 +1,7 @@
 import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart'
     show PrayerType;
-import 'package:ezanvakti/presentation/screens/alarms_screen.dart';
+import 'package:ezanvakti/presentation/utils/alarm_labels.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Etiket fonksiyonlari ekranin disina bagimli degil; karakterizasyon testi

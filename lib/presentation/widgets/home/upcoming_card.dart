@@ -8,7 +8,7 @@ import '../../../core/theme/tokens_context.dart';
 import '../../../core/utils/prayer_utils.dart';
 import '../../../features/notifications/domain/notification_scheduler.dart';
 import '../../../features/notifications/domain/skip_rules.dart';
-import '../../screens/alarms_screen.dart' show alarmTimeLabel;
+import '../../utils/alarm_labels.dart' show alarmTimeLabel;
 import '../../services/upcoming_resolver.dart';
 import '../common/grouped_list.dart';
 import '../common/section_label.dart';
