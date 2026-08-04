@@ -21,6 +21,7 @@ import '../services/timezone_service.dart';
 import '../services/exact_alarm_service.dart';
 import '../theme/theme_controller.dart';
 import '../utils/app_logger.dart';
+import '../../presentation/services/reminder_rescheduler.dart';
 
 class ServiceLocator {
   static final ServiceLocator _instance = ServiceLocator._internal();
@@ -112,10 +113,19 @@ class ServiceLocator {
 
     final AlarmService alarmService = NativeAlarmService();
     register<AlarmService>(alarmService);
-    register<AlarmScheduler>(
-      AlarmScheduler(alarmService: alarmService, storage: localStorage),
+    final alarmScheduler = AlarmScheduler(
+      alarmService: alarmService,
+      storage: localStorage,
     );
+    register<AlarmScheduler>(alarmScheduler);
     register<AlarmsManager>(AlarmsManager(storage: localStorage));
+
+    register<ReminderRescheduler>(
+      ReminderRescheduler(
+        notificationScheduler: notificationScheduler,
+        alarmScheduler: alarmScheduler,
+      ),
+    );
 
     register<SkipManager>(SkipManager(storage: localStorage));
 
