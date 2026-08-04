@@ -32,11 +32,10 @@ const double _mutedTrackLightAlpha = 0.12;
 const double _selectedControlDarkAlpha = 0.14;
 const double _selectedControlLightAlpha = 0.11;
 
-/// Hap gölgesi. Koyu temada siyah %35; açık temada paletin mürekkebi %13.
-/// Açık temada siyah gölge saydam hap'ın altında kirli gri bir leke bırakıyor
-/// — tasarım da açık varyantlarda mürekkebi kullanıyor.
+/// Hap gölgesi yalnızca koyu temada var (siyah %35). Açık zeminde her gölge —
+/// siyah da, paletin mürekkebi de — saydam hap'ın altında kirli gri bir leke
+/// bırakıyordu; hap zaten accent dolgusu ve kenarlığıyla zeminden ayrışıyor.
 const double _controlShadowDarkAlpha = 0.35;
-const double _controlShadowLightAlpha = 0.13;
 
 /// Koyu temada mürekkep her palette beyazdır.
 const Color _darkInk = Color(0xFFFFFFFF);
@@ -73,7 +72,7 @@ AppTokens _palette({
     ),
     controlShadow: isDark
         ? const Color(0xFF000000).withValues(alpha: _controlShadowDarkAlpha)
-        : ink.withValues(alpha: _controlShadowLightAlpha),
+        : Colors.transparent,
     backgroundStops: backgroundStops,
   );
 }

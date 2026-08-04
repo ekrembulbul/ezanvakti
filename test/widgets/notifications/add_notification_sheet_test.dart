@@ -1,6 +1,6 @@
 import 'package:ezanvakti/core/models/notification_setting.dart';
 import 'package:ezanvakti/presentation/widgets/notifications/add_notification_bottom_sheet.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../theme_harness.dart';
@@ -9,12 +9,16 @@ void main() {
   Future<void> pumpSheet(
     WidgetTester tester, {
     void Function(PrayerType, int)? onAdd,
+    Brightness brightness = Brightness.dark,
   }) async {
     tester.view.physicalSize = const Size(1206, 2622);
     tester.view.devicePixelRatio = 3.0;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
-      wrapWithTheme(AddNotificationBottomSheet(onAdd: onAdd ?? (_, _) {})),
+      wrapWithTheme(
+        AddNotificationBottomSheet(onAdd: onAdd ?? (_, _) {}),
+        brightness: brightness,
+      ),
     );
     await tester.pump();
   }
@@ -78,4 +82,26 @@ void main() {
 
     expect(type, PrayerType.maghrib);
   });
+
+  // Secim bandi tekerlegin ustune cizilir; opak bir renk secili satiri
+  // tamamen orter. Acik temada `surface` opak beyaz oldugu icin dakika
+  // gorunmez oluyordu.
+  for (final brightness in Brightness.values) {
+    testWidgets('Dakika tekerleginin secim bandi saydam (${brightness.name})', (
+      tester,
+    ) async {
+      await pumpSheet(tester, brightness: brightness);
+
+      await tester.tap(find.text('Öncesinde'));
+      await tester.pumpAndSettle();
+
+      final picker = tester.widget<CupertinoPicker>(
+        find.byType(CupertinoPicker),
+      );
+      final overlay =
+          picker.selectionOverlay as CupertinoPickerDefaultSelectionOverlay;
+
+      expect(overlay.background.a, lessThan(1.0));
+    });
+  }
 }

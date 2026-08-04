@@ -351,8 +351,11 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
               squeeze: 1.05,
               useMagnifier: true,
               itemExtent: 36,
+              // Seçim bandı tekerleğin *üstüne* çizilir; opak bir renk seçili
+              // satırı tamamen örter. `surface` açık temada opak beyaz, bu
+              // yüzden yatak rengi (mürekkep %5) kullanılıyor.
               selectionOverlay: CupertinoPickerDefaultSelectionOverlay(
-                background: tokens.surface,
+                background: tokens.trackSurface,
               ),
               onSelectedItemChanged: (index) {
                 setState(() => _offset = (isBefore ? -1 : 1) * (index + 1));

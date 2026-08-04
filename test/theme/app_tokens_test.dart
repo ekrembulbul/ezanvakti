@@ -91,7 +91,7 @@ void main() {
   });
 
   group('Kayan segment token\'lari', () {
-    test('Koyu temada golge siyah, acik temada paletin murekkebi', () {
+    test('Koyu temada golge siyah, acik temada hic golge yok', () {
       for (final phase in DayPhase.values) {
         final dark = paletteFor(phase, Brightness.dark);
         final light = paletteFor(phase, Brightness.light);
@@ -100,16 +100,14 @@ void main() {
         expect(dark.controlShadow.r, 0, reason: phase.name);
         expect(dark.controlShadow.g, 0, reason: phase.name);
         expect(dark.controlShadow.b, 0, reason: phase.name);
+        expect(dark.controlShadow.a, greaterThan(0), reason: phase.name);
 
-        // Acik: siyah degil, paletin Metin1'i. Siyah golge saydam hap'in
+        // Acik: golge yok. Acik zeminde herhangi bir golge, saydam hap'in
         // altinda kirli gri bir leke birakiyordu.
-        expect(light.controlShadow.r, light.textPrimary.r, reason: phase.name);
-        expect(light.controlShadow.g, light.textPrimary.g, reason: phase.name);
-        expect(light.controlShadow.b, light.textPrimary.b, reason: phase.name);
         expect(
           light.controlShadow.a,
-          lessThan(dark.controlShadow.a),
-          reason: 'Acik temada golge cok daha hafif olmali (${phase.name})',
+          0,
+          reason: 'Acik temada hap golgesi olmamali (${phase.name})',
         );
       }
     });

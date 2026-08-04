@@ -86,7 +86,9 @@ void main() {
   });
 
   test('Tema modu dark iken platform parlakligi yok sayilir', () async {
-    final controller = _controller(_InMemoryStorage());
+    final storage = _InMemoryStorage()
+      ..stored = const AppearanceSettings(themeMode: AppThemeMode.dark);
+    final controller = _controller(storage);
     await controller.load();
 
     controller.setPlatformBrightness(Brightness.light);
@@ -130,7 +132,8 @@ void main() {
   });
 
   test('Ayni degeri yazmak depoya gitmez', () async {
-    final storage = _InMemoryStorage();
+    final storage = _InMemoryStorage()
+      ..stored = const AppearanceSettings(themeMode: AppThemeMode.dark);
     final controller = _controller(storage);
     await controller.load();
 

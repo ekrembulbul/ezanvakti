@@ -4,11 +4,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test(
-    'Varsayilanlar: koyu tema, vakte gore renk acik, sabit palet evening',
+    'Varsayilanlar: sistem temasi, vakte gore renk acik, sabit palet evening',
     () {
       const settings = AppearanceSettings();
 
-      expect(settings.themeMode, AppThemeMode.dark);
+      expect(settings.themeMode, AppThemeMode.system);
       expect(settings.timeBasedColor, isTrue);
       expect(settings.fixedPalette, DayPhase.evening);
     },

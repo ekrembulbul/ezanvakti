@@ -22,7 +22,7 @@ class AppearanceSettings {
   final DayPhase fixedPalette;
 
   const AppearanceSettings({
-    this.themeMode = AppThemeMode.dark,
+    this.themeMode = AppThemeMode.system,
     this.timeBasedColor = true,
     this.fixedPalette = DayPhase.evening,
   });
