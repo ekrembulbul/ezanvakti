@@ -9,6 +9,7 @@ import '../../features/location/domain/location_monitor_service.dart';
 import '../../features/notifications/data/flutter_local_notification_service.dart';
 import '../../features/notifications/domain/notification_scheduler.dart';
 import '../../features/notifications/domain/notification_settings_manager.dart';
+import '../../features/notifications/domain/skip_manager.dart';
 import '../interfaces/alarm_service.dart';
 import '../../features/alarms/data/native_alarm_service.dart';
 import '../../features/alarms/domain/alarm_scheduler.dart';
@@ -115,6 +116,8 @@ class ServiceLocator {
       AlarmScheduler(alarmService: alarmService, storage: localStorage),
     );
     register<AlarmsManager>(AlarmsManager(storage: localStorage));
+
+    register<SkipManager>(SkipManager(storage: localStorage));
 
     // Gorunum tercihleri acilista okunur; ilk frame dogru palette cizilsin.
     final themeController = ThemeController(storage: localStorage);
