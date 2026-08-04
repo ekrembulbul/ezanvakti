@@ -111,11 +111,20 @@ class ServiceLocator {
 
     register<ExactAlarmService>(ExactAlarmService());
 
+    // Gorunum tercihleri acilista okunur; ilk frame dogru palette cizilsin.
+    // AlarmScheduler'dan once kuruluyor: calar ekranin paleti bu tercihlere
+    // uyuyor.
+    final themeController = ThemeController(storage: localStorage);
+    await themeController.load();
+    register<ThemeController>(themeController);
+    logger.debug('ThemeController registered');
+
     final AlarmService alarmService = NativeAlarmService();
     register<AlarmService>(alarmService);
     final alarmScheduler = AlarmScheduler(
       alarmService: alarmService,
       storage: localStorage,
+      appearance: () => themeController.alarmAppearance,
     );
     register<AlarmScheduler>(alarmScheduler);
     register<AlarmsManager>(AlarmsManager(storage: localStorage));
@@ -128,12 +137,6 @@ class ServiceLocator {
     );
 
     register<SkipManager>(SkipManager(storage: localStorage));
-
-    // Gorunum tercihleri acilista okunur; ilk frame dogru palette cizilsin.
-    final themeController = ThemeController(storage: localStorage);
-    await themeController.load();
-    register<ThemeController>(themeController);
-    logger.debug('ThemeController registered');
   }
 
   Future<void> dispose() async {

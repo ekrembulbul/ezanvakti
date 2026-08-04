@@ -8,8 +8,8 @@ import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
 import android.view.View
+import android.view.WindowInsetsController
 import android.view.WindowManager
-import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.TextView
 import java.text.SimpleDateFormat
@@ -18,19 +18,18 @@ import java.util.Locale
 
 /** Alarm çalarken kilit ekranının üstünde açılan tam ekran çalar ekranı.
  *
- *  Renkler [AlarmTheme] ile Dart tarafından gelir; alarmın çalacağı anın
- *  dilimine göre uygulamanın dört paletinden biri kullanılır. */
+ *  Renkler [AlarmTheme] ile Dart tarafından gelir: kullanıcının koyu/açık tema
+ *  seçimi ve sabit palet tercihi korunur, "vakte göre renk" açıkken palet
+ *  alarmın çalacağı anın dilimine göre seçilir. */
 class AlarmRingActivity : Activity() {
     private companion object {
         /** Flutter varlıkları APK içinde bu önek altında paketlenir. */
         const val MANROPE_ASSET = "flutter_assets/assets/fonts/Manrope-Variable.ttf"
 
-        const val BUTTON_RADIUS_DP = 14f
-        const val BADGE_RADIUS_DP = 20f
+        const val SNOOZE_RADIUS_DP = 30f
 
-        /** Vurgu renginin yıkama alfaları; uygulamadaki `selectedControl` ile aynı. */
-        const val BADGE_FILL_ALPHA = 0.14f
-        const val BADGE_BORDER_ALPHA = 0.30f
+        /** Açık zeminde koyu durum çubuğu simgeleri gerekir. */
+        const val LIGHT_BACKGROUND_LUMINANCE = 0.5
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,33 +48,45 @@ class AlarmRingActivity : Activity() {
         val theme = args.theme
         val manrope = loadManrope()
 
-        findViewById<View>(R.id.alarm_root).background = backgroundGradient(theme)
+        findViewById<View>(R.id.alarm_root).background = GradientDrawable(
+            GradientDrawable.Orientation.TOP_BOTTOM,
+            theme.backgroundStops.toIntArray(),
+        )
+        applySystemBarContrast(theme)
 
-        findViewById<ImageView>(R.id.alarm_icon).setColorFilter(theme.accent)
-        findViewById<FrameLayout>(R.id.alarm_badge).background = badgeShape(theme)
+        findViewById<ImageView>(R.id.alarm_icon).setColorFilter(theme.textSecondary)
 
-        text(R.id.alarm_kicker, manrope, 800, theme.textSecondary)
+        val title = findViewById<TextView>(R.id.alarm_title)
+        title.text = args.label.ifBlank { getString(R.string.alarm_default_label) }
+        style(title, manrope, 600, theme.textSecondary)
 
         val time = findViewById<TextView>(R.id.alarm_time)
         time.text = formatTime(args.timeMillis)
         time.visibility = if (time.text.isNullOrEmpty()) View.GONE else View.VISIBLE
-        text(R.id.alarm_time, manrope, 800, theme.accent)
+        style(time, manrope, 800, theme.textPrimary)
 
-        val title = findViewById<TextView>(R.id.alarm_title)
-        title.text = args.label.ifBlank { getString(R.string.alarm_default_label) }
-        text(R.id.alarm_title, manrope, 700, theme.textPrimary)
+        // Etiket zaten uygulama adıysa aynı satırı iki kez yazma.
+        val appName = findViewById<TextView>(R.id.alarm_app_name)
+        appName.visibility = if (args.label.isBlank()) View.GONE else View.VISIBLE
+        style(appName, manrope, 500, theme.textSecondary)
 
-        val dismiss = findViewById<TextView>(R.id.alarm_dismiss)
-        dismiss.background = filledButton(theme)
+        val snooze = findViewById<TextView>(R.id.alarm_snooze)
+        snooze.background = GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = dp(SNOOZE_RADIUS_DP)
+            setColor(theme.accent)
+        }
         // Dolgu vurgu rengi olduğu için üzerindeki yazı zeminin en koyu durağı.
-        text(R.id.alarm_dismiss, manrope, 700, theme.backgroundStops.last())
+        style(snooze, manrope, 700, theme.backgroundStops.last())
 
-        text(R.id.alarm_snooze, manrope, 700, theme.accent)
-        findViewById<TextView>(R.id.alarm_snooze).background = outlinedButton(theme)
+        findViewById<SlideToStopView>(R.id.alarm_dismiss).applyTheme(
+            theme,
+            manrope,
+            getString(R.string.alarm_slide_to_stop),
+        )
     }
 
-    private fun text(viewId: Int, typeface: Typeface?, weight: Int, color: Int) {
-        val view = findViewById<TextView>(viewId)
+    private fun style(view: TextView, typeface: Typeface?, weight: Int, color: Int) {
         view.setTextColor(color)
         if (typeface == null) return
         view.typeface = typeface
@@ -86,38 +97,19 @@ class AlarmRingActivity : Activity() {
         }
     }
 
-    /** Uygulamanın zemin gradyanı: üstten alta üç durak. */
-    private fun backgroundGradient(theme: AlarmTheme): GradientDrawable {
-        return GradientDrawable(
-            GradientDrawable.Orientation.TOP_BOTTOM,
-            theme.backgroundStops.toIntArray(),
-        )
+    /** Açık palette durum çubuğu simgeleri koyu olmalı, yoksa okunmuyor. */
+    private fun applySystemBarContrast(theme: AlarmTheme) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
+        val top = theme.backgroundStops.first()
+        val isLight = luminance(top) > LIGHT_BACKGROUND_LUMINANCE
+        val mask = WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+        window.insetsController?.setSystemBarsAppearance(if (isLight) mask else 0, mask)
     }
 
-    private fun badgeShape(theme: AlarmTheme): GradientDrawable {
-        return GradientDrawable().apply {
-            shape = GradientDrawable.RECTANGLE
-            cornerRadius = dp(BADGE_RADIUS_DP)
-            setColor(theme.accent.withAlpha(BADGE_FILL_ALPHA))
-            setStroke(dp(1f).toInt(), theme.accent.withAlpha(BADGE_BORDER_ALPHA))
-        }
-    }
-
-    private fun filledButton(theme: AlarmTheme): GradientDrawable {
-        return GradientDrawable().apply {
-            shape = GradientDrawable.RECTANGLE
-            cornerRadius = dp(BUTTON_RADIUS_DP)
-            setColor(theme.accent)
-        }
-    }
-
-    private fun outlinedButton(theme: AlarmTheme): GradientDrawable {
-        return GradientDrawable().apply {
-            shape = GradientDrawable.RECTANGLE
-            cornerRadius = dp(BUTTON_RADIUS_DP)
-            setColor(Color.TRANSPARENT)
-            setStroke(dp(1.5f).toInt(), theme.accent.withAlpha(0.45f))
-        }
+    private fun luminance(color: Int): Double {
+        return (0.299 * Color.red(color) +
+            0.587 * Color.green(color) +
+            0.114 * Color.blue(color)) / 255.0
     }
 
     /** Manrope, Flutter varlıklarıyla birlikte paketleniyor; ayrıca kopyalamak
@@ -135,13 +127,10 @@ class AlarmRingActivity : Activity() {
 
     private fun dp(value: Float): Float = value * resources.displayMetrics.density
 
-    private fun Int.withAlpha(alpha: Float): Int =
-        Color.argb((alpha * 255).toInt(), Color.red(this), Color.green(this), Color.blue(this))
-
     // ── Davranış ─────────────────────────────────────────────────────────────
 
     private fun bindActions(args: AlarmArgs) {
-        findViewById<TextView>(R.id.alarm_dismiss).setOnClickListener {
+        findViewById<SlideToStopView>(R.id.alarm_dismiss).onCompleted = {
             sendToService(AlarmRingService.ACTION_STOP, args)
             finish()
         }
@@ -180,7 +169,7 @@ class AlarmRingActivity : Activity() {
         startService(i)
     }
 
-    // Geri tuşuyla alarm kapatılmasın; kapat/ertele butonları kullanılsın.
+    // Geri tuşuyla alarm kapatılmasın; ertele/kaydır kontrolleri kullanılsın.
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         // yok say

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../interfaces/local_storage.dart';
+import '../models/alarm_theme.dart';
 import '../models/appearance_settings.dart';
 import '../models/prayer_time.dart';
 import 'app_tokens.dart';
@@ -50,6 +51,16 @@ class ThemeController extends ChangeNotifier {
   }
 
   AppTokens get tokens => paletteFor(phase, brightness);
+
+  /// Native çalar ekranın paletini hesaplayan katmana verilen anlık görünüm.
+  ///
+  /// [phase] yerine ham tercihler taşınır: alarmın paleti planlama anına değil
+  /// çalma anına göre çözülür, dilimi orası hesaplar.
+  AlarmAppearance get alarmAppearance => AlarmAppearance(
+    brightness: brightness,
+    timeBasedColor: _settings.timeBasedColor,
+    fixedPalette: _settings.fixedPalette,
+  );
 
   /// Kayıtlı ayarları okur. Uygulama açılışında bir kez çağrılır.
   Future<void> load() async {

@@ -21,10 +21,22 @@ PrayerTime _day(DateTime date) {
   );
 }
 
+AlarmAppearance _appearance({
+  Brightness brightness = Brightness.dark,
+  bool timeBasedColor = true,
+  DayPhase fixedPalette = DayPhase.evening,
+}) {
+  return AlarmAppearance(
+    brightness: brightness,
+    timeBasedColor: timeBasedColor,
+    fixedPalette: fixedPalette,
+  );
+}
+
 void main() {
   group('AlarmTheme', () {
     test('Palet renklerini RRGGBB olarak gonderir', () {
-      final theme = AlarmTheme.forPhase(DayPhase.night);
+      final theme = AlarmTheme.forPalette(DayPhase.night, Brightness.dark);
       final map = theme.toMap();
 
       expect(map['accent'], '#CDA6E4');
@@ -33,40 +45,77 @@ void main() {
       expect(map['textSecondary'], '#B3A5C1');
     });
 
-    test('Her zaman koyu palet kullanir', () {
-      for (final phase in DayPhase.values) {
-        final theme = AlarmTheme.forPhase(phase);
+    test('Vakte gore renk acikken calma anindaki dilim kullanilir', () {
+      final theme = AlarmTheme.resolve(
+        appearance: _appearance(fixedPalette: DayPhase.night),
+        phaseAtFire: DayPhase.morning,
+      );
 
-        expect(
-          theme.accent,
-          paletteFor(phase, Brightness.dark).accent,
-          reason: phase.name,
-        );
-      }
+      expect(
+        theme.accent,
+        paletteFor(DayPhase.morning, Brightness.dark).accent,
+      );
     });
 
-    test('Fallback palet ERGUVAN', () {
-      expect(
-        AlarmTheme.fallback().accent,
-        AlarmTheme.forPhase(fallbackDayPhase).accent,
+    test('Vakte gore renk kapaliyken kullanicinin sabit paleti kullanilir', () {
+      final theme = AlarmTheme.resolve(
+        appearance: _appearance(
+          timeBasedColor: false,
+          fixedPalette: DayPhase.night,
+        ),
+        phaseAtFire: DayPhase.morning,
       );
+
+      expect(theme.accent, paletteFor(DayPhase.night, Brightness.dark).accent);
+    });
+
+    test('Acik tema secilmisse calar ekran da acik palette cizilir', () {
+      final theme = AlarmTheme.resolve(
+        appearance: _appearance(brightness: Brightness.light),
+        phaseAtFire: DayPhase.morning,
+      );
+      final light = paletteFor(DayPhase.morning, Brightness.light);
+
+      expect(theme.accent, light.accent);
+      expect(theme.backgroundStops, light.backgroundStops);
+      expect(theme.textPrimary, light.textPrimary);
+    });
+
+    test('Koyu ve acik ayni dilimde farkli renkler verir', () {
+      final dark = AlarmTheme.resolve(
+        appearance: _appearance(),
+        phaseAtFire: DayPhase.evening,
+      );
+      final light = AlarmTheme.resolve(
+        appearance: _appearance(brightness: Brightness.light),
+        phaseAtFire: DayPhase.evening,
+      );
+
+      expect(dark.accent, isNot(light.accent));
+    });
+
+    test('Varsayilan gorunum: koyu tema, vakte gore renk', () {
+      expect(AlarmAppearance.fallback.brightness, Brightness.dark);
+      expect(AlarmAppearance.fallback.timeBasedColor, isTrue);
+      expect(AlarmAppearance.fallback.fixedPalette, fallbackDayPhase);
     });
   });
 
   group('AlarmScheduler.themeForFire', () {
-    final date = DateTime(2026, 8, 4);
-    final byDate = {DateTime(2026, 8, 4): _day(date)};
+    final byDate = {DateTime(2026, 8, 4): _day(DateTime(2026, 8, 4))};
 
     test('Calma anindaki dilim paleti secilir, planlama anindaki degil', () {
       // 05:00 -> Imsak ile Ogle arasi: CIVIT (morning).
       final morning = AlarmScheduler.themeForFire(
         DateTime(2026, 8, 4, 5, 0),
         byDate,
+        _appearance(),
       );
       // 22:00 -> Yatsi sonrasi: SUMBUL (night).
       final night = AlarmScheduler.themeForFire(
         DateTime(2026, 8, 4, 22, 0),
         byDate,
+        _appearance(),
       );
 
       expect(
@@ -76,13 +125,30 @@ void main() {
       expect(night.accent, paletteFor(DayPhase.night, Brightness.dark).accent);
     });
 
-    test('O gunun vakitleri yoksa fallback palete duser', () {
+    test('Sabit palet secilmisse calma ani dilimi yok sayilir', () {
+      final theme = AlarmScheduler.themeForFire(
+        DateTime(2026, 8, 4, 5, 0),
+        byDate,
+        _appearance(timeBasedColor: false, fixedPalette: DayPhase.evening),
+      );
+
+      expect(
+        theme.accent,
+        paletteFor(DayPhase.evening, Brightness.dark).accent,
+      );
+    });
+
+    test('O gunun vakitleri yoksa fallback dilime duser', () {
       final theme = AlarmScheduler.themeForFire(
         DateTime(2026, 9, 20, 5, 0),
         byDate,
+        _appearance(),
       );
 
-      expect(theme.accent, AlarmTheme.fallback().accent);
+      expect(
+        theme.accent,
+        paletteFor(fallbackDayPhase, Brightness.dark).accent,
+      );
     });
   });
 }

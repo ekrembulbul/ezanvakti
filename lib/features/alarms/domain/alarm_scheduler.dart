@@ -15,13 +15,20 @@ import '../../../core/utils/app_logger.dart';
 class AlarmScheduler {
   final AlarmService alarmService;
   final LocalStorage storage;
+
+  /// Çalar ekranın paleti için kullanıcının güncel görünüm tercihleri.
+  /// Planlama anında okunur; tema denetleyicisine doğrudan bağımlılık yok.
+  final AlarmAppearance Function() appearance;
+
   final AppLogger _logger;
 
   AlarmScheduler({
     required this.alarmService,
     required this.storage,
+    AlarmAppearance Function()? appearance,
     AppLogger? logger,
-  }) : _logger = logger ?? AppLogger();
+  }) : appearance = appearance ?? (() => AlarmAppearance.fallback),
+       _logger = logger ?? AppLogger();
 
   /// Kayıtlı tüm alarmlar için önce mevcut planları temizler, sonra aktif
   /// alarmların bir sonraki tetiklenmesini planlar.
@@ -41,6 +48,7 @@ class AlarmScheduler {
     }
 
     final now = DateTime.now();
+    final currentAppearance = appearance();
     for (final alarm in alarms) {
       if (!alarm.isActive) continue;
       final fire = computeNextFire(
@@ -62,7 +70,7 @@ class AlarmScheduler {
           vibrate: alarm.vibrate,
           snoozeEnabled: alarm.snoozeEnabled,
           snoozeMinutes: alarm.snoozeMinutes,
-          theme: themeForFire(fire, byDate),
+          theme: themeForFire(fire, byDate, currentAppearance),
         );
       } catch (e) {
         _logger.warning('Alarm planlanamadı (id: ${alarm.id})', e);
@@ -70,20 +78,27 @@ class AlarmScheduler {
     }
   }
 
-  /// Çalar ekranın paleti: alarmın çalacağı **anın** dilimi belirler, planlama
-  /// anınınki değil. Sabah 05:00'te çalan alarm ÇİVİT, yatsıdan sonra çalan
-  /// SÜMBÜL ile açılır. O günün vakitleri elde yoksa fallback palete düşer.
+  /// Çalar ekranın paleti.
+  ///
+  /// Kullanıcının tema seçimi (koyu/açık/sistem) ve sabit palet tercihi
+  /// [appearance] ile gelir. "Vakte göre renk" açıksa dilimi alarmın
+  /// **çalacağı** an belirler, planlama anı değil: sabah 05:00'te çalan alarm
+  /// ÇİVİT, yatsıdan sonra çalan SÜMBÜL ile açılır. O günün vakitleri elde
+  /// yoksa fallback dilime düşer.
   static AlarmTheme themeForFire(
     DateTime fire,
     Map<DateTime, PrayerTime> prayerTimesByDate,
+    AlarmAppearance appearance,
   ) {
     final day = _dateKey(fire);
-    final phase = resolveDayPhase(
-      today: prayerTimesByDate[day],
-      tomorrow: prayerTimesByDate[DateTime(day.year, day.month, day.day + 1)],
-      now: fire,
+    return AlarmTheme.resolve(
+      appearance: appearance,
+      phaseAtFire: resolveDayPhase(
+        today: prayerTimesByDate[day],
+        tomorrow: prayerTimesByDate[DateTime(day.year, day.month, day.day + 1)],
+        now: fire,
+      ),
     );
-    return AlarmTheme.forPhase(phase);
   }
 
   /// [now]'dan sonraki ilk geçerli tetiklenme anını döner; [searchDays] gün
