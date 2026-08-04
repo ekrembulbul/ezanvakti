@@ -3,6 +3,8 @@ import '../../../core/interfaces/local_storage.dart';
 import '../../../core/models/prayer_time.dart';
 import '../../../core/models/notification_setting.dart';
 import '../../../core/models/location.dart';
+import '../../../core/models/skipped_occurrence.dart';
+import 'skip_rules.dart';
 import '../../../core/utils/app_logger.dart';
 
 class NotificationScheduler {
@@ -24,6 +26,7 @@ class NotificationScheduler {
   Future<void> scheduleNotifications({
     required Location location,
     required List<PrayerTime> prayerTimes,
+    Set<SkippedOccurrence> skips = const {},
   }) async {
     final logger = AppLogger();
     logger.debug(
@@ -39,7 +42,9 @@ class NotificationScheduler {
     logger.debug('Cancelled all existing notifications');
 
     if (settings.isEmpty) {
-      logger.debug('No notification settings; cleared all, nothing to schedule');
+      logger.debug(
+        'No notification settings; cleared all, nothing to schedule',
+      );
       return;
     }
 
@@ -72,12 +77,23 @@ class NotificationScheduler {
         );
         if (notificationTime.isBefore(now)) continue;
 
-        final id = _generateNotificationId(
-          prayerTime.date,
-          setting.prayerType,
-          setting.minutesBefore,
+        final id = notificationIdFor(
+          date: prayerTime.date,
+          prayerType: setting.prayerType,
+          minutesBefore: setting.minutesBefore,
         );
         if (!seenIds.add(id)) continue; // ayni (gun,vakit,offset) tekrari
+
+        // "Yalnızca bu sefer" atlanan örnek planlanmaz; aynı bildirimin
+        // diğer günleri etkilenmez.
+        if (isSkipped(
+          skips,
+          kind: SkipKind.notification,
+          reference: id,
+          fireAt: notificationTime,
+        )) {
+          continue;
+        }
 
         candidates.add(
           _NotificationCandidate(
@@ -115,18 +131,27 @@ class NotificationScheduler {
   Future<void> rescheduleNotifications({
     required Location location,
     required List<PrayerTime> prayerTimes,
+    Set<SkippedOccurrence> skips = const {},
   }) async {
-    await scheduleNotifications(location: location, prayerTimes: prayerTimes);
+    await scheduleNotifications(
+      location: location,
+      prayerTimes: prayerTimes,
+      skips: skips,
+    );
   }
 
   /// (gün, vakit, offset) için 32-bit'e sığan, çakışmaya dayanıklı sayısal bir
   /// kimlik üretir. Eski "String + hashCode" yöntemi teorik olarak çakışabiliyordu;
   /// bu şema benzersizliği garanti eder ve id'den geri çözülebilir.
-  String _generateNotificationId(
-    DateTime date,
-    PrayerType prayerType,
-    int minutesBefore,
-  ) {
+  /// Bir bildirim örneğinin kimliği: gün · vakit · offset.
+  ///
+  /// Atlama kayıtları da bu kimliği `reference` olarak kullanır; kart ve
+  /// planlayıcı aynı değeri üretmek zorunda.
+  static String notificationIdFor({
+    required DateTime date,
+    required PrayerType prayerType,
+    required int minutesBefore,
+  }) {
     final dayOrdinal =
         DateTime(date.year, date.month, date.day).millisecondsSinceEpoch ~/
         Duration.millisecondsPerDay;

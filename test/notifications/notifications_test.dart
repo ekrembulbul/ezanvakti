@@ -844,6 +844,61 @@ void main() {
       }
     });
 
+    test('Atlanan bildirim planlanmaz, diger gunler etkilenmez', () async {
+      await storage.saveNotificationSettings(const [
+        NotificationSetting(prayerType: PrayerType.dhuhr, isActive: true),
+      ]);
+
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      // Testin kostugu saatten bagimsiz olsun diye yarindan basliyoruz.
+      final prayerTimes = List.generate(3, (i) {
+        final d = today.add(Duration(days: i + 1));
+        return PrayerTime(
+          fajr: DateTime(d.year, d.month, d.day, 4, 11),
+          sunrise: DateTime(d.year, d.month, d.day, 5, 55),
+          dhuhr: DateTime(d.year, d.month, d.day, 13, 15),
+          asr: DateTime(d.year, d.month, d.day, 17, 9),
+          maghrib: DateTime(d.year, d.month, d.day, 20, 25),
+          isha: DateTime(d.year, d.month, d.day, 22, 1),
+          date: d,
+        );
+      });
+
+      await scheduler.scheduleNotifications(
+        location: testLocation,
+        prayerTimes: prayerTimes,
+      );
+      final baseline =
+          (await notificationService.getPendingNotifications()).length;
+      expect(baseline, greaterThan(1), reason: 'Birden fazla gun planlanmali');
+
+      final skippedDay = prayerTimes.first;
+      await scheduler.scheduleNotifications(
+        location: testLocation,
+        prayerTimes: prayerTimes,
+        skips: {
+          SkippedOccurrence(
+            kind: SkipKind.notification,
+            reference: NotificationScheduler.notificationIdFor(
+              date: skippedDay.date,
+              prayerType: PrayerType.dhuhr,
+              minutesBefore: 0,
+            ),
+            fireAt: skippedDay.dhuhr,
+          ),
+        },
+      );
+
+      final after = await notificationService.getPendingNotifications();
+      expect(
+        after.length,
+        baseline - 1,
+        reason: 'Yalnizca atlanan ornek dusmeli',
+      );
+      expect(after.any((n) => n.scheduledTime == skippedDay.dhuhr), isFalse);
+    });
+
     test(
       'Empty settings still cancels previously scheduled notifications',
       () async {
