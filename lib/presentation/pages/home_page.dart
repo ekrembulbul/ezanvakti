@@ -9,9 +9,7 @@ import '../../core/models/calculation_settings.dart';
 import '../../core/interfaces/local_storage.dart';
 import '../../core/utils/app_logger.dart';
 import '../../features/prayer_times/domain/prayer_times_repository.dart';
-import '../../features/notifications/domain/notification_scheduler.dart';
 import '../../core/models/skipped_occurrence.dart';
-import '../../features/alarms/domain/alarm_scheduler.dart';
 import '../../features/alarms/domain/alarms_manager.dart';
 import '../../features/notifications/domain/skip_manager.dart';
 import '../../features/notifications/domain/notification_settings_manager.dart';
@@ -21,19 +19,19 @@ import '../../features/location/domain/location_monitor_service.dart';
 import '../../core/interfaces/notification_service.dart';
 import '../screens/home_screen.dart';
 import '../screens/calendar_screen.dart';
-import '../screens/notification_settings_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/calculation_settings_screen.dart';
 import '../screens/location_list_screen.dart';
-import '../screens/alarms_screen.dart';
+import '../screens/reminders_screen.dart';
 import '../services/location_service.dart';
 import '../services/data_loader_service.dart';
 import '../services/day_rollover.dart';
+import '../services/reminder_rescheduler.dart';
 import '../controllers/location_monitor_controller.dart';
 import '../../core/theme/theme_controller.dart';
 import '../../core/theme/tokens_context.dart';
+import '../widgets/common/app_nav_bar.dart';
 import '../widgets/common/app_surface.dart';
-import '../widgets/common/sliding_segment.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -137,13 +135,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
     _lastResumeReschedule = now;
     try {
-      final scheduler = ServiceLocator().get<NotificationScheduler>();
-      await scheduler.scheduleNotifications(
+      await ServiceLocator().get<ReminderRescheduler>().reschedule(
         location: location,
-        prayerTimes: prayerTimes,
-        skips: appState.skips,
-      );
-      await ServiceLocator().get<AlarmScheduler>().scheduleAlarms(
         prayerTimes: prayerTimes,
         skips: appState.skips,
       );
@@ -267,15 +260,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
       logger.debug('Prayer data loaded: ${data.all.length} days');
 
-      if (data.all.isEmpty) return;
-
-      final scheduler = ServiceLocator().get<NotificationScheduler>();
-      await scheduler.scheduleNotifications(
+      await ServiceLocator().get<ReminderRescheduler>().reschedule(
         location: location,
-        prayerTimes: data.all,
-        skips: data.skips,
-      );
-      await ServiceLocator().get<AlarmScheduler>().scheduleAlarms(
         prayerTimes: data.all,
         skips: data.skips,
       );
@@ -302,80 +288,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         : await manager.unskip(occurrence);
     appState.setSkips(next);
 
-    final location = appState.activeLocation;
-    final prayerTimes = appState.prayerTimes;
-    if (location == null || prayerTimes.isEmpty) return;
-
     try {
-      await ServiceLocator().get<NotificationScheduler>().scheduleNotifications(
-        location: location,
-        prayerTimes: prayerTimes,
-        skips: next,
-      );
-      await ServiceLocator().get<AlarmScheduler>().scheduleAlarms(
-        prayerTimes: prayerTimes,
+      await ServiceLocator().get<ReminderRescheduler>().reschedule(
+        location: appState.activeLocation,
+        prayerTimes: appState.prayerTimes,
         skips: next,
       );
     } catch (e) {
       AppLogger().warning('Atlama sonrasi yeniden planlama basarisiz', e);
-    }
-  }
-
-  void _navigateToCalendar() {
-    final appState = context.read<AppState>();
-
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => CalendarScreen(
-          location: appState.activeLocation!,
-          prayerTimes: appState.prayerTimes,
-          onRefresh: _refreshData,
-          isLoading: appState.isLoading,
-          errorMessage: appState.errorMessage,
-        ),
-      ),
-    );
-  }
-
-  void _navigateToNotificationSettings() async {
-    final appState = context.read<AppState>();
-    final prayerTime =
-        appState.todaysPrayerTime ??
-        (appState.prayerTimes.isNotEmpty ? appState.prayerTimes.first : null);
-
-    final result = await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => NotificationSettingsScreen(
-          hasPermission: appState.hasNotificationPermission,
-          prayerTime: prayerTime,
-          onRequestPermission: () async {
-            final service = ServiceLocator().get<NotificationService>();
-            final granted = await service.requestPermission();
-            appState.setNotificationPermission(granted);
-            return granted;
-          },
-        ),
-      ),
-    );
-
-    if (result == true) {
-      await _reloadNotificationSettings();
-    }
-  }
-
-  Future<void> _reloadNotificationSettings() async {
-    final appState = context.read<AppState>();
-    final manager = ServiceLocator().get<NotificationSettingsManager>();
-    final settings = await manager.getSettings();
-    appState.setNotificationSettings(settings);
-
-    final location = appState.activeLocation;
-    if (location != null && appState.prayerTimes.isNotEmpty) {
-      final scheduler = ServiceLocator().get<NotificationScheduler>();
-      await scheduler.scheduleNotifications(
-        location: location,
-        prayerTimes: appState.prayerTimes,
-      );
     }
   }
 
@@ -475,61 +395,66 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // Alt gezinme AppSurface'in disinda kaldigi icin zemini Scaffold verir;
-      // seffaf birakilirsa arkasinda hicbir sey boyanmiyor.
-      backgroundColor: context.tokens.backgroundStops.last,
-      body: AppSurface(
-        safeAreaTop: false,
-        safeAreaBottom: false,
-        child: IndexedStack(
-          index: _tabIndex,
-          children: [
-            Consumer<AppState>(
-              builder: (context, appState, child) {
-                return HomeScreen(
-                  location: appState.activeLocation!,
-                  todaysPrayerTime: appState.todaysPrayerTime,
-                  tomorrowsPrayerTime: appState.tomorrowsPrayerTime,
-                  lastUpdateTime: appState.lastUpdateTime,
-                  isLoading: appState.isLoading,
-                  isRefreshing: appState.isRefreshing,
-                  prayerTimes: appState.prayerTimes,
-                  notificationSettings: appState.notificationSettings,
-                  alarms: appState.alarms,
-                  skips: appState.skips,
-                  onSkipChanged: _toggleSkip,
-                  errorMessage: appState.errorMessage,
-                  onRefresh: _refreshData,
-                  onGpsRefresh: _manualGpsRefresh,
-                  onCalendarTap: _navigateToCalendar,
-                  onNotificationSettingsTap: _navigateToNotificationSettings,
-                  onSettingsTap: _navigateToSettings,
-                  onLocationTap: _navigateToLocationList,
-                );
-              },
-            ),
-            const AlarmsScreen(),
-          ],
+    return PopScope(
+      // Sekme gecmisi biriktirmek geri tusunu ongorulemez kilar; 2. veya 3.
+      // sekmedeyken geri ilk sekmeye doner, orada uygulamadan cikar.
+      canPop: _tabIndex == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && _tabIndex != 0) setState(() => _tabIndex = 0);
+      },
+      child: Scaffold(
+        // Alt gezinme AppSurface'in disinda kaldigi icin zemini Scaffold verir;
+        // seffaf birakilirsa arkasinda hicbir sey boyanmiyor.
+        backgroundColor: context.tokens.backgroundStops.last,
+        body: AppSurface(
+          safeAreaTop: false,
+          safeAreaBottom: false,
+          child: IndexedStack(
+            index: _tabIndex,
+            children: [
+              Consumer<AppState>(
+                builder: (context, appState, child) {
+                  return HomeScreen(
+                    location: appState.activeLocation!,
+                    todaysPrayerTime: appState.todaysPrayerTime,
+                    tomorrowsPrayerTime: appState.tomorrowsPrayerTime,
+                    lastUpdateTime: appState.lastUpdateTime,
+                    isLoading: appState.isLoading,
+                    isRefreshing: appState.isRefreshing,
+                    prayerTimes: appState.prayerTimes,
+                    notificationSettings: appState.notificationSettings,
+                    alarms: appState.alarms,
+                    skips: appState.skips,
+                    onSkipChanged: _toggleSkip,
+                    errorMessage: appState.errorMessage,
+                    onRefresh: _refreshData,
+                    onGpsRefresh: _manualGpsRefresh,
+                    onSettingsTap: _navigateToSettings,
+                    onSeeReminders: () => setState(() => _tabIndex = 2),
+                    onLocationTap: _navigateToLocationList,
+                  );
+                },
+              ),
+              Consumer<AppState>(
+                builder: (context, appState, child) {
+                  return CalendarScreen(
+                    location: appState.activeLocation!,
+                    prayerTimes: appState.prayerTimes,
+                    onRefresh: _refreshData,
+                    isLoading: appState.isLoading,
+                    errorMessage: appState.errorMessage,
+                  );
+                },
+              ),
+              const RemindersScreen(),
+            ],
+          ),
         ),
-      ),
-      bottomNavigationBar: _buildBottomNav(),
-    );
-  }
-
-  Widget _buildBottomNav() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-      child: SafeArea(
-        top: false,
-        child: SlidingSegment<int>(
+        bottomNavigationBar: AppNavBar(
           items: const [
-            SegmentItem(
-              value: 0,
-              label: 'Vakitler',
-              icon: Icons.schedule_rounded,
-            ),
-            SegmentItem(value: 1, label: 'Alarmlar', icon: Icons.alarm_rounded),
+            NavItem(label: 'Vakitler', icon: Icons.schedule_rounded),
+            NavItem(label: 'Takvim', icon: Icons.calendar_month_rounded),
+            NavItem(label: 'Hatırlatıcılar', icon: Icons.notifications_rounded),
           ],
           selected: _tabIndex,
           onChanged: (index) => setState(() => _tabIndex = index),

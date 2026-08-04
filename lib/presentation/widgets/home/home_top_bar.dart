@@ -5,14 +5,15 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 import '../../../core/utils/hijri_formatter.dart';
 
-/// Ana ekranın üst çubuğu: konum · menü.
+/// Ana ekranın üst çubuğu: konum · ayarlar.
 ///
 /// Uygulama ikonu ekranda gösterilmez; yalnızca launcher ve açılış ekranında
-/// kullanılır.
+/// kullanılır. Ayarlar girişi yalnızca burada; Takvim ve Hatırlatıcılar
+/// sekmelerinin başlıkları temiz kalır (spec D5).
 class HomeTopBar extends StatelessWidget {
   final String locationName;
   final VoidCallback? onLocationTap;
-  final VoidCallback onMenuTap;
+  final VoidCallback onSettingsTap;
 
   /// Arka planda vakit yenilemesi sürerken ince bir gösterge çizilir.
   final bool isRefreshing;
@@ -21,7 +22,7 @@ class HomeTopBar extends StatelessWidget {
     super.key,
     required this.locationName,
     required this.onLocationTap,
-    required this.onMenuTap,
+    required this.onSettingsTap,
     this.isRefreshing = false,
   });
 
@@ -67,10 +68,10 @@ class HomeTopBar extends StatelessWidget {
               const Spacer(),
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTap: onMenuTap,
+                onTap: onSettingsTap,
                 child: Icon(
-                  Icons.menu_rounded,
-                  size: 23,
+                  Icons.settings_rounded,
+                  size: 22,
                   color: tokens.textSecondary,
                 ),
               ),

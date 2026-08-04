@@ -75,7 +75,7 @@ void main() {
       HomeTopBar(
         locationName: 'Çok Uzun Bir İlçe Adı, Çok Uzun Bir İl Adı Burada',
         onLocationTap: () {},
-        onMenuTap: () {},
+        onSettingsTap: () {},
       ),
       const Size(200, 56),
     );

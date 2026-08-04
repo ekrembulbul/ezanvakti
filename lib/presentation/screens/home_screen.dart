@@ -13,7 +13,6 @@ import '../widgets/common/app_surface.dart';
 import '../widgets/common/state_widgets.dart';
 import '../widgets/home/countdown_hero.dart';
 import '../widgets/home/day_ruler.dart';
-import '../widgets/home/home_menu_sheet.dart';
 import '../widgets/home/home_top_bar.dart';
 import '../widgets/home/prayer_grid.dart';
 import '../widgets/home/upcoming_card.dart';
@@ -24,9 +23,11 @@ class HomeScreen extends StatefulWidget {
   final PrayerTime? tomorrowsPrayerTime;
   final DateTime? lastUpdateTime;
   final String dataSource;
-  final VoidCallback? onCalendarTap;
   final VoidCallback? onSettingsTap;
-  final VoidCallback? onNotificationSettingsTap;
+
+  /// "Tümünü gör" — Hatırlatıcılar sekmesine geçer (push değil).
+  final VoidCallback? onSeeReminders;
+
   final VoidCallback? onRefresh;
   final VoidCallback? onGpsRefresh;
   final VoidCallback? onLocationTap;
@@ -57,9 +58,8 @@ class HomeScreen extends StatefulWidget {
     this.tomorrowsPrayerTime,
     this.lastUpdateTime,
     this.dataSource = 'Aladhan API',
-    this.onCalendarTap,
     this.onSettingsTap,
-    this.onNotificationSettingsTap,
+    this.onSeeReminders,
     this.onRefresh,
     this.onGpsRefresh,
     this.onLocationTap,
@@ -96,15 +96,6 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  void _openMenu() {
-    showHomeMenu(
-      context,
-      onCalendar: widget.onCalendarTap,
-      onNotifications: widget.onNotificationSettingsTap,
-      onSettings: widget.onSettingsTap,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -117,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
               HomeTopBar(
                 locationName: widget.location.displayName,
                 onLocationTap: widget.onLocationTap,
-                onMenuTap: _openMenu,
+                onSettingsTap: widget.onSettingsTap ?? () {},
                 isRefreshing: widget.isRefreshing,
               ),
               Expanded(child: _buildBody()),
@@ -185,7 +176,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           skips: widget.skips,
           onSkipChanged: widget.onSkipChanged,
-          onSeeAll: widget.onNotificationSettingsTap ?? () {},
+          onSeeAll: widget.onSeeReminders ?? () {},
         ),
         // Artan boşluk altta toplanır; içerik yukarı yaslı kalır.
         const Spacer(),

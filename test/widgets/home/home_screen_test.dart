@@ -84,7 +84,9 @@ void main() {
     expect(find.text('Veri bulunamadı'), findsOneWidget);
   });
 
-  testWidgets('Menuden Ayarlar secilince callback tetiklenir', (tester) async {
+  // Ayarlar'a artik ust cubuktaki disli ikonundan tek dokunusla gidiliyor;
+  // hamburger menu kaldirildi (spec D5).
+  testWidgets('Disli ikonu Ayarlar callback ini tetikler', (tester) async {
     var opened = false;
 
     await pumpHome(
@@ -98,9 +100,7 @@ void main() {
       ),
     );
 
-    await tester.tap(find.byIcon(Icons.menu_rounded));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Ayarlar'));
+    await tester.tap(find.byIcon(Icons.settings_rounded));
     await tester.pump();
 
     expect(opened, isTrue);

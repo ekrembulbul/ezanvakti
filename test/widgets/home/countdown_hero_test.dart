@@ -118,7 +118,7 @@ void main() {
           HomeTopBar(
             locationName: 'Kadıköy, İstanbul',
             onLocationTap: () => tapped = true,
-            onMenuTap: () {},
+            onSettingsTap: () {},
           ),
         ),
       );
@@ -129,7 +129,7 @@ void main() {
       expect(tapped, isTrue);
     });
 
-    testWidgets('Menu ikonuna dokunmak callback cagirir', (tester) async {
+    testWidgets('Ayarlar ikonuna dokunmak callback cagirir', (tester) async {
       var opened = false;
 
       await tester.pumpWidget(
@@ -137,12 +137,12 @@ void main() {
           HomeTopBar(
             locationName: 'Kadıköy',
             onLocationTap: null,
-            onMenuTap: () => opened = true,
+            onSettingsTap: () => opened = true,
           ),
         ),
       );
 
-      await tester.tap(find.byIcon(Icons.menu_rounded));
+      await tester.tap(find.byIcon(Icons.settings_rounded));
       expect(opened, isTrue);
     });
   });

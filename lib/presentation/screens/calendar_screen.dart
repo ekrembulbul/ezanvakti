@@ -90,21 +90,8 @@ class _CalendarAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      leading: IconButton(
-        icon: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: tokens.surface,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(
-            Icons.arrow_back_ios_new_rounded,
-            size: 18,
-            color: tokens.textPrimary,
-          ),
-        ),
-        onPressed: () => Navigator.of(context).pop(),
-      ),
+      // Sekme olarak barindirildigi icin geri oku yok.
+      automaticallyImplyLeading: false,
       title: Column(
         children: [
           Text(
