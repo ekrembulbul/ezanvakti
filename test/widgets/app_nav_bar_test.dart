@@ -68,6 +68,23 @@ void main() {
     expect(indicator.dx, closeTo(label.dx, 0.5));
   });
 
+  testWidgets('Gosterge etiketin altinda kalir, uzerine binmez', (
+    tester,
+  ) async {
+    await tester.pumpWidget(build(selected: 1));
+    await tester.pumpAndSettle();
+
+    final labelBottom = tester.getRect(find.text('Takvim')).bottom;
+    final indicatorTop = tester.getRect(find.byKey(kNavIndicatorKey)).top;
+
+    expect(
+      indicatorTop,
+      greaterThanOrEqualTo(labelBottom),
+      reason: 'Column mainAxisSize.min olursa etiket asagi kayip gostergenin '
+          'bandina giriyordu',
+    );
+  });
+
   testWidgets('Etiket dar dilimde tasmaz', (tester) async {
     // En dar desteklenen genislik; spec §10/V1.
     tester.view.physicalSize = const Size(320, 640);

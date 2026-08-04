@@ -138,7 +138,10 @@ class _NavButton extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.only(top: _kTopPadding),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          // `min` olursa Column icerige kuculur ve Row'un varsayilan `center`
+          // hizalamasi onu dikeyde ortalar; etiket asagi kayip gostergenin
+          // bandina girer. `max` ile icerik ustten baslar, gosterge altta kalir.
+          mainAxisSize: MainAxisSize.max,
           children: [
             Icon(item.icon, size: _kIconSize, color: color),
             const SizedBox(height: _kIconLabelGap),
