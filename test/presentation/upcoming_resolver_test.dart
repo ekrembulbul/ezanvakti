@@ -76,6 +76,24 @@ void main() {
       expect(next?.time, DateTime(2026, 8, 4, 4, 11));
     });
 
+    test('prayerDate vaktin gunu', () {
+      final next = resolveNextNotification(
+        settings: const [
+          NotificationSetting(
+            prayerType: PrayerType.fajr,
+            isActive: true,
+            minutesBefore: 30,
+          ),
+        ],
+        prayerTimes: _window,
+        now: DateTime(2026, 8, 3, 23),
+      );
+
+      // Tetiklenme 4 Agustos 03:41; vaktin gunu de 4 Agustos.
+      expect(next?.time, DateTime(2026, 8, 4, 3, 41));
+      expect(next?.prayerDate, DateTime(2026, 8, 4));
+    });
+
     test('Aktif ayar yoksa null', () {
       final next = resolveNextNotification(
         settings: const [
@@ -115,6 +133,19 @@ void main() {
       // Sahur: 4 Agustos Imsak 04:11 - 30 dk = 03:41; sabit alarm 06:30.
       expect(next?.alarm.id, 'anchored');
       expect(next?.time, DateTime(2026, 8, 4, 3, 41));
+    });
+
+    test('Atlanmis alarmi yine de dondurur', () {
+      // D2: kart bir sonrakine gecmez, satir yerinde kalir ki kullanici geri
+      // acabilsin. Bu yuzden resolveNextAlarm skip kumesi ALMAZ.
+      final next = resolveNextAlarm(
+        alarms: const [fixed],
+        prayerTimes: _window,
+        now: DateTime(2026, 8, 3, 23),
+      );
+
+      expect(next?.alarm.id, 'fixed');
+      expect(next?.time, DateTime(2026, 8, 4, 6, 30));
     });
 
     test('Kapali alarm atlanir', () {

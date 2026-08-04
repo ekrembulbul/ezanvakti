@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../core/models/alarm.dart';
 import '../../core/models/location.dart';
 import '../../core/models/notification_setting.dart';
+import '../../core/models/skipped_occurrence.dart';
 import '../../core/models/prayer_time.dart';
 import '../../core/utils/prayer_utils.dart';
 import '../services/upcoming_resolver.dart';
@@ -35,7 +36,11 @@ class HomeScreen extends StatefulWidget {
   final List<PrayerTime> prayerTimes;
   final List<NotificationSetting> notificationSettings;
   final List<Alarm> alarms;
-  final void Function(Alarm alarm, bool isActive)? onAlarmToggled;
+
+  /// "Yalnızca bu sefer" atlanmış örnekler ve anahtar geri çağrısı.
+  final Set<SkippedOccurrence> skips;
+  final void Function(SkippedOccurrence occurrence, bool skipped)?
+  onSkipChanged;
 
   final bool isLoading;
 
@@ -61,7 +66,8 @@ class HomeScreen extends StatefulWidget {
     this.prayerTimes = const [],
     this.notificationSettings = const [],
     this.alarms = const [],
-    this.onAlarmToggled,
+    this.skips = const {},
+    this.onSkipChanged,
     this.isLoading = false,
     this.isRefreshing = false,
     this.errorMessage,
@@ -177,7 +183,8 @@ class _HomeScreenState extends State<HomeScreen> {
             prayerTimes: widget.prayerTimes,
             now: now,
           ),
-          onAlarmToggled: widget.onAlarmToggled,
+          skips: widget.skips,
+          onSkipChanged: widget.onSkipChanged,
           onSeeAll: widget.onNotificationSettingsTap ?? () {},
         ),
         // Artan boşluk altta toplanır; içerik yukarı yaslı kalır.

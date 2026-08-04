@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../../core/models/alarm.dart';
+import '../../../core/models/skipped_occurrence.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 import '../../../core/utils/prayer_utils.dart';
+import '../../../features/notifications/domain/notification_scheduler.dart';
+import '../../../features/notifications/domain/skip_rules.dart';
 import '../../screens/alarms_screen.dart' show alarmTimeLabel;
 import '../../services/upcoming_resolver.dart';
 import '../common/grouped_list.dart';
@@ -28,7 +30,14 @@ class UpcomingCard extends StatelessWidget {
   final DateTime now;
 
   final VoidCallback onSeeAll;
-  final void Function(Alarm alarm, bool isActive)? onAlarmToggled;
+
+  /// Atlanmış örnekler. Satır **dışlanmaz**; yalnızca kapalı çizilir ki
+  /// kullanıcı fikrini değiştirip geri açabilsin.
+  final Set<SkippedOccurrence> skips;
+
+  /// Anahtar değişince çağrılır. `skipped` true ise atlanacak.
+  final void Function(SkippedOccurrence occurrence, bool skipped)?
+  onSkipChanged;
 
   const UpcomingCard({
     super.key,
@@ -36,8 +45,22 @@ class UpcomingCard extends StatelessWidget {
     required this.onSeeAll,
     this.notification,
     this.alarm,
-    this.onAlarmToggled,
+    this.skips = const {},
+    this.onSkipChanged,
   });
+
+  /// Satırın sağındaki tek seferlik kapatma anahtarı.
+  ///
+  /// Açık = çalacak. Kapalı = yalnızca bu örnek atlanacak; kalıcı kapatma
+  /// Bildirimler/Alarmlar ekranlarında.
+  Widget _skipSwitch(SkippedOccurrence occurrence, bool isSkippedNow) {
+    return Switch(
+      value: !isSkippedNow,
+      onChanged: onSkipChanged == null
+          ? null
+          : (value) => onSkipChanged!(occurrence, !value),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -93,12 +116,29 @@ class UpcomingCard extends StatelessWidget {
   }
 
   Widget _notificationRow(BuildContext context) {
-    final tokens = context.tokens;
     final item = notification!;
     final prayerName = PrayerUtils.getPrayerName(item.setting.prayerType);
     final offset = item.setting.minutesBefore == 0
         ? 'Tam vaktinde'
         : '${item.setting.minutesBefore} dk önce';
+
+    final occurrence = SkippedOccurrence(
+      kind: SkipKind.notification,
+      reference: NotificationScheduler.notificationIdFor(
+        // Planlayıcı da kimliği vaktin gününden üretir; ikisi aynı olmak
+        // zorunda, yoksa anahtar kapalı görünürken bildirim gelir.
+        date: item.prayerDate,
+        prayerType: item.setting.prayerType,
+        minutesBefore: item.setting.minutesBefore,
+      ),
+      fireAt: item.time,
+    );
+    final skipped = isSkipped(
+      skips,
+      kind: SkipKind.notification,
+      reference: occurrence.reference,
+      fireAt: item.time,
+    );
 
     return GroupedRow(
       height: _kRowHeight,
@@ -107,13 +147,13 @@ class UpcomingCard extends StatelessWidget {
         '$prayerName bildirimi',
         style: AppTypography.upcomingRowTitle,
       ),
-      subtitle: Text('$offset · ${_clock(item.time)}'),
-      trailing: Text(
-        formatRemaining(item.time.difference(now)),
-        style: AppTypography.upcomingRemaining.copyWith(
-          color: tokens.textValue,
-        ),
+      subtitle: Text(
+        skipped
+            ? 'Yalnızca bu sefer atlanacak · ${_clock(item.time)}'
+            : '$offset · ${_clock(item.time)} · '
+                  '${formatRemaining(item.time.difference(now))}',
       ),
+      trailing: _skipSwitch(occurrence, skipped),
     );
   }
 
@@ -123,20 +163,30 @@ class UpcomingCard extends StatelessWidget {
     final label = alarmTimeLabel(item.alarm);
     final title = item.alarm.label.isNotEmpty ? item.alarm.label : label;
 
+    final occurrence = SkippedOccurrence(
+      kind: SkipKind.alarm,
+      reference: item.alarm.id,
+      fireAt: item.time,
+    );
+    final skipped = isSkipped(
+      skips,
+      kind: SkipKind.alarm,
+      reference: item.alarm.id,
+      fireAt: item.time,
+    );
+
     return GroupedRow(
       height: _kRowHeight,
       icon: Icons.alarm_rounded,
       iconColor: tokens.accent,
       title: Text(title, style: AppTypography.upcomingRowTitle),
       subtitle: Text(
-        '$label · ${_relativeDay(item.time)} ${_clock(item.time)}',
+        skipped
+            ? 'Yalnızca bu sefer atlanacak · '
+                  '${_relativeDay(item.time)} ${_clock(item.time)}'
+            : '$label · ${_relativeDay(item.time)} ${_clock(item.time)}',
       ),
-      trailing: Switch(
-        value: item.alarm.isActive,
-        onChanged: onAlarmToggled == null
-            ? null
-            : (value) => onAlarmToggled!(item.alarm, value),
-      ),
+      trailing: _skipSwitch(occurrence, skipped),
     );
   }
 

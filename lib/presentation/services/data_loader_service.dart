@@ -2,8 +2,10 @@ import '../../core/interfaces/notification_service.dart';
 import '../../core/models/location.dart';
 import '../../core/models/notification_setting.dart';
 import '../../core/models/prayer_time.dart';
+import '../../core/models/skipped_occurrence.dart';
 import '../../core/utils/app_logger.dart';
 import '../../features/notifications/domain/notification_settings_manager.dart';
+import '../../features/notifications/domain/skip_manager.dart';
 import '../../features/prayer_times/domain/prayer_times_repository.dart';
 
 /// Ana ekranın ihtiyaç duyduğu her şey tek yüklemede.
@@ -16,6 +18,10 @@ typedef PrayerData = ({
   PrayerTime? tomorrow,
 
   List<PrayerTime> all,
+
+  /// "Yalnızca bu sefer" atlanmış örnekler; süresi geçenler elenmiş hâlde.
+  Set<SkippedOccurrence> skips,
+
   DateTime? lastUpdate,
   bool hasPermission,
   List<NotificationSetting> settings,
@@ -34,16 +40,19 @@ class DataLoaderService {
   final PrayerTimesRepository _prayerTimesRepository;
   final NotificationService _notificationService;
   final NotificationSettingsManager _settingsManager;
+  final SkipManager _skipManager;
   final AppLogger _logger;
 
   DataLoaderService({
     required PrayerTimesRepository prayerTimesRepository,
     required NotificationService notificationService,
     required NotificationSettingsManager settingsManager,
+    required SkipManager skipManager,
     required AppLogger logger,
   }) : _prayerTimesRepository = prayerTimesRepository,
        _notificationService = notificationService,
        _settingsManager = settingsManager,
+       _skipManager = skipManager,
        _logger = logger;
 
   /// Tek aralık çağrısıyla pencerenin tamamını çeker ve bugün/yarın'ı bu
@@ -75,11 +84,13 @@ class DataLoaderService {
     // bildirimleri geri getiriyordu; bunun yerine kalıcı bir bayrak kullanılır.
     await _settingsManager.ensureDefaultsSeeded();
     final settings = await _settingsManager.getSettings();
+    final skips = await _skipManager.load();
 
     return (
       today: today,
       tomorrow: tomorrow,
       all: all,
+      skips: skips,
       lastUpdate: lastUpdate,
       hasPermission: hasPermission,
       settings: settings,

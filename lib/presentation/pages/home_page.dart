@@ -10,9 +10,10 @@ import '../../core/interfaces/local_storage.dart';
 import '../../core/utils/app_logger.dart';
 import '../../features/prayer_times/domain/prayer_times_repository.dart';
 import '../../features/notifications/domain/notification_scheduler.dart';
-import '../../core/models/alarm.dart';
+import '../../core/models/skipped_occurrence.dart';
 import '../../features/alarms/domain/alarm_scheduler.dart';
 import '../../features/alarms/domain/alarms_manager.dart';
+import '../../features/notifications/domain/skip_manager.dart';
 import '../../features/notifications/domain/notification_settings_manager.dart';
 import '../../features/location/domain/location_repository.dart';
 import '../../features/location/domain/location_service.dart';
@@ -71,6 +72,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       prayerTimesRepository: ServiceLocator().get<PrayerTimesRepository>(),
       notificationService: ServiceLocator().get<NotificationService>(),
       settingsManager: ServiceLocator().get<NotificationSettingsManager>(),
+      skipManager: ServiceLocator().get<SkipManager>(),
       logger: AppLogger(),
     );
   }
@@ -139,9 +141,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       await scheduler.scheduleNotifications(
         location: location,
         prayerTimes: prayerTimes,
+        skips: appState.skips,
       );
       await ServiceLocator().get<AlarmScheduler>().scheduleAlarms(
         prayerTimes: prayerTimes,
+        skips: appState.skips,
       );
       AppLogger().debug('Notifications + alarms rescheduled on resume');
     } catch (e) {
@@ -251,6 +255,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       appState.setAlarms(
         await ServiceLocator().get<AlarmsManager>().getAlarms(),
       );
+      appState.setSkips(data.skips);
       appState.setRefreshing(false);
 
       // Palet gün dilimini vakitlerden hesaplar; beslenmezse hep akşam
@@ -268,9 +273,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       await scheduler.scheduleNotifications(
         location: location,
         prayerTimes: data.all,
+        skips: data.skips,
       );
       await ServiceLocator().get<AlarmScheduler>().scheduleAlarms(
         prayerTimes: data.all,
+        skips: data.skips,
       );
     } catch (e) {
       logger.error('Failed to load prayer data', e);
@@ -282,23 +289,35 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// Kullanıcının tetiklediği yenileme (aşağı çekme, takvim ekranı).
   Future<void> _refreshData() => _loadPrayerData(forceRefresh: true);
 
-  /// "SIRADAKİ" kartındaki alarm anahtarı. Alarmlar sekmesindekiyle aynı iş:
-  /// kaydet, sonra güncel vakitlerle yeniden planla.
-  Future<void> _toggleAlarm(Alarm alarm, bool isActive) async {
+  /// "SIRADAKİ" kartındaki tek seferlik kapatma.
+  ///
+  /// Kalıcı kapatma Bildirimler/Alarmlar ekranlarında kalır; buradaki anahtar
+  /// yalnızca gösterilen örneği atlar.
+  Future<void> _toggleSkip(SkippedOccurrence occurrence, bool skipped) async {
     final appState = context.read<AppState>();
-    final manager = ServiceLocator().get<AlarmsManager>();
+    final manager = ServiceLocator().get<SkipManager>();
 
-    await manager.setActive(alarm, isActive);
-    appState.setAlarms(await manager.getAlarms());
+    final next = skipped
+        ? await manager.skip(occurrence)
+        : await manager.unskip(occurrence);
+    appState.setSkips(next);
 
+    final location = appState.activeLocation;
     final prayerTimes = appState.prayerTimes;
-    if (prayerTimes.isEmpty) return;
+    if (location == null || prayerTimes.isEmpty) return;
+
     try {
+      await ServiceLocator().get<NotificationScheduler>().scheduleNotifications(
+        location: location,
+        prayerTimes: prayerTimes,
+        skips: next,
+      );
       await ServiceLocator().get<AlarmScheduler>().scheduleAlarms(
         prayerTimes: prayerTimes,
+        skips: next,
       );
     } catch (e) {
-      AppLogger().warning('Alarm yeniden planlanamadı', e);
+      AppLogger().warning('Atlama sonrasi yeniden planlama basarisiz', e);
     }
   }
 
@@ -478,7 +497,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                   prayerTimes: appState.prayerTimes,
                   notificationSettings: appState.notificationSettings,
                   alarms: appState.alarms,
-                  onAlarmToggled: _toggleAlarm,
+                  skips: appState.skips,
+                  onSkipChanged: _toggleSkip,
                   errorMessage: appState.errorMessage,
                   onRefresh: _refreshData,
                   onGpsRefresh: _manualGpsRefresh,

@@ -1,4 +1,6 @@
 import 'package:ezanvakti/core/models/skipped_occurrence.dart';
+import 'package:ezanvakti/core/models/notification_setting.dart';
+import 'package:ezanvakti/features/notifications/domain/notification_scheduler.dart';
 import 'package:ezanvakti/features/notifications/domain/skip_rules.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -136,6 +138,40 @@ void main() {
       final now = DateTime(2026, 8, 5, 12);
 
       expect(withoutExpired([at(DateTime(2026, 8, 4))], now), isEmpty);
+    });
+  });
+
+  group('Kimlik uretimi tek noktadan', () {
+    test('Gun ici saat kimligi degistirmez', () {
+      // "Anahtar yalan soylemez" kuralinin temeli: kart ve planlayici ayni
+      // fonksiyondan ayni gunle kimlik uretir, saatten bagimsiz.
+      final fromCard = NotificationScheduler.notificationIdFor(
+        date: DateTime(2026, 8, 3),
+        prayerType: PrayerType.maghrib,
+        minutesBefore: 10,
+      );
+      final fromScheduler = NotificationScheduler.notificationIdFor(
+        date: DateTime(2026, 8, 3, 23, 59),
+        prayerType: PrayerType.maghrib,
+        minutesBefore: 10,
+      );
+
+      expect(fromCard, fromScheduler);
+    });
+
+    test('Farkli gun farkli kimlik', () {
+      final today = NotificationScheduler.notificationIdFor(
+        date: DateTime(2026, 8, 3),
+        prayerType: PrayerType.maghrib,
+        minutesBefore: 10,
+      );
+      final tomorrow = NotificationScheduler.notificationIdFor(
+        date: DateTime(2026, 8, 4),
+        prayerType: PrayerType.maghrib,
+        minutesBefore: 10,
+      );
+
+      expect(today, isNot(tomorrow));
     });
   });
 }

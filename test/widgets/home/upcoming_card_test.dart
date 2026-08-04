@@ -5,6 +5,8 @@ import 'package:intl/date_symbol_data_local.dart';
 
 import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart';
+import 'package:ezanvakti/core/models/skipped_occurrence.dart';
+import 'package:ezanvakti/features/notifications/domain/notification_scheduler.dart';
 import 'package:ezanvakti/presentation/services/upcoming_resolver.dart';
 
 import '../theme_harness.dart';
@@ -17,12 +19,47 @@ void main() {
   group('UpcomingCard', () {
     final now = DateTime(2026, 8, 3, 17, 42);
 
+    final notification = (
+      setting: const NotificationSetting(
+        prayerType: PrayerType.maghrib,
+        isActive: true,
+        minutesBefore: 10,
+      ),
+      prayerDate: DateTime(2026, 8, 3),
+      time: DateTime(2026, 8, 3, 20, 15),
+    );
+    const sahur = Alarm(
+      id: 'sahur',
+      kind: AlarmKind.anchored,
+      label: 'Sahur',
+      anchor: PrayerType.fajr,
+      offsetMinutes: -30,
+    );
+    final alarmAt = DateTime(2026, 8, 4, 3, 41);
+
+    SkippedOccurrence notificationSkip() => SkippedOccurrence(
+      kind: SkipKind.notification,
+      reference: NotificationScheduler.notificationIdFor(
+        date: notification.prayerDate,
+        prayerType: notification.setting.prayerType,
+        minutesBefore: notification.setting.minutesBefore,
+      ),
+      fireAt: notification.time,
+    );
+
+    SkippedOccurrence alarmSkip() => SkippedOccurrence(
+      kind: SkipKind.alarm,
+      reference: sahur.id,
+      fireAt: alarmAt,
+    );
+
     Future<void> pumpCard(
       WidgetTester tester, {
       UpcomingNotification? notification,
       UpcomingAlarm? alarm,
       VoidCallback? onSeeAll,
-      void Function(Alarm, bool)? onAlarmToggled,
+      Set<SkippedOccurrence> skips = const {},
+      void Function(SkippedOccurrence, bool)? onSkipChanged,
     }) async {
       await tester.pumpWidget(
         wrapWithTheme(
@@ -32,7 +69,8 @@ void main() {
               now: now,
               notification: notification,
               alarm: alarm,
-              onAlarmToggled: onAlarmToggled,
+              skips: skips,
+              onSkipChanged: onSkipChanged,
               onSeeAll: onSeeAll ?? () {},
             ),
           ),
@@ -56,24 +94,15 @@ void main() {
       expect(tapped, isTrue);
     });
 
-    testWidgets('Bildirim satiri vakit, sapma ve kalan sureyi yazar', (
+    testWidgets('Bildirim satiri kalan sureyi alt metinde yazar', (
       tester,
     ) async {
-      await pumpCard(
-        tester,
-        notification: (
-          setting: const NotificationSetting(
-            prayerType: PrayerType.maghrib,
-            isActive: true,
-            minutesBefore: 10,
-          ),
-          time: DateTime(2026, 8, 3, 20, 25),
-        ),
-      );
+      await pumpCard(tester, notification: notification);
 
+      // Sag taraf tek islevli kaldi: kalan sure alt metne tasindi.
       expect(find.text('Akşam bildirimi'), findsOneWidget);
-      expect(find.text('10 dk önce · 20:25'), findsOneWidget);
-      expect(find.text('2s 43dk'), findsOneWidget);
+      expect(find.text('10 dk önce · 20:15 · 2s 33dk'), findsOneWidget);
+      expect(find.byType(Switch), findsOneWidget);
     });
 
     testWidgets('Tam vaktinde bildirim sapma yazmaz', (tester) async {
@@ -84,52 +113,88 @@ void main() {
             prayerType: PrayerType.isha,
             isActive: true,
           ),
+          prayerDate: DateTime(2026, 8, 3),
           time: DateTime(2026, 8, 3, 22, 1),
         ),
       );
 
-      expect(find.text('Tam vaktinde · 22:01'), findsOneWidget);
+      expect(find.text('Tam vaktinde · 22:01 · 4s 19dk'), findsOneWidget);
     });
 
     testWidgets('Alarm satiri etiket, cipa ve gun yazar', (tester) async {
-      await pumpCard(
-        tester,
-        alarm: (
-          alarm: const Alarm(
-            id: 'a',
-            kind: AlarmKind.anchored,
-            label: 'Sahur',
-            anchor: PrayerType.fajr,
-            offsetMinutes: -30,
-          ),
-          time: DateTime(2026, 8, 4, 3, 41),
-        ),
-      );
+      await pumpCard(tester, alarm: (alarm: sahur, time: alarmAt));
 
       expect(find.text('Sahur'), findsOneWidget);
       expect(find.text('İmsak −30 dk · yarın 03:41'), findsOneWidget);
       expect(find.byType(Switch), findsOneWidget);
     });
 
-    testWidgets('Alarm anahtari callback tetikler', (tester) async {
-      bool? toggled;
+    testWidgets('Atlanmis bildirim satiri yerinde kalir ve aciklanir', (
+      tester,
+    ) async {
+      await pumpCard(
+        tester,
+        notification: notification,
+        skips: {notificationSkip()},
+      );
+
+      // D2: kart bir sonrakine gecmez; satir kapali cizilir ki geri acilabilsin.
+      expect(find.text('Akşam bildirimi'), findsOneWidget);
+      expect(find.text('Yalnızca bu sefer atlanacak · 20:15'), findsOneWidget);
+      expect(tester.widget<Switch>(find.byType(Switch)).value, isFalse);
+    });
+
+    testWidgets('Atlanmis alarm satiri yerinde kalir ve aciklanir', (
+      tester,
+    ) async {
+      await pumpCard(
+        tester,
+        alarm: (alarm: sahur, time: alarmAt),
+        skips: {alarmSkip()},
+      );
+
+      expect(find.text('Sahur'), findsOneWidget);
+      expect(
+        find.text('Yalnızca bu sefer atlanacak · yarın 03:41'),
+        findsOneWidget,
+      );
+      expect(tester.widget<Switch>(find.byType(Switch)).value, isFalse);
+    });
+
+    testWidgets('Anahtari kapatmak dogru kayitla callback tetikler', (
+      tester,
+    ) async {
+      SkippedOccurrence? received;
+      bool? skipped;
 
       await pumpCard(
         tester,
-        alarm: (
-          alarm: const Alarm(
-            id: 'a',
-            kind: AlarmKind.fixed,
-            hour: 6,
-            minute: 30,
-          ),
-          time: DateTime(2026, 8, 4, 6, 30),
-        ),
-        onAlarmToggled: (_, value) => toggled = value,
+        alarm: (alarm: sahur, time: alarmAt),
+        onSkipChanged: (occurrence, value) {
+          received = occurrence;
+          skipped = value;
+        },
       );
 
       await tester.tap(find.byType(Switch));
-      expect(toggled, isFalse);
+
+      expect(skipped, isTrue);
+      expect(received, alarmSkip());
+    });
+
+    testWidgets('Atlanmis satirda anahtari acmak geri alir', (tester) async {
+      bool? skipped;
+
+      await pumpCard(
+        tester,
+        alarm: (alarm: sahur, time: alarmAt),
+        skips: {alarmSkip()},
+        onSkipChanged: (_, value) => skipped = value,
+      );
+
+      await tester.tap(find.byType(Switch));
+
+      expect(skipped, isFalse);
     });
   });
 }

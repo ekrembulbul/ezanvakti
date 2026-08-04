@@ -1,7 +1,9 @@
 import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/theme/day_phase.dart';
 import 'package:ezanvakti/core/utils/app_logger.dart';
+import 'package:ezanvakti/core/models/skipped_occurrence.dart';
 import 'package:ezanvakti/features/notifications/domain/notification_settings_manager.dart';
+import 'package:ezanvakti/features/notifications/domain/skip_manager.dart';
 import 'package:ezanvakti/features/prayer_times/domain/prayer_times_repository.dart';
 import 'package:ezanvakti/presentation/services/data_loader_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -28,6 +30,7 @@ void main() {
       ),
       notificationService: FakeNotificationService(),
       settingsManager: NotificationSettingsManager(storage: storage),
+      skipManager: SkipManager(storage: storage),
       logger: AppLogger(),
     );
   }
@@ -77,5 +80,22 @@ void main() {
       resolveDayPhase(today: null, tomorrow: null, now: betweenDhuhrAndAsr),
       fallbackDayPhase,
     );
+  });
+
+  test('Suresi gecmis atlama kaydi yuklemede elenir', () async {
+    final storage = FakeStorage();
+    await storage.init();
+    await storage.saveSkippedOccurrences([
+      SkippedOccurrence(
+        kind: SkipKind.alarm,
+        reference: 'eski',
+        fireAt: DateTime(2020, 1, 1),
+      ),
+    ]);
+    final loader = buildLoader(storage, FakeProvider());
+
+    final data = await loader.loadPrayerData(location);
+
+    expect(data.skips, isEmpty);
   });
 }

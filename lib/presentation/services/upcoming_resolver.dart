@@ -5,7 +5,15 @@ import '../../core/utils/prayer_utils.dart';
 import '../../features/alarms/domain/alarm_scheduler.dart';
 
 /// Ana ekrandaki "SIRADAKİ" kartının bir satırı: bildirim.
-typedef UpcomingNotification = ({NotificationSetting setting, DateTime time});
+///
+/// [prayerDate] vaktin günü — [time] ise tetiklenme anı. Sapmalı bildirimde
+/// ikisi farklı güne düşebilir; atlama kimliği **vaktin gününden** üretildiği
+/// için (planlayıcıyla aynı kural) ayrıca taşınır.
+typedef UpcomingNotification = ({
+  NotificationSetting setting,
+  DateTime prayerDate,
+  DateTime time,
+});
 
 /// Ana ekrandaki "SIRADAKİ" kartının bir satırı: alarm.
 typedef UpcomingAlarm = ({Alarm alarm, DateTime time});
@@ -32,7 +40,7 @@ UpcomingNotification? resolveNextNotification({
       if (!fireAt.isAfter(now)) continue;
 
       if (earliest == null || fireAt.isBefore(earliest.time)) {
-        earliest = (setting: setting, time: fireAt);
+        earliest = (setting: setting, prayerDate: day.date, time: fireAt);
       }
     }
   }
