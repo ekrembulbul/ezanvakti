@@ -145,6 +145,23 @@ void main() {
       await tester.tap(find.byIcon(Icons.settings_rounded));
       expect(opened, isTrue);
     });
+
+    testWidgets('Ayarlar ikonu cubugun sag kenarina yaslanir', (tester) async {
+      await tester.pumpWidget(
+        wrapWithTheme(
+          const HomeTopBar(
+            locationName: 'Ankara, Ankara',
+            onLocationTap: null,
+            onSettingsTap: _noop,
+          ),
+        ),
+      );
+
+      final bar = tester.getRect(find.byType(HomeTopBar));
+      final gear = tester.getRect(find.byIcon(Icons.settings_rounded));
+
+      expect(gear.right, moreOrLessEquals(bar.right, epsilon: 0.5));
+    });
   });
 
   group('HomeDateLine', () {
@@ -158,3 +175,5 @@ void main() {
     });
   });
 }
+
+void _noop() {}

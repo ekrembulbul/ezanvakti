@@ -37,6 +37,10 @@ class HomeTopBar extends StatelessWidget {
       child: Stack(
         children: [
           Row(
+            // `Spacer` yerine spaceBetween: Spacer da flex:1 oldugu icin bos
+            // alani konum etiketiyle yariya bolup ayarlar ikonunu sagdan
+            // iceri kaydiriyordu.
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Flexible(
                 child: GestureDetector(
@@ -65,7 +69,6 @@ class HomeTopBar extends StatelessWidget {
                   ),
                 ),
               ),
-              const Spacer(),
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: onSettingsTap,
