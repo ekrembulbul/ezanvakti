@@ -4,6 +4,11 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.3.3] - 2026-08-04
+
+### Düzeltildi
+- İl merkezlerinde konum adı "Ankara, Ankara" gibi iki kez yazılıyordu; tekrar eden ad artık tek kez gösteriliyor. Kayıtlı konumlar da kendiliğinden düzelir.
+
 ## [0.3.2] - 2026-08-04
 
 ### Değiştirildi
