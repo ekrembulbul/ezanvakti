@@ -31,13 +31,14 @@ void main() {
     onChanged: (_) {},
   );
 
-  testWidgets('renkli kapsayicinin dogrudan cocugu olan SwitchListTile hata atar', (
-    tester,
-  ) async {
-    await tester.pumpWidget(_wrap(tile));
+  testWidgets(
+    'renkli kapsayicinin dogrudan cocugu olan SwitchListTile hata atar',
+    (tester) async {
+      await tester.pumpWidget(_wrap(tile));
 
-    expect(tester.takeException(), isA<FlutterError>());
-  });
+      expect(tester.takeException(), isA<FlutterError>());
+    },
+  );
 
   testWidgets('transparent Material ile sarilmis SwitchListTile hata atmaz', (
     tester,

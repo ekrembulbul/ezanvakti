@@ -35,10 +35,7 @@ void main() {
       final provider = AwqatSalahProvider(httpClient: mockClient);
 
       await expectLater(
-        provider.fetchDailyPrayerTime(
-          location: testLocation,
-          date: testDate,
-        ),
+        provider.fetchDailyPrayerTime(location: testLocation, date: testDate),
         throwsA(isA<ParseException>()),
       );
     });
@@ -50,10 +47,7 @@ void main() {
       final provider = AwqatSalahProvider(httpClient: mockClient);
 
       await expectLater(
-        provider.fetchDailyPrayerTime(
-          location: testLocation,
-          date: testDate,
-        ),
+        provider.fetchDailyPrayerTime(location: testLocation, date: testDate),
         throwsA(isA<ParseException>()),
       );
     });
@@ -65,10 +59,7 @@ void main() {
       final provider = AwqatSalahProvider(httpClient: mockClient);
 
       await expectLater(
-        provider.fetchDailyPrayerTime(
-          location: testLocation,
-          date: testDate,
-        ),
+        provider.fetchDailyPrayerTime(location: testLocation, date: testDate),
         throwsA(isA<ParseException>()),
       );
     });
@@ -95,10 +86,7 @@ void main() {
       final provider = AwqatSalahProvider(httpClient: mockClient);
 
       await expectLater(
-        provider.fetchDailyPrayerTime(
-          location: testLocation,
-          date: testDate,
-        ),
+        provider.fetchDailyPrayerTime(location: testLocation, date: testDate),
         throwsA(isA<ParseException>()),
       );
     });
@@ -125,10 +113,7 @@ void main() {
       final provider = AwqatSalahProvider(httpClient: mockClient);
 
       await expectLater(
-        provider.fetchDailyPrayerTime(
-          location: testLocation,
-          date: testDate,
-        ),
+        provider.fetchDailyPrayerTime(location: testLocation, date: testDate),
         throwsA(isA<ParseException>()),
       );
     });

@@ -1,5 +1,6 @@
 import 'package:ezanvakti/core/models/alarm.dart';
-import 'package:ezanvakti/core/models/notification_setting.dart' show PrayerType;
+import 'package:ezanvakti/core/models/notification_setting.dart'
+    show PrayerType;
 import 'package:ezanvakti/presentation/screens/alarms_screen.dart';
 import 'package:flutter_test/flutter_test.dart';
 

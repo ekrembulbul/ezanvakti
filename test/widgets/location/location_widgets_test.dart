@@ -82,7 +82,11 @@ void main() {
     await tester.pumpWidget(
       wrapWithTheme(
         const LocationSelectionConfirm(
-          location: Location(id: '1', province: 'İstanbul', district: 'Kadıköy'),
+          location: Location(
+            id: '1',
+            province: 'İstanbul',
+            district: 'Kadıköy',
+          ),
         ),
       ),
     );

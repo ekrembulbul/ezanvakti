@@ -57,27 +57,30 @@ void main() {
     type: LocationType.gps,
   );
 
-  test('GPS konum degisimi LocationService.changeLocation uzerinden gider', () async {
-    final monitor = _FakeMonitorService();
-    final service = _SpyLocationService();
-    final seen = <Location>[];
+  test(
+    'GPS konum degisimi LocationService.changeLocation uzerinden gider',
+    () async {
+      final monitor = _FakeMonitorService();
+      final service = _SpyLocationService();
+      final seen = <Location>[];
 
-    final controller = LocationMonitorController(
-      monitorService: monitor,
-      locationService: service,
-      logger: AppLogger(),
-      onLocationChanged: seen.add,
-    );
+      final controller = LocationMonitorController(
+        monitorService: monitor,
+        locationService: service,
+        logger: AppLogger(),
+        onLocationChanged: seen.add,
+      );
 
-    await controller.startMonitoring(gpsLocation);
-    monitor.emit(movedLocation);
-    await Future<void>.delayed(Duration.zero);
+      await controller.startMonitoring(gpsLocation);
+      monitor.emit(movedLocation);
+      await Future<void>.delayed(Duration.zero);
 
-    expect(service.changed, [movedLocation]);
-    expect(seen, [movedLocation]);
+      expect(service.changed, [movedLocation]);
+      expect(seen, [movedLocation]);
 
-    await controller.stopMonitoring();
-  });
+      await controller.stopMonitoring();
+    },
+  );
 
   test('GPS olmayan aktif konumda izleme baslatilmaz', () async {
     final monitor = _FakeMonitorService();

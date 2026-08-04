@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ezanvakti/core/models/alarm.dart';
-import 'package:ezanvakti/core/models/notification_setting.dart' show PrayerType;
+import 'package:ezanvakti/core/models/notification_setting.dart'
+    show PrayerType;
 import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/core/interfaces/alarm_service.dart';
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
@@ -153,13 +154,15 @@ void main() {
     test('cancels all then schedules only active alarms', () async {
       final storage = _FakeStorage([
         const Alarm(id: 'on', kind: AlarmKind.fixed, hour: 23, isActive: true),
-        const Alarm(id: 'off', kind: AlarmKind.fixed, hour: 23, isActive: false),
+        const Alarm(
+          id: 'off',
+          kind: AlarmKind.fixed,
+          hour: 23,
+          isActive: false,
+        ),
       ]);
       final service = _MockAlarmService();
-      final scheduler = AlarmScheduler(
-        alarmService: service,
-        storage: storage,
-      );
+      final scheduler = AlarmScheduler(alarmService: service, storage: storage);
 
       await scheduler.scheduleAlarms(prayerTimes: const []);
 
@@ -170,10 +173,7 @@ void main() {
     test('empty alarms still cancels all (clears stale)', () async {
       final storage = _FakeStorage([]);
       final service = _MockAlarmService();
-      final scheduler = AlarmScheduler(
-        alarmService: service,
-        storage: storage,
-      );
+      final scheduler = AlarmScheduler(alarmService: service, storage: storage);
 
       await scheduler.scheduleAlarms(prayerTimes: const []);
 
@@ -191,8 +191,7 @@ class _FakeStorage implements LocalStorage {
   Future<List<Alarm>> getAlarms() async => alarms;
 
   @override
-  dynamic noSuchMethod(Invocation invocation) =>
-      super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _MockAlarmService implements AlarmService {
@@ -216,6 +215,5 @@ class _MockAlarmService implements AlarmService {
   }
 
   @override
-  dynamic noSuchMethod(Invocation invocation) =>
-      super.noSuchMethod(invocation);
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

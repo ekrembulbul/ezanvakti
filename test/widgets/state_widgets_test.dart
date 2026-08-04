@@ -75,7 +75,10 @@ void main() {
 
     expect(find.byIcon(Icons.alarm_off_rounded), findsOneWidget);
     expect(find.text('Henüz alarm yok'), findsOneWidget);
-    expect(find.text('Sabit saatli veya vakte göre alarm ekle'), findsOneWidget);
+    expect(
+      find.text('Sabit saatli veya vakte göre alarm ekle'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('EmptyState eylem verilince cizer', (tester) async {
@@ -95,18 +98,19 @@ void main() {
     expect(find.text('Konum Ekle'), findsOneWidget);
   });
 
-  testWidgets('Durum widget lari renk sabiti yazmaz — metinler token renginde', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      wrapWithTheme(
-        const EmptyState(icon: Icons.alarm_off_rounded, message: 'Boş'),
-      ),
-    );
+  testWidgets(
+    'Durum widget lari renk sabiti yazmaz — metinler token renginde',
+    (tester) async {
+      await tester.pumpWidget(
+        wrapWithTheme(
+          const EmptyState(icon: Icons.alarm_off_rounded, message: 'Boş'),
+        ),
+      );
 
-    final tokens = tokensFor();
-    final message = tester.widget<Text>(find.text('Boş'));
+      final tokens = tokensFor();
+      final message = tester.widget<Text>(find.text('Boş'));
 
-    expect(message.style!.color, tokens.textPrimary);
-  });
+      expect(message.style!.color, tokens.textPrimary);
+    },
+  );
 }

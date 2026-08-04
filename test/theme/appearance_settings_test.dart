@@ -3,13 +3,16 @@ import 'package:ezanvakti/core/theme/day_phase.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('Varsayilanlar: koyu tema, vakte gore renk acik, sabit palet evening', () {
-    const settings = AppearanceSettings();
+  test(
+    'Varsayilanlar: koyu tema, vakte gore renk acik, sabit palet evening',
+    () {
+      const settings = AppearanceSettings();
 
-    expect(settings.themeMode, AppThemeMode.dark);
-    expect(settings.timeBasedColor, isTrue);
-    expect(settings.fixedPalette, DayPhase.evening);
-  });
+      expect(settings.themeMode, AppThemeMode.dark);
+      expect(settings.timeBasedColor, isTrue);
+      expect(settings.fixedPalette, DayPhase.evening);
+    },
+  );
 
   test('toMap/fromMap gidis donusu degeri korur', () {
     const original = AppearanceSettings(

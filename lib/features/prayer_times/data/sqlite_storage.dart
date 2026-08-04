@@ -9,6 +9,7 @@ import '../../../core/models/alarm.dart';
 import '../../../core/models/calculation_params.dart';
 import '../../../core/models/calculation_settings.dart';
 import '../../../core/models/appearance_settings.dart';
+import '../../../core/models/skipped_occurrence.dart';
 import '../../../core/exceptions/parse_exception.dart';
 import '../../../core/utils/app_logger.dart';
 
@@ -490,6 +491,42 @@ class SqliteStorage implements LocalStorage {
       }, conflictAlgorithm: ConflictAlgorithm.replace);
     });
     await batch.commit(noResult: true);
+  }
+
+  /// Atlama listesi `settings` tablosunda tek satırda, JSON dizi olarak durur.
+  static const String _skippedOccurrencesKey = 'skipped_occurrences';
+
+  @override
+  Future<List<SkippedOccurrence>> getSkippedOccurrences() async {
+    final db = await database;
+    final rows = await db.query(
+      'settings',
+      where: 'key = ?',
+      whereArgs: [_skippedOccurrencesKey],
+    );
+    if (rows.isEmpty) return [];
+
+    // Bozuk kayıt uygulamayı açılmaz hale getirmemeli; atlamasız devam edilir.
+    try {
+      final decoded = jsonDecode(rows.first['value'] as String) as List;
+      return decoded
+          .map((e) => SkippedOccurrence.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      AppLogger().warning('Atlama listesi okunamadi, bos kabul edildi', e);
+      return [];
+    }
+  }
+
+  @override
+  Future<void> saveSkippedOccurrences(
+    List<SkippedOccurrence> occurrences,
+  ) async {
+    final db = await database;
+    await db.insert('settings', {
+      'key': _skippedOccurrencesKey,
+      'value': jsonEncode([for (final o in occurrences) o.toJson()]),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<void> updateNotificationSetting(NotificationSetting setting) async {

@@ -87,7 +87,10 @@ void main() {
         wrapWithTheme(
           GroupedList(
             children: [
-              GroupedRow(title: const Text('Sahur'), onTap: () => tapped = true),
+              GroupedRow(
+                title: const Text('Sahur'),
+                onTap: () => tapped = true,
+              ),
             ],
           ),
         ),

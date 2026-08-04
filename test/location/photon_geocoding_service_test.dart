@@ -88,18 +88,21 @@ void main() {
       expect(client.callCount, equals(0));
     });
 
-    test('Sends a descriptive User-Agent, not the blocked Dart default', () async {
-      final client = FakeHttpClient(body: _validResponse);
-      final service = PhotonGeocodingService(httpClient: client);
+    test(
+      'Sends a descriptive User-Agent, not the blocked Dart default',
+      () async {
+        final client = FakeHttpClient(body: _validResponse);
+        final service = PhotonGeocodingService(httpClient: client);
 
-      await service.search('kadik');
+        await service.search('kadik');
 
-      // http header anahtarlarini kucuk harfe normalize eder.
-      final userAgent = client.lastHeaders!['user-agent'];
-      expect(userAgent, isNotNull);
-      expect(userAgent, contains('EzanVakti'));
-      expect(userAgent, isNot(contains('Dart/')));
-    });
+        // http header anahtarlarini kucuk harfe normalize eder.
+        final userAgent = client.lastHeaders!['user-agent'];
+        expect(userAgent, isNotNull);
+        expect(userAgent, contains('EzanVakti'));
+        expect(userAgent, isNot(contains('Dart/')));
+      },
+    );
 
     test('Bias coordinates are added to the request URL', () async {
       final client = FakeHttpClient(body: _validResponse);

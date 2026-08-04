@@ -74,9 +74,7 @@ void main() {
   });
 
   testWidgets('Aktif vakit yoksa hicbiri vurgulanmaz', (tester) async {
-    await tester.pumpWidget(
-      wrapWithTheme(_grid(DateTime(2026, 8, 2, 3, 0))),
-    );
+    await tester.pumpWidget(wrapWithTheme(_grid(DateTime(2026, 8, 2, 3, 0))));
 
     final tokens = tokensFor();
     for (final time in ['04:08', '22:04']) {

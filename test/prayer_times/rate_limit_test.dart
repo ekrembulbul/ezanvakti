@@ -19,10 +19,7 @@ class CountingHttpClient extends http.BaseClient {
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     if (request.url.path.contains('/calendar')) calendarCount++;
     if (request.url.path.contains('/timings')) timingsCount++;
-    return http.StreamedResponse(
-      Stream.value(utf8.encode('{}')),
-      statusCode,
-    );
+    return http.StreamedResponse(Stream.value(utf8.encode('{}')), statusCode);
   }
 }
 

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ezanvakti/core/models/skipped_occurrence.dart';
 import 'package:ezanvakti/core/interfaces/prayer_time_provider.dart';
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
 import 'package:ezanvakti/core/models/alarm.dart';
@@ -153,7 +154,6 @@ class MockPrayerTimeProvider implements PrayerTimeProvider {
 }
 
 class MockLocalStorage implements LocalStorage {
-
   @override
   Future<AppearanceSettings> getAppearanceSettings() async =>
       const AppearanceSettings();
@@ -357,6 +357,19 @@ class MockLocalStorage implements LocalStorage {
   }
 
   final List<Alarm> _alarms = [];
+  List<SkippedOccurrence> _skippedOccurrences = [];
+
+  @override
+  Future<List<SkippedOccurrence>> getSkippedOccurrences() async =>
+      List.of(_skippedOccurrences);
+
+  @override
+  Future<void> saveSkippedOccurrences(
+    List<SkippedOccurrence> occurrences,
+  ) async {
+    _skippedOccurrences = List.of(occurrences);
+  }
+
   @override
   Future<List<Alarm>> getAlarms() async => List.from(_alarms);
   @override
@@ -364,6 +377,7 @@ class MockLocalStorage implements LocalStorage {
     _alarms.removeWhere((a) => a.id == alarm.id);
     _alarms.add(alarm);
   }
+
   @override
   Future<void> deleteAlarm(String id) async {
     _alarms.removeWhere((a) => a.id == id);

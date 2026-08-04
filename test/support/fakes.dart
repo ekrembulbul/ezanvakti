@@ -1,3 +1,4 @@
+import 'package:ezanvakti/core/models/skipped_occurrence.dart';
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
 import 'package:ezanvakti/core/interfaces/notification_service.dart';
 import 'package:ezanvakti/core/interfaces/prayer_time_provider.dart';
@@ -224,6 +225,19 @@ class FakeStorage implements LocalStorage {
 
   @override
   Future<DateTime?> getLastUpdateTime() async => _lastUpdate;
+
+  List<SkippedOccurrence> _skippedOccurrences = [];
+
+  @override
+  Future<List<SkippedOccurrence>> getSkippedOccurrences() async =>
+      List.of(_skippedOccurrences);
+
+  @override
+  Future<void> saveSkippedOccurrences(
+    List<SkippedOccurrence> occurrences,
+  ) async {
+    _skippedOccurrences = List.of(occurrences);
+  }
 
   @override
   Future<List<Alarm>> getAlarms() async => List.of(_alarms);

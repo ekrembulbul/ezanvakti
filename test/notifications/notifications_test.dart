@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ezanvakti/core/models/skipped_occurrence.dart';
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
 import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/core/models/calculation_settings.dart';
@@ -12,7 +13,6 @@ import 'package:ezanvakti/features/notifications/domain/notification_settings_ma
 import 'package:ezanvakti/features/notifications/domain/default_notification_settings.dart';
 
 class MockLocalStorage implements LocalStorage {
-
   @override
   Future<AppearanceSettings> getAppearanceSettings() async =>
       const AppearanceSettings();
@@ -184,6 +184,19 @@ class MockLocalStorage implements LocalStorage {
   }
 
   final List<Alarm> _alarms = [];
+  List<SkippedOccurrence> _skippedOccurrences = [];
+
+  @override
+  Future<List<SkippedOccurrence>> getSkippedOccurrences() async =>
+      List.of(_skippedOccurrences);
+
+  @override
+  Future<void> saveSkippedOccurrences(
+    List<SkippedOccurrence> occurrences,
+  ) async {
+    _skippedOccurrences = List.of(occurrences);
+  }
+
   @override
   Future<List<Alarm>> getAlarms() async => List.from(_alarms);
   @override
@@ -191,6 +204,7 @@ class MockLocalStorage implements LocalStorage {
     _alarms.removeWhere((a) => a.id == alarm.id);
     _alarms.add(alarm);
   }
+
   @override
   Future<void> deleteAlarm(String id) async {
     _alarms.removeWhere((a) => a.id == id);
@@ -830,43 +844,45 @@ void main() {
       }
     });
 
-    test('Empty settings still cancels previously scheduled notifications',
-        () async {
-      // Daha once OS'a zamanlanmis bir bildirim olsun (kullanici silmeden once
-      // varsayilanlarin planladigi gibi).
-      await notificationService.scheduleNotification(
-        id: '12345',
-        scheduledTime: DateTime.now().add(const Duration(hours: 1)),
-        title: 'Eski',
-        body: 'Eski bildirim',
-      );
-      expect(notificationService.scheduledNotifications, isNotEmpty);
+    test(
+      'Empty settings still cancels previously scheduled notifications',
+      () async {
+        // Daha once OS'a zamanlanmis bir bildirim olsun (kullanici silmeden once
+        // varsayilanlarin planladigi gibi).
+        await notificationService.scheduleNotification(
+          id: '12345',
+          scheduledTime: DateTime.now().add(const Duration(hours: 1)),
+          title: 'Eski',
+          body: 'Eski bildirim',
+        );
+        expect(notificationService.scheduledNotifications, isNotEmpty);
 
-      // Ayar listesi bos (kullanici hepsini sildi); storage'a hic ayar kaydedilmedi.
-      final now = DateTime.now();
-      final today = DateTime(now.year, now.month, now.day);
-      final prayerTimes = [
-        PrayerTime(
-          fajr: DateTime(today.year, today.month, today.day, 5, 30),
-          sunrise: DateTime(today.year, today.month, today.day, 7, 0),
-          dhuhr: DateTime(today.year, today.month, today.day, 13, 15),
-          asr: DateTime(today.year, today.month, today.day, 16, 30),
-          maghrib: DateTime(today.year, today.month, today.day, 19, 0),
-          isha: DateTime(today.year, today.month, today.day, 20, 30),
-          date: today.add(const Duration(days: 1)),
-        ),
-      ];
+        // Ayar listesi bos (kullanici hepsini sildi); storage'a hic ayar kaydedilmedi.
+        final now = DateTime.now();
+        final today = DateTime(now.year, now.month, now.day);
+        final prayerTimes = [
+          PrayerTime(
+            fajr: DateTime(today.year, today.month, today.day, 5, 30),
+            sunrise: DateTime(today.year, today.month, today.day, 7, 0),
+            dhuhr: DateTime(today.year, today.month, today.day, 13, 15),
+            asr: DateTime(today.year, today.month, today.day, 16, 30),
+            maghrib: DateTime(today.year, today.month, today.day, 19, 0),
+            isha: DateTime(today.year, today.month, today.day, 20, 30),
+            date: today.add(const Duration(days: 1)),
+          ),
+        ];
 
-      notificationService.cancelAllCallCount = 0;
-      await scheduler.scheduleNotifications(
-        location: testLocation,
-        prayerTimes: prayerTimes,
-      );
+        notificationService.cancelAllCallCount = 0;
+        await scheduler.scheduleNotifications(
+          location: testLocation,
+          prayerTimes: prayerTimes,
+        );
 
-      // Bos ayarda bile cancelAll cagrilmali; eski bildirimler temizlenmeli.
-      expect(notificationService.cancelAllCallCount, equals(1));
-      expect(notificationService.scheduledNotifications, isEmpty);
-    });
+        // Bos ayarda bile cancelAll cagrilmali; eski bildirimler temizlenmeli.
+        expect(notificationService.cancelAllCallCount, equals(1));
+        expect(notificationService.scheduledNotifications, isEmpty);
+      },
+    );
 
     test('Schedules notifications for active settings', () async {
       final tomorrow = DateTime.now().add(const Duration(days: 1));

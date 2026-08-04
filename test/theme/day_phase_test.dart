@@ -90,16 +90,19 @@ void main() {
       );
     });
 
-    test('Sinir anlari bir sonraki dilime ait: tam Ogle vaktinde afternoon', () {
-      expect(
-        resolveDayPhase(
-          today: today,
-          tomorrow: tomorrow,
-          now: DateTime(2026, 8, 1, 13, 0),
-        ),
-        DayPhase.afternoon,
-      );
-    });
+    test(
+      'Sinir anlari bir sonraki dilime ait: tam Ogle vaktinde afternoon',
+      () {
+        expect(
+          resolveDayPhase(
+            today: today,
+            tomorrow: tomorrow,
+            now: DateTime(2026, 8, 1, 13, 0),
+          ),
+          DayPhase.afternoon,
+        );
+      },
+    );
 
     test('Tam Imsak vaktinde morning', () {
       expect(

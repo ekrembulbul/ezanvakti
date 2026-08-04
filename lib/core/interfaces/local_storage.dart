@@ -4,6 +4,7 @@ import '../models/notification_setting.dart';
 import '../models/calculation_settings.dart';
 import '../models/appearance_settings.dart';
 import '../models/alarm.dart';
+import '../models/skipped_occurrence.dart';
 
 abstract class LocalStorage {
   Future<void> init();
@@ -77,6 +78,15 @@ abstract class LocalStorage {
   Future<void> saveLastUpdateTime(DateTime time);
 
   Future<DateTime?> getLastUpdateTime();
+
+  /// "Yalnızca bu sefer" atlanmış bildirim/alarm örnekleri.
+  ///
+  /// `settings` tablosunda tek anahtarda JSON liste olarak tutulur; aynı anda
+  /// en fazla birkaç kayıt olduğu için ayrı tablo açılmadı.
+  Future<List<SkippedOccurrence>> getSkippedOccurrences();
+
+  /// Atlama listesinin tamamını değiştirir.
+  Future<void> saveSkippedOccurrences(List<SkippedOccurrence> occurrences);
 
   /// Kayıtlı tüm alarmları döner.
   Future<List<Alarm>> getAlarms();

@@ -38,10 +38,7 @@ PrayerTime _day(int day) {
   );
 }
 
-ThemeController _controller(
-  _InMemoryStorage storage, {
-  DateTime? now,
-}) {
+ThemeController _controller(_InMemoryStorage storage, {DateTime? now}) {
   return ThemeController(
     storage: storage,
     clock: () => now ?? DateTime(2026, 8, 1, 9, 0),
