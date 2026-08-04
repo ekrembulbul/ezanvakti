@@ -25,9 +25,9 @@ class SlideToStopView @JvmOverloads constructor(
 ) : FrameLayout(context, attrs) {
 
     private companion object {
-        const val THUMB_SIZE_DP = 52f
-        const val THUMB_INSET_DP = 4f
-        const val ICON_SIZE_DP = 26f
+        const val THUMB_SIZE_DP = 88f
+        const val THUMB_INSET_DP = 6f
+        const val ICON_SIZE_DP = 40f
         const val TRACK_FILL_ALPHA = 0.12f
         const val TRACK_BORDER_ALPHA = 0.25f
 
@@ -38,6 +38,10 @@ class SlideToStopView @JvmOverloads constructor(
         const val LABEL_FADE_FACTOR = 2.0f
 
         const val SETTLE_DURATION_MS = 160L
+
+        /** Etiket bu aralıkta kalan genişliğe göre kendini ölçekler. */
+        const val LABEL_MIN_SP = 12
+        const val LABEL_MAX_SP = 18
     }
 
     private val label = TextView(context)
@@ -53,10 +57,16 @@ class SlideToStopView @JvmOverloads constructor(
 
     init {
         label.gravity = Gravity.CENTER
+        label.maxLines = 1
         addView(
             label,
             LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT).apply {
                 gravity = Gravity.CENTER
+                // İki yandan tokmak kadar pay: etiket yatağın ortasında
+                // kalır (sağa kaymaz) ve tokmağın altına hiç girmez. Sığmayan
+                // metni aşağıdaki otomatik ölçek küçültür.
+                marginStart = dp(THUMB_SIZE_DP + THUMB_INSET_DP * 2).toInt()
+                marginEnd = dp(THUMB_SIZE_DP + THUMB_INSET_DP * 2).toInt()
             },
         )
 
@@ -84,7 +94,15 @@ class SlideToStopView @JvmOverloads constructor(
 
         label.text = text
         label.setTextColor(theme.textSecondary)
-        label.textSize = 15f
+        // Sabit punto, uzun metinde ("Kapatmak için kaydır") dar ekranlarda
+        // kırpılıyordu; boyut kalan genişliğe göre kendisi küçülsün.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            label.setAutoSizeTextTypeUniformWithConfiguration(
+                LABEL_MIN_SP, LABEL_MAX_SP, 1, android.util.TypedValue.COMPLEX_UNIT_SP,
+            )
+        } else {
+            label.textSize = LABEL_MIN_SP.toFloat()
+        }
         if (typeface != null) {
             label.typeface = typeface
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

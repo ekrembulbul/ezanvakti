@@ -26,7 +26,7 @@ class AlarmRingActivity : Activity() {
         /** Flutter varlıkları APK içinde bu önek altında paketlenir. */
         const val MANROPE_ASSET = "flutter_assets/assets/fonts/Manrope-Variable.ttf"
 
-        const val SNOOZE_RADIUS_DP = 30f
+        const val SNOOZE_RADIUS_DP = 50f
 
         /** Açık zeminde koyu durum çubuğu simgeleri gerekir. */
         const val LIGHT_BACKGROUND_LUMINANCE = 0.5

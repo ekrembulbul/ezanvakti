@@ -14,6 +14,14 @@
 		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 		<key>CFBundleInfoDictionaryVersion</key>
 		<string>6.0</string>
+		<!-- Uygulama tamamen Türkçe. Bu liste olmadan iOS, uygulama adına
+		     çizdiği sistem metinlerini (AlarmKit uyarısındaki "slide to stop"
+		     gibi) geliştirme diline, yani İngilizce'ye düşürüyor. -->
+		<key>CFBundleLocalizations</key>
+		<array>
+			<string>tr</string>
+			<string>en</string>
+		</array>
 		<key>CFBundleName</key>
 		<string>Ezan Vakti</string>
 		<key>CFBundlePackageType</key>
