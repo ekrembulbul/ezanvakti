@@ -1,3 +1,5 @@
+import '../models/alarm_theme.dart';
+
 /// Sesli/kalıcı alarmların native teslim katmanı.
 ///
 /// Bildirimlerden ayrıdır: alarm kapatılana kadar çalar, (platform destekliyorsa)
@@ -16,6 +18,9 @@ abstract class AlarmService {
 
   /// Tek seferlik bir alarmı [scheduledTime] anında çalacak şekilde planlar.
   /// Aynı [id] ile tekrar çağrı, öncekini değiştirir.
+  ///
+  /// [theme] çalar ekranının renkleridir; alarmın çalacağı anın dilimine göre
+  /// planlama sırasında hesaplanır.
   Future<void> scheduleAlarm({
     required String id,
     required DateTime scheduledTime,
@@ -24,6 +29,7 @@ abstract class AlarmService {
     required bool vibrate,
     required bool snoozeEnabled,
     required int snoozeMinutes,
+    required AlarmTheme theme,
   });
 
   Future<void> cancelAlarm(String id);

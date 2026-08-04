@@ -1,33 +1,94 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Renkler burada değil, AlarmRingActivity içinde paletten atanır: zemin
+     gradyanı, vurgu ve metin renkleri alarmın çalacağı anın dilimine göre
+     değişiyor. Ölçüler uygulamanın tasarım diliyle aynı (buton r14/h56,
+     tipografi 62/20/11 basamakları). -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/alarm_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:background="#0B1526"
-    android:padding="24dp">
+    android:fitsSystemWindows="true">
 
-    <TextView
-        android:id="@+id/alarm_title"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Ezan Vakti &amp; Alarm"
-        android:textColor="#FFFFFF"
-        android:textSize="26sp"
-        android:textStyle="bold"
-        android:gravity="center"
-        android:layout_marginBottom="48dp" />
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:paddingStart="32dp"
+        android:paddingEnd="32dp">
 
-    <Button
-        android:id="@+id/alarm_dismiss"
-        android:layout_width="240dp"
-        android:layout_height="wrap_content"
-        android:text="@string/alarm_dismiss"
-        android:layout_marginBottom="16dp" />
+        <FrameLayout
+            android:id="@+id/alarm_badge"
+            android:layout_width="60dp"
+            android:layout_height="60dp">
 
-    <Button
-        android:id="@+id/alarm_snooze"
-        android:layout_width="240dp"
+            <ImageView
+                android:id="@+id/alarm_icon"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_alarm_bell"
+                android:importantForAccessibility="no" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/alarm_kicker"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:text="@string/alarm_kicker"
+            android:textSize="11sp"
+            android:letterSpacing="0.16" />
+
+        <TextView
+            android:id="@+id/alarm_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:textSize="62sp"
+            android:letterSpacing="-0.045"
+            android:includeFontPadding="false" />
+
+        <TextView
+            android:id="@+id/alarm_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:textSize="20sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/alarm_snooze" />
-</LinearLayout>
+        android:layout_gravity="bottom"
+        android:orientation="vertical"
+        android:paddingStart="32dp"
+        android:paddingEnd="32dp"
+        android:paddingBottom="44dp">
+
+        <TextView
+            android:id="@+id/alarm_dismiss"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:gravity="center"
+            android:text="@string/alarm_dismiss"
+            android:textSize="16sp"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            android:id="@+id/alarm_snooze"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="12dp"
+            android:gravity="center"
+            android:text="@string/alarm_snooze"
+            android:textSize="16sp"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
+</FrameLayout>

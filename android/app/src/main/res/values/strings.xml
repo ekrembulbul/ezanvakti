@@ -3,4 +3,6 @@
     <string name="alarm_dismiss">Kapat</string>
     <string name="alarm_snooze">Ertele</string>
     <string name="alarm_snooze_minutes">%d dk ertele</string>
+    <string name="alarm_kicker">ALARM</string>
+    <string name="alarm_default_label">Ezan Vakti &amp; Alarm</string>
 </resources>

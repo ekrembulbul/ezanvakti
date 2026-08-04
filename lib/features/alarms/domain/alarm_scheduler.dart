@@ -1,9 +1,11 @@
 import '../../../core/interfaces/alarm_service.dart';
 import '../../../core/interfaces/local_storage.dart';
 import '../../../core/models/alarm.dart';
+import '../../../core/models/alarm_theme.dart';
 import '../../../core/models/notification_setting.dart' show PrayerType;
 import '../../../core/models/prayer_time.dart';
 import '../../../core/models/skipped_occurrence.dart';
+import '../../../core/theme/day_phase.dart';
 import '../../notifications/domain/skip_rules.dart';
 import '../../../core/utils/app_logger.dart';
 
@@ -60,11 +62,28 @@ class AlarmScheduler {
           vibrate: alarm.vibrate,
           snoozeEnabled: alarm.snoozeEnabled,
           snoozeMinutes: alarm.snoozeMinutes,
+          theme: themeForFire(fire, byDate),
         );
       } catch (e) {
         _logger.warning('Alarm planlanamadı (id: ${alarm.id})', e);
       }
     }
+  }
+
+  /// Çalar ekranın paleti: alarmın çalacağı **anın** dilimi belirler, planlama
+  /// anınınki değil. Sabah 05:00'te çalan alarm ÇİVİT, yatsıdan sonra çalan
+  /// SÜMBÜL ile açılır. O günün vakitleri elde yoksa fallback palete düşer.
+  static AlarmTheme themeForFire(
+    DateTime fire,
+    Map<DateTime, PrayerTime> prayerTimesByDate,
+  ) {
+    final day = _dateKey(fire);
+    final phase = resolveDayPhase(
+      today: prayerTimesByDate[day],
+      tomorrow: prayerTimesByDate[DateTime(day.year, day.month, day.day + 1)],
+      now: fire,
+    );
+    return AlarmTheme.forPhase(phase);
   }
 
   /// [now]'dan sonraki ilk geçerli tetiklenme anını döner; [searchDays] gün

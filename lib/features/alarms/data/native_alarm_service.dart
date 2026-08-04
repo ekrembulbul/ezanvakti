@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 
 import '../../../core/interfaces/alarm_service.dart';
+import '../../../core/models/alarm_theme.dart';
 
 /// Native alarm modülüyle (Android: AlarmManager + tam ekran çalar; iOS 26+:
 /// AlarmKit) tek bir platform channel üzerinden konuşan [AlarmService].
@@ -39,6 +40,7 @@ class NativeAlarmService implements AlarmService {
     required bool vibrate,
     required bool snoozeEnabled,
     required int snoozeMinutes,
+    required AlarmTheme theme,
   }) async {
     if (!_hasNative) return;
     await _channel.invokeMethod('scheduleAlarm', {
@@ -49,6 +51,7 @@ class NativeAlarmService implements AlarmService {
       'vibrate': vibrate,
       'snoozeEnabled': snoozeEnabled,
       'snoozeMinutes': snoozeMinutes,
+      'theme': theme.toMap(),
     });
   }
 

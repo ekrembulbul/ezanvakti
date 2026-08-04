@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ezanvakti/core/models/alarm.dart';
+import 'package:ezanvakti/core/models/alarm_theme.dart';
 import 'package:ezanvakti/core/models/skipped_occurrence.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart'
     show PrayerType;
@@ -287,6 +288,7 @@ class _MockAlarmService implements AlarmService {
     required bool vibrate,
     required bool snoozeEnabled,
     required int snoozeMinutes,
+    required AlarmTheme theme,
   }) async {
     scheduled.add(id);
   }

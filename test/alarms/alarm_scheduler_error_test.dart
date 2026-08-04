@@ -1,6 +1,7 @@
 import 'package:ezanvakti/core/interfaces/alarm_service.dart';
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
 import 'package:ezanvakti/core/models/alarm.dart';
+import 'package:ezanvakti/core/models/alarm_theme.dart';
 import 'package:ezanvakti/features/alarms/domain/alarm_scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -22,6 +23,7 @@ class _FlakyAlarmService implements AlarmService {
     required bool vibrate,
     required bool snoozeEnabled,
     required int snoozeMinutes,
+    required AlarmTheme theme,
   }) async {
     if (id == 'patlayan') {
       throw PlatformException(code: 'schedule_failed', message: 'izin yok');

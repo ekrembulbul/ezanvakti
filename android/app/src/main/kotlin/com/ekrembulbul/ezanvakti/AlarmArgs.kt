@@ -14,6 +14,7 @@ data class AlarmArgs(
     val vibrate: Boolean,
     val snoozeEnabled: Boolean,
     val snoozeMinutes: Int,
+    val theme: AlarmTheme = AlarmTheme.FALLBACK,
 ) {
     fun writeTo(intent: Intent) {
         intent.putExtra("id", id)
@@ -23,6 +24,7 @@ data class AlarmArgs(
         intent.putExtra("vibrate", vibrate)
         intent.putExtra("snoozeEnabled", snoozeEnabled)
         intent.putExtra("snoozeMinutes", snoozeMinutes)
+        intent.putExtra("theme", theme.toJson())
     }
 
     fun toJson(): String = JSONObject().apply {
@@ -33,6 +35,7 @@ data class AlarmArgs(
         put("vibrate", vibrate)
         put("snoozeEnabled", snoozeEnabled)
         put("snoozeMinutes", snoozeMinutes)
+        put("theme", theme.toJson())
     }.toString()
 
     companion object {
@@ -44,6 +47,7 @@ data class AlarmArgs(
             vibrate = intent.getBooleanExtra("vibrate", true),
             snoozeEnabled = intent.getBooleanExtra("snoozeEnabled", true),
             snoozeMinutes = intent.getIntExtra("snoozeMinutes", 5),
+            theme = AlarmTheme.fromJson(intent.getStringExtra("theme")),
         )
 
         fun fromJson(json: String): AlarmArgs? = try {
@@ -56,6 +60,7 @@ data class AlarmArgs(
                 vibrate = o.optBoolean("vibrate", true),
                 snoozeEnabled = o.optBoolean("snoozeEnabled", true),
                 snoozeMinutes = o.optInt("snoozeMinutes", 5),
+                theme = AlarmTheme.fromJson(o.optString("theme")),
             )
         } catch (_: Exception) {
             null

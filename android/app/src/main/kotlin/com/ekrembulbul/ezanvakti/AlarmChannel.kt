@@ -29,6 +29,7 @@ class AlarmChannel(private val context: Context) {
                             vibrate = call.argument<Boolean>("vibrate") ?: true,
                             snoozeEnabled = call.argument<Boolean>("snoozeEnabled") ?: true,
                             snoozeMinutes = call.argument<Int>("snoozeMinutes") ?: 5,
+                            theme = AlarmTheme.fromMap(call.argument<Map<*, *>>("theme")),
                         )
                         AlarmScheduling.schedule(context, args)
                         result.success(null)

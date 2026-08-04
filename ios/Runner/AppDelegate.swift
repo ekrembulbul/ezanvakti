@@ -101,6 +101,9 @@ class AlarmKitHandler {
     let sound = alertSound(args["soundId"] as? String)
     let snoozeEnabled = (args["snoozeEnabled"] as? NSNumber)?.boolValue ?? false
     let snoozeMinutes = (args["snoozeMinutes"] as? NSNumber)?.intValue ?? 5
+    // Uyarının vurgu rengi: alarmın çalacağı anın paleti (Dart tarafı hesaplar).
+    let theme = args["theme"] as? [String: Any]
+    let tint = Self.color(fromHex: theme?["accent"] as? String) ?? Self.fallbackTint
 
     let title: LocalizedStringResource =
       label.isEmpty ? "Ezan Vakti & Alarm" : LocalizedStringResource(stringLiteral: label)
@@ -127,7 +130,7 @@ class AlarmKitHandler {
 
     let presentation = AlarmPresentation(alert: alert, countdown: countdownPresentation)
     let attributes = AlarmAttributes<EzanAlarmMetadata>(
-      presentation: presentation, metadata: EzanAlarmMetadata(), tintColor: Color.yellow)
+      presentation: presentation, metadata: EzanAlarmMetadata(), tintColor: tint)
     let config = AlarmManager.AlarmConfiguration(
       countdownDuration: countdownDuration,
       schedule: .fixed(date),
@@ -142,6 +145,24 @@ class AlarmKitHandler {
         result(FlutterError(code: "schedule_failed", message: "\(error)", details: nil))
       }
     }
+  }
+
+  /// Vakit verisi yokken kullanılan palet (ERGUVAN) vurgusu; Dart tarafındaki
+  /// `fallbackDayPhase` ile aynı renk.
+  private static let fallbackTint = Color(
+    .sRGB, red: 224.0 / 255.0, green: 159.0 / 255.0, blue: 184.0 / 255.0, opacity: 1)
+
+  /// `#RRGGBB` biçimindeki rengi ayrıştırır; bozuk değer nil döner.
+  private static func color(fromHex hex: String?) -> Color? {
+    guard var text = hex, text.hasPrefix("#") else { return nil }
+    text.removeFirst()
+    guard text.count == 6, let value = UInt32(text, radix: 16) else { return nil }
+    return Color(
+      .sRGB,
+      red: Double((value >> 16) & 0xFF) / 255.0,
+      green: Double((value >> 8) & 0xFF) / 255.0,
+      blue: Double(value & 0xFF) / 255.0,
+      opacity: 1)
   }
 
   /// soundId bundle'da bir ses dosyasına (ör. adhan.caf) ya da `custom:<ad>` ile
