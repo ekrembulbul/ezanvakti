@@ -1,4 +1,6 @@
+import '../models/alarm_mission.dart';
 import '../models/alarm_theme.dart';
+import '../models/mission_stop_event.dart';
 
 /// Sesli/kalıcı alarmların native teslim katmanı.
 ///
@@ -30,6 +32,9 @@ abstract class AlarmService {
     required bool snoozeEnabled,
     required int snoozeMinutes,
     required AlarmTheme theme,
+    required AlarmMission mission,
+    required int missionLevel,
+    required Map<String, dynamic> chainConfig,
   });
 
   Future<void> cancelAlarm(String id);
@@ -43,4 +48,17 @@ abstract class AlarmService {
   /// iOS notu: AlarmKit yalnızca desteklenen ses biçimlerini (caf/aiff/wav,
   /// ≤30 sn) çalar; diğer biçimler sessizce varsayılan sese düşebilir.
   Future<String?> importCustomSound(String sourcePath);
+
+  /// `stopIntent` tarafından biriktirilen olayları okur ve kuyruğu boşaltır.
+  Future<List<MissionStopEvent>> consumeMissionEvents();
+
+  /// Görev ekranı açıldı: nöbetçinin son tarihi `grace`ten görev süresine
+  /// taşınır.
+  Future<void> beginMission(String alarmId);
+
+  /// Görev tamamlandı: zincirdeki tüm alarmlar iptal edilir, oturum kapanır.
+  Future<void> completeMission(String alarmId);
+
+  /// Acil çıkış: [completeMission] ile aynı temizlik, ayrı raporlanır.
+  Future<void> abortMission(String alarmId);
 }

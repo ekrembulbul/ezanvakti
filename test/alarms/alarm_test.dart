@@ -1,3 +1,5 @@
+import 'package:ezanvakti/core/models/alarm_mission.dart';
+import 'package:ezanvakti/core/models/mission_stop_event.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/core/models/alarm_theme.dart';
@@ -289,10 +291,25 @@ class _MockAlarmService implements AlarmService {
     required bool snoozeEnabled,
     required int snoozeMinutes,
     required AlarmTheme theme,
+    required AlarmMission mission,
+    required int missionLevel,
+    required Map<String, dynamic> chainConfig,
   }) async {
     scheduled.add(id);
   }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  Future<List<MissionStopEvent>> consumeMissionEvents() async => const [];
+
+  @override
+  Future<void> beginMission(String alarmId) async {}
+
+  @override
+  Future<void> completeMission(String alarmId) async {}
+
+  @override
+  Future<void> abortMission(String alarmId) async {}
 }

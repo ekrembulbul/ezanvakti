@@ -1,3 +1,4 @@
+import '../../../core/config/mission_tuning.dart';
 import '../../../core/interfaces/alarm_service.dart';
 import '../../../core/interfaces/local_storage.dart';
 import '../../../core/models/alarm.dart';
@@ -7,6 +8,7 @@ import '../../../core/models/prayer_time.dart';
 import '../../../core/models/skipped_occurrence.dart';
 import '../../../core/theme/day_phase.dart';
 import '../../notifications/domain/skip_rules.dart';
+import 'mission_chain.dart';
 import '../../../core/utils/app_logger.dart';
 
 /// Alarmların bir sonraki tetiklenme anını hesaplar ve native [AlarmService] ile
@@ -71,6 +73,21 @@ class AlarmScheduler {
           snoozeEnabled: alarm.snoozeEnabled,
           snoozeMinutes: alarm.snoozeMinutes,
           theme: themeForFire(fire, byDate, currentAppearance),
+          mission: alarm.mission,
+          missionLevel: alarm.missionLevel,
+          chainConfig: {
+            'graceSeconds': MissionTuning.graceSeconds,
+            'maxRearms': MissionTuning.maxRearms,
+            'chainDeadlineMillis':
+                MissionChain.chainDeadline(fire).millisecondsSinceEpoch,
+            'missionTimeoutSeconds': MissionTuning.timeoutSecondsFor(
+              alarm.mission,
+            ),
+            'ladderMillis': [
+              for (final t in MissionChain.ladder(fire))
+                t.millisecondsSinceEpoch,
+            ],
+          },
         );
       } catch (e) {
         _logger.warning('Alarm planlanamadı (id: ${alarm.id})', e);

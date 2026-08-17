@@ -1,3 +1,4 @@
+import 'package:ezanvakti/core/models/mission_stop_event.dart';
 import 'package:ezanvakti/core/di/service_locator.dart';
 import 'package:ezanvakti/core/interfaces/alarm_service.dart';
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
@@ -34,6 +35,18 @@ class _StubAlarmService implements AlarmService {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  Future<List<MissionStopEvent>> consumeMissionEvents() async => const [];
+
+  @override
+  Future<void> beginMission(String alarmId) async {}
+
+  @override
+  Future<void> completeMission(String alarmId) async {}
+
+  @override
+  Future<void> abortMission(String alarmId) async {}
 }
 
 void main() {

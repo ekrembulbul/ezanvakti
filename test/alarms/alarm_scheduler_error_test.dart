@@ -1,3 +1,5 @@
+import 'package:ezanvakti/core/models/alarm_mission.dart';
+import 'package:ezanvakti/core/models/mission_stop_event.dart';
 import 'package:ezanvakti/core/interfaces/alarm_service.dart';
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
 import 'package:ezanvakti/core/models/alarm.dart';
@@ -24,6 +26,9 @@ class _FlakyAlarmService implements AlarmService {
     required bool snoozeEnabled,
     required int snoozeMinutes,
     required AlarmTheme theme,
+    required AlarmMission mission,
+    required int missionLevel,
+    required Map<String, dynamic> chainConfig,
   }) async {
     if (id == 'patlayan') {
       throw PlatformException(code: 'schedule_failed', message: 'izin yok');
@@ -33,6 +38,18 @@ class _FlakyAlarmService implements AlarmService {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  Future<List<MissionStopEvent>> consumeMissionEvents() async => const [];
+
+  @override
+  Future<void> beginMission(String alarmId) async {}
+
+  @override
+  Future<void> completeMission(String alarmId) async {}
+
+  @override
+  Future<void> abortMission(String alarmId) async {}
 }
 
 class _StorageWithAlarms implements LocalStorage {

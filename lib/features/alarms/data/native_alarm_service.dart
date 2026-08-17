@@ -1,9 +1,10 @@
-import 'dart:io';
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import '../../../core/interfaces/alarm_service.dart';
+import '../../../core/models/alarm_mission.dart';
 import '../../../core/models/alarm_theme.dart';
+import '../../../core/models/mission_stop_event.dart';
 
 /// Native alarm modülüyle (Android: AlarmManager + tam ekran çalar; iOS 26+:
 /// AlarmKit) tek bir platform channel üzerinden konuşan [AlarmService].
@@ -11,7 +12,12 @@ import '../../../core/models/alarm_theme.dart';
 class NativeAlarmService implements AlarmService {
   static const _channel = MethodChannel('com.ekrembulbul.ezanvakti/alarm');
 
-  bool get _hasNative => Platform.isAndroid || Platform.isIOS;
+  /// `dart:io Platform` yerine [defaultTargetPlatform]: testlerde
+  /// `debugDefaultTargetPlatformOverride` ile ayarlanabiliyor ve web'de
+  /// patlamıyor.
+  bool get _hasNative =>
+      defaultTargetPlatform == TargetPlatform.android ||
+      defaultTargetPlatform == TargetPlatform.iOS;
 
   @override
   Future<bool> isSupported() async {
@@ -41,6 +47,9 @@ class NativeAlarmService implements AlarmService {
     required bool snoozeEnabled,
     required int snoozeMinutes,
     required AlarmTheme theme,
+    required AlarmMission mission,
+    required int missionLevel,
+    required Map<String, dynamic> chainConfig,
   }) async {
     if (!_hasNative) return;
     await _channel.invokeMethod('scheduleAlarm', {
@@ -52,6 +61,10 @@ class NativeAlarmService implements AlarmService {
       'snoozeEnabled': snoozeEnabled,
       'snoozeMinutes': snoozeMinutes,
       'theme': theme.toMap(),
+      'mission': mission.name,
+      'missionLevel': missionLevel,
+      'missionEnabled': mission.requiresGate,
+      'chainConfig': chainConfig,
     });
   }
 
@@ -75,5 +88,35 @@ class NativeAlarmService implements AlarmService {
       'path': sourcePath,
       'name': name,
     });
+  }
+
+  @override
+  Future<List<MissionStopEvent>> consumeMissionEvents() async {
+    if (!_hasNative) return const [];
+    final raw = await _channel.invokeMethod<List<Object?>>(
+      'consumeMissionEvents',
+    );
+    if (raw == null) return const [];
+    return [
+      for (final e in raw) MissionStopEvent.fromMap(e as Map<Object?, Object?>),
+    ];
+  }
+
+  @override
+  Future<void> beginMission(String alarmId) async {
+    if (!_hasNative) return;
+    await _channel.invokeMethod('beginMission', {'id': alarmId});
+  }
+
+  @override
+  Future<void> completeMission(String alarmId) async {
+    if (!_hasNative) return;
+    await _channel.invokeMethod('completeMission', {'id': alarmId});
+  }
+
+  @override
+  Future<void> abortMission(String alarmId) async {
+    if (!_hasNative) return;
+    await _channel.invokeMethod('abortMission', {'id': alarmId});
   }
 }
