@@ -1,5 +1,7 @@
 import 'package:ezanvakti/core/models/skipped_occurrence.dart';
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
+import 'package:ezanvakti/core/models/abort_state.dart';
+import 'package:ezanvakti/core/models/mission_session.dart';
 import 'package:ezanvakti/core/interfaces/notification_service.dart';
 import 'package:ezanvakti/core/interfaces/prayer_time_provider.dart';
 import 'package:ezanvakti/core/models/alarm.dart';
@@ -256,6 +258,28 @@ class FakeStorage implements LocalStorage {
   Future<void> deleteAlarm(String id) async {
     _alarms.removeWhere((a) => a.id == id);
   }
+
+  // Gorev oturumu ve acil cikis kademesi bu testlerde kullanilmiyor; bellekte
+  // tutulur ki fake gercek kontrati karsilasin.
+  MissionSession? _missionSession;
+  AbortState _abortState = const AbortState();
+
+  @override
+  Future<MissionSession?> getMissionSession() async => _missionSession;
+
+  @override
+  Future<void> saveMissionSession(MissionSession? session) async {
+    _missionSession = session;
+  }
+
+  @override
+  Future<AbortState> getAbortState() async => _abortState;
+
+  @override
+  Future<void> saveAbortState(AbortState state) async {
+    _abortState = state;
+  }
+
 }
 
 /// Planlanan bildirimleri ve izin cagrilarini kaydeden servis.

@@ -9,6 +9,8 @@ import '../../../core/models/alarm.dart';
 import '../../../core/models/calculation_params.dart';
 import '../../../core/models/calculation_settings.dart';
 import '../../../core/models/appearance_settings.dart';
+import '../../../core/models/abort_state.dart';
+import '../../../core/models/mission_session.dart';
 import '../../../core/models/skipped_occurrence.dart';
 import '../../../core/exceptions/parse_exception.dart';
 import '../../../core/utils/app_logger.dart';
@@ -540,6 +542,68 @@ class SqliteStorage implements LocalStorage {
       'key': _skippedOccurrencesKey,
       'value': jsonEncode([for (final o in occurrences) o.toJson()]),
     }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  static const String _missionSessionKey = 'mission_session';
+  static const String _abortStateKey = 'mission_abort_state';
+
+  @override
+  Future<MissionSession?> getMissionSession() async {
+    final raw = await _readSetting(_missionSessionKey);
+    if (raw == null) return null;
+    // Bozuk kayit alarmi kilitlemesin; oturum yok kabul edilir.
+    try {
+      return MissionSession.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+    } catch (e) {
+      AppLogger().warning('Gorev oturumu okunamadi, yok kabul edildi', e);
+      return null;
+    }
+  }
+
+  @override
+  Future<void> saveMissionSession(MissionSession? session) async {
+    final db = await database;
+    if (session == null) {
+      await db.delete(
+        'settings',
+        where: 'key = ?',
+        whereArgs: [_missionSessionKey],
+      );
+      return;
+    }
+    await db.insert('settings', {
+      'key': _missionSessionKey,
+      'value': jsonEncode(session.toJson()),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  @override
+  Future<AbortState> getAbortState() async {
+    final raw = await _readSetting(_abortStateKey);
+    if (raw == null) return const AbortState();
+    try {
+      return AbortState.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+    } catch (e) {
+      AppLogger().warning('Acil cikis kademesi okunamadi, sifirlandi', e);
+      return const AbortState();
+    }
+  }
+
+  @override
+  Future<void> saveAbortState(AbortState state) async {
+    final db = await database;
+    await db.insert('settings', {
+      'key': _abortStateKey,
+      'value': jsonEncode(state.toJson()),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  /// `settings` tablosundan tek değer okur; yoksa null.
+  Future<String?> _readSetting(String key) async {
+    final db = await database;
+    final rows = await db.query('settings', where: 'key = ?', whereArgs: [key]);
+    if (rows.isEmpty) return null;
+    return rows.first['value'] as String?;
   }
 
   Future<void> updateNotificationSetting(NotificationSetting setting) async {

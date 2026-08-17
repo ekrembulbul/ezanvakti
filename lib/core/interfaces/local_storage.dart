@@ -3,6 +3,8 @@ import '../models/location.dart';
 import '../models/notification_setting.dart';
 import '../models/calculation_settings.dart';
 import '../models/appearance_settings.dart';
+import '../models/abort_state.dart';
+import '../models/mission_session.dart';
 import '../models/alarm.dart';
 import '../models/skipped_occurrence.dart';
 
@@ -96,4 +98,16 @@ abstract class LocalStorage {
 
   /// Alarmı id'sine göre siler.
   Future<void> deleteAlarm(String id);
+
+  /// Çalan alarmın görev oturumu. Aynı anda en fazla bir tane olduğu için
+  /// `settings` tablosunda tek anahtarda JSON olarak tutulur.
+  Future<MissionSession?> getMissionSession();
+
+  /// Oturumu yazar; `null` verilirse kaydı siler.
+  Future<void> saveMissionSession(MissionSession? session);
+
+  /// Acil çıkışın global kademesi. Kayıt yoksa sıfır kademe döner.
+  Future<AbortState> getAbortState();
+
+  Future<void> saveAbortState(AbortState state);
 }

@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ezanvakti/core/models/skipped_occurrence.dart';
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
+import 'package:ezanvakti/core/models/abort_state.dart';
+import 'package:ezanvakti/core/models/mission_session.dart';
 import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/core/models/calculation_settings.dart';
 import 'package:ezanvakti/core/models/appearance_settings.dart';
@@ -209,6 +211,28 @@ class MockLocalStorage implements LocalStorage {
   Future<void> deleteAlarm(String id) async {
     _alarms.removeWhere((a) => a.id == id);
   }
+
+  // Gorev oturumu ve acil cikis kademesi bu testlerde kullanilmiyor; bellekte
+  // tutulur ki fake gercek kontrati karsilasin.
+  MissionSession? _missionSession;
+  AbortState _abortState = const AbortState();
+
+  @override
+  Future<MissionSession?> getMissionSession() async => _missionSession;
+
+  @override
+  Future<void> saveMissionSession(MissionSession? session) async {
+    _missionSession = session;
+  }
+
+  @override
+  Future<AbortState> getAbortState() async => _abortState;
+
+  @override
+  Future<void> saveAbortState(AbortState state) async {
+    _abortState = state;
+  }
+
 }
 
 class MockNotificationService implements NotificationService {
