@@ -1,6 +1,8 @@
 import '../../../core/interfaces/alarm_service.dart';
 import '../../../core/interfaces/local_storage.dart';
 import '../../../core/models/alarm.dart';
+import '../../../core/config/mission_tuning.dart';
+import '../../../core/models/alarm_mission.dart';
 import '../../../core/models/mission_session.dart';
 import 'abort_gate.dart';
 
@@ -28,17 +30,33 @@ class MissionCoordinator {
     return session;
   }
 
-  /// Görev ekranı açıldı.
-  Future<void> begin(String alarmId) => alarmService.beginMission(alarmId);
+  /// Görev ekranı açıldı. Son tarih **yalnızca ilk açılışta** konur; ekran
+  /// yeniden açılsa da geri sayım baştan başlamaz.
+  Future<DateTime?> begin(String alarmId, AlarmMission mission) async {
+    await alarmService.beginMission(alarmId);
+    final session = await storage.getMissionSession();
+    if (session == null) return null;
+    if (session.deadlineAt != null) return session.deadlineAt;
+    final deadline = DateTime.now().add(
+      Duration(seconds: MissionTuning.timeoutSecondsFor(mission)),
+    );
+    await storage.saveMissionSession(session.copyWith(deadlineAt: deadline));
+    return deadline;
+  }
 
   /// Erteleme denemesi. Hak kalmadıysa `false` döner ve hiçbir şey değişmez.
+  ///
+  /// Başarılıysa alarm gerçekten ertelenir: aktif nöbetçi iptal edilip alarm
+  /// [Alarm.snoozeMinutes] sonrasına kurulur ve son tarih silinir — görev
+  /// ekranı bir sonraki çalışta yeni süreyle açılır.
   Future<bool> snooze(Alarm alarm) async {
     final session = await storage.getMissionSession();
     if (session == null) return false;
     final limit = alarm.maxSnoozes;
     if (limit != null && session.snoozeUsed >= limit) return false;
+    await alarmService.snoozeMission(alarm.id, alarm.snoozeMinutes);
     await storage.saveMissionSession(
-      session.copyWith(snoozeUsed: session.snoozeUsed + 1),
+      session.copyWith(snoozeUsed: session.snoozeUsed + 1, clearDeadline: true),
     );
     return true;
   }

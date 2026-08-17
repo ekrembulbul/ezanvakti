@@ -130,6 +130,15 @@ class NativeAlarmService implements AlarmService {
   }
 
   @override
+  Future<void> snoozeMission(String alarmId, int minutes) async {
+    if (!_hasNative) return;
+    await _channel.invokeMethod('snoozeMission', {
+      'id': alarmId,
+      'minutes': minutes,
+    });
+  }
+
+  @override
   Future<void> completeMission(String alarmId) async {
     if (!_hasNative) return;
     await _channel.invokeMethod('completeMission', {'id': alarmId});

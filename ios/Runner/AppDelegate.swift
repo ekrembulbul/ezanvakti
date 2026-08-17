@@ -174,6 +174,8 @@ class AlarmKitHandler {
       }
     case "beginMission":
       beginMission(call.arguments, result)
+    case "snoozeMission":
+      snoozeMission(call.arguments, result)
     case "completeMission", "abortMission":
       endMission(result)
     case "importCustomSound":
@@ -451,6 +453,28 @@ class AlarmKitHandler {
     MissionChainStore.save(session)
     Self.rearmWatchdog(
       alarmId: idStr, fireDate: fireDate, session: session)
+    result(nil)
+  }
+
+  /// Erteleme: aktif nöbetçi iptal edilip alarm verilen dakika kadar
+  /// sonraya kurulur. Oturum açık kalır — görev hâlâ borç.
+  private func snoozeMission(_ arguments: Any?, _ result: @escaping FlutterResult) {
+    guard #available(iOS 26.1, *),
+      let args = arguments as? [String: Any],
+      let idStr = args["id"] as? String,
+      var session = MissionChainStore.session(),
+      session["alarmId"] as? String == idStr
+    else {
+      result(nil)
+      return
+    }
+    let minutes = args["minutes"] as? Int ?? 5
+    let fireDate = Date().addingTimeInterval(TimeInterval(minutes * 60))
+    // Son tarih silinir: gorev ekrani bir sonraki calista yeni sureyle acilir.
+    session.removeValue(forKey: "deadlineMillis")
+    MissionChainStore.save(session)
+    Self.rearmWatchdog(alarmId: idStr, fireDate: fireDate, session: session)
+    NSLog("mission|snooze|rearmed|id=\(idStr)|minutes=\(minutes)")
     result(nil)
   }
 

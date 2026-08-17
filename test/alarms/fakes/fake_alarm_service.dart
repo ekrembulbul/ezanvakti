@@ -27,6 +27,12 @@ class FakeAlarmService implements AlarmService {
   @override
   Future<void> beginMission(String alarmId) async => begun.add(alarmId);
 
+  final List<({String id, int minutes})> snoozed = [];
+
+  @override
+  Future<void> snoozeMission(String alarmId, int minutes) async =>
+      snoozed.add((id: alarmId, minutes: minutes));
+
   @override
   Future<void> completeMission(String alarmId) async => completed.add(alarmId);
 

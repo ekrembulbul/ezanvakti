@@ -40,8 +40,57 @@ void main() {
   });
 
   test('begin native tarafa haber verir', () async {
-    await coordinator.begin('sahur');
+    await storage.saveMissionSession(
+      MissionSession(alarmId: 'sahur', firedAt: firedAt),
+    );
+    await coordinator.begin('sahur', AlarmMission.math);
     expect(service.begun, ['sahur']);
+  });
+
+  test('begin son tarihi bir kez koyar, tekrar acilista degistirmez', () async {
+    await storage.saveMissionSession(
+      MissionSession(alarmId: 'sahur', firedAt: firedAt),
+    );
+    final first = await coordinator.begin('sahur', AlarmMission.math);
+    expect(first, isNotNull);
+    // Ekran yeniden acilirsa geri sayim bastan baslamamali.
+    final second = await coordinator.begin('sahur', AlarmMission.math);
+    expect(second, first);
+  });
+
+  test('snooze alarmi gercekten erteler ve son tarihi siler', () async {
+    await storage.saveMissionSession(
+      MissionSession(
+        alarmId: 'sahur',
+        firedAt: firedAt,
+        deadlineAt: firedAt.add(const Duration(seconds: 90)),
+      ),
+    );
+    const alarm = Alarm(
+      id: 'sahur',
+      kind: AlarmKind.fixed,
+      mission: AlarmMission.math,
+      maxSnoozes: 2,
+      snoozeMinutes: 10,
+    );
+    expect(await coordinator.snooze(alarm), isTrue);
+    expect(service.snoozed.single.id, 'sahur');
+    expect(service.snoozed.single.minutes, 10);
+    expect((await storage.getMissionSession())!.deadlineAt, isNull);
+  });
+
+  test('Hak bitince erteleme native tarafa hic gitmez', () async {
+    await storage.saveMissionSession(
+      MissionSession(alarmId: 'sahur', firedAt: firedAt, snoozeUsed: 1),
+    );
+    const alarm = Alarm(
+      id: 'sahur',
+      kind: AlarmKind.fixed,
+      mission: AlarmMission.math,
+      maxSnoozes: 1,
+    );
+    expect(await coordinator.snooze(alarm), isFalse);
+    expect(service.snoozed, isEmpty);
   });
 
   test('complete oturumu silip native temizler', () async {

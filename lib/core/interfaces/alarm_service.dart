@@ -62,6 +62,10 @@ abstract class AlarmService {
   /// taşınır.
   Future<void> beginMission(String alarmId);
 
+  /// Erteleme: aktif nöbetçi iptal edilir, alarm [minutes] dakika sonrasına
+  /// yeniden kurulur. Oturum açık kalır — görev hâlâ borç.
+  Future<void> snoozeMission(String alarmId, int minutes);
+
   /// Görev tamamlandı: zincirdeki tüm alarmlar iptal edilir, oturum kapanır.
   Future<void> completeMission(String alarmId);
 

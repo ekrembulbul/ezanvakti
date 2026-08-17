@@ -14,11 +14,16 @@ import '../widgets/missions/abort_dialog.dart';
 import '../widgets/missions/math_mission.dart';
 import 'mission_screen.dart';
 
+/// Görev ekranı açık mı? Aynı anda birden fazla açılırsa her biri kendi geri
+/// sayımını başlatıyor ve "Ertele" alttaki eski ekranı ortaya çıkarıyordu.
+bool _missionScreenOpen = false;
+
 /// Bekleyen bir görev oturumu varsa görev ekranını açar.
 ///
 /// Uygulama, alarm durdurulunca `stopIntent` tarafından öne getiriliyor;
 /// buraya hem soğuk açılışta hem de ön plana dönüşte uğranır.
 Future<void> openMissionIfPending(BuildContext context) async {
+  if (_missionScreenOpen) return;
   final coordinator = ServiceLocator().get<MissionCoordinator>();
   final session = await coordinator.resume();
   if (session == null || !session.isPending) return;
@@ -33,12 +38,18 @@ Future<void> openMissionIfPending(BuildContext context) async {
   }
 
   if (!context.mounted) return;
-  await Navigator.of(context).push(
-    MaterialPageRoute(
-      fullscreenDialog: true,
-      builder: (_) => _MissionHost(alarm: alarm, snoozeUsed: session.snoozeUsed),
-    ),
-  );
+  _missionScreenOpen = true;
+  try {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) =>
+            _MissionHost(alarm: alarm, snoozeUsed: session.snoozeUsed),
+      ),
+    );
+  } finally {
+    _missionScreenOpen = false;
+  }
 }
 
 /// Görev ekranını sayaçla birlikte çalıştıran kabuk.
@@ -53,21 +64,32 @@ class _MissionHost extends StatefulWidget {
 }
 
 class _MissionHostState extends State<_MissionHost> {
-  late int _remaining;
+  /// Görev süresinin mutlak bitişi. Geri sayım bundan hesaplanır; ekran
+  /// yeniden açılsa da baştan başlamaz, arka planda da işlemeye devam eder.
+  DateTime? _deadline;
   Timer? _ticker;
 
   MissionCoordinator get _coordinator =>
       ServiceLocator().get<MissionCoordinator>();
 
+  int get _remaining {
+    final deadline = _deadline;
+    if (deadline == null) {
+      return MissionTuning.timeoutSecondsFor(widget.alarm.mission);
+    }
+    final left = deadline.difference(DateTime.now()).inSeconds;
+    return left < 0 ? 0 : left;
+  }
+
   @override
   void initState() {
     super.initState();
-    _remaining = MissionTuning.timeoutSecondsFor(widget.alarm.mission);
     // Native tarafa haber ver: nobetci `grace`ten gorev suresine tasinsin.
-    _coordinator.begin(widget.alarm.id);
+    _coordinator.begin(widget.alarm.id, widget.alarm.mission).then((deadline) {
+      if (mounted) setState(() => _deadline = deadline);
+    });
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (!mounted) return;
-      setState(() => _remaining--);
+      if (mounted) setState(() {});
     });
   }
 

@@ -49,6 +49,9 @@ class _FlakyAlarmService implements AlarmService {
   Future<void> beginMission(String alarmId) async {}
 
   @override
+  Future<void> snoozeMission(String alarmId, int minutes) async {}
+
+  @override
   Future<void> completeMission(String alarmId) async {}
 
   @override
