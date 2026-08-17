@@ -91,6 +91,29 @@ void main() {
     );
   });
 
+  test('Native missionStopped cagrisi dinleyiciye ulasir', () async {
+    final service = NativeAlarmService();
+    final seen = <String>[];
+    final sub = service.missionStops.listen((e) => seen.add(e.alarmId));
+    addTearDown(sub.cancel);
+
+    // Native tarafin yaptigi gibi Dart'a dogru bir cagri gonder.
+    await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .handlePlatformMessage(
+          channel.name,
+          channel.codec.encodeMethodCall(
+            const MethodCall('missionStopped', {
+              'alarmId': 'sahur',
+              'stoppedAt': 1786883326000,
+            }),
+          ),
+          (_) {},
+        );
+    await Future<void>.delayed(Duration.zero);
+
+    expect(seen, ['sahur']);
+  });
+
   test('Gorev yasam dongusu method adlari', () async {
     final s = NativeAlarmService();
     await s.beginMission('sahur');

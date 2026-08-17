@@ -302,6 +302,9 @@ class _MockAlarmService implements AlarmService {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
+  Stream<MissionStopEvent> get missionStops => const Stream.empty();
+
+  @override
   Future<List<MissionStopEvent>> consumeMissionEvents() async => const [];
 
   @override

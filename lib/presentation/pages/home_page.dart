@@ -3,7 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/providers/app_state.dart';
+
 import '../../core/di/service_locator.dart';
+import '../../core/interfaces/alarm_service.dart';
+import '../../core/models/mission_stop_event.dart';
 import '../screens/mission_launcher.dart';
 import '../../core/models/location.dart';
 import '../../core/models/calculation_settings.dart';
@@ -78,6 +81,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    _missionStops?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     _midnightTimer?.cancel();
     _locationMonitorController?.stopMonitoring();
@@ -97,7 +101,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       _scheduleMidnightRefresh();
       openMissionIfPending(context);
     });
+
+    // Uygulama on plandayken alarm durdurulursa hicbir yasam dongusu olayi
+    // tetiklenmiyor; native bildirimi dinlemezsek gorev ekrani hic acilmaz.
+    _missionStops = ServiceLocator().get<AlarmService>().missionStops.listen((
+      _,
+    ) {
+      if (mounted) openMissionIfPending(context);
+    });
   }
+
+  StreamSubscription<MissionStopEvent>? _missionStops;
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {

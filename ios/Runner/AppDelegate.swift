@@ -65,6 +65,10 @@ enum MissionChainStore {
 
   /// Kullanıcı alarmı durdurdu: olayı kuyruğa yaz, sınır dolmadıysa nöbetçiyi
   /// kur. Yeni alarm kurmanın tek geçidi burasıdır.
+  /// Aktif nöbetçinin id'si. Tek olması şart: `handleStop` ve `beginMission`
+  /// aynı nöbetçiyi ileri atıyor, iki ayrı kayıt kalırsa erken çalar.
+  static func activeWatchdogId(_ alarmId: String) -> String { "\(alarmId)#w" }
+
   static func handleStop() {
     guard var s = session(), s["pending"] as? Bool == true,
       let alarmId = s["alarmId"] as? String
@@ -86,16 +90,18 @@ enum MissionChainStore {
     }
 
     let grace = s["graceSeconds"] as? Int ?? 20
-    let nextIndex = rearmCount + 1
-    s["rearmCount"] = nextIndex
+    s["rearmCount"] = rearmCount + 1
     s["deadlineMillis"] = nowMillis + Double(grace * 1000)
     save(s)
 
-    AlarmKitHandler.scheduleWatchdog(
+    AlarmKitHandler.rearmWatchdog(
       alarmId: alarmId,
-      index: nextIndex,
       fireDate: Date().addingTimeInterval(TimeInterval(grace)),
       session: s)
+
+    // Uygulama ayaktaysa dogrudan haber ver: yalnizca kuyruga yazmak yetmiyor,
+    // on plandaki uygulamada hicbir yasam dongusu olayi tetiklenmiyor.
+    AlarmKitHandler.notifyDart(alarmId: alarmId)
   }
 
   static func enqueueStopEvent(alarmId: String) {
@@ -123,9 +129,15 @@ class AlarmKitHandler {
   private static let channelName = "com.ekrembulbul.ezanvakti/alarm"
   private static let mapKey = "ezanvakti_alarm_uuid_map"
 
+  /// Uygulama ayaktayken Dart'a haber verebilmek için saklanır. Kuyruk tek
+  /// başına yetmiyor: ön plandaki uygulamada hiçbir yaşam döngüsü olayı
+  /// tetiklenmediği için görev ekranı hiç açılmıyordu.
+  private static var channel: FlutterMethodChannel?
+
   static func register(with registrar: FlutterPluginRegistrar) {
     let channel = FlutterMethodChannel(
       name: channelName, binaryMessenger: registrar.messenger())
+    Self.channel = channel
     let instance = AlarmKitHandler()
     channel.setMethodCallHandler { call, result in
       instance.handle(call, result: result)
@@ -264,9 +276,9 @@ class AlarmKitHandler {
           // kalsin. Hizli zincirle id cakismasin diye 1000'den baslar.
           if let ladder = chainConfig["ladderMillis"] as? [Double] {
             for (i, millis) in ladder.enumerated() {
-              Self.scheduleWatchdog(
+              Self.scheduleLadderStep(
                 alarmId: idStr,
-                index: 1000 + i,
+                index: i,
                 fireDate: Date(timeIntervalSince1970: millis / 1000),
                 session: session)
             }
@@ -281,13 +293,51 @@ class AlarmKitHandler {
 
   /// Nöbetçi alarm kurar. Id'si `<alarmId>#w<index>` — mevcut defter
   /// (`uuidFor`) üzerinden kaydedilir, böylece `cancelAll` hepsini yakalar.
+  /// Uygulama ayaktaysa Dart'taki dinleyiciyi tetikler. Ayakta değilse
+  /// çağrı sessizce düşer; olay zaten kuyrukta bekliyor.
   @available(iOS 26.1, *)
-  static func scheduleWatchdog(
+  static func notifyDart(alarmId: String) {
+    DispatchQueue.main.async {
+      channel?.invokeMethod(
+        "missionStopped",
+        arguments: [
+          "alarmId": alarmId,
+          "stoppedAt": Date().timeIntervalSince1970 * 1000,
+        ])
+    }
+  }
+
+  /// Sağlama merdiveni basamağı. Aktif nöbetçiden ayrı id'lerde durur;
+  /// `stopIntent` hiç çalışmazsa kapıyı bunlar kapalı tutar.
+  @available(iOS 26.1, *)
+  static func scheduleLadderStep(
     alarmId: String, index: Int, fireDate: Date, session: [String: Any]
   ) {
-    let handler = AlarmKitHandler()
-    let watchdogId = "\(alarmId)#w\(index)"
-    let uuid = handler.uuidFor(watchdogId)
+    schedule(
+      watchdogId: "\(alarmId)#ladder\(index)",
+      fireDate: fireDate,
+      session: session)
+  }
+
+  /// Aktif nöbetçiyi verilen tarihe **taşır**: önce mevcut kaydı iptal eder,
+  /// sonra yenisini kurar. Aynı id ile üzerine yazmaya güvenmek erken çalmaya
+  /// yol açıyordu.
+  @available(iOS 26.1, *)
+  static func rearmWatchdog(
+    alarmId: String, fireDate: Date, session: [String: Any]
+  ) {
+    let watchdogId = MissionChainStore.activeWatchdogId(alarmId)
+    AlarmKitHandler().cancel(idStr: watchdogId)
+    schedule(watchdogId: watchdogId, fireDate: fireDate, session: session)
+  }
+
+  /// Nöbetçi alarmı kurar. Id defterden geçer (`uuidFor`), böylece
+  /// `cancelAll` hepsini yakalar.
+  @available(iOS 26.1, *)
+  private static func schedule(
+    watchdogId: String, fireDate: Date, session: [String: Any]
+  ) {
+    let uuid = AlarmKitHandler().uuidFor(watchdogId)
     let label = session["label"] as? String ?? ""
     let title: LocalizedStringResource =
       label.isEmpty ? "Ezan Vakti & Alarm" : LocalizedStringResource(stringLiteral: label)
@@ -375,7 +425,7 @@ class AlarmKitHandler {
       .appendingPathComponent("Sounds", isDirectory: true)
   }
 
-  private func cancel(idStr: String) {
+  fileprivate func cancel(idStr: String) {
     guard #available(iOS 26.0, *) else { return }
     if let uuid = existingUuid(idStr) {
       try? AlarmManager.shared.cancel(id: uuid)
@@ -399,9 +449,8 @@ class AlarmKitHandler {
     let fireDate = Date().addingTimeInterval(TimeInterval(timeout))
     session["deadlineMillis"] = fireDate.timeIntervalSince1970 * 1000
     MissionChainStore.save(session)
-    let index = session["rearmCount"] as? Int ?? 0
-    Self.scheduleWatchdog(
-      alarmId: idStr, index: index, fireDate: fireDate, session: session)
+    Self.rearmWatchdog(
+      alarmId: idStr, fireDate: fireDate, session: session)
     result(nil)
   }
 
@@ -433,12 +482,12 @@ class AlarmKitHandler {
     UserDefaults.standard.dictionary(forKey: Self.mapKey) as? [String: String] ?? [:]
   }
 
-  private func existingUuid(_ idStr: String) -> UUID? {
+  fileprivate func existingUuid(_ idStr: String) -> UUID? {
     if let s = uuidMap()[idStr] { return UUID(uuidString: s) }
     return nil
   }
 
-  private func uuidFor(_ idStr: String) -> UUID {
+  fileprivate func uuidFor(_ idStr: String) -> UUID {
     if let u = existingUuid(idStr) { return u }
     let u = UUID()
     var m = uuidMap()

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -11,6 +13,25 @@ import '../../../core/models/mission_stop_event.dart';
 /// Desteklenmeyen platformlarda (web/masaüstü, iOS < 26) güvenle no-op döner.
 class NativeAlarmService implements AlarmService {
   static const _channel = MethodChannel('com.ekrembulbul.ezanvakti/alarm');
+
+  static final _missionStops = StreamController<MissionStopEvent>.broadcast();
+  static bool _handlerAttached = false;
+
+  NativeAlarmService() {
+    // Tek sefer: native, uygulama ayaktayken bu kanaldan bize cagri yapiyor.
+    if (_handlerAttached) return;
+    _handlerAttached = true;
+    _channel.setMethodCallHandler((call) async {
+      if (call.method != 'missionStopped') return null;
+      _missionStops.add(
+        MissionStopEvent.fromMap(call.arguments as Map<Object?, Object?>),
+      );
+      return null;
+    });
+  }
+
+  @override
+  Stream<MissionStopEvent> get missionStops => _missionStops.stream;
 
   /// `dart:io Platform` yerine [defaultTargetPlatform]: testlerde
   /// `debugDefaultTargetPlatformOverride` ile ayarlanabiliyor ve web'de

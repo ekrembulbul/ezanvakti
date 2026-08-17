@@ -49,6 +49,12 @@ abstract class AlarmService {
   /// ≤30 sn) çalar; diğer biçimler sessizce varsayılan sese düşebilir.
   Future<String?> importCustomSound(String sourcePath);
 
+  /// Uygulama **ayaktayken** gelen "alarm durduruldu" bildirimleri.
+  ///
+  /// Kuyruk tek başına yetmiyor: ön plandaki uygulamada hiçbir yaşam döngüsü
+  /// olayı tetiklenmediği için görev ekranı hiç açılmıyordu.
+  Stream<MissionStopEvent> get missionStops;
+
   /// `stopIntent` tarafından biriktirilen olayları okur ve kuyruğu boşaltır.
   Future<List<MissionStopEvent>> consumeMissionEvents();
 

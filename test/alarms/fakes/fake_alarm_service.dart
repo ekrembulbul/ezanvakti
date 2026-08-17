@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:ezanvakti/core/interfaces/alarm_service.dart';
 import 'package:ezanvakti/core/models/alarm_mission.dart';
 import 'package:ezanvakti/core/models/alarm_theme.dart';
@@ -6,6 +8,11 @@ import 'package:ezanvakti/core/models/mission_stop_event.dart';
 /// Cagrilari kaydeden bellek-ici [AlarmService].
 class FakeAlarmService implements AlarmService {
   List<MissionStopEvent> pendingEvents = [];
+  final _stops = StreamController<MissionStopEvent>.broadcast();
+
+  @override
+  Stream<MissionStopEvent> get missionStops => _stops.stream;
+
   final List<String> begun = [];
   final List<String> completed = [];
   final List<String> aborted = [];

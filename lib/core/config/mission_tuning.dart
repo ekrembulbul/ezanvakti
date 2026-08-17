@@ -20,8 +20,12 @@ class MissionTuning {
 
   /// Zincirin sert tavanları. İkisinden hangisi önce dolarsa zincir durur —
   /// bir hata sonsuz alarma dönüşmesin.
-  static const int maxRearms = 40;
-  static const int chainDeadlineMinutes = 60;
+  ///
+  /// CIHAZ TESTI: ilk dogrulama turu icin kasten dusuk. Bir hata olursa
+  /// telefon dakikalarla sinirli sure dirdir etsin, saatlerce degil.
+  /// Kalibrasyon sonrasi 40 / 60'a cikarilacak.
+  static const int maxRearms = 5;
+  static const int chainDeadlineMinutes = 10;
 
   /// Acil çıkış kademesi: tavan ve gerileme.
   static const int abortMaxLevel = 3;
