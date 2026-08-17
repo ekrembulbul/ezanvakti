@@ -58,7 +58,7 @@ kapatıldığında ya da Live Activity banner'ı yukarı kaydırıldığında
 | D16 | Tek çalışta çalma süresi | Kullanıcıya **sunulmaz**. Alarm kapatılana kadar çalar | iOS kısıtı (D1). Sunulup çalışmayan bir ayar, olmayan ayardan kötüdür |
 | D17 | Acil çıkışın zorluğu | **Kademeli.** Her kullanımda bir üst seviyeye çıkar: basılı tutma → cümle yazma → uzun cümle + geri sayım. Çıkış metni bir sonraki seferin daha zor olacağını söyler | Acil çıkış gerçek bir ihtiyaç (kamera bozuldu, kod kayboldu) ama alışkanlığa dönüşürse özellik anlamını yitirir. Kademeli zorluk, arızi kullanımı ucuz, alışkanlığı pahalı tutar |
 | D18 | Kademenin tavanı ve gerilemesi | En üst seviye sabit bir tavanla sınırlı; **7 gün** kullanılmazsa bir kademe geri iner | Tavan olmazsa çıkış fiilen imkânsızlaşır — §7'deki "her zaman erişilebilir" kuralı çiğnenir ve alarm yine kapatılamaz hale gelir. Gerileme, kötü bir haftanın kalıcı ceza olmasını engeller |
-| D19 | Kademe kimin üzerinde tutulur | **Alarm başına** | Sahur alarmından kaçmak, öğle şekerlemesi alarmını zorlaştırmamalı. Cezalandırılan davranış belirli bir alarmdan kaçma alışkanlığı |
+| D19 | Kademe kimin üzerinde tutulur | **Global** — tek sayaç, tüm alarmlar için ortak | Cezalandırılan davranış "görevden kaçmak", hangi alarmdan kaçıldığı değil. Alarm başına tutmak fazladan durum ve taşıma işi getirir, karşılığında bu aşamada gözle görülür bir fayda vermez |
 
 ## 4. Kapsam
 
@@ -283,6 +283,14 @@ tek-seferlik-kapatma` spec'indeki D5 ile aynı gerekçe.
 | `rearmCount` | `int` |
 | `completedAt` | `DateTime?` |
 
+Acil çıkış kademesi global olduğu için (D19) oturumun değil, ayrı bir kalıcı
+kaydın parçası — `settings` tablosunda iki alan yeter:
+
+| Alan | Tip | Not |
+|---|---|---|
+| `abortLevel` | `int` | 0 … `abortMaxLevel` |
+| `abortLastUsedAt` | `DateTime?` | Gerileme hesabı için (D18) |
+
 ## 7. Güvenlik sınırları
 
 Bunlar kabul kriteridir, opsiyonel değil. Gerekçesi spike'ta yaşanan kaza:
@@ -309,8 +317,8 @@ telefonu susturmanın tek yolu uygulamayı silmek oldu.
 
 ### 7.1 Acil çıkış kademeleri
 
-Kademe alarm başına tutulur (D19), her kullanımda bir artar, `abortDecayDays`
-gün kullanılmazsa bir azalır (D18).
+Kademe **global** tutulur (D19): tek sayaç, tüm alarmlar için ortak. Her
+kullanımda bir artar, `abortDecayDays` gün kullanılmazsa bir azalır (D18).
 
 | Seviye | Ne isteniyor |
 |---|---|
