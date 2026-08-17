@@ -297,8 +297,14 @@ Bunlar kabul kriteridir, opsiyonel değil. Gerekçesi spike'ta yaşanan kaza:
 ispat alarmına da `stopIntent` bağlanınca her kapatış yenisini doğurdu ve
 telefonu susturmanın tek yolu uygulamayı silmek oldu.
 
-1. **Tek doğuş noktası.** Yeni alarm yalnızca zincir mantığından kurulur.
-   `stopIntent` dışında hiçbir yol nöbetçi kurmaz.
+1. **Sayılı doğuş noktası ve tek geçit.** Nöbetçi yalnızca iki yerden kurulur:
+   alarm kurulurken sağlama merdiveni (§5.2) ve `stopIntent`. Nöbetçi
+   durdurulduğunda zincirin devam etmesi **istenen** davranıştır — kapıyı bu
+   tutuyor. Ama bu devam, her seferinde tek bir geçitten geçmek zorunda:
+   `pending` bayrağı ve iki tavan (madde 2) kontrol edilmeden yeni alarm
+   kurulmaz. Spike'ta sonsuz döngü tam olarak bu geçit olmadığı için oluştu:
+   ispat alarmına `stopIntent` bağlanmıştı, hiçbir sınır yoktu, her kapatış
+   yenisini doğurdu ve telefon susmadı.
 2. **Çift sınır.** `rearmCount >= maxRearms` **veya** `now >= chainDeadline`
    olduğunda zincir durur ve oturum kapanır. Varsayılanlar: 40 tekrar, 60 dk.
 3. **Defter zorunlu.** Kurulan her alarm, kurulduğu anda deftere yazılır;
