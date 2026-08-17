@@ -23,8 +23,13 @@ class MissionCoordinator {
 
     final latest = events.last;
     final existing = await storage.getMissionSession();
+    // Yeni durdurma olayi = alarm tekrar caldi ve kapatildi. Gorev penceresi
+    // bastan baslamali, yoksa ekranda dolmus sayac 0'da cakili kalir.
     final session = existing != null && existing.alarmId == latest.alarmId
-        ? existing.copyWith(rearmCount: existing.rearmCount + 1)
+        ? existing.copyWith(
+            rearmCount: existing.rearmCount + 1,
+            clearDeadline: true,
+          )
         : MissionSession(alarmId: latest.alarmId, firedAt: latest.stoppedAt);
     await storage.saveMissionSession(session);
     return session;

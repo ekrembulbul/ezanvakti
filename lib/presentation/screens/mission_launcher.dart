@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/config/mission_tuning.dart';
 import '../../core/di/service_locator.dart';
+import '../../core/interfaces/alarm_service.dart';
 import '../../core/models/alarm.dart';
 import '../../core/models/alarm_mission.dart';
 import '../../features/alarms/domain/abort_gate.dart';
@@ -64,10 +65,17 @@ class _MissionHost extends StatefulWidget {
 }
 
 class _MissionHostState extends State<_MissionHost> {
+  late int _snoozeUsed = widget.snoozeUsed;
+
   /// Görev süresinin mutlak bitişi. Geri sayım bundan hesaplanır; ekran
   /// yeniden açılsa da baştan başlamaz, arka planda da işlemeye devam eder.
   DateTime? _deadline;
+
+  /// Erteleme yapıldıysa alarmın tekrar çalacağı an.
+  DateTime? _snoozedUntil;
+
   Timer? _ticker;
+  StreamSubscription<dynamic>? _stops;
 
   MissionCoordinator get _coordinator =>
       ServiceLocator().get<MissionCoordinator>();
@@ -91,18 +99,38 @@ class _MissionHostState extends State<_MissionHost> {
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() {});
     });
+
+    // Sure dolup alarm tekrar caldiginda ekran zaten acik oluyor; yeni turun
+    // suresini almazsak sayac 0'da cakili kalir.
+    _stops = ServiceLocator().get<AlarmService>().missionStops.listen((_) {
+      _refreshDeadline();
+    });
+  }
+
+  Future<void> _refreshDeadline() async {
+    await _coordinator.resume();
+    final deadline = await _coordinator.begin(
+      widget.alarm.id,
+      widget.alarm.mission,
+    );
+    if (!mounted) return;
+    setState(() {
+      _deadline = deadline;
+      _snoozedUntil = null;
+    });
   }
 
   @override
   void dispose() {
     _ticker?.cancel();
+    _stops?.cancel();
     super.dispose();
   }
 
   int get _snoozeRemaining {
     final limit = widget.alarm.maxSnoozes;
     if (!widget.alarm.snoozeEnabled || limit == null) return 0;
-    final left = limit - widget.snoozeUsed;
+    final left = limit - _snoozeUsed;
     return left < 0 ? 0 : left;
   }
 
@@ -113,7 +141,14 @@ class _MissionHostState extends State<_MissionHost> {
 
   Future<void> _snooze() async {
     final ok = await _coordinator.snooze(widget.alarm);
-    if (ok && mounted) Navigator.of(context).pop();
+    if (!ok || !mounted) return;
+    // Ekrani hemen kapatmiyoruz: kullanici ne zaman tekrar calacagini gormeli.
+    setState(() {
+      _snoozedUntil = DateTime.now().add(
+        Duration(minutes: widget.alarm.snoozeMinutes),
+      );
+      _snoozeUsed++;
+    });
   }
 
   Future<void> _abort() async {
@@ -139,6 +174,8 @@ class _MissionHostState extends State<_MissionHost> {
         alarm: widget.alarm,
         remainingSeconds: _remaining,
         snoozeRemaining: _snoozeRemaining,
+        snoozedUntil: _snoozedUntil,
+        onDismissSnoozed: () => Navigator.of(context).pop(),
         onCompleted: _complete,
         onAbortRequested: _abort,
         onSnooze: _snoozeRemaining > 0 ? _snooze : null,
