@@ -1,3 +1,5 @@
+import '../../core/models/alarm_mission.dart';
+import '../../features/alarms/domain/snooze_options.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -34,6 +36,9 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   late bool _vibrate;
   late bool _snoozeEnabled;
   late int _snoozeMinutes;
+  late AlarmMission _mission;
+  late int _missionLevel;
+  int? _maxSnoozes;
   late TextEditingController _label;
   String? _customSoundName;
 
@@ -57,6 +62,9 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
     _vibrate = a?.vibrate ?? true;
     _snoozeEnabled = a?.snoozeEnabled ?? true;
     _snoozeMinutes = a?.snoozeMinutes ?? 5;
+    _mission = a?.mission ?? AlarmMission.none;
+    _missionLevel = a?.missionLevel ?? 1;
+    _maxSnoozes = a?.maxSnoozes;
     _label = TextEditingController(text: a?.label ?? '');
     if (_soundId.startsWith('custom:')) {
       _customSoundName = _soundId.substring('custom:'.length);
@@ -92,8 +100,11 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
       vibrate: _vibrate,
       snoozeEnabled: _snoozeEnabled,
       snoozeMinutes: _snoozeMinutes,
+      mission: _mission,
+      missionLevel: _missionLevel,
+      maxSnoozes: _maxSnoozes,
     );
-    Navigator.of(context).pop(alarm);
+    Navigator.of(context).pop(normalizeAlarmSnoozeLimit(alarm));
   }
 
   Future<void> _pickTime() async {
@@ -148,6 +159,8 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
             setState(() => _snoozeEnabled = v);
           }),
           if (_snoozeEnabled) _snoozeMinutesSelector(),
+          if (_snoozeEnabled) _maxSnoozesSelector(),
+          _missionSelector(),
           ],
         ),
       ),
@@ -570,7 +583,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
         value: _snoozeMinutes,
         dropdownColor: tokens.backgroundStops[1],
         style: TextStyle(color: tokens.textPrimary),
-        items: const [5, 10, 15, 20]
+        items: kSnoozeMinuteOptions
             .map((m) => DropdownMenuItem(value: m, child: Text('$m dk')))
             .toList(),
         onChanged: (v) => setState(() => _snoozeMinutes = v ?? 5),
@@ -592,6 +605,59 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
       value: value,
       activeThumbColor: tokens.accent,
       onChanged: onChanged,
+    );
+  }
+
+  /// Görev seçimi. Bu turda yalnızca matematik açık; sallama ve QR kendi
+  /// turlarında listeye eklenecek.
+  Widget _missionSelector() {
+    const available = [AlarmMission.none, AlarmMission.math];
+    const labels = {AlarmMission.none: 'Yok', AlarmMission.math: 'Matematik'};
+    return _switchRow(
+      'Kapatma görevi',
+      DropdownButton<AlarmMission>(
+        value: available.contains(_mission) ? _mission : AlarmMission.none,
+        dropdownColor: tokens.backgroundStops[1],
+        style: TextStyle(color: tokens.textPrimary),
+        items: available
+            .map(
+              (m) => DropdownMenuItem(value: m, child: Text(labels[m] ?? 'Yok')),
+            )
+            .toList(),
+        onChanged: (v) => setState(() {
+          _mission = v ?? AlarmMission.none;
+          // Gorev acilirsa sinirsiz erteleme kapiyi islevsiz birakir.
+          if (_mission.requiresGate && _maxSnoozes == null) {
+            _maxSnoozes = kMaxSnoozeOptions.last;
+          }
+        }),
+      ),
+    );
+  }
+
+  /// Erteleme sayısı. Görev açıkken "Sınırsız" listelenmez.
+  Widget _maxSnoozesSelector() {
+    final allowUnlimited = !_mission.requiresGate;
+    final values = <int?>[...kMaxSnoozeOptions, if (allowUnlimited) null];
+    final current = values.contains(_maxSnoozes)
+        ? _maxSnoozes
+        : kMaxSnoozeOptions.last;
+    return _switchRow(
+      'Erteleme sayısı',
+      DropdownButton<int?>(
+        value: current,
+        dropdownColor: tokens.backgroundStops[1],
+        style: TextStyle(color: tokens.textPrimary),
+        items: values
+            .map(
+              (v) => DropdownMenuItem(
+                value: v,
+                child: Text(v == null ? 'Sınırsız' : '$v kez'),
+              ),
+            )
+            .toList(),
+        onChanged: (v) => setState(() => _maxSnoozes = v),
+      ),
     );
   }
 
