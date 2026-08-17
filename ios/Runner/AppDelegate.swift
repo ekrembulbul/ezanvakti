@@ -1,5 +1,6 @@
 import ActivityKit
 import AlarmKit
+import AppIntents
 import Flutter
 import Foundation
 import SwiftUI
@@ -19,6 +20,99 @@ import UIKit
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "EzanAlarmKit") {
       AlarmKitHandler.register(with: registrar)
     }
+  }
+}
+
+/// Kullanıcı alarmı sistemin durdurma jestiyle susturduğunda çalışır.
+///
+/// Alarmın durmasını engellemez — durduğu bilgisini alır. İki iş yapar:
+/// zinciri bir adım ileri kurar ve olayı kuyruğa yazar. Uygulamayı da açar,
+/// böylece kullanıcı görev ekranına düşer.
+@available(iOS 26.1, *)
+struct MissionStopIntent: LiveActivityIntent {
+  static let title: LocalizedStringResource = "Alarmı durdur"
+  static let openAppWhenRun: Bool = true
+
+  init() {}
+
+  func perform() async throws -> some IntentResult {
+    MissionChainStore.handleStop()
+    return .result()
+  }
+}
+
+/// Zincirin native tarafındaki durumu.
+///
+/// Karar **değerleri** Dart'ta hesaplanır (bkz. `MissionChain`); burada
+/// yalnızca iki karşılaştırma yapılır. Mantığın tek yerde kalması için.
+@available(iOS 26.1, *)
+enum MissionChainStore {
+  static let sessionKey = "ezanvakti_mission_session"
+  static let eventsKey = "ezanvakti_mission_events"
+
+  static func session() -> [String: Any]? {
+    UserDefaults.standard.dictionary(forKey: sessionKey)
+  }
+
+  static func save(_ session: [String: Any]) {
+    UserDefaults.standard.set(session, forKey: sessionKey)
+  }
+
+  static func clear() {
+    UserDefaults.standard.removeObject(forKey: sessionKey)
+    UserDefaults.standard.removeObject(forKey: eventsKey)
+  }
+
+  /// Kullanıcı alarmı durdurdu: olayı kuyruğa yaz, sınır dolmadıysa nöbetçiyi
+  /// kur. Yeni alarm kurmanın tek geçidi burasıdır.
+  static func handleStop() {
+    guard var s = session(), s["pending"] as? Bool == true,
+      let alarmId = s["alarmId"] as? String
+    else { return }
+
+    enqueueStopEvent(alarmId: alarmId)
+
+    let rearmCount = s["rearmCount"] as? Int ?? 0
+    let maxRearms = s["maxRearms"] as? Int ?? 40
+    let chainDeadline = s["chainDeadlineMillis"] as? Double ?? 0
+    let nowMillis = Date().timeIntervalSince1970 * 1000
+
+    // Cift ust sinir: bir hata sonsuz alarma donusmesin.
+    guard rearmCount < maxRearms, nowMillis < chainDeadline else {
+      s["pending"] = false
+      save(s)
+      NSLog("mission|chain|stopped|bounds|id=\(alarmId)")
+      return
+    }
+
+    let grace = s["graceSeconds"] as? Int ?? 20
+    let nextIndex = rearmCount + 1
+    s["rearmCount"] = nextIndex
+    s["deadlineMillis"] = nowMillis + Double(grace * 1000)
+    save(s)
+
+    AlarmKitHandler.scheduleWatchdog(
+      alarmId: alarmId,
+      index: nextIndex,
+      fireDate: Date().addingTimeInterval(TimeInterval(grace)),
+      session: s)
+  }
+
+  static func enqueueStopEvent(alarmId: String) {
+    var queue =
+      UserDefaults.standard.array(forKey: eventsKey) as? [[String: Any]] ?? []
+    queue.append([
+      "alarmId": alarmId,
+      "stoppedAt": Date().timeIntervalSince1970 * 1000,
+    ])
+    UserDefaults.standard.set(queue, forKey: eventsKey)
+  }
+
+  static func drainEvents() -> [[String: Any]] {
+    let queue =
+      UserDefaults.standard.array(forKey: eventsKey) as? [[String: Any]] ?? []
+    UserDefaults.standard.removeObject(forKey: eventsKey)
+    return queue
   }
 }
 
@@ -60,6 +154,16 @@ class AlarmKitHandler {
     case "cancelAllAlarms":
       cancelAll()
       result(nil)
+    case "consumeMissionEvents":
+      if #available(iOS 26.1, *) {
+        result(MissionChainStore.drainEvents())
+      } else {
+        result([])
+      }
+    case "beginMission":
+      beginMission(call.arguments, result)
+    case "completeMission", "abortMission":
+      endMission(result)
     case "importCustomSound":
       let args = call.arguments as? [String: Any]
       result(importCustomSound(path: args?["path"] as? String, name: args?["name"] as? String))
@@ -84,7 +188,8 @@ class AlarmKitHandler {
   }
 
   private func scheduleAlarm(_ arguments: Any?, _ result: @escaping FlutterResult) {
-    guard #available(iOS 26.0, *) else {
+    // 26.1: stopButton'siz Alert init'i ve stopIntent bu surumde kullanilabilir.
+    guard #available(iOS 26.1, *) else {
       result(nil)
       return
     }
@@ -104,28 +209,33 @@ class AlarmKitHandler {
     // Uyarının vurgu rengi: alarmın çalacağı anın paleti (Dart tarafı hesaplar).
     let theme = args["theme"] as? [String: Any]
     let tint = Self.color(fromHex: theme?["accent"] as? String) ?? Self.fallbackTint
+    let missionEnabled = (args["missionEnabled"] as? NSNumber)?.boolValue ?? false
+    let chainConfig = args["chainConfig"] as? [String: Any] ?? [:]
 
     let title: LocalizedStringResource =
       label.isEmpty ? "Ezan Vakti & Alarm" : LocalizedStringResource(stringLiteral: label)
-    let stopButton = AlarmButton(
-      text: "Kapat", textColor: .white, systemImageName: "stop.circle.fill")
-
-    // Snooze: AlarmKit'in yerleşik countdown davranışı (App Intent gerekmez).
-    // Erteleme tuşuna basınca postAlert süresi kadar geri sayar ve tekrar çalar.
     let alert: AlarmPresentation.Alert
     var countdownPresentation: AlarmPresentation.Countdown?
     var countdownDuration: Alarm.CountdownDuration?
-    if snoozeEnabled {
+    var stopIntent: (any LiveActivityIntent)?
+
+    if missionEnabled {
+      // Gorev acik: erteleme sistem uyarisindan kaldirilir (uygulama icine
+      // tasindi), zincirin calisabilmesi icin stopIntent baglanir.
+      alert = AlarmPresentation.Alert(title: title)
+      stopIntent = MissionStopIntent()
+    } else if snoozeEnabled {
+      // Gorevsiz yol bugunku davranistir; dokunulmadi.
       let snoozeButton = AlarmButton(
         text: "Ertele", textColor: .white, systemImageName: "zzz")
       alert = AlarmPresentation.Alert(
-        title: title, stopButton: stopButton,
+        title: title,
         secondaryButton: snoozeButton, secondaryButtonBehavior: .countdown)
       countdownPresentation = AlarmPresentation.Countdown(title: "Erteleme")
       countdownDuration = Alarm.CountdownDuration(
         preAlert: nil, postAlert: Double(snoozeMinutes * 60))
     } else {
-      alert = AlarmPresentation.Alert(title: title, stopButton: stopButton)
+      alert = AlarmPresentation.Alert(title: title)
     }
 
     let presentation = AlarmPresentation(alert: alert, countdown: countdownPresentation)
@@ -135,14 +245,68 @@ class AlarmKitHandler {
       countdownDuration: countdownDuration,
       schedule: .fixed(date),
       attributes: attributes,
+      stopIntent: stopIntent,
       sound: sound)
 
     Task {
       do {
         _ = try await AlarmManager.shared.schedule(id: uuid, configuration: config)
+        if missionEnabled {
+          var session: [String: Any] = chainConfig
+          session["alarmId"] = idStr
+          session["pending"] = true
+          session["rearmCount"] = 0
+          session["label"] = label
+          session["tintHex"] = theme?["accent"] as? String ?? ""
+          MissionChainStore.save(session)
+
+          // Saglama merdiveni: stopIntent hic calismazsa kapi yine kapali
+          // kalsin. Hizli zincirle id cakismasin diye 1000'den baslar.
+          if let ladder = chainConfig["ladderMillis"] as? [Double] {
+            for (i, millis) in ladder.enumerated() {
+              Self.scheduleWatchdog(
+                alarmId: idStr,
+                index: 1000 + i,
+                fireDate: Date(timeIntervalSince1970: millis / 1000),
+                session: session)
+            }
+          }
+        }
         result(nil)
       } catch {
         result(FlutterError(code: "schedule_failed", message: "\(error)", details: nil))
+      }
+    }
+  }
+
+  /// Nöbetçi alarm kurar. Id'si `<alarmId>#w<index>` — mevcut defter
+  /// (`uuidFor`) üzerinden kaydedilir, böylece `cancelAll` hepsini yakalar.
+  @available(iOS 26.1, *)
+  static func scheduleWatchdog(
+    alarmId: String, index: Int, fireDate: Date, session: [String: Any]
+  ) {
+    let handler = AlarmKitHandler()
+    let watchdogId = "\(alarmId)#w\(index)"
+    let uuid = handler.uuidFor(watchdogId)
+    let label = session["label"] as? String ?? ""
+    let title: LocalizedStringResource =
+      label.isEmpty ? "Ezan Vakti & Alarm" : LocalizedStringResource(stringLiteral: label)
+    let alert = AlarmPresentation.Alert(title: title)
+    let attributes = AlarmAttributes<EzanAlarmMetadata>(
+      presentation: AlarmPresentation(alert: alert),
+      metadata: EzanAlarmMetadata(),
+      tintColor: color(fromHex: session["tintHex"] as? String) ?? fallbackTint)
+    let config = AlarmManager.AlarmConfiguration(
+      schedule: .fixed(fireDate),
+      attributes: attributes,
+      stopIntent: MissionStopIntent(),
+      sound: .default)
+    Task {
+      do {
+        _ = try await AlarmManager.shared.schedule(id: uuid, configuration: config)
+        NSLog("mission|watchdog|scheduled|id=\(watchdogId)")
+      } catch {
+        NSLog("mission|watchdog|failed|id=\(watchdogId)|\(error)")
       }
     }
   }
@@ -217,6 +381,40 @@ class AlarmKitHandler {
       try? AlarmManager.shared.cancel(id: uuid)
       removeMapping(idStr)
     }
+  }
+
+  /// Görev ekranı açıldı: son tarih `grace`ten görev süresine taşınır ve
+  /// nöbetçi o tarihe yeniden kurulur.
+  private func beginMission(_ arguments: Any?, _ result: @escaping FlutterResult) {
+    guard #available(iOS 26.1, *),
+      let args = arguments as? [String: Any],
+      let idStr = args["id"] as? String,
+      var session = MissionChainStore.session(),
+      session["alarmId"] as? String == idStr
+    else {
+      result(nil)
+      return
+    }
+    let timeout = session["missionTimeoutSeconds"] as? Int ?? 90
+    let fireDate = Date().addingTimeInterval(TimeInterval(timeout))
+    session["deadlineMillis"] = fireDate.timeIntervalSince1970 * 1000
+    MissionChainStore.save(session)
+    let index = session["rearmCount"] as? Int ?? 0
+    Self.scheduleWatchdog(
+      alarmId: idStr, index: index, fireDate: fireDate, session: session)
+    result(nil)
+  }
+
+  /// Görev tamamlandı ya da acil çıkış kullanıldı: zincirdeki tüm alarmlar
+  /// iptal edilir, oturum kapanır.
+  private func endMission(_ result: @escaping FlutterResult) {
+    guard #available(iOS 26.1, *) else {
+      result(nil)
+      return
+    }
+    cancelAll()
+    MissionChainStore.clear()
+    result(nil)
   }
 
   private func cancelAll() {
