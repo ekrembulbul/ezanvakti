@@ -1,0 +1,59 @@
+import '../../../core/interfaces/alarm_service.dart';
+import '../../../core/interfaces/local_storage.dart';
+import '../../../core/models/alarm.dart';
+import '../../../core/models/mission_session.dart';
+import 'abort_gate.dart';
+
+/// Görev oturumunun yaşam döngüsünü yürütür: native olayları tüketir,
+/// oturumu saklar, erteleme sayacını tutar, tamamlama ve acil çıkışta
+/// zincirin temizlenmesini tetikler.
+class MissionCoordinator {
+  final AlarmService alarmService;
+  final LocalStorage storage;
+
+  MissionCoordinator({required this.alarmService, required this.storage});
+
+  /// Uygulama öne geldiğinde çağrılır. Native kuyruğunda durdurma olayı varsa
+  /// oturumu açar/yeniler, yoksa kayıtlı oturumu döner.
+  Future<MissionSession?> resume() async {
+    final events = await alarmService.consumeMissionEvents();
+    if (events.isEmpty) return storage.getMissionSession();
+
+    final latest = events.last;
+    final existing = await storage.getMissionSession();
+    final session = existing != null && existing.alarmId == latest.alarmId
+        ? existing.copyWith(rearmCount: existing.rearmCount + 1)
+        : MissionSession(alarmId: latest.alarmId, firedAt: latest.stoppedAt);
+    await storage.saveMissionSession(session);
+    return session;
+  }
+
+  /// Görev ekranı açıldı.
+  Future<void> begin(String alarmId) => alarmService.beginMission(alarmId);
+
+  /// Erteleme denemesi. Hak kalmadıysa `false` döner ve hiçbir şey değişmez.
+  Future<bool> snooze(Alarm alarm) async {
+    final session = await storage.getMissionSession();
+    if (session == null) return false;
+    final limit = alarm.maxSnoozes;
+    if (limit != null && session.snoozeUsed >= limit) return false;
+    await storage.saveMissionSession(
+      session.copyWith(snoozeUsed: session.snoozeUsed + 1),
+    );
+    return true;
+  }
+
+  /// Görev tamamlandı: zincir tamamen susar.
+  Future<void> complete(String alarmId) async {
+    await alarmService.completeMission(alarmId);
+    await storage.saveMissionSession(null);
+  }
+
+  /// Acil çıkış kullanıldı: zincir susar ve kademe bir yükselir.
+  Future<void> abort(String alarmId, DateTime now) async {
+    await alarmService.abortMission(alarmId);
+    await storage.saveMissionSession(null);
+    final current = await storage.getAbortState();
+    await storage.saveAbortState(AbortGate.escalate(state: current, now: now));
+  }
+}

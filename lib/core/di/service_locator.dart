@@ -13,6 +13,7 @@ import '../../features/notifications/domain/skip_manager.dart';
 import '../interfaces/alarm_service.dart';
 import '../../features/alarms/data/native_alarm_service.dart';
 import '../../features/alarms/domain/alarm_scheduler.dart';
+import '../../features/alarms/domain/mission_coordinator.dart';
 import '../../features/alarms/domain/alarms_manager.dart';
 import '../interfaces/prayer_time_provider.dart';
 import '../interfaces/local_storage.dart';
@@ -128,6 +129,9 @@ class ServiceLocator {
     );
     register<AlarmScheduler>(alarmScheduler);
     register<AlarmsManager>(AlarmsManager(storage: localStorage));
+    register<MissionCoordinator>(
+      MissionCoordinator(alarmService: alarmService, storage: localStorage),
+    );
 
     register<ReminderRescheduler>(
       ReminderRescheduler(

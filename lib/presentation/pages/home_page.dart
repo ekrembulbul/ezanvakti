@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/providers/app_state.dart';
 import '../../core/di/service_locator.dart';
+import '../screens/mission_launcher.dart';
 import '../../core/models/location.dart';
 import '../../core/models/calculation_settings.dart';
 import '../../core/interfaces/local_storage.dart';
@@ -94,6 +95,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       if (!mounted) return;
       _loadPrayerData();
       _scheduleMidnightRefresh();
+      openMissionIfPending(context);
     });
   }
 
@@ -106,6 +108,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       // Dilim sınırı timer'ı uygulama askıdayken tetiklenmez; ön plana
       // dönünce paleti yeniden hesaplat.
       ServiceLocator().get<ThemeController>().refresh();
+
+      // Alarm durdurulunca stopIntent uygulamayi one getiriyor; bekleyen
+      // gorev varsa ekrani burada aciyoruz.
+      openMissionIfPending(context);
 
       // Gün dönümü timer'ı da askıdayken tetiklenmez: uygulama gece açık
       // bırakılıp sabah öne getirilirse veri dünde kalırdı.
