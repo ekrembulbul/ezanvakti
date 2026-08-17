@@ -52,6 +52,10 @@ kapatıldığında ya da Live Activity banner'ı yukarı kaydırıldığında
 | D10 | Kurulan alarmların kaydı | Zincirin kurduğu **her** alarm id'si kalıcı deftere yazılır | Spike'ta rastgele UUID kullandığım için kurduğum alarmları iptal edemedim, uygulamayı silmek zorunda kaldık. Kaydedilmeyen alarm iptal edilemez |
 | D11 | Zincir mantığı nerede çalışır | **Swift tarafında** | Kullanıcı uygulamayı hiç açmayabilir; Dart o zaman çalışmaz. `stopIntent` ise Flutter engine olmadan da çalışır |
 | D12 | Native → Dart haberleşmesi | `stopIntent` olayı UserDefaults'taki kuyruğa yazar; uygulama öne gelince Dart kuyruğu tüketir | Intent anında Flutter engine ayakta olmayabilir. Kuyruk, olayın kaybolmamasını garanti eder |
+| D13 | Görev süresi nasıl işler | **Sabit sayaç değil, yenilenen kira.** Görev ekranı etkileşimdeyken uygulama kirayı ileri atar; bırakılınca kira dolar ve alarm döner | Sabit süre kullanıcıyı haksız cezalandırır: zor soru, kamera odaklanmaz, banyoya yürümek uzun sürer. Kira modelinde görevle uğraşan kullanıcıya alarm hiç dönmez, bırakan kullanıcıya hemen döner. Yakalanmak istenen davranış tam olarak "bıraktı" |
+| D14 | Kira süreleri kimin ayarı | **Bizim.** Tek bir yapılandırma dosyasında sabit; kullanıcı arayüzünde görünmez | Doğru değerler ölçümle bulunur, kullanıcının bilebileceği bir şey değil. Ayarlanabilir tutulmasının sebebi kalibrasyon, kişiselleştirme değil |
+| D15 | Erteleme ayarları kimin | **Kullanıcının**, ama kapalı seçenek listesinden. Süre: bugünkü `5/10/15/20 dk`. Sayı: `1/2/3/5` ve görev kapalıysa ayrıca `Sınırsız` | Serbest metin alanı anlamsız değerlere ve kenar durumlara açık. Görev açıkken sınırsız erteleme kapıyı işlevsiz bırakırdı — kullanıcı görevi hiç yapmadan sonsuza kadar erteleyebilirdi |
+| D16 | Tek çalışta çalma süresi | Kullanıcıya **sunulmaz**. Alarm kapatılana kadar çalar | iOS kısıtı (D1). Sunulup çalışmayan bir ayar, olmayan ayardan kötüdür |
 
 ## 4. Kapsam
 
@@ -74,23 +78,37 @@ kapatıldığında ya da Live Activity banner'ı yukarı kaydırıldığında
 ### 5.1 Normal akış (görev açık)
 
 ```
-T        Ana alarm çalar
+T        Ana alarm çalar (kapatılana kadar çalar, D16)
          ↓ kullanıcı kaydırıp durdurur
 T+ε      stopIntent çalışır (Swift):
            - defterden zincir durumunu okur
-           - sınır dolmadıysa T+ε+Δ'ya nöbetçi alarm kurar
+           - sınır dolmadıysa T+ε+grace'e nöbetçi alarm kurar
            - "durduruldu" olayını kuyruğa yazar
            - openAppWhenRun ile uygulamayı açar
          ↓
          Uygulama görev ekranını gösterir
+         ↓ ekran etkileşimdeyken, her renew saniyede bir:
+           nöbetçi alarm now+lease'e ötelenir      ← kira yenileme (D13)
          ↓ görev tamamlanır
          Dart: defterdeki tüm alarmları iptal eder, oturumu kapatır
 ```
 
-Görev tamamlanmazsa T+ε+Δ'da nöbetçi çalar ve döngü baştan işler.
+**Kira modeli (D13).** Nöbetçi alarm sabit bir "görevi şu kadar sürede bitir"
+sayacı değil, sürekli ötelenen bir son tarihtir:
 
-`Δ` (hızlı zincir aralığı) varsayılan **15 sn**. Sabit değil, ayarlanabilir
-tutulur; cihazda ölçülüp kalibre edilecek.
+| Durum | Sonuç |
+|---|---|
+| Durdurdu, uygulamayı hiç açmadı | `grace` dolar, alarm döner |
+| Görev ekranında, uğraşıyor | Kira yenilenir, alarm **dönmez** — görev ne kadar sürerse sürsün |
+| Uygulamayı arka plana attı / kapattı / telefonu bıraktı | Yenileme durur, `lease` dolar, alarm döner |
+
+Yakalanmak istenen davranış "görevi yavaş yaptı" değil, **"bıraktı"**.
+
+Yenileme yalnızca görev ekranı ön plandayken yapılır. Uygulama arka plana
+düştüğü anda yenileme durur; kalan kira kadar sonra alarm döner.
+
+QR görevinde kullanıcı telefonu elinde tutup banyoya yürürken kamera ekranı ön
+plandadır, yani kira yenilenmeye devam eder. İstenen davranış budur.
 
 ### 5.2 stopIntent çalışmadığında
 
@@ -121,7 +139,9 @@ ezanvakti_mission_session = {
   "rearmCount":    0,
   "maxRearms":     40,
   "chainDeadline": <epoch ms>,     // T + 60 dk
-  "delta":         15,             // sn
+  "graceSeconds":  20,             // durdurdu, uygulamayi acmadi
+  "leaseSeconds":  30,             // gorev ekrani acikken kira
+  "leaseExpiry":   <epoch ms>,     // yenileme bunu ileri atar
   "title":         "Sahur",
   "tintHex":       "#5E3A80",
   "soundId":       "adhan"
@@ -151,13 +171,14 @@ geçmişi tutar. İkisi çelişirse UserDefaults kazanır. Dart, zincir alanlar�
 | Alan | Tip | Anlam |
 |---|---|---|
 | `missionEnabled` | `bool` | true ise: erteleme düğmesi çizilmez, `stopIntent` bağlanır, merdiven kurulur |
-| `chainConfig` | `Map?` | `delta`, `maxRearms`, `chainDeadline`, `ladderStep`, `ladderCount` |
+| `chainConfig` | `Map?` | §5.6'daki sabitler: `grace`, `lease`, `renew`, `maxRearms`, `chainDeadline`, `ladderStep`, `ladderCount` |
 
 Yeni method'lar:
 
 | Method | Yön | İş |
 |---|---|---|
 | `consumeMissionEvents` | Dart → native | Kuyruğu okuyup temizler, olay listesi döner |
+| `renewMissionLease` | Dart → native | Kirayı `now + leaseSeconds`'e öteler, nöbetçi alarmı yeniden kurar (D13) |
 | `completeMission` | Dart → native | Oturumu kapatır, deftere kayıtlı tüm zincir alarmlarını iptal eder |
 | `abortMission` | Dart → native | Acil çıkış (D9): `completeMission` ile aynı temizlik, ayrı isim çünkü raporlaması farklı |
 
@@ -188,6 +209,26 @@ QR'ın kaçış yolu olmalı: kod bulunamıyorsa (kullanıcı seyahatte, kâğı
 D9'daki acil çıkış tek yol olarak kalır. Ayrı bir "kodu atla" düğmesi **konmaz**,
 yoksa görev anlamını yitirir.
 
+### 5.6 Kalibrasyon sabitleri
+
+Kira ve zincir değerleri tek bir dosyada toplanır (`lib/core/config/
+mission_tuning.dart`) ve `chainConfig` ile native'e geçer. **Ayarlar ekranında
+görünmezler** (D14) — burada ayarlanabilir olmalarının sebebi ölçümle kalibre
+edebilmek, kullanıcıya seçenek sunmak değil.
+
+| Sabit | Başlangıç | Anlamı |
+|---|---|---|
+| `graceSeconds` | 20 | Durdurdu ama uygulamayı açmadı; alarmın dönmesi için beklenen süre |
+| `leaseSeconds` | 30 | Görev ekranı ön plandayken kiranın uzunluğu |
+| `renewSeconds` | 10 | Kiranın hangi sıklıkla ötelendiği. `leaseSeconds`'ten belirgin küçük olmalı, yoksa yenileme gecikmesi alarmı tetikler |
+| `ladderStepMinutes` | 5 | Sağlama merdiveni adımı (§5.2) |
+| `ladderCount` | 3 | Merdiven basamak sayısı |
+| `maxRearms` | 40 | Zincirin sert tekrar tavanı (§7) |
+| `chainDeadlineMinutes` | 60 | Zincirin sert süre tavanı (§7) |
+
+Başlangıç değerleri tahmindir; cihazda ölçülüp kesinleştirilecek (§11).
+`renewSeconds < leaseSeconds` bağıntısı zorunludur ve testle korunur.
+
 ## 6. Veri modeli
 
 `Alarm` modeline eklenenler:
@@ -197,15 +238,25 @@ yoksa görev anlamını yitirir.
 | `mission` | `AlarmMission` | `none` | `none \| math \| qr \| shake` |
 | `missionLevel` | `int` | `1` | 1–3; matematik zorluğu, sallama sayısı |
 | `qrPayload` | `String?` | `null` | Yalnızca `mission == qr` |
-| `maxSnoozes` | `int?` | `null` | `null` = sınırsız, `0` = erteleme kapalı |
+| `maxSnoozes` | `int?` | `null` | `null` = sınırsız |
 
 `snoozeEnabled` ve `snoozeMinutes` korunur; anlamları değişmez.
 
+**Kullanıcıya sunulan seçenekler (D15).** İkisi de kapalı liste, serbest giriş yok:
+
+| Ayar | Seçenekler | Not |
+|---|---|---|
+| Erteleme süresi | `5 / 10 / 15 / 20 dk` | Bugünkü liste (`alarm_edit_screen.dart:573`) korunur |
+| Erteleme sayısı | `1 / 2 / 3 / 5` — görev kapalıysa ayrıca `Sınırsız` | Görev açıkken `Sınırsız` **listelenmez**: kullanıcı görevi hiç yapmadan sonsuza kadar erteleyebilirdi, kapı işlevsiz kalırdı |
+
 **Öncelik kuralı:** `snoozeEnabled == false` ise erteleme hiç sunulmaz ve
-`maxSnoozes` yok sayılır. `snoozeEnabled == true` iken `maxSnoozes` üst sınırı
-belirler: `null` sınırsız, `0` ise erteleme yine sunulmaz. Yani `0` ve
-`snoozeEnabled: false` aynı sonucu verir; arayüz kullanıcıya tek bir yol
-göstermeli — `maxSnoozes` alanı yalnızca `snoozeEnabled` açıkken düzenlenebilir.
+`maxSnoozes` yok sayılır; süre ve sayı alanları da gizlenir. Görev açık bir
+alarmda `maxSnoozes` `null` bırakılamaz — kaydederken en büyük sonlu seçeneğe
+(`5`) düşürülür.
+
+Görev kapalıyken erteleme bugünkü gibi sistem uyarısındaki düğmeden yürür
+(D6); açıkken uygulama içine taşınır (D3). Yani erteleme sayacı yalnızca görev
+açık alarmlarda anlamlıdır.
 
 Çalışma zamanı oturumu (`MissionSession`) ayrı saklanır — `Alarm` kullanıcı
 tercihidir, oturum geçici durumdur. Saklama için `settings` tablosunda tek JSON
@@ -233,7 +284,17 @@ telefonu susturmanın tek yolu uygulamayı silmek oldu.
 3. **Defter zorunlu.** Kurulan her alarm, kurulduğu anda deftere yazılır;
    iptal defter üzerinden yürür. Deftere yazılamayan alarm kurulmaz.
 4. **Acil çıkış her zaman erişilebilir** (D9). Görev çözülemese bile kullanıcı
-   alarmdan çıkabilir.
+   alarmdan çıkabilir. Kabul kriterleri:
+   - Görev ekranında **her zaman görünür** — belirli sayıda başarısızlıktan
+     sonra açılan gizli bir yol değil. Kamera bozulduysa ya da kod
+     kaybolduysa kullanıcı kilitlenmiş olmamalı
+   - **3 sn basılı tutma + onay** ile tetiklenir. Uykulu bir parmağın kazayla
+     basmasını engelleyecek kadar bilinçli, panik anında ulaşılamayacak kadar
+     zor değil
+   - `abortMission` çağırır: zincirdeki **tüm** alarmlar iptal edilir, oturum
+     kapanır. `completeMission` ile aynı temizlik
+   - Görevden bağımsız çalışır: görev kodu çökse, izin reddedilse, sensör
+     yanıt vermese bile çıkış yolu ayakta kalır
 5. **Görev kapalıyken zincir yok** (D6). Özelliği açmayan kullanıcı bu
    mekanizmanın hiçbir parçasına maruz kalmaz.
 
@@ -241,7 +302,10 @@ telefonu susturmanın tek yolu uygulamayı silmek oldu.
 
 **Birim (Dart, cihaz gerektirmez)**
 - Zincir sınırları: `maxRearms` ve `chainDeadline` ayrı ayrı ve birlikte durdurur
-- Erteleme sayacı: limit dolunca erteleme kapanır, `maxSnoozes: 0` ve `null` uçları
+- Kira: yenileme geldikçe son tarih ötelenir; yenileme kesilince dolar
+- `renewSeconds < leaseSeconds` bağıntısı korunur (sabitler testle doğrulanır)
+- Erteleme sayacı: limit dolunca erteleme kapanır; görev açıkken `null`
+  seçilemez, `5`'e düşer
 - Oturum yaşam döngüsü: tamamlama ve acil çıkış defteri temizler
 - Görev tamamlanma koşulları (matematik doğrulama, sallama sayacı)
 
@@ -269,7 +333,7 @@ için `stopIntent`'e dokunan hiçbir davranış simülatörde doğrulanamaz.
 | App Store incelemesi | Kolay kapatılamayan alarm dikkat çekebilir | Acil çıkışın varlığı ve görünürlüğü; inceleme notunda açıklama |
 | `stopIntent` boşlukları | Kapı delinir | Sağlama merdiveni (§5.2) |
 | Yeni bağımlılıklar (QR, sensör) | Bakım yükü, saldırı yüzeyi | Görev tipleri ayrı ayrı eklenebilir; matematik hiç bağımlılık istemiyor, önce o gelir |
-| Pil | Zincir çok sık kurarsa | `Δ` ayarlanabilir; merdiven yalnızca 3 basamak |
+| Pil | Zincir çok sık alarm kurarsa | Kira yenilemesi alarmı yeniden kurar, sıklığı `renewSeconds` belirler; merdiven yalnızca 3 basamak. Değerler §5.6'da tek yerde, ölçümle düşürülebilir |
 
 ## 10. Sıralama
 
@@ -283,9 +347,14 @@ bir ek. Önerilen sıra:
 
 ## 11. Açık konular
 
-- `Δ` (hızlı zincir aralığı) ve `G` (merdiven adımı) değerleri cihazda
-  ölçülüp kesinleştirilecek. AlarmK'in listelemesindeki "~10 saniye" bir
+- §5.6'daki sabitlerin tamamı cihazda ölçülüp kesinleştirilecek. Özellikle
+  `graceSeconds`: kullanıcının alarmı durdurup uygulamanın açılmasını beklediği
+  gerçek süre ölçülmeden seçilemez. AlarmK'in listelemesindeki "~10 saniye" bir
   referans noktası, doğrulanmadı
+- Uygulama arka plana düştüğünde kiranın hemen mi dolması yoksa kalan süreyi mi
+  kullanması gerektiği: spec kalan süreyi kullanıyor. Kullanıcı yanlışlıkla ana
+  ekrana çıkarsa geri dönmek için birkaç saniyesi olur; doğru seçim cihazda
+  denenecek
 - Sallama ve QR için paket seçimi (`sensors_plus`, `mobile_scanner`) ayrı
   değerlendirilecek; bakım durumu ve lisans kontrolü yapılmadan eklenmez
 
