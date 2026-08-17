@@ -28,7 +28,7 @@ class SqliteStorage implements LocalStorage {
 
     return await openDatabase(
       path,
-      version: 6,
+      version: 7,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -106,7 +106,10 @@ class SqliteStorage implements LocalStorage {
         sound_id TEXT NOT NULL DEFAULT 'adhan',
         vibrate INTEGER NOT NULL DEFAULT 1,
         snooze_enabled INTEGER NOT NULL DEFAULT 1,
-        snooze_minutes INTEGER NOT NULL DEFAULT 5
+        snooze_minutes INTEGER NOT NULL DEFAULT 5,
+        mission TEXT NOT NULL DEFAULT 'none',
+        mission_level INTEGER NOT NULL DEFAULT 1,
+        max_snoozes INTEGER
       )
     ''');
   }
@@ -182,6 +185,16 @@ class SqliteStorage implements LocalStorage {
     }
     if (oldVersion < 6) {
       await _createAlarmsTable(db);
+    }
+    if (oldVersion < 7) {
+      // Mevcut alarmlar gorevsiz kalir: acilis davranisi degismemeli.
+      await db.execute(
+        "ALTER TABLE alarms ADD COLUMN mission TEXT NOT NULL DEFAULT 'none'",
+      );
+      await db.execute(
+        'ALTER TABLE alarms ADD COLUMN mission_level INTEGER NOT NULL DEFAULT 1',
+      );
+      await db.execute('ALTER TABLE alarms ADD COLUMN max_snoozes INTEGER');
     }
   }
 

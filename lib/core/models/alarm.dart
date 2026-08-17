@@ -1,3 +1,4 @@
+import 'alarm_mission.dart';
 import 'notification_setting.dart' show PrayerType;
 
 /// Alarm türü: sabit saat ya da bir namaz vaktine çıpalı (ofsetli).
@@ -33,6 +34,17 @@ class Alarm {
   final bool snoozeEnabled;
   final int snoozeMinutes;
 
+  /// Alarmı kapatmak için gereken görev. [AlarmMission.none] ise alarm
+  /// bugünkü gibi doğrudan kapanır.
+  final AlarmMission mission;
+
+  /// Görev zorluğu (1–3). Yükseldikçe süre değil **iş miktarı** artar.
+  final int missionLevel;
+
+  /// Uygulama içi erteleme üst sınırı. `null` = sınırsız. Görev açıkken
+  /// `null` bırakılamaz; kaydederken en büyük sonlu seçeneğe düşürülür.
+  final int? maxSnoozes;
+
   const Alarm({
     required this.id,
     required this.kind,
@@ -47,6 +59,9 @@ class Alarm {
     this.vibrate = true,
     this.snoozeEnabled = true,
     this.snoozeMinutes = 5,
+    this.mission = AlarmMission.none,
+    this.missionLevel = 1,
+    this.maxSnoozes,
   });
 
   bool get repeats => weekdays.isNotEmpty;
@@ -69,6 +84,9 @@ class Alarm {
       'vibrate': vibrate ? 1 : 0,
       'snooze_enabled': snoozeEnabled ? 1 : 0,
       'snooze_minutes': snoozeMinutes,
+      'mission': mission.name,
+      'mission_level': missionLevel,
+      'max_snoozes': maxSnoozes,
     };
   }
 
@@ -98,6 +116,12 @@ class Alarm {
       vibrate: (map['vibrate'] as int? ?? 1) == 1,
       snoozeEnabled: (map['snooze_enabled'] as int? ?? 1) == 1,
       snoozeMinutes: map['snooze_minutes'] as int? ?? 5,
+      mission: AlarmMission.values.firstWhere(
+        (e) => e.name == map['mission'],
+        orElse: () => AlarmMission.none,
+      ),
+      missionLevel: map['mission_level'] as int? ?? 1,
+      maxSnoozes: map['max_snoozes'] as int?,
     );
   }
 
@@ -115,6 +139,9 @@ class Alarm {
     bool? vibrate,
     bool? snoozeEnabled,
     int? snoozeMinutes,
+    AlarmMission? mission,
+    int? missionLevel,
+    int? maxSnoozes,
   }) {
     return Alarm(
       id: id ?? this.id,
@@ -130,6 +157,9 @@ class Alarm {
       vibrate: vibrate ?? this.vibrate,
       snoozeEnabled: snoozeEnabled ?? this.snoozeEnabled,
       snoozeMinutes: snoozeMinutes ?? this.snoozeMinutes,
+      mission: mission ?? this.mission,
+      missionLevel: missionLevel ?? this.missionLevel,
+      maxSnoozes: maxSnoozes ?? this.maxSnoozes,
     );
   }
 
@@ -150,7 +180,10 @@ class Alarm {
           soundId == other.soundId &&
           vibrate == other.vibrate &&
           snoozeEnabled == other.snoozeEnabled &&
-          snoozeMinutes == other.snoozeMinutes;
+          snoozeMinutes == other.snoozeMinutes &&
+          mission == other.mission &&
+          missionLevel == other.missionLevel &&
+          maxSnoozes == other.maxSnoozes;
 
   @override
   int get hashCode => Object.hash(
@@ -167,6 +200,9 @@ class Alarm {
     vibrate,
     snoozeEnabled,
     snoozeMinutes,
+    mission,
+    missionLevel,
+    maxSnoozes,
   );
 
   static bool _setEquals(Set<int> a, Set<int> b) =>
