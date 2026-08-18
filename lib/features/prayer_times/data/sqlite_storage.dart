@@ -30,7 +30,7 @@ class SqliteStorage implements LocalStorage {
 
     return await openDatabase(
       path,
-      version: 7,
+      version: 8,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -111,6 +111,7 @@ class SqliteStorage implements LocalStorage {
         snooze_minutes INTEGER NOT NULL DEFAULT 5,
         mission TEXT NOT NULL DEFAULT 'none',
         mission_level INTEGER NOT NULL DEFAULT 1,
+        qr_payload TEXT,
         max_snoozes INTEGER
       )
     ''');
@@ -197,6 +198,9 @@ class SqliteStorage implements LocalStorage {
         'ALTER TABLE alarms ADD COLUMN mission_level INTEGER NOT NULL DEFAULT 1',
       );
       await db.execute('ALTER TABLE alarms ADD COLUMN max_snoozes INTEGER');
+    }
+    if (oldVersion < 8) {
+      await db.execute('ALTER TABLE alarms ADD COLUMN qr_payload TEXT');
     }
   }
 

@@ -1,3 +1,4 @@
+import '../widgets/missions/qr_payload_field.dart';
 import '../widgets/common/option_picker.dart';
 import '../../core/models/alarm_mission.dart';
 import '../../features/alarms/domain/snooze_options.dart';
@@ -40,6 +41,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   late AlarmMission _mission;
   late int _missionLevel;
   int? _maxSnoozes;
+  late TextEditingController _qrPayload;
   late TextEditingController _label;
   String? _customSoundName;
 
@@ -66,6 +68,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
     _mission = a?.mission ?? AlarmMission.none;
     _missionLevel = a?.missionLevel ?? 1;
     _maxSnoozes = a?.maxSnoozes;
+    _qrPayload = TextEditingController(text: a?.qrPayload ?? '');
     _label = TextEditingController(text: a?.label ?? '');
     if (_soundId.startsWith('custom:')) {
       _customSoundName = _soundId.substring('custom:'.length);
@@ -103,6 +106,11 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
       snoozeMinutes: _snoozeMinutes,
       mission: _mission,
       missionLevel: _missionLevel,
+      // Gorev QR degilse kayitli kod korunur: kullanici gorevi gecici olarak
+      // kapatip geri actiginda kodu yeniden girmek zorunda kalmasin.
+      qrPayload: _mission == AlarmMission.qr
+          ? _qrPayload.text.trim()
+          : widget.alarm?.qrPayload,
       maxSnoozes: _maxSnoozes,
     );
     Navigator.of(context).pop(normalizeAlarmSnoozeLimit(alarm));
@@ -162,6 +170,10 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
           if (_snoozeEnabled) _snoozeMinutesSelector(),
           if (_snoozeEnabled) _maxSnoozesSelector(),
           _missionSelector(),
+          if (_mission == AlarmMission.qr) ...[
+            const SizedBox(height: 12),
+            QrPayloadField(controller: _qrPayload),
+          ],
           ],
         ),
       ),

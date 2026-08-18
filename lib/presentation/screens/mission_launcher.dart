@@ -16,6 +16,7 @@ import '../../features/alarms/domain/alarms_manager.dart';
 import '../../features/alarms/domain/mission_coordinator.dart';
 import '../widgets/missions/abort_dialog.dart';
 import '../widgets/missions/math_mission.dart';
+import '../widgets/missions/qr_mission.dart';
 import '../widgets/missions/shake_mission.dart';
 import 'mission_screen.dart';
 
@@ -193,9 +194,11 @@ class _MissionHostState extends State<_MissionHost> {
             level: widget.alarm.missionLevel,
             onCompleted: _complete,
           ),
-          // QR sonraki commit'te; o zamana kadar bu alarmlar gorev ekranina
-          // dusse de bos kalmasin diye gorev yokmus gibi tamamlanir.
-          _ => const SizedBox.shrink(),
+          AlarmMission.qr => QrMission(
+            expected: widget.alarm.qrPayload ?? '',
+            onCompleted: _complete,
+          ),
+          AlarmMission.none => const SizedBox.shrink(),
         },
       ),
     );

@@ -41,6 +41,10 @@ class Alarm {
   /// Görev zorluğu (1–3). Yükseldikçe süre değil **iş miktarı** artar.
   final int missionLevel;
 
+  /// QR görevinde okutulması gereken kod. Alarm kurulurken okutularak ya da
+  /// elle yazılarak kaydedilir.
+  final String? qrPayload;
+
   /// Uygulama içi erteleme üst sınırı. `null` = sınırsız. Görev açıkken
   /// `null` bırakılamaz; kaydederken en büyük sonlu seçeneğe düşürülür.
   final int? maxSnoozes;
@@ -61,6 +65,7 @@ class Alarm {
     this.snoozeMinutes = 5,
     this.mission = AlarmMission.none,
     this.missionLevel = 1,
+    this.qrPayload,
     this.maxSnoozes,
   });
 
@@ -86,6 +91,7 @@ class Alarm {
       'snooze_minutes': snoozeMinutes,
       'mission': mission.name,
       'mission_level': missionLevel,
+      'qr_payload': qrPayload,
       'max_snoozes': maxSnoozes,
     };
   }
@@ -121,6 +127,7 @@ class Alarm {
         orElse: () => AlarmMission.none,
       ),
       missionLevel: map['mission_level'] as int? ?? 1,
+      qrPayload: map['qr_payload'] as String?,
       maxSnoozes: map['max_snoozes'] as int?,
     );
   }
@@ -141,6 +148,7 @@ class Alarm {
     int? snoozeMinutes,
     AlarmMission? mission,
     int? missionLevel,
+    String? qrPayload,
     int? maxSnoozes,
   }) {
     return Alarm(
@@ -159,6 +167,7 @@ class Alarm {
       snoozeMinutes: snoozeMinutes ?? this.snoozeMinutes,
       mission: mission ?? this.mission,
       missionLevel: missionLevel ?? this.missionLevel,
+      qrPayload: qrPayload ?? this.qrPayload,
       maxSnoozes: maxSnoozes ?? this.maxSnoozes,
     );
   }
@@ -183,6 +192,7 @@ class Alarm {
           snoozeMinutes == other.snoozeMinutes &&
           mission == other.mission &&
           missionLevel == other.missionLevel &&
+          qrPayload == other.qrPayload &&
           maxSnoozes == other.maxSnoozes;
 
   @override
@@ -202,6 +212,7 @@ class Alarm {
     snoozeMinutes,
     mission,
     missionLevel,
+    qrPayload,
     maxSnoozes,
   );
 

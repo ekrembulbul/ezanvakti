@@ -4,7 +4,9 @@
 	<dict>
 		<key>CADisableMinimumFrameDurationOnPhone</key>
 		<true/>
-		<key>CFBundleDevelopmentRegion</key>
+		<key>NSCameraUsageDescription</key>
+	<string>QR görevli alarmı kapatmak için kaydettiğiniz kodu okutmak üzere kameraya erişim gerekiyor.</string>
+	<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleDisplayName</key>
 		<string>Ezan Vakti &amp; Alarm</string>
