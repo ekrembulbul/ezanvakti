@@ -11,6 +11,7 @@ const Duration _kNavAnimation = Duration(milliseconds: 220);
 const double _kTopPadding = 8;
 const double _kIconSize = 26;
 const double _kIconLabelGap = 6;
+
 /// Etiketin punto ve satır kutusu birlikte değişir: `height: 1.0` verildiği için
 /// satır yüksekliği puntoya eşittir, [_kLabelHeight] ondan küçük olamaz.
 const double _kLabelFontSize = 13;
@@ -23,6 +24,18 @@ const double _kIndicatorWidth = 20;
 
 /// Göstergenin konumu spec'e bağlı olduğu için test edilebilir.
 const Key kNavIndicatorKey = Key('nav_indicator');
+
+/// İçeriğin kendi diliminin ortasından ne kadar kaydırılacağı.
+///
+/// Dilimler genişliği eşit böler, yani merkezler 1/6 · 3/6 · 5/6'da kalır ve
+/// kenardaki öğeler kenara fazla yaklaşır. Göz için doğru olan eşit aralık:
+/// merkezler 1/4 · 2/4 · 3/4'te. Kaydırma yalnızca **görsel**; dokunma hedefi
+/// dilimin tamamı olarak kalıyor.
+double navContentDx(int index, int count, double width) {
+  final desired = (index + 1) / (count + 1);
+  final slotCenter = (2 * index + 1) / (2 * count);
+  return width * (desired - slotCenter);
+}
 
 /// Alt gezinme çubuğundaki tek bir hedef.
 class NavItem {
@@ -82,10 +95,20 @@ class AppNavBar extends StatelessWidget {
                     children: [
                       for (var i = 0; i < items.length; i++)
                         Expanded(
-                          child: _NavButton(
-                            item: items[i],
-                            isSelected: i == selected,
-                            onTap: () => onChanged(i),
+                          child: Transform.translate(
+                            offset: Offset(
+                              navContentDx(
+                                i,
+                                items.length,
+                                constraints.maxWidth,
+                              ),
+                              0,
+                            ),
+                            child: _NavButton(
+                              item: items[i],
+                              isSelected: i == selected,
+                              onTap: () => onChanged(i),
+                            ),
                           ),
                         ),
                     ],
@@ -95,7 +118,12 @@ class AppNavBar extends StatelessWidget {
                     curve: Curves.easeOutCubic,
                     left:
                         slotWidth * selected +
-                        (slotWidth - _kIndicatorWidth) / 2,
+                        (slotWidth - _kIndicatorWidth) / 2 +
+                        navContentDx(
+                          selected,
+                          items.length,
+                          constraints.maxWidth,
+                        ),
                     bottom: _kBottomPadding,
                     width: _kIndicatorWidth,
                     height: _kIndicatorHeight,

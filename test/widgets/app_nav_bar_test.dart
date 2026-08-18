@@ -85,6 +85,26 @@ void main() {
     );
   });
 
+  testWidgets('Ikonlar esit araliklarla dizilir', (tester) async {
+    await tester.pumpWidget(build());
+    await tester.pumpAndSettle();
+
+    final bar = tester.getRect(find.byType(AppNavBar));
+    final centers = [
+      for (final label in ['Vakitler', 'Takvim', 'Hatırlatıcılar'])
+        tester.getCenter(find.text(label)).dx,
+    ];
+
+    final leftGap = centers.first - bar.left;
+    final innerGap = centers[1] - centers[0];
+    final rightGap = bar.right - centers.last;
+
+    // Kenar bosluklari ic bosluklarla ayni olmali: |---o---o---o---|
+    expect(innerGap, closeTo(leftGap, 1));
+    expect(rightGap, closeTo(leftGap, 1));
+    expect(centers[2] - centers[1], closeTo(innerGap, 1));
+  });
+
   testWidgets('Etiket dar dilimde tasmaz', (tester) async {
     // En dar desteklenen genislik; spec §10/V1.
     tester.view.physicalSize = const Size(320, 640);
