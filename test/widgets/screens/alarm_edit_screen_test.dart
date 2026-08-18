@@ -52,7 +52,8 @@ void main() {
     await tester.tap(find.text('Vakte göre'));
     await tester.pumpAndSettle();
 
-    expect(find.text('VAKİT'), findsOneWidget);
+    // Vakit artik bolum basligi degil, secim satiri (OptionRow).
+    expect(find.text('Vakit'), findsOneWidget);
     expect(find.text('ZAMANLAMA'), findsOneWidget);
     expect(find.text('Önce'), findsOneWidget);
     expect(find.text('Tam vaktinde'), findsOneWidget);

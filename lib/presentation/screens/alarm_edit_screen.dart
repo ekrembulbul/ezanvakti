@@ -1,3 +1,4 @@
+import '../widgets/common/option_picker.dart';
 import '../../core/models/alarm_mission.dart';
 import '../../features/alarms/domain/snooze_options.dart';
 import 'package:file_selector/file_selector.dart';
@@ -218,28 +219,15 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _section(
-          'Vakit',
-          DropdownButtonFormField<PrayerType>(
-            initialValue: _anchor,
-            dropdownColor: tokens.backgroundStops[1],
-            style: TextStyle(color: tokens.textPrimary),
-            decoration: _fieldDecoration('Vakit'),
-            items: PrayerNameHelper.getAllPrayerTypes()
-                .map(
-                  (p) => DropdownMenuItem(
-                    value: p,
-                    child: Text(PrayerNameHelper.getName(p)),
-                  ),
-                )
-                .toList(),
-            onChanged: (v) => setState(() {
-              _anchor = v ?? _anchor;
-              // Yeni vaktin sınırını aşan sapmayı kırp.
-              final max = NotificationConstants.getMaxMinutesBefore(_anchor);
-              if (_offset.abs() > max) _offset = _offset.sign * max;
-            }),
-          ),
+        OptionRow<PrayerType>(
+          label: 'Vakit',
+          sheetTitle: 'Hangi vakte göre?',
+          selected: _anchor,
+          items: [
+            for (final p in PrayerNameHelper.getAllPrayerTypes())
+              OptionItem(value: p, label: PrayerNameHelper.getName(p)),
+          ],
+          onChanged: (v) => setState(() => _anchor = v),
         ),
         const SizedBox(height: 16),
         _section(
@@ -512,33 +500,41 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
 
   Widget _soundSelector() {
     final isCustom = _soundId.startsWith('custom:');
-    return DropdownButtonFormField<String>(
-      initialValue: _soundId,
-      isExpanded: true,
-      dropdownColor: tokens.backgroundStops[1],
-      style: TextStyle(color: tokens.textPrimary),
-      decoration: _fieldDecoration('Ses'),
+    return OptionRow<String>(
+      label: 'Ses',
+      selected: _soundId,
+      valueLabel: (v) => switch (v) {
+        'adhan' => 'Ezan',
+        'alarm' => 'Alarm sesi',
+        'default' => 'Varsayılan',
+        _ => _customSoundName ?? 'Özel ses',
+      },
       items: [
-        const DropdownMenuItem(value: 'adhan', child: Text('Ezan')),
-        const DropdownMenuItem(value: 'alarm', child: Text('Alarm sesi')),
-        const DropdownMenuItem(value: 'default', child: Text('Varsayılan')),
+        const OptionItem(
+          value: 'adhan',
+          label: 'Ezan',
+          icon: Icons.mosque_rounded,
+        ),
+        const OptionItem(
+          value: 'alarm',
+          label: 'Alarm sesi',
+          icon: Icons.notifications_active_rounded,
+        ),
+        const OptionItem(
+          value: 'default',
+          label: 'Varsayılan',
+          icon: Icons.volume_up_rounded,
+        ),
         if (isCustom)
-          DropdownMenuItem(
+          OptionItem(
             value: _soundId,
-            child: Text(
-              _customSoundName ?? 'Özel ses',
-              overflow: TextOverflow.ellipsis,
-            ),
+            label: _customSoundName ?? 'Özel ses',
+            icon: Icons.audiotrack_rounded,
           ),
-        DropdownMenuItem(
+        const OptionItem(
           value: _pickSoundValue,
-          child: Row(
-            children: [
-              Icon(Icons.library_music_outlined, size: 18, color: tokens.accent),
-              const SizedBox(width: 8),
-              const Text('Cihazdan ses seç…'),
-            ],
-          ),
+          label: 'Cihazdan ses seç…',
+          icon: Icons.library_music_outlined,
         ),
       ],
       onChanged: (v) {
@@ -546,7 +542,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
           _pickCustomSound();
           return;
         }
-        setState(() => _soundId = v ?? 'adhan');
+        setState(() => _soundId = v);
       },
     );
   }
@@ -577,17 +573,14 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   }
 
   Widget _snoozeMinutesSelector() {
-    return _switchRow(
-      'Erteleme süresi',
-      DropdownButton<int>(
-        value: _snoozeMinutes,
-        dropdownColor: tokens.backgroundStops[1],
-        style: TextStyle(color: tokens.textPrimary),
-        items: kSnoozeMinuteOptions
-            .map((m) => DropdownMenuItem(value: m, child: Text('$m dk')))
-            .toList(),
-        onChanged: (v) => setState(() => _snoozeMinutes = v ?? 5),
-      ),
+    return OptionRow<int>(
+      label: 'Erteleme süresi',
+      selected: _snoozeMinutes,
+      items: [
+        for (final m in kSnoozeMinuteOptions)
+          OptionItem(value: m, label: '$m dakika'),
+      ],
+      onChanged: (v) => setState(() => _snoozeMinutes = v),
     );
   }
 
@@ -608,71 +601,68 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
     );
   }
 
-  /// Görev seçimi. Bu turda yalnızca matematik açık; sallama ve QR kendi
-  /// turlarında listeye eklenecek.
+  /// Kapatma görevi. Görev açıldığında sınırsız erteleme kapıyı işlevsiz
+  /// bırakacağı için limit en büyük sonlu seçeneğe çekilir.
   Widget _missionSelector() {
-    const available = [AlarmMission.none, AlarmMission.math];
-    const labels = {AlarmMission.none: 'Yok', AlarmMission.math: 'Matematik'};
-    return _switchRow(
-      'Kapatma görevi',
-      DropdownButton<AlarmMission>(
-        value: available.contains(_mission) ? _mission : AlarmMission.none,
-        dropdownColor: tokens.backgroundStops[1],
-        style: TextStyle(color: tokens.textPrimary),
-        items: available
-            .map(
-              (m) => DropdownMenuItem(value: m, child: Text(labels[m] ?? 'Yok')),
-            )
-            .toList(),
-        onChanged: (v) => setState(() {
-          _mission = v ?? AlarmMission.none;
-          // Gorev acilirsa sinirsiz erteleme kapiyi islevsiz birakir.
-          if (_mission.requiresGate && _maxSnoozes == null) {
-            _maxSnoozes = kMaxSnoozeOptions.last;
-          }
-        }),
-      ),
+    return OptionRow<AlarmMission>(
+      label: 'Kapatma görevi',
+      sheetTitle: 'Alarmı nasıl kapatacaksın?',
+      selected: _mission,
+      items: const [
+        OptionItem(
+          value: AlarmMission.none,
+          label: 'Görev yok',
+          description: 'Kaydırarak doğrudan kapanır',
+          icon: Icons.block_rounded,
+        ),
+        OptionItem(
+          value: AlarmMission.math,
+          label: 'Matematik',
+          description: 'Soruları çözmeden kapanmaz',
+          icon: Icons.calculate_rounded,
+        ),
+        OptionItem(
+          value: AlarmMission.shake,
+          label: 'Sallama',
+          description: 'Telefonu sallayarak kapatılır',
+          icon: Icons.vibration_rounded,
+        ),
+        OptionItem(
+          value: AlarmMission.qr,
+          label: 'QR okutma',
+          description: 'Kayıtlı kodu okutmadan kapanmaz',
+          icon: Icons.qr_code_scanner_rounded,
+        ),
+      ],
+      onChanged: (v) => setState(() {
+        _mission = v;
+        if (_mission.requiresGate && _maxSnoozes == null) {
+          _maxSnoozes = kMaxSnoozeOptions.last;
+        }
+      }),
     );
   }
 
-  /// Erteleme sayısı. Görev açıkken "Sınırsız" listelenmez.
+  /// Erteleme sayısı. Görev açıkken "Sınırsız" listelenmez: kullanıcı görevi
+  /// hiç yapmadan sonsuza kadar erteleyebilirdi.
   Widget _maxSnoozesSelector() {
     final allowUnlimited = !_mission.requiresGate;
     final values = <int?>[...kMaxSnoozeOptions, if (allowUnlimited) null];
     final current = values.contains(_maxSnoozes)
         ? _maxSnoozes
         : kMaxSnoozeOptions.last;
-    return _switchRow(
-      'Erteleme sayısı',
-      DropdownButton<int?>(
-        value: current,
-        dropdownColor: tokens.backgroundStops[1],
-        style: TextStyle(color: tokens.textPrimary),
-        items: values
-            .map(
-              (v) => DropdownMenuItem(
-                value: v,
-                child: Text(v == null ? 'Sınırsız' : '$v kez'),
-              ),
-            )
-            .toList(),
-        onChanged: (v) => setState(() => _maxSnoozes = v),
-      ),
+
+    return OptionRow<int?>(
+      label: 'Erteleme sayısı',
+      selected: current,
+      items: [
+        for (final v in values)
+          OptionItem(value: v, label: v == null ? 'Sınırsız' : '$v kez'),
+      ],
+      onChanged: (v) => setState(() => _maxSnoozes = v),
     );
   }
 
-  Widget _switchRow(String title, Widget trailing) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(title, style: TextStyle(color: tokens.textPrimary)),
-          trailing,
-        ],
-      ),
-    );
-  }
 
   InputDecoration _fieldDecoration(String hint) {
     return InputDecoration(
