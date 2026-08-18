@@ -1,3 +1,5 @@
+import '../../../core/models/mission_session.dart';
+import 'snooze_notice.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/models/alarm.dart';
@@ -22,6 +24,13 @@ class AlarmsSection extends StatelessWidget {
   final bool isPermissionGranted;
   final VoidCallback onRequestPermission;
   final void Function(Alarm alarm, bool isActive) onToggle;
+
+  /// Bekleyen görev oturumu; ertelenmiş alarmı ve görev borcunu buradan
+  /// okuyoruz.
+  final MissionSession? missionSession;
+
+  /// Ertelenmiş görevli alarm kapatılmak istendiğinde çağrılır.
+  final void Function(Alarm alarm)? onDisableBlocked;
   final ValueChanged<Alarm> onEdit;
   final Future<void> Function(Alarm) onDelete;
 
@@ -32,6 +41,8 @@ class AlarmsSection extends StatelessWidget {
     required this.isPermissionGranted,
     required this.onRequestPermission,
     required this.onToggle,
+    this.missionSession,
+    this.onDisableBlocked,
     required this.onEdit,
     required this.onDelete,
   });
@@ -54,6 +65,39 @@ class AlarmsSection extends StatelessWidget {
     subtitle: 'Sabit saatli veya vakte göre alarm ekle',
   );
 
+  Widget _alarmRow(BuildContext context, Alarm alarm) {
+    final snoozedUntil = SnoozeNotice.snoozedUntilFor(missionSession, alarm);
+    final canDisable = SnoozeNotice.canDisable(missionSession, alarm);
+
+    return SwipeToDelete(
+      itemKey: ValueKey(alarm.id),
+      confirmText: '${alarmTimeLabel(alarm)} alarmını silmek istiyor musunuz?',
+      onDelete: () => onDelete(alarm),
+      child: GroupedRow(
+        icon: Icons.alarm_rounded,
+        title: Text(alarmTimeLabel(alarm)),
+        subtitle: Text(
+          snoozedUntil != null
+              ? SnoozeNotice.label(snoozedUntil)
+              : alarmSubtitle(alarm),
+        ),
+        onTap: () => onEdit(alarm),
+        dimmed: !alarm.isActive,
+        trailing: Switch(
+          value: alarm.isActive,
+          onChanged: (value) {
+            // Ertelenmis gorevli alarm kapatilamaz; gorev borcu duruyor.
+            if (!value && !canDisable) {
+              onDisableBlocked?.call(alarm);
+              return;
+            }
+            onToggle(alarm, value);
+          },
+        ),
+      ),
+    );
+  }
+
   Widget _list(BuildContext context) {
     final tokens = context.tokens;
 
@@ -65,23 +109,7 @@ class AlarmsSection extends StatelessWidget {
         GroupedList(
           children: [
             for (final alarm in alarms)
-              SwipeToDelete(
-                itemKey: ValueKey(alarm.id),
-                confirmText:
-                    '${alarmTimeLabel(alarm)} alarmını silmek istiyor musunuz?',
-                onDelete: () => onDelete(alarm),
-                child: GroupedRow(
-                  icon: Icons.alarm_rounded,
-                  title: Text(alarmTimeLabel(alarm)),
-                  subtitle: Text(alarmSubtitle(alarm)),
-                  onTap: () => onEdit(alarm),
-                  dimmed: !alarm.isActive,
-                  trailing: Switch(
-                    value: alarm.isActive,
-                    onChanged: (value) => onToggle(alarm, value),
-                  ),
-                ),
-              ),
+              _alarmRow(context, alarm),
           ],
         ),
         const SizedBox(height: 12),

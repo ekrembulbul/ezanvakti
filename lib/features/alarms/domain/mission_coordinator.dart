@@ -29,6 +29,8 @@ class MissionCoordinator {
         ? existing.copyWith(
             rearmCount: existing.rearmCount + 1,
             clearDeadline: true,
+            // Alarm calip kapatildi: erteleme penceresi bitti.
+            clearSnoozedUntil: true,
           )
         : MissionSession(alarmId: latest.alarmId, firedAt: latest.stoppedAt);
     await storage.saveMissionSession(session);
@@ -61,10 +63,19 @@ class MissionCoordinator {
     if (limit != null && session.snoozeUsed >= limit) return false;
     await alarmService.snoozeMission(alarm.id, alarm.snoozeMinutes);
     await storage.saveMissionSession(
-      session.copyWith(snoozeUsed: session.snoozeUsed + 1, clearDeadline: true),
+      session.copyWith(
+        snoozeUsed: session.snoozeUsed + 1,
+        clearDeadline: true,
+        snoozedUntil: DateTime.now().add(
+          Duration(minutes: alarm.snoozeMinutes),
+        ),
+      ),
     );
     return true;
   }
+
+  /// Arayüzün göstereceği güncel oturum. Kuyruğu tüketmez.
+  Future<MissionSession?> currentSession() => storage.getMissionSession();
 
   /// Görev tamamlandı: zincir tamamen susar.
   Future<void> complete(String alarmId) async {

@@ -1,3 +1,4 @@
+import '../models/mission_session.dart';
 import 'package:flutter/foundation.dart';
 import '../models/alarm.dart';
 import '../models/location.dart';
@@ -62,6 +63,16 @@ class AppState extends ChangeNotifier {
 
   void setNotificationSettings(List<NotificationSetting> settings) {
     _notificationSettings = settings;
+    notifyListeners();
+  }
+
+  /// Bekleyen görev oturumu. Ertelenen alarmın ne zaman çalacağını ve
+  /// hangi alarmın görev borcu olduğunu arayüz buradan okur.
+  MissionSession? _missionSession;
+  MissionSession? get missionSession => _missionSession;
+
+  void setMissionSession(MissionSession? session) {
+    _missionSession = session;
     notifyListeners();
   }
 

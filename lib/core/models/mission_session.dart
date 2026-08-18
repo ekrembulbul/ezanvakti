@@ -13,6 +13,10 @@ class MissionSession {
   /// uygulama arka plana düşse de sayaç durmaz.
   final DateTime? deadlineAt;
 
+  /// Erteleme yapıldıysa alarmın tekrar çalacağı an. Arayüz bunu alarm
+  /// satırında ve ana ekranda gösterir.
+  final DateTime? snoozedUntil;
+
   final DateTime? completedAt;
 
   const MissionSession({
@@ -21,6 +25,7 @@ class MissionSession {
     this.snoozeUsed = 0,
     this.rearmCount = 0,
     this.deadlineAt,
+    this.snoozedUntil,
     this.completedAt,
   });
 
@@ -32,6 +37,7 @@ class MissionSession {
     'snooze_used': snoozeUsed,
     'rearm_count': rearmCount,
     'deadline_at': deadlineAt?.toIso8601String(),
+    'snoozed_until': snoozedUntil?.toIso8601String(),
     'completed_at': completedAt?.toIso8601String(),
   };
 
@@ -41,6 +47,10 @@ class MissionSession {
     snoozeUsed: json['snooze_used'] as int? ?? 0,
     rearmCount: json['rearm_count'] as int? ?? 0,
     deadlineAt: switch (json['deadline_at']) {
+      final String s => DateTime.tryParse(s),
+      _ => null,
+    },
+    snoozedUntil: switch (json['snoozed_until']) {
       final String s => DateTime.tryParse(s),
       _ => null,
     },
@@ -54,14 +64,19 @@ class MissionSession {
     int? snoozeUsed,
     int? rearmCount,
     DateTime? deadlineAt,
+    DateTime? snoozedUntil,
     DateTime? completedAt,
     bool clearDeadline = false,
+    bool clearSnoozedUntil = false,
   }) => MissionSession(
     alarmId: alarmId,
     firedAt: firedAt,
     snoozeUsed: snoozeUsed ?? this.snoozeUsed,
     rearmCount: rearmCount ?? this.rearmCount,
     deadlineAt: clearDeadline ? null : (deadlineAt ?? this.deadlineAt),
+    snoozedUntil: clearSnoozedUntil
+        ? null
+        : (snoozedUntil ?? this.snoozedUntil),
     completedAt: completedAt ?? this.completedAt,
   );
 }

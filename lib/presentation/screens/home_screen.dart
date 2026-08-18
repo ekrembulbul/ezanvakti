@@ -1,3 +1,4 @@
+import '../../core/models/mission_session.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -40,6 +41,9 @@ class HomeScreen extends StatefulWidget {
 
   /// "Yalnızca bu sefer" atlanmış örnekler ve anahtar geri çağrısı.
   final Set<SkippedOccurrence> skips;
+
+  /// Bekleyen görev oturumu; ertelenmiş alarm bilgisi için.
+  final MissionSession? missionSession;
   final void Function(SkippedOccurrence occurrence, bool skipped)?
   onSkipChanged;
 
@@ -52,6 +56,7 @@ class HomeScreen extends StatefulWidget {
   final String? errorMessage;
 
   const HomeScreen({
+    this.missionSession,
     super.key,
     required this.location,
     this.todaysPrayerTime,
@@ -163,6 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         const SizedBox(height: 24),
         UpcomingCard(
+          missionSession: widget.missionSession,
           now: now,
           notification: resolveNextNotification(
             settings: widget.notificationSettings,

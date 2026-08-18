@@ -1,3 +1,5 @@
+import '../../../core/models/mission_session.dart';
+import '../reminders/snooze_notice.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -35,11 +37,15 @@ class UpcomingCard extends StatelessWidget {
   /// kullanıcı fikrini değiştirip geri açabilsin.
   final Set<SkippedOccurrence> skips;
 
+  /// Bekleyen görev oturumu; ertelenmiş alarmı buradan okuyoruz.
+  final MissionSession? missionSession;
+
   /// Anahtar değişince çağrılır. `skipped` true ise atlanacak.
   final void Function(SkippedOccurrence occurrence, bool skipped)?
   onSkipChanged;
 
   const UpcomingCard({
+    this.missionSession,
     super.key,
     required this.now,
     required this.onSeeAll,
@@ -175,18 +181,29 @@ class UpcomingCard extends StatelessWidget {
       fireAt: item.time,
     );
 
+    final snoozedUntil = SnoozeNotice.snoozedUntilFor(
+      missionSession,
+      item.alarm,
+    );
+
     return GroupedRow(
       height: _kRowHeight,
       icon: Icons.alarm_rounded,
       iconColor: tokens.accent,
       title: Text(title, style: AppTypography.upcomingRowTitle),
       subtitle: Text(
-        skipped
-            ? 'Yalnızca bu sefer atlanacak · '
-                  '${_relativeDay(item.time)} ${_clock(item.time)}'
-            : '$label · ${_relativeDay(item.time)} ${_clock(item.time)}',
+        switch ((snoozedUntil, skipped)) {
+          (final DateTime until, _) => SnoozeNotice.label(until),
+          (_, true) =>
+            'Yalnızca bu sefer atlanacak · '
+                '${_relativeDay(item.time)} ${_clock(item.time)}',
+          _ => '$label · ${_relativeDay(item.time)} ${_clock(item.time)}',
+        },
       ),
-      trailing: _skipSwitch(occurrence, skipped),
+      // Ertelenmis gorevli alarm atlanamaz: gorev borcu duruyor.
+      trailing: SnoozeNotice.canDisable(missionSession, item.alarm)
+          ? _skipSwitch(occurrence, skipped)
+          : const Switch(value: true, onChanged: null),
     );
   }
 

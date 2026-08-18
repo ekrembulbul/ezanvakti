@@ -217,6 +217,15 @@ class _RemindersScreenState extends State<RemindersScreen>
     await _syncAlarms(appState);
   }
 
+  /// Ertelenmiş görevli alarm kapatılmak istendi. Kapatmak, görevi yapmadan
+  /// alarmdan kurtulmanın arka kapısı olurdu.
+  void _onDisableBlocked(Alarm alarm) {
+    _snack(
+      'Bu alarm ertelendi ve görevi bekliyor; '
+      'görevi yapmadan kapatılamaz.',
+    );
+  }
+
   Future<void> _toggleAlarm(Alarm alarm, bool isActive) async {
     final appState = context.read<AppState>();
     await _alarmsManager.setActive(alarm, isActive);
@@ -357,6 +366,8 @@ class _RemindersScreenState extends State<RemindersScreen>
             onDelete: _deleteNotification,
           ),
           AlarmsSection(
+            missionSession: appState.missionSession,
+            onDisableBlocked: _onDisableBlocked,
             alarms: appState.alarms,
             isSupported: _alarmSupported,
             isPermissionGranted: _alarmGranted,

@@ -435,6 +435,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               Consumer<AppState>(
                 builder: (context, appState, child) {
                   return HomeScreen(
+                    missionSession: appState.missionSession,
                     location: appState.activeLocation!,
                     todaysPrayerTime: appState.todaysPrayerTime,
                     tomorrowsPrayerTime: appState.tomorrowsPrayerTime,

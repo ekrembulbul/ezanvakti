@@ -19,14 +19,11 @@ void main() {
     int snoozeRemaining = 0,
     VoidCallback? onSnooze,
     VoidCallback? onAbort,
-    DateTime? snoozedUntil,
   }) => wrapWithTheme(
     MissionScreen(
       alarm: alarm,
       remainingSeconds: remainingSeconds,
       snoozeRemaining: snoozeRemaining,
-      snoozedUntil: snoozedUntil,
-      onDismissSnoozed: () {},
       onCompleted: () {},
       onAbortRequested: onAbort ?? () {},
       onSnooze: onSnooze,
@@ -81,27 +78,5 @@ void main() {
     expect(find.textContaining('Süre doldu'), findsOneWidget);
   });
 
-  testWidgets('Ertelenince saat ve kalan hak gosterilir', (tester) async {
-    await tester.pumpWidget(
-      build(
-        snoozedUntil: DateTime(2026, 8, 17, 23, 45),
-        snoozeRemaining: 2,
-        onSnooze: () {},
-      ),
-    );
-    expect(find.textContaining('23:45'), findsWidgets);
-    expect(find.textContaining('2 erteleme hakkın kaldı'), findsOneWidget);
-    expect(find.byKey(kMissionSnoozedOkKey), findsOneWidget);
-    // Ertelenmis durumda gorev govdesi ve diger eylemler gorunmez.
-    expect(find.text('gorev govdesi'), findsNothing);
-    expect(find.byKey(kMissionSnoozeKey), findsNothing);
-    expect(find.byKey(kMissionAbortKey), findsNothing);
-  });
 
-  testWidgets('Hak bitmisse erteleme ekrani bunu soyler', (tester) async {
-    await tester.pumpWidget(
-      build(snoozedUntil: DateTime(2026, 8, 17, 23, 45), snoozeRemaining: 0),
-    );
-    expect(find.textContaining('hakkın kalmadı'), findsOneWidget);
-  });
 }

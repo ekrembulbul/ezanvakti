@@ -4,7 +4,10 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../core/config/mission_tuning.dart';
+import 'package:provider/provider.dart';
+
 import '../../core/di/service_locator.dart';
+import '../../core/providers/app_state.dart';
 import '../../core/interfaces/alarm_service.dart';
 import '../../core/models/alarm.dart';
 import '../../core/models/alarm_mission.dart';
@@ -27,7 +30,13 @@ Future<void> openMissionIfPending(BuildContext context) async {
   if (_missionScreenOpen) return;
   final coordinator = ServiceLocator().get<MissionCoordinator>();
   final session = await coordinator.resume();
+  if (context.mounted) context.read<AppState>().setMissionSession(session);
   if (session == null || !session.isPending) return;
+
+  // Alarm ertelendiyse ortada calan bir alarm yok; gorev ekrani bir sonraki
+  // calista acilir. Bilgi alarm satirinda ve ana ekranda duruyor.
+  final snoozedUntil = session.snoozedUntil;
+  if (snoozedUntil != null && snoozedUntil.isAfter(DateTime.now())) return;
 
   final alarms = await ServiceLocator().get<AlarmsManager>().getAlarms();
   final alarm = alarms.where((a) => a.id == session.alarmId).firstOrNull;
@@ -50,6 +59,11 @@ Future<void> openMissionIfPending(BuildContext context) async {
     );
   } finally {
     _missionScreenOpen = false;
+    if (context.mounted) {
+      context.read<AppState>().setMissionSession(
+        await coordinator.currentSession(),
+      );
+    }
   }
 }
 
@@ -65,14 +79,10 @@ class _MissionHost extends StatefulWidget {
 }
 
 class _MissionHostState extends State<_MissionHost> {
-  late int _snoozeUsed = widget.snoozeUsed;
 
   /// Görev süresinin mutlak bitişi. Geri sayım bundan hesaplanır; ekran
   /// yeniden açılsa da baştan başlamaz, arka planda da işlemeye devam eder.
   DateTime? _deadline;
-
-  /// Erteleme yapıldıysa alarmın tekrar çalacağı an.
-  DateTime? _snoozedUntil;
 
   Timer? _ticker;
   StreamSubscription<dynamic>? _stops;
@@ -116,7 +126,6 @@ class _MissionHostState extends State<_MissionHost> {
     if (!mounted) return;
     setState(() {
       _deadline = deadline;
-      _snoozedUntil = null;
     });
   }
 
@@ -130,7 +139,7 @@ class _MissionHostState extends State<_MissionHost> {
   int get _snoozeRemaining {
     final limit = widget.alarm.maxSnoozes;
     if (!widget.alarm.snoozeEnabled || limit == null) return 0;
-    final left = limit - _snoozeUsed;
+    final left = limit - widget.snoozeUsed;
     return left < 0 ? 0 : left;
   }
 
@@ -142,13 +151,9 @@ class _MissionHostState extends State<_MissionHost> {
   Future<void> _snooze() async {
     final ok = await _coordinator.snooze(widget.alarm);
     if (!ok || !mounted) return;
-    // Ekrani hemen kapatmiyoruz: kullanici ne zaman tekrar calacagini gormeli.
-    setState(() {
-      _snoozedUntil = DateTime.now().add(
-        Duration(minutes: widget.alarm.snoozeMinutes),
-      );
-      _snoozeUsed++;
-    });
+    // Erteleme bilgisi alarm satirinda ve ana ekranda gosteriliyor; burada
+    // ayrica bir onay ekrani tutmuyoruz.
+    Navigator.of(context).pop();
   }
 
   Future<void> _abort() async {
@@ -174,8 +179,6 @@ class _MissionHostState extends State<_MissionHost> {
         alarm: widget.alarm,
         remainingSeconds: _remaining,
         snoozeRemaining: _snoozeRemaining,
-        snoozedUntil: _snoozedUntil,
-        onDismissSnoozed: () => Navigator.of(context).pop(),
         onCompleted: _complete,
         onAbortRequested: _abort,
         onSnooze: _snoozeRemaining > 0 ? _snooze : null,

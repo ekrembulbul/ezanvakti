@@ -36,7 +36,9 @@ class MissionTuning {
   /// QR en uzun süreyi alır: kodun bulunduğu yere yürümek gerekiyor.
   static const Map<AlarmMission, int> _timeouts = {
     AlarmMission.none: 0,
-    AlarmMission.math: 90,
+    // CIHAZ TESTI: olcum hizli olsun diye 90 yerine 30. Kalibrasyon sonrasi
+    // gercek degere donecek.
+    AlarmMission.math: 30,
     AlarmMission.shake: 60,
     AlarmMission.qr: 180,
   };
