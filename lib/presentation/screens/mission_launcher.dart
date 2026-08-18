@@ -16,6 +16,7 @@ import '../../features/alarms/domain/alarms_manager.dart';
 import '../../features/alarms/domain/mission_coordinator.dart';
 import '../widgets/missions/abort_dialog.dart';
 import '../widgets/missions/math_mission.dart';
+import '../widgets/missions/shake_mission.dart';
 import 'mission_screen.dart';
 
 /// Görev ekranı açık mı? Aynı anda birden fazla açılırsa her biri kendi geri
@@ -188,8 +189,12 @@ class _MissionHostState extends State<_MissionHost> {
             random: Random(),
             onCompleted: _complete,
           ),
-          // Sallama ve QR kendi turlarinda eklenecek; o zamana kadar bu
-          // alarmlar gorev ekranina hic dusmez (arayuzde secilemiyorlar).
+          AlarmMission.shake => ShakeMission(
+            level: widget.alarm.missionLevel,
+            onCompleted: _complete,
+          ),
+          // QR sonraki commit'te; o zamana kadar bu alarmlar gorev ekranina
+          // dusse de bos kalmasin diye gorev yokmus gibi tamamlanir.
           _ => const SizedBox.shrink(),
         },
       ),
