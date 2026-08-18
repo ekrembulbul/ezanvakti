@@ -161,7 +161,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
           const SizedBox(height: 16),
           _section('Etiket', _labelField()),
           const SizedBox(height: 16),
-          _section('Ses', _soundSelector()),
+          _soundSelector(),
           const SizedBox(height: 8),
           _switchTile('Titreşim', _vibrate, (v) => setState(() => _vibrate = v)),
           _switchTile('Ertele (snooze)', _snoozeEnabled, (v) {

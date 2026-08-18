@@ -77,19 +77,23 @@ class _MathMissionState extends State<MathMission> {
     final tokens = context.tokens;
     final question = _questions[_index];
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _progress(tokens),
-        const SizedBox(height: 24),
-        _questionCard(tokens, question),
-        const SizedBox(height: 20),
-        _answerField(tokens),
-        SizedBox(height: _wrong ? 10 : 0),
-        _wrongHint(tokens),
-        const SizedBox(height: 24),
-        _submitButton(tokens),
-      ],
+    // Klavye acilinca alan daraliyor; icerik sabit yuksekliklere sahip
+    // oldugu icin kaydirilabilir olmali, yoksa tasiyor.
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _progress(tokens),
+          const SizedBox(height: 24),
+          _questionCard(tokens, question),
+          const SizedBox(height: 20),
+          _answerField(tokens),
+          SizedBox(height: _wrong ? 10 : 0),
+          _wrongHint(tokens),
+          const SizedBox(height: 24),
+          _submitButton(tokens),
+        ],
+      ),
     );
   }
 

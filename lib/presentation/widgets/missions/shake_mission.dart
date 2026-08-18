@@ -57,9 +57,7 @@ class _ShakeMissionState extends State<ShakeMission>
     if (custom != null) {
       _sub = custom.listen((s) => _onSample(s.x, s.y, s.z));
     } else {
-      _sub = accelerometerEventStream().listen(
-        (e) => _onSample(e.x, e.y, e.z),
-      );
+      _sub = accelerometerEventStream().listen((e) => _onSample(e.x, e.y, e.z));
     }
   }
 
@@ -93,33 +91,35 @@ class _ShakeMissionState extends State<ShakeMission>
     final remaining = (_target - _detector.count).clamp(0, _target);
     final progress = _target == 0 ? 1.0 : _detector.count / _target;
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        ScaleTransition(
-          scale: _pulse,
-          child: Icon(
-            Icons.vibration_rounded,
-            size: 72,
-            color: tokens.accent,
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          ScaleTransition(
+            scale: _pulse,
+            child: Icon(
+              Icons.vibration_rounded,
+              size: 72,
+              color: tokens.accent,
+            ),
           ),
-        ),
-        const SizedBox(height: 28),
-        Text(
-          '$remaining',
-          key: kShakeProgressKey,
-          style: AppTypography.counter.copyWith(color: tokens.textPrimary),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          remaining > 0 ? 'kez daha salla' : 'tamamlandı',
-          style: AppTypography.rowSubtitle.copyWith(
-            color: tokens.textSecondary,
+          const SizedBox(height: 28),
+          Text(
+            '$remaining',
+            key: kShakeProgressKey,
+            style: AppTypography.counter.copyWith(color: tokens.textPrimary),
           ),
-        ),
-        const SizedBox(height: 28),
-        _bar(tokens, progress),
-      ],
+          const SizedBox(height: 6),
+          Text(
+            remaining > 0 ? 'kez daha salla' : 'tamamlandı',
+            style: AppTypography.rowSubtitle.copyWith(
+              color: tokens.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 28),
+          _bar(tokens, progress),
+        ],
+      ),
     );
   }
 
