@@ -133,7 +133,8 @@ class AlarmsSection extends StatelessWidget {
 
     return SwipeToDelete(
       itemKey: ValueKey(alarm.id),
-      confirmText: '${alarmTimeLabel(alarm)} alarmını silmek istiyor musunuz?',
+      // Onay sorulmuyor: silme dogrudan uygulaniyor, geri alma altta
+      // "Geri al" ile veriliyor.
       onDelete: () => onDelete(alarm),
       child: GroupedRow(
         icon: Icons.alarm_rounded,
@@ -174,8 +175,9 @@ class AlarmsSection extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 2),
           child: Text(
-            'Silmek için satırı sola kaydırın. Alarmlar vakit güncellendiğinde '
-            'otomatik yeniden planlanır.',
+            'Silmek için satırı sola kaydırın; yanlışlıkla silersen alttaki '
+            '"Geri al" ile dönersin. Alarmlar vakit güncellendiğinde otomatik '
+            'yeniden planlanır.',
             style: AppTypography.hint.copyWith(
               color: tokens.textTertiary,
               height: 1.5,

@@ -10,14 +10,16 @@ import '../../../core/theme/tokens_context.dart';
 class SwipeToDelete extends StatelessWidget {
   final Key itemKey;
   final Widget child;
-  final String confirmText;
+  /// Onay metni. `null` ise onay sorulmaz ve satır doğrudan silinir; geri
+  /// alma sorumluluğu çağırana geçer (alt kısımda "Geri al" ile).
+  final String? confirmText;
   final VoidCallback onDelete;
 
   const SwipeToDelete({
     super.key,
     required this.itemKey,
     required this.child,
-    required this.confirmText,
+    this.confirmText,
     required this.onDelete,
   });
 
@@ -35,39 +37,43 @@ class SwipeToDelete extends StatelessWidget {
         padding: const EdgeInsets.only(right: 20),
         child: Icon(Icons.delete_outline_rounded, color: errorColor),
       ),
-      confirmDismiss: (_) async {
-        final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            backgroundColor: tokens.backgroundStops[1],
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            title: Text(
-              'Sil',
-              style: AppTypography.rowTitle.copyWith(color: tokens.textPrimary),
-            ),
-            content: Text(
-              confirmText,
-              style: AppTypography.rowSubtitle.copyWith(
-                color: tokens.textSecondary,
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('İptal'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                style: TextButton.styleFrom(foregroundColor: errorColor),
-                child: const Text('Sil'),
-              ),
-            ],
-          ),
-        );
-        return confirmed ?? false;
-      },
+      confirmDismiss: confirmText == null
+          ? null
+          : (_) async {
+              final confirmed = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  backgroundColor: tokens.backgroundStops[1],
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  title: Text(
+                    'Sil',
+                    style: AppTypography.rowTitle.copyWith(
+                      color: tokens.textPrimary,
+                    ),
+                  ),
+                  content: Text(
+                    confirmText!,
+                    style: AppTypography.rowSubtitle.copyWith(
+                      color: tokens.textSecondary,
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('İptal'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      style: TextButton.styleFrom(foregroundColor: errorColor),
+                      child: const Text('Sil'),
+                    ),
+                  ],
+                ),
+              );
+              return confirmed ?? false;
+            },
       onDismissed: (_) => onDelete(),
       child: child,
     );

@@ -267,11 +267,29 @@ class _RemindersScreenState extends State<RemindersScreen>
     await _syncAlarms(appState);
   }
 
+  /// Kaydırınca onay sorulmadan siler; geri alma "Geri al" ile veriliyor.
+  ///
+  /// Silinen alarm bellekte tutuluyor ve geri alınırsa aynı id ile yeniden
+  /// kaydediliyor, böylece atlama kayıtları ve görev geçmişi eşleşmeye devam
+  /// ediyor.
   Future<void> _deleteAlarm(Alarm alarm) async {
     final appState = context.read<AppState>();
     await _alarmsManager.delete(alarm.id);
     await _syncAlarms(appState);
-    _snack('${alarmTimeLabel(alarm)} alarmı silindi');
+    _snack(
+      '${alarmTimeLabel(alarm)} alarmı silindi',
+      action: SnackBarAction(
+        label: 'Geri al',
+        textColor: Colors.white,
+        onPressed: () => _restoreAlarm(alarm),
+      ),
+    );
+  }
+
+  Future<void> _restoreAlarm(Alarm alarm) async {
+    final appState = context.read<AppState>();
+    await _alarmsManager.save(alarm);
+    await _syncAlarms(appState);
   }
 
   // --- Ekleme düğmesi ---
@@ -308,13 +326,20 @@ class _RemindersScreenState extends State<RemindersScreen>
     );
   }
 
-  void _snack(String message, {bool isError = false}) {
+  void _snack(
+    String message, {
+    bool isError = false,
+    SnackBarAction? action,
+    Duration duration = const Duration(seconds: 4),
+  }) {
     if (!mounted) return;
     // Onceki snackbar'i hemen kaldir; yeni islem mesaji beklemeden gosterilsin.
     final messenger = ScaffoldMessenger.of(context)..clearSnackBars();
     messenger.showSnackBar(
       SnackBar(
         content: Text(message),
+        action: action,
+        duration: duration,
         backgroundColor: isError
             ? Theme.of(context).colorScheme.error
             : context.tokens.accent,

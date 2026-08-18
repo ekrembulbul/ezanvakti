@@ -131,10 +131,8 @@ void main() {
     await tester.tap(find.text('Alarmlar'));
     await tester.pumpAndSettle();
 
+    // Alarm satirinda onay sorulmuyor; kaydirmak dogrudan siliyor.
     await tester.drag(find.text('06:30'), const Offset(-400, 0));
-    await tester.pumpAndSettle();
-    // "Sil" hem kaydirma arkaplaninda hem diyalog dugmesinde var.
-    await tester.tap(find.widgetWithText(TextButton, 'Sil'));
     await tester.pumpAndSettle();
 
     expect(
@@ -144,6 +142,24 @@ void main() {
           'Mutasyon sonrasi AppState tazelenmezse ana ekrandaki SIRADAKI '
           'karti bayat alarm gosterir',
     );
+  });
+
+  testWidgets('Silinen alarm "Geri al" ile geri gelir', (tester) async {
+    await storage.saveAlarm(sahur);
+    appState.setAlarms(const [sahur]);
+    await pump(tester);
+
+    await tester.tap(find.text('Alarmlar'));
+    await tester.pumpAndSettle();
+
+    await tester.drag(find.text('06:30'), const Offset(-400, 0));
+    await tester.pumpAndSettle();
+    expect(appState.alarms, isEmpty);
+
+    await tester.tap(find.text('Geri al'));
+    await tester.pumpAndSettle();
+
+    expect(appState.alarms.map((a) => a.id), [sahur.id]);
   });
 
   testWidgets('Bildirim silinince AppState tazelenir', (tester) async {
