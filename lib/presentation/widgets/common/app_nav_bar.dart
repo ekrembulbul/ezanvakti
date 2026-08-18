@@ -9,14 +9,17 @@ const Duration _kNavAnimation = Duration(milliseconds: 220);
 
 // Dikey yerleşim; toplam [AppNavBar.height] bunların toplamıdır.
 const double _kTopPadding = 8;
-const double _kIconSize = 22;
-const double _kIconLabelGap = 5;
-const double _kLabelHeight = 12;
+const double _kIconSize = 26;
+const double _kIconLabelGap = 6;
+/// Etiketin punto ve satır kutusu birlikte değişir: `height: 1.0` verildiği için
+/// satır yüksekliği puntoya eşittir, [_kLabelHeight] ondan küçük olamaz.
+const double _kLabelFontSize = 13;
+const double _kLabelHeight = 14;
 const double _kLabelIndicatorGap = 3;
 const double _kIndicatorHeight = 2;
 const double _kBottomPadding = 6;
 
-const double _kIndicatorWidth = 18;
+const double _kIndicatorWidth = 20;
 
 /// Göstergenin konumu spec'e bağlı olduğu için test edilebilir.
 const Key kNavIndicatorKey = Key('nav_indicator');
@@ -152,7 +155,7 @@ class _NavButton extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: AppTypography.tabLabel.copyWith(
-                  fontSize: 11,
+                  fontSize: _kLabelFontSize,
                   height: 1.0,
                   color: color,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
