@@ -13,6 +13,7 @@ import '../../core/models/alarm.dart';
 import '../../core/models/notification_setting.dart';
 import '../../core/providers/app_state.dart';
 import '../../core/services/exact_alarm_service.dart';
+import '../../core/utils/app_logger.dart';
 import '../../core/theme/tokens_context.dart';
 import '../../features/alarms/domain/alarms_manager.dart';
 import '../../features/notifications/domain/notification_settings_manager.dart';
@@ -110,14 +111,36 @@ class _RemindersScreenState extends State<RemindersScreen>
     if (!rescheduled) await _notificationService.cancelAllNotifications();
   }
 
+  /// Planlama işlerinin sırası.
+  ///
+  /// [_reschedule] her kaydı OS'ten iptal edip yeniden kuruyor; cihazda bu
+  /// saniyeler sürebiliyor. Kullanıcı geri bildirimi — özellikle "Geri al" —
+  /// onun arkasında beklerse satır kaybolduktan çok sonra beliriyor. Sıra aynı
+  /// zamanda silme ile hemen ardından gelen geri almanın planlamalarının iç
+  /// içe girmesini engelliyor.
+  Future<void> _syncQueue = Future<void>.value();
+
+  void _queueReschedule(AppState appState) {
+    _syncQueue = _syncQueue
+        .then((_) => _reschedule(appState))
+        .catchError((Object error, StackTrace stackTrace) {
+          AppLogger().error(
+            'Hatırlatıcı planlaması başarısız',
+            error,
+            stackTrace,
+          );
+        });
+  }
+
+  /// Listeyi tazeler, planlamayı sıraya alır. Planlamayı **beklemez**.
   Future<void> _syncNotifications(AppState appState) async {
     appState.setNotificationSettings(await _settingsManager.getSettings());
-    await _reschedule(appState);
+    _queueReschedule(appState);
   }
 
   Future<void> _syncAlarms(AppState appState) async {
     appState.setAlarms(await _alarmsManager.getAlarms());
-    await _reschedule(appState);
+    _queueReschedule(appState);
   }
 
   // --- Bildirim mutasyonları ---

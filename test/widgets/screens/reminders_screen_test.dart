@@ -15,6 +15,7 @@ import 'package:ezanvakti/presentation/screens/reminders_screen.dart';
 import 'package:ezanvakti/presentation/services/reminder_rescheduler.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'dart:async';
 
 import '../../support/fakes.dart';
 import '../theme_harness.dart';
@@ -54,6 +55,20 @@ class _StubAlarmService implements AlarmService {
   Future<void> abortMission(String alarmId) async {}
 }
 
+/// Planlamayı askıda tutan bildirim servisi.
+///
+/// Silme geri bildiriminin planlamayı beklemediğini doğrulamak için gerekli:
+/// gerçek cihazda yavaş olan adım tam olarak budur.
+class _BlockingNotificationService extends FakeNotificationService {
+  final Completer<void> gate = Completer<void>();
+
+  @override
+  Future<void> cancelAllNotifications() async {
+    await gate.future;
+    await super.cancelAllNotifications();
+  }
+}
+
 void main() {
   const sahur = Alarm(
     id: 'sahur',
@@ -66,13 +81,9 @@ void main() {
   late FakeStorage storage;
   late AppState appState;
 
-  setUp(() async {
-    storage = FakeStorage();
-    await storage.init();
-    appState = AppState();
-
+  void register({FakeNotificationService? notifications}) {
+    final notificationService = notifications ?? FakeNotificationService();
     final locator = ServiceLocator();
-    final notificationService = FakeNotificationService();
     final alarmService = _StubAlarmService();
 
     locator.register<LocalStorage>(storage);
@@ -95,6 +106,13 @@ void main() {
         ),
       ),
     );
+  }
+
+  setUp(() async {
+    storage = FakeStorage();
+    await storage.init();
+    appState = AppState();
+    register();
   });
 
   Future<void> pump(WidgetTester tester) async {
@@ -191,5 +209,31 @@ void main() {
       [PrayerType.dhuhr],
       reason: 'Silme onaysiz oldugu icin geri alma calismak zorunda',
     );
+  });
+
+  testWidgets('"Geri al" planlamayi beklemeden hemen gorunur', (tester) async {
+    final blocking = _BlockingNotificationService();
+    register(notifications: blocking);
+
+    await storage.saveAlarm(sahur);
+    appState.setAlarms(const [sahur]);
+    await pump(tester);
+
+    await tester.tap(find.text('Alarmlar'));
+    await tester.pumpAndSettle();
+
+    await tester.drag(find.text('06:30'), const Offset(-400, 0));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Geri al'),
+      findsOneWidget,
+      reason:
+          'Planlama saniyeler surebiliyor; geri bildirim onun arkasinda '
+          'beklerse kullanici satir kayboldugundan cok sonra gorur',
+    );
+
+    blocking.gate.complete();
+    await tester.pumpAndSettle();
   });
 }
