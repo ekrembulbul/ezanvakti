@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import '../services/upcoming_resolver.dart';
 import '../../core/models/prayer_time.dart';
 import '../../core/models/skipped_occurrence.dart';
@@ -72,6 +74,9 @@ class _RemindersScreenState extends State<RemindersScreen>
 
   @override
   void dispose() {
+    // Ekrandan çıkmak planlamayı iptal etmemeli: kullanıcı bir kaydı silmiş
+    // olabilir ve onun eski OS kopyası hâlâ kurulu.
+    _flushReschedule();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -111,16 +116,35 @@ class _RemindersScreenState extends State<RemindersScreen>
     if (!rescheduled) await _notificationService.cancelAllNotifications();
   }
 
-  /// Planlama işlerinin sırası.
+  /// Planlamanın bekletildiği süre.
   ///
-  /// [_reschedule] her kaydı OS'ten iptal edip yeniden kuruyor; cihazda bu
-  /// saniyeler sürebiliyor. Kullanıcı geri bildirimi — özellikle "Geri al" —
-  /// onun arkasında beklerse satır kaybolduktan çok sonra beliriyor. Sıra aynı
-  /// zamanda silme ile hemen ardından gelen geri almanın planlamalarının iç
-  /// içe girmesini engelliyor.
+  /// [_reschedule] tüm bildirim ve alarmları OS'ten iptal edip yeniden
+  /// kuruyor; simülatörde 63 bildirim için ~370 ms sürüyor ve bu boyunca UI
+  /// isolate'i meşgul. Silme animasyonu ve snackbar girişiyle çakışınca
+  /// kullanıcı bunu takılma olarak görüyor. Bekleme ayrıca sil + "Geri al"
+  /// gibi hızlı ardışık mutasyonları tek planlamada birleştiriyor.
+  static const Duration _kReschedulePause = Duration(milliseconds: 400);
+
+  Timer? _rescheduleTimer;
+  AppState? _pendingReschedule;
+
+  /// Planlama işlerinin sırası: silme ile hemen ardından gelen geri almanın
+  /// planlamaları iç içe girmesin.
   Future<void> _syncQueue = Future<void>.value();
 
   void _queueReschedule(AppState appState) {
+    _pendingReschedule = appState;
+    _rescheduleTimer?.cancel();
+    _rescheduleTimer = Timer(_kReschedulePause, _flushReschedule);
+  }
+
+  void _flushReschedule() {
+    _rescheduleTimer?.cancel();
+    _rescheduleTimer = null;
+    final appState = _pendingReschedule;
+    if (appState == null) return;
+    _pendingReschedule = null;
+
     _syncQueue = _syncQueue
         .then((_) => _reschedule(appState))
         .catchError((Object error, StackTrace stackTrace) {

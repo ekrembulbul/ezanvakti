@@ -25,6 +25,9 @@ class SwipeToDelete extends StatelessWidget {
     return Dismissible(
       key: itemKey,
       direction: DismissDirection.endToStart,
+      // Satirin kapanma animasyonu, `onDismissed`i — dolayisiyla "Geri al"i —
+      // 300 ms geciktiriyordu. Satir zaten liste tazelenince kayboluyor.
+      resizeDuration: null,
       background: Container(
         color: errorColor.withValues(alpha: 0.2),
         alignment: Alignment.centerRight,

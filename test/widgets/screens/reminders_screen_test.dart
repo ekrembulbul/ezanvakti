@@ -233,6 +233,8 @@ void main() {
           'beklerse kullanici satir kayboldugundan cok sonra gorur',
     );
 
+    // Planlama beklemesi dolsun; askidaki timer test sonunda kalmasin.
+    await tester.pump(const Duration(milliseconds: 600));
     blocking.gate.complete();
     await tester.pumpAndSettle();
   });
