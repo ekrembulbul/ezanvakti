@@ -57,16 +57,27 @@ void main() {
     expect(find.textContaining('Yanlış'), findsOneWidget);
   });
 
-  testWidgets('Ilerleme gostergesi kacinci soruda oldugunu soyler', (
-    tester,
-  ) async {
+  testWidgets('Ilerleme her soru icin bir nokta cizer', (tester) async {
     await tester.pumpWidget(
       wrapWithTheme(
         MathMission(level: 3, random: Random(7), onCompleted: () {}),
       ),
     );
     final total = MathChallenge.questionCount(3);
-    expect(find.textContaining('1 / $total'), findsOneWidget);
+    final dots = tester.widget<Row>(find.byKey(kMathProgressKey)).children;
+    expect(dots, hasLength(total));
+  });
+
+  testWidgets('Tek soruluk gorevde ilerleme gostergesi cizilmez', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      wrapWithTheme(
+        MathMission(level: 1, random: Random(7), onCompleted: () {}),
+      ),
+    );
+    // Seviye 1 su an tek soru; nokta dizisi gereksiz gurultu olurdu.
+    expect(find.byKey(kMathProgressKey), findsNothing);
   });
 
   testWidgets('Bos cevap gonderilemez', (tester) async {
