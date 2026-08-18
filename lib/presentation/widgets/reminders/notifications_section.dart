@@ -1,3 +1,6 @@
+import '../../../core/models/skipped_occurrence.dart';
+import '../../../features/notifications/domain/skip_rules.dart';
+import '../../services/upcoming_resolver.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/models/notification_setting.dart';
@@ -17,6 +20,15 @@ import '../notifications/permission_warning_card.dart';
 /// Kendi durumunu tutmaz: liste dışarıdan gelir, kullanıcı eylemi callback ile
 /// dışarı çıkar. Tek doğruluk kaynağı `AppState` (spec §6.2).
 class NotificationsSection extends StatelessWidget {
+  /// Bildirim anahtarı → bir sonraki tetiklenme anı.
+  final Map<String, DateTime> nextFireByNotification;
+
+  final Set<SkippedOccurrence> skips;
+
+  /// Tek seferlik atlama değiştirildiğinde çağrılır.
+  final void Function(SkippedOccurrence occurrence, bool skipped)?
+  onSkipChanged;
+
   final List<NotificationSetting> settings;
   final bool hasPermission;
   final bool exactAlarmAllowed;
@@ -28,6 +40,9 @@ class NotificationsSection extends StatelessWidget {
   final Future<void> Function(NotificationSetting) onDelete;
 
   const NotificationsSection({
+    this.nextFireByNotification = const {},
+    this.skips = const {},
+    this.onSkipChanged,
     super.key,
     required this.settings,
     required this.hasPermission,
@@ -39,6 +54,24 @@ class NotificationsSection extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
   });
+
+  SkippedOccurrence _occurrence(NotificationSetting setting) =>
+      SkippedOccurrence(
+        kind: SkipKind.notification,
+        reference: notificationKey(setting),
+        fireAt: nextFireByNotification[notificationKey(setting)]!,
+      );
+
+  bool _isSkipped(NotificationSetting setting) {
+    final fireAt = nextFireByNotification[notificationKey(setting)];
+    if (fireAt == null) return false;
+    return isSkipped(
+      skips,
+      kind: SkipKind.notification,
+      reference: notificationKey(setting),
+      fireAt: fireAt,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -101,6 +134,14 @@ class NotificationsSection extends StatelessWidget {
                 child: NotificationTile(
                   setting: setting,
                   hasPermission: hasPermission,
+                  nextFireAt: nextFireByNotification[notificationKey(setting)],
+                  isSkipped: _isSkipped(setting),
+                  onSkipToggle: onSkipChanged == null
+                      ? null
+                      : () => onSkipChanged!(
+                          _occurrence(setting),
+                          !_isSkipped(setting),
+                        ),
                   onToggle: () => onToggle(setting),
                   onTap: () => onEdit(setting),
                 ),

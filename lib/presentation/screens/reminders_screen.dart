@@ -1,3 +1,4 @@
+import '../services/upcoming_resolver.dart';
 import '../../core/models/prayer_time.dart';
 import '../../core/models/skipped_occurrence.dart';
 import '../../features/alarms/domain/alarm_scheduler.dart';
@@ -421,6 +422,13 @@ class _RemindersScreenState extends State<RemindersScreen>
         index: _tab.index,
         children: [
           NotificationsSection(
+            nextFireByNotification: resolveNextFirePerNotification(
+              settings: appState.notificationSettings,
+              prayerTimes: appState.prayerTimes,
+              now: DateTime.now(),
+            ),
+            skips: appState.skips,
+            onSkipChanged: _toggleSkip,
             settings: appState.notificationSettings,
             hasPermission: _hasPermission,
             exactAlarmAllowed: _exactAlarmAllowed,

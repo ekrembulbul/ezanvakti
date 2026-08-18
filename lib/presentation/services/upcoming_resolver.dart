@@ -48,6 +48,42 @@ UpcomingNotification? resolveNextNotification({
   return earliest;
 }
 
+/// Her bildirim ayarının **kendi** bir sonraki tetiklenme anı.
+///
+/// [resolveNextNotification] listedeki en yakın tek örneği döner; burada
+/// listedeki her satırın kendi anı gerekiyor (tek seferlik atlama o örneğe
+/// uygulanıyor). Atlama uygulanmadan hesaplanır: kullanıcı tam da o örneği
+/// atlamak ya da geri almak istiyor.
+Map<String, DateTime> resolveNextFirePerNotification({
+  required List<NotificationSetting> settings,
+  required List<PrayerTime> prayerTimes,
+  required DateTime now,
+}) {
+  final result = <String, DateTime>{};
+
+  for (final day in prayerTimes) {
+    for (final setting in settings) {
+      if (!setting.isActive) continue;
+
+      final prayerAt = PrayerUtils.getPrayerTime(day, setting.prayerType);
+      final fireAt = prayerAt.subtract(
+        Duration(minutes: setting.minutesBefore),
+      );
+      if (!fireAt.isAfter(now)) continue;
+
+      final key = notificationKey(setting);
+      final current = result[key];
+      if (current == null || fireAt.isBefore(current)) result[key] = fireAt;
+    }
+  }
+
+  return result;
+}
+
+/// Bildirim ayarının kimliği: vakit + kaç dakika önce.
+String notificationKey(NotificationSetting setting) =>
+    '${setting.prayerType.name}-${setting.minutesBefore}';
+
 /// [now]'dan sonra çalacak ilk alarmı döner.
 ///
 /// Tetiklenme anı, bildirimlerin planlanmasıyla aynı kuralı kullanır
