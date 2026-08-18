@@ -23,6 +23,7 @@ class OptionItem<T> {
 }
 
 const Key kOptionSheetKey = Key('option_sheet');
+const Key kOptionValueKey = Key('option_value');
 
 /// Ayar satırı: solda etiket, sağda seçili değer ve chevron.
 ///
@@ -79,17 +80,26 @@ class OptionRow<T> extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
         child: Row(
           children: [
+            // Etiket ve deger sabit oranla paylasiyor: deger `Flexible` ile
+            // esnek birakilinca kendi diliminin soluna yasliyor ve satirin
+            // ortasinda duruyor gibi gorunuyordu.
             Expanded(
+              flex: 3,
               child: Text(
                 label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: AppTypography.rowTitle.copyWith(
                   color: tokens.textPrimary,
                 ),
               ),
             ),
-            Flexible(
+            const SizedBox(width: 12),
+            Expanded(
+              flex: 2,
               child: Text(
                 _currentLabel(),
+                key: kOptionValueKey,
                 textAlign: TextAlign.right,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

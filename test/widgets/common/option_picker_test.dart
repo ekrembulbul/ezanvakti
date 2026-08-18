@@ -62,6 +62,15 @@ void main() {
     expect(picked, isNull);
   });
 
+  testWidgets('Secili deger satirin sagina yaslanir', (tester) async {
+    await tester.pumpWidget(build(selected: 10));
+
+    final row = tester.getRect(find.byType(OptionRow<int>));
+    final value = tester.getRect(find.byKey(kOptionValueKey));
+    // Deger kutusu satirin sag yarisinda bitmeli; ortada durmamali.
+    expect(value.right, greaterThan(row.left + row.width * 0.8));
+  });
+
   testWidgets('valueLabel satirdaki yaziyi belirler', (tester) async {
     await tester.pumpWidget(
       wrapWithTheme(
