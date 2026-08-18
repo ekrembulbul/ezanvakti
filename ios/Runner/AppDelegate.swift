@@ -266,12 +266,28 @@ class AlarmKitHandler {
       do {
         _ = try await AlarmManager.shared.schedule(id: uuid, configuration: config)
         if missionEnabled {
+          // Yapilandirma her planlamada tazelenir ama **canli durum**
+          // korunur. scheduleAlarms uygulama one gelince, veri yenilenince,
+          // alarm duzenlenince tekrar tekrar cagriliyor; burada pending ve
+          // rearmCount sifirlansaydi guvenlik tavani hic birikmez ve durmus
+          // bir zincir yeniden canlanirdi.
+          let existing = MissionChainStore.session()
+          let isSameAlarm = existing?["alarmId"] as? String == idStr
           var session: [String: Any] = chainConfig
           session["alarmId"] = idStr
-          session["pending"] = true
-          session["rearmCount"] = 0
           session["label"] = label
           session["tintHex"] = theme?["accent"] as? String ?? ""
+          if isSameAlarm, let existing {
+            for key in [
+              "pending", "rearmCount", "snoozeUsed", "deadlineMillis",
+              "snoozedUntilMillis",
+            ] {
+              if let value = existing[key] { session[key] = value }
+            }
+          } else {
+            session["pending"] = true
+            session["rearmCount"] = 0
+          }
           MissionChainStore.save(session)
 
           // Saglama merdiveni: stopIntent hic calismazsa kapi yine kapali
