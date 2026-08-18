@@ -1,3 +1,7 @@
+import '../../core/models/prayer_time.dart';
+import '../../core/models/skipped_occurrence.dart';
+import '../../features/alarms/domain/alarm_scheduler.dart';
+import '../../features/notifications/domain/skip_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -217,6 +221,37 @@ class _RemindersScreenState extends State<RemindersScreen>
     await _syncAlarms(appState);
   }
 
+  /// Her alarmın bir sonraki çalma anı. Atlama **uygulanmadan** hesaplanır:
+  /// kullanıcı tam da bu örneği atlamak/geri almak istiyor.
+  Map<String, DateTime> _nextFireByAlarm(AppState appState) {
+    final byDate = <DateTime, PrayerTime>{
+      for (final pt in appState.prayerTimes)
+        DateTime(pt.date.year, pt.date.month, pt.date.day): pt,
+    };
+    final now = DateTime.now();
+    final result = <String, DateTime>{};
+    for (final alarm in appState.alarms) {
+      final fire = AlarmScheduler.computeNextFire(
+        alarm: alarm,
+        now: now,
+        prayerTimesByDate: byDate,
+      );
+      if (fire != null) result[alarm.id] = fire;
+    }
+    return result;
+  }
+
+  /// Tek seferlik atlama. Kalıcı kapatma satırdaki anahtarda kalır.
+  Future<void> _toggleSkip(SkippedOccurrence occurrence, bool skipped) async {
+    final appState = context.read<AppState>();
+    final manager = ServiceLocator().get<SkipManager>();
+    final next = skipped
+        ? await manager.skip(occurrence)
+        : await manager.unskip(occurrence);
+    appState.setSkips(next);
+    await _syncAlarms(appState);
+  }
+
   /// Ertelenmiş görevli alarm kapatılmak istendi. Kapatmak, görevi yapmadan
   /// alarmdan kurtulmanın arka kapısı olurdu.
   void _onDisableBlocked(Alarm alarm) {
@@ -368,6 +403,9 @@ class _RemindersScreenState extends State<RemindersScreen>
           AlarmsSection(
             missionSession: appState.missionSession,
             onDisableBlocked: _onDisableBlocked,
+            nextFireByAlarm: _nextFireByAlarm(appState),
+            skips: appState.skips,
+            onSkipChanged: _toggleSkip,
             alarms: appState.alarms,
             isSupported: _alarmSupported,
             isPermissionGranted: _alarmGranted,

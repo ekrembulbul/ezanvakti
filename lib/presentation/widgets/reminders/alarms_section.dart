@@ -1,3 +1,5 @@
+import '../../../core/models/skipped_occurrence.dart';
+import '../../../features/notifications/domain/skip_rules.dart';
 import '../../../core/models/mission_session.dart';
 import 'snooze_notice.dart';
 import 'package:flutter/material.dart';
@@ -31,6 +33,16 @@ class AlarmsSection extends StatelessWidget {
 
   /// Ertelenmiş görevli alarm kapatılmak istendiğinde çağrılır.
   final void Function(Alarm alarm)? onDisableBlocked;
+
+  /// Alarm id'si → bir sonraki çalma anı. Tek seferlik atlama bu örneğe
+  /// uygulanır; atlama uygulanmamış hâliyle hesaplanır.
+  final Map<String, DateTime> nextFireByAlarm;
+
+  final Set<SkippedOccurrence> skips;
+
+  /// Tek seferlik atlama değiştirildiğinde çağrılır.
+  final void Function(SkippedOccurrence occurrence, bool skipped)?
+  onSkipChanged;
   final ValueChanged<Alarm> onEdit;
   final Future<void> Function(Alarm) onDelete;
 
@@ -43,6 +55,9 @@ class AlarmsSection extends StatelessWidget {
     required this.onToggle,
     this.missionSession,
     this.onDisableBlocked,
+    this.nextFireByAlarm = const {},
+    this.skips = const {},
+    this.onSkipChanged,
     required this.onEdit,
     required this.onDelete,
   });
@@ -65,6 +80,53 @@ class AlarmsSection extends StatelessWidget {
     subtitle: 'Sabit saatli veya vakte göre alarm ekle',
   );
 
+  /// Alt metin ve yanındaki tek seferlik atlama eylemi.
+  ///
+  /// Satırdaki anahtar **kalıcı** aç/kapa; atlama ayrı bir eylem olarak
+  /// duruyor ki hangisinin ne yaptığı okunabilsin.
+  Widget _subtitle(BuildContext context, Alarm alarm, DateTime? snoozedUntil) {
+    final tokens = context.tokens;
+    if (snoozedUntil != null) {
+      return Text(SnoozeNotice.label(snoozedUntil));
+    }
+
+    final fireAt = nextFireByAlarm[alarm.id];
+    final canSkip =
+        alarm.isActive && fireAt != null && onSkipChanged != null;
+    if (!canSkip) return Text(alarmSubtitle(alarm));
+
+    final occurrence = SkippedOccurrence(
+      kind: SkipKind.alarm,
+      reference: alarm.id,
+      fireAt: fireAt,
+    );
+    final skipped = isSkipped(
+      skips,
+      kind: SkipKind.alarm,
+      reference: alarm.id,
+      fireAt: fireAt,
+    );
+
+    return Row(
+      children: [
+        Flexible(
+          child: Text(
+            skipped ? 'Yalnızca bu sefer atlanacak' : alarmSubtitle(alarm),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        const Text(' · '),
+        GestureDetector(
+          onTap: () => onSkipChanged!(occurrence, !skipped),
+          child: Text(
+            skipped ? 'Geri al' : 'Bu seferi atla',
+            style: TextStyle(color: tokens.accent),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _alarmRow(BuildContext context, Alarm alarm) {
     final snoozedUntil = SnoozeNotice.snoozedUntilFor(missionSession, alarm);
     final canDisable = SnoozeNotice.canDisable(missionSession, alarm);
@@ -76,11 +138,7 @@ class AlarmsSection extends StatelessWidget {
       child: GroupedRow(
         icon: Icons.alarm_rounded,
         title: Text(alarmTimeLabel(alarm)),
-        subtitle: Text(
-          snoozedUntil != null
-              ? SnoozeNotice.label(snoozedUntil)
-              : alarmSubtitle(alarm),
-        ),
+        subtitle: _subtitle(context, alarm, snoozedUntil),
         onTap: () => onEdit(alarm),
         dimmed: !alarm.isActive,
         trailing: Switch(
