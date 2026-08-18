@@ -86,7 +86,8 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   }
 
   void _save() {
-    final id = widget.alarm?.id ?? DateTime.now().microsecondsSinceEpoch.toString();
+    final id =
+        widget.alarm?.id ?? DateTime.now().microsecondsSinceEpoch.toString();
     // 7 günün tamamı = "her gün" → modelde boş küme olarak sakla (etiket sade
     // kalsın, repeats mantığı tutarlı olsun).
     final weekdaysToSave = _weekdays.length == 7 ? <int>{} : _weekdays;
@@ -153,27 +154,37 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-          _kindToggle(),
-          const SizedBox(height: 16),
-          if (_kind == AlarmKind.fixed) _fixedSection() else _anchoredSection(),
-          const SizedBox(height: 16),
-          _section('Tekrar', _weekdaysSelector()),
-          const SizedBox(height: 16),
-          _section('Etiket', _labelField()),
-          const SizedBox(height: 16),
-          _soundSelector(),
-          const SizedBox(height: 8),
-          _switchTile('Titreşim', _vibrate, (v) => setState(() => _vibrate = v)),
-          _switchTile('Ertele (snooze)', _snoozeEnabled, (v) {
-            setState(() => _snoozeEnabled = v);
-          }),
-          if (_snoozeEnabled) _snoozeMinutesSelector(),
-          if (_snoozeEnabled) _maxSnoozesSelector(),
-          _missionSelector(),
-          if (_mission == AlarmMission.qr) ...[
-            const SizedBox(height: 12),
-            QrPayloadField(controller: _qrPayload),
-          ],
+            _kindToggle(),
+            const SizedBox(height: 16),
+            if (_kind == AlarmKind.fixed)
+              _fixedSection()
+            else
+              _anchoredSection(),
+            const SizedBox(height: 16),
+            _section('Tekrar', _weekdaysSelector()),
+            const SizedBox(height: 16),
+            _section('Etiket', _labelField()),
+            const SizedBox(height: 16),
+            _soundSelector(),
+            const SizedBox(height: 8),
+            _switchTile(
+              'Titreşim',
+              _vibrate,
+              (v) => setState(() => _vibrate = v),
+            ),
+            _switchTile('Ertele (snooze)', _snoozeEnabled, (v) {
+              setState(() => _snoozeEnabled = v);
+            }),
+            if (_snoozeEnabled)
+              _dependentGroup([
+                _snoozeMinutesSelector(),
+                _maxSnoozesSelector(),
+              ]),
+            _missionSelector(),
+            if (_mission == AlarmMission.qr) ...[
+              const SizedBox(height: 12),
+              QrPayloadField(controller: _qrPayload),
+            ],
           ],
         ),
       ),
@@ -264,7 +275,11 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
               ),
               if (!isExact) ...[
                 const SizedBox(height: 12),
-                _minutePicker(maxOffset, _offset.abs().clamp(1, maxOffset), isBefore),
+                _minutePicker(
+                  maxOffset,
+                  _offset.abs().clamp(1, maxOffset),
+                  isBefore,
+                ),
               ],
             ],
           ),
@@ -291,9 +306,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
               ? tokens.accent.withValues(alpha: 0.2)
               : tokens.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: selected ? tokens.accent : tokens.border,
-          ),
+          border: Border.all(color: selected ? tokens.accent : tokens.border),
         ),
         child: Text(
           label,
@@ -344,10 +357,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                   ),
                   Text(
                     '1 - $maxOffset dk',
-                    style: TextStyle(
-                      color: tokens.textSecondary,
-                      fontSize: 11,
-                    ),
+                    style: TextStyle(color: tokens.textSecondary, fontSize: 11),
                   ),
                 ],
               ),
@@ -440,13 +450,9 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
         decoration: BoxDecoration(
-          color: active
-              ? tokens.accent.withValues(alpha: 0.2)
-              : tokens.surface,
+          color: active ? tokens.accent.withValues(alpha: 0.2) : tokens.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: active ? tokens.accent : tokens.border,
-          ),
+          border: Border.all(color: active ? tokens.accent : tokens.border),
         ),
         child: Text(
           label,
@@ -473,11 +479,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
               ? tokens.accent.withValues(alpha: 0.2)
               : tokens.surface,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: selected
-                ? tokens.accent
-                : tokens.surface,
-          ),
+          border: Border.all(color: selected ? tokens.accent : tokens.surface),
         ),
         child: Text(
           names[day - 1],
@@ -562,15 +564,25 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   Future<void> _pickCustomSound() async {
     const audioGroup = XTypeGroup(
       label: 'Ses',
-      extensions: ['mp3', 'm4a', 'aac', 'wav', 'aiff', 'aif', 'caf', 'flac', 'ogg'],
+      extensions: [
+        'mp3',
+        'm4a',
+        'aac',
+        'wav',
+        'aiff',
+        'aif',
+        'caf',
+        'flac',
+        'ogg',
+      ],
       mimeTypes: ['audio/*'],
       uniformTypeIdentifiers: ['public.audio'],
     );
     final file = await openFile(acceptedTypeGroups: [audioGroup]);
     if (file == null) return;
-    final soundId = await ServiceLocator().get<AlarmService>().importCustomSound(
-      file.path,
-    );
+    final soundId = await ServiceLocator()
+        .get<AlarmService>()
+        .importCustomSound(file.path);
     if (!mounted) return;
     if (soundId == null) {
       ScaffoldMessenger.of(context)
@@ -593,6 +605,24 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
           OptionItem(value: m, label: '$m dakika'),
       ],
       onChanged: (v) => setState(() => _snoozeMinutes = v),
+    );
+  }
+
+  /// Bir üst ayara bağlı alt ayarlar. Girinti ve soldaki ince çizgi, bunların
+  /// kendi başlarına değil "Ertele" açıkken anlamlı olduğunu söylüyor.
+  Widget _dependentGroup(List<Widget> children) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 12),
+      child: Container(
+        padding: const EdgeInsets.only(left: 16),
+        decoration: BoxDecoration(
+          border: Border(left: BorderSide(color: tokens.divider, width: 2)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: children,
+        ),
+      ),
     );
   }
 
@@ -674,7 +704,6 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
       onChanged: (v) => setState(() => _maxSnoozes = v),
     );
   }
-
 
   InputDecoration _fieldDecoration(String hint) {
     return InputDecoration(

@@ -77,7 +77,9 @@ class OptionRow<T> extends StatelessWidget {
         if (picked != null) onChanged(picked);
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+        // Yatay bosluk yok: ayni listedeki SwitchListTile'lar
+        // contentPadding.zero kullaniyor, satirlar ayni hizada baslamali.
+        padding: const EdgeInsets.symmetric(vertical: 12),
         child: Row(
           children: [
             // Etiket ve deger sabit oranla paylasiyor: deger `Flexible` ile
@@ -132,11 +134,8 @@ Future<T?> showOptionPicker<T>({
     context: context,
     backgroundColor: Colors.transparent,
     isScrollControlled: true,
-    builder: (context) => _OptionSheet<T>(
-      title: title,
-      items: items,
-      selected: selected,
-    ),
+    builder: (context) =>
+        _OptionSheet<T>(title: title, items: items, selected: selected),
   );
 }
 

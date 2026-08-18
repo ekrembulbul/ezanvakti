@@ -85,7 +85,7 @@ void main() {
     );
   });
 
-  testWidgets('Ikonlar esit araliklarla dizilir', (tester) async {
+  testWidgets('Ikonlar dengeli araliklarla dizilir', (tester) async {
     await tester.pumpWidget(build());
     await tester.pumpAndSettle();
 
@@ -99,10 +99,13 @@ void main() {
     final innerGap = centers[1] - centers[0];
     final rightGap = bar.right - centers.last;
 
-    // Kenar bosluklari ic bosluklarla ayni olmali: |---o---o---o---|
-    expect(innerGap, closeTo(leftGap, 1));
+    // Kenar boslugu ic boslugun 2/3'u: |--o---o---o--|
     expect(rightGap, closeTo(leftGap, 1));
     expect(centers[2] - centers[1], closeTo(innerGap, 1));
+    expect(leftGap / innerGap, closeTo(2 / 3, 0.02));
+    // Kenara yapismasin, ortaya da toplanmasin.
+    expect(leftGap, greaterThan(innerGap * 0.5));
+    expect(leftGap, lessThan(innerGap));
   });
 
   testWidgets('Etiket dar dilimde tasmaz', (tester) async {

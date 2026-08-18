@@ -17,22 +17,38 @@ const double _kIconLabelGap = 6;
 const double _kLabelFontSize = 13;
 const double _kLabelHeight = 14;
 const double _kLabelIndicatorGap = 3;
-const double _kIndicatorHeight = 2;
+const double _kIndicatorHeight = 3;
 const double _kBottomPadding = 6;
 
-const double _kIndicatorWidth = 20;
+const double _kIndicatorWidth = 26;
+
+/// Seçili ikonun arkasındaki yumuşak zemin. Rengin ve kalınlığın tek başına
+/// yetmediği görüldü: açık temada vurgu ile pasif gri yakın tonlar, gösterge
+/// de etiketin altında küçük kalıyordu. Zemin ilk bakışta seçileni söylüyor.
+const double _kIconBackdropWidth = 46;
+const double _kIconBackdropRadius = 12;
+const double _kIconBackdropOpacity = 0.14;
 
 /// Göstergenin konumu spec'e bağlı olduğu için test edilebilir.
 const Key kNavIndicatorKey = Key('nav_indicator');
 
+/// Kenar boşluğunun iç boşluğa oranı.
+///
+/// `1` tam eşit aralık (`|---o---o---o---|`) demek; kenardakiler o zaman
+/// biraz fazla içeri kaçıyor. `0.5` ise dilimleri eşit bölmenin sonucu
+/// (`|-o---o---o-|`), bu sefer kenara fazla yapışıyorlar. Aradaki 2/3
+/// ikisinin ortası: `|--o---o---o--|`.
+const double _kEdgeGapRatio = 2 / 3;
+
 /// İçeriğin kendi diliminin ortasından ne kadar kaydırılacağı.
 ///
-/// Dilimler genişliği eşit böler, yani merkezler 1/6 · 3/6 · 5/6'da kalır ve
-/// kenardaki öğeler kenara fazla yaklaşır. Göz için doğru olan eşit aralık:
-/// merkezler 1/4 · 2/4 · 3/4'te. Kaydırma yalnızca **görsel**; dokunma hedefi
-/// dilimin tamamı olarak kalıyor.
+/// Dilimler genişliği eşit böler, yani merkezler dilim ortalarına çakılı
+/// kalır. İstenen yerleşim [_kEdgeGapRatio] ile tanımlanıyor. Kaydırma
+/// yalnızca **görsel**; dokunma hedefi dilimin tamamı olarak kalıyor.
 double navContentDx(int index, int count, double width) {
-  final desired = (index + 1) / (count + 1);
+  final r = _kEdgeGapRatio;
+  // Toplam genislik = 2·kenar + (n-1)·ic. Merkez_i = (r + i) / (2r + n - 1).
+  final desired = (r + index) / (2 * r + count - 1);
   final slotCenter = (2 * index + 1) / (2 * count);
   return width * (desired - slotCenter);
 }
@@ -174,7 +190,19 @@ class _NavButton extends StatelessWidget {
           // bandina girer. `max` ile icerik ustten baslar, gosterge altta kalir.
           mainAxisSize: MainAxisSize.max,
           children: [
-            Icon(item.icon, size: _kIconSize, color: color),
+            SizedBox(
+              height: _kIconSize,
+              width: _kIconBackdropWidth,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? tokens.accent.withValues(alpha: _kIconBackdropOpacity)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(_kIconBackdropRadius),
+                ),
+                child: Icon(item.icon, size: _kIconSize, color: color),
+              ),
+            ),
             const SizedBox(height: _kIconLabelGap),
             SizedBox(
               height: _kLabelHeight,
