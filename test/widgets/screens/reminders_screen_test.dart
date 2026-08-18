@@ -13,7 +13,6 @@ import 'package:ezanvakti/features/notifications/domain/notification_scheduler.d
 import 'package:ezanvakti/features/notifications/domain/notification_settings_manager.dart';
 import 'package:ezanvakti/presentation/screens/reminders_screen.dart';
 import 'package:ezanvakti/presentation/services/reminder_rescheduler.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
@@ -172,10 +171,8 @@ void main() {
     appState.setNotificationSettings(const [dhuhr]);
     await pump(tester);
 
+    // Onay sorulmuyor; kaydirmak dogrudan siliyor.
     await tester.drag(find.text('Öğle'), const Offset(-400, 0));
-    await tester.pumpAndSettle();
-    // "Sil" hem kaydirma arkaplaninda hem diyalog dugmesinde var.
-    await tester.tap(find.widgetWithText(TextButton, 'Sil'));
     await tester.pumpAndSettle();
 
     expect(
@@ -184,6 +181,15 @@ void main() {
       reason:
           'NotificationSettingsScreen hic pop(true) yapmadigi icin bu tazeleme '
           'eskiden hic calismiyordu',
+    );
+
+    await tester.tap(find.text('Geri al'));
+    await tester.pumpAndSettle();
+
+    expect(
+      appState.notificationSettings.map((s) => s.prayerType),
+      [PrayerType.dhuhr],
+      reason: 'Silme onaysiz oldugu icin geri alma calismak zorunda',
     );
   });
 }

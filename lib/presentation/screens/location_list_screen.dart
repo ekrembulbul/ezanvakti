@@ -93,23 +93,47 @@ class _LocationListScreenState extends State<LocationListScreen> {
     }
   }
 
+  /// Onay sorulmadan siler; geri alma "Geri al" ile verilir.
   Future<void> _deleteLocation(Location location) async {
     try {
       await widget.locationRepository.deleteLocation(location.id);
       _loadLocations();
-      _showSnackBar('Konum silindi');
+      _showSnackBar(
+        '${location.displayName} silindi',
+        action: SnackBarAction(
+          label: 'Geri al',
+          textColor: Colors.white,
+          onPressed: () => _restoreLocation(location),
+        ),
+      );
     } catch (e) {
       _showSnackBar('Hata: $e', isError: true);
     }
   }
 
-  void _showSnackBar(String message, {bool isError = false}) {
+  /// Silinen konumu **aynı id ile** geri yazar; kayıtlı vakitler ve alarm
+  /// eşleşmeleri bozulmasın.
+  Future<void> _restoreLocation(Location location) async {
+    try {
+      await widget.locationRepository.saveLocation(location);
+      _loadLocations();
+    } catch (e) {
+      _showSnackBar('Geri alınamadı: $e', isError: true);
+    }
+  }
+
+  void _showSnackBar(
+    String message, {
+    bool isError = false,
+    SnackBarAction? action,
+  }) {
     if (mounted) {
       // Onceki snackbar'i hemen kaldir; yeni islem mesaji beklemeden gosterilsin.
       final messenger = ScaffoldMessenger.of(context)..clearSnackBars();
       messenger.showSnackBar(
         SnackBar(
           content: Text(message),
+          action: action,
           backgroundColor: isError
               ? Theme.of(context).colorScheme.error
               : context.tokens.accent,
@@ -217,8 +241,6 @@ class _LocationListScreenState extends State<LocationListScreen> {
 
     return SwipeToDelete(
       itemKey: ValueKey(location.id),
-      confirmText:
-          '${location.displayName} konumunu silmek istediğinize emin misiniz?',
       onDelete: () => _deleteLocation(location),
       child: row,
     );

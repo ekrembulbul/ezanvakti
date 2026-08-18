@@ -97,9 +97,6 @@ class NotificationsSection extends StatelessWidget {
                 itemKey: ValueKey(
                   '${setting.prayerType.name}-${setting.minutesBefore}',
                 ),
-                confirmText:
-                    '${PrayerNameHelper.getName(setting.prayerType)} '
-                    'bildirimini silmek istiyor musunuz?',
                 onDelete: () => onDelete(setting),
                 child: NotificationTile(
                   setting: setting,

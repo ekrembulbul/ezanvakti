@@ -181,6 +181,7 @@ class _RemindersScreenState extends State<RemindersScreen>
     _snack('Bildirim güncellendi');
   }
 
+  /// Onay sorulmadan siler; geri alma "Geri al" ile verilir.
   Future<void> _deleteNotification(NotificationSetting setting) async {
     final appState = context.read<AppState>();
     await _settingsManager.removeSetting(
@@ -188,7 +189,20 @@ class _RemindersScreenState extends State<RemindersScreen>
       minutesBefore: setting.minutesBefore,
     );
     await _syncNotifications(appState);
-    _snack('Bildirim silindi');
+    _snack(
+      'Bildirim silindi',
+      action: SnackBarAction(
+        label: 'Geri al',
+        textColor: Colors.white,
+        onPressed: () => _restoreNotification(setting),
+      ),
+    );
+  }
+
+  Future<void> _restoreNotification(NotificationSetting setting) async {
+    final appState = context.read<AppState>();
+    await _settingsManager.addSetting(setting);
+    await _syncNotifications(appState);
   }
 
   Future<void> _toggleNotification(NotificationSetting setting) async {
