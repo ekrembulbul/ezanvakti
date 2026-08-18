@@ -22,12 +22,14 @@ const double _kBottomPadding = 6;
 
 const double _kIndicatorWidth = 26;
 
-/// Seçili ikonun arkasındaki yumuşak zemin. Rengin ve kalınlığın tek başına
-/// yetmediği görüldü: açık temada vurgu ile pasif gri yakın tonlar, gösterge
-/// de etiketin altında küçük kalıyordu. Zemin ilk bakışta seçileni söylüyor.
-const double _kIconBackdropWidth = 46;
-const double _kIconBackdropRadius = 12;
-const double _kIconBackdropOpacity = 0.14;
+/// Seçili öğenin arkasındaki yumuşak zemin; ikonu **ve** etiketi sarar.
+///
+/// Rengin ve göstergenin tek başına yetmediği görüldü: açık temada vurgu ile
+/// pasif gri yakın tonlar, gösterge de etiketin altında küçük kalıyordu.
+const double _kPillRadius = 14;
+const double _kPillOpacity = 0.14;
+const double _kPillPaddingH = 14;
+const double _kPillPaddingV = 4;
 
 /// Göstergenin konumu spec'e bağlı olduğu için test edilebilir.
 const Key kNavIndicatorKey = Key('nav_indicator');
@@ -70,6 +72,7 @@ class NavItem {
 class AppNavBar extends StatelessWidget {
   static const double height =
       _kTopPadding +
+      _kPillPaddingV * 2 +
       _kIconSize +
       _kIconLabelGap +
       _kLabelHeight +
@@ -185,40 +188,46 @@ class _NavButton extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.only(top: _kTopPadding),
         child: Column(
-          // `min` olursa Column icerige kuculur ve Row'un varsayilan `center`
-          // hizalamasi onu dikeyde ortalar; etiket asagi kayip gostergenin
-          // bandina girer. `max` ile icerik ustten baslar, gosterge altta kalir.
           mainAxisSize: MainAxisSize.max,
           children: [
-            SizedBox(
-              height: _kIconSize,
-              width: _kIconBackdropWidth,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? tokens.accent.withValues(alpha: _kIconBackdropOpacity)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(_kIconBackdropRadius),
-                ),
-                child: Icon(item.icon, size: _kIconSize, color: color),
+            AnimatedContainer(
+              duration: _kNavAnimation,
+              curve: Curves.easeOutCubic,
+              padding: const EdgeInsets.symmetric(
+                horizontal: _kPillPaddingH,
+                vertical: _kPillPaddingV,
               ),
-            ),
-            const SizedBox(height: _kIconLabelGap),
-            SizedBox(
-              height: _kLabelHeight,
-              child: Text(
-                item.label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTypography.tabLabel.copyWith(
-                  fontSize: _kLabelFontSize,
-                  height: 1.0,
-                  color: color,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                  fontVariations: [
-                    FontVariation('wght', isSelected ? 700 : 600),
-                  ],
-                ),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? tokens.accent.withValues(alpha: _kPillOpacity)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(_kPillRadius),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(item.icon, size: _kIconSize, color: color),
+                  const SizedBox(height: _kIconLabelGap),
+                  SizedBox(
+                    height: _kLabelHeight,
+                    child: Text(
+                      item.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTypography.tabLabel.copyWith(
+                        fontSize: _kLabelFontSize,
+                        height: 1.0,
+                        color: color,
+                        fontWeight: isSelected
+                            ? FontWeight.w700
+                            : FontWeight.w600,
+                        fontVariations: [
+                          FontVariation('wght', isSelected ? 700 : 600),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
