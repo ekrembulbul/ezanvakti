@@ -42,6 +42,11 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   late int _missionLevel;
   int? _maxSnoozes;
   late TextEditingController _qrPayload;
+
+  /// QR bölümü listenin en altında, görev satırının **altında** açılıyor;
+  /// seçimden sonra ekranda görünmediği için kullanıcı kod alanının hiç
+  /// gelmediğini sanıyordu.
+  final GlobalKey _qrSectionKey = GlobalKey();
   late TextEditingController _label;
   String? _customSoundName;
 
@@ -183,7 +188,10 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
             _missionSelector(),
             if (_mission == AlarmMission.qr) ...[
               const SizedBox(height: 12),
-              QrPayloadField(controller: _qrPayload),
+              KeyedSubtree(
+                key: _qrSectionKey,
+                child: QrPayloadField(controller: _qrPayload),
+              ),
             ],
           ],
         ),
@@ -676,13 +684,31 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
           icon: Icons.qr_code_scanner_rounded,
         ),
       ],
-      onChanged: (v) => setState(() {
-        _mission = v;
-        if (_mission.requiresGate && _maxSnoozes == null) {
-          _maxSnoozes = kMaxSnoozeOptions.last;
-        }
-      }),
+      onChanged: (v) {
+        setState(() {
+          _mission = v;
+          if (_mission.requiresGate && _maxSnoozes == null) {
+            _maxSnoozes = kMaxSnoozeOptions.last;
+          }
+        });
+        if (v == AlarmMission.qr) _revealQrSection();
+      },
     );
+  }
+
+  /// QR bölümünü görünür alana kaydırır. Bölüm bu kare içinde yaratıldığı için
+  /// kaydırma bir sonraki kareye bırakılıyor.
+  void _revealQrSection() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final section = _qrSectionKey.currentContext;
+      if (section == null) return;
+      Scrollable.ensureVisible(
+        section,
+        alignment: 1,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
+      );
+    });
   }
 
   /// Erteleme sayısı. Görev açıkken "Sınırsız" listelenmez: kullanıcı görevi

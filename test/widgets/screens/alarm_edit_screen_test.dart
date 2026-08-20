@@ -1,5 +1,6 @@
 import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/presentation/screens/alarm_edit_screen.dart';
+import 'package:ezanvakti/presentation/widgets/missions/qr_payload_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -90,5 +91,42 @@ void main() {
 
     // Yedi gunu de kapatmak mumkun degil; sonuncu secili kalir.
     expect(find.text('Pa'), findsOneWidget);
+  });
+
+  group('QR gorevi', () {
+    Future<void> pickQr(WidgetTester tester) async {
+      await tester.tap(find.text('Kapatma görevi'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('QR okutma'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('Secilince kod alani gelir', (tester) async {
+      await pumpEdit(tester);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(QrPayloadField), findsNothing);
+      await pickQr(tester);
+
+      expect(find.byType(QrPayloadField), findsOneWidget);
+    });
+
+    testWidgets('Kod alani secimden sonra gorunur alana kaydirilir', (
+      tester,
+    ) async {
+      await pumpEdit(tester);
+      await tester.pumpAndSettle();
+      await pickQr(tester);
+
+      final field = tester.getRect(find.byKey(kQrPayloadFieldKey));
+      final screen = tester.getRect(find.byType(MaterialApp));
+      expect(
+        screen.contains(field.centerLeft) && screen.contains(field.centerRight),
+        isTrue,
+        reason:
+            'Bolum liste sonunda aciliyor; kaydirilmazsa kullanici kod '
+            'alaninin hic gelmedigini saniyor',
+      );
+    });
   });
 }
