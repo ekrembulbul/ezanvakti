@@ -111,6 +111,36 @@ void main() {
       expect(find.byType(QrPayloadField), findsOneWidget);
     });
 
+    testWidgets('Kod bos birakilirsa alarm kaydedilmez', (tester) async {
+      await pumpEdit(tester);
+      await tester.pumpAndSettle();
+      await pickQr(tester);
+
+      await tester.tap(find.text('Kaydet'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('QR görevi için bir kod okut ya da yaz'),
+        findsOneWidget,
+        reason:
+            'Kodsuz QR gorevi kapisiz alarm demek; kullanici yalnizca acil '
+            'cikisla susturabilirdi',
+      );
+      expect(find.text('Alarm ekle'), findsOneWidget, reason: 'ekran kapanmadi');
+    });
+
+    testWidgets('Kod girilince kaydedilir', (tester) async {
+      await pumpEdit(tester);
+      await tester.pumpAndSettle();
+      await pickQr(tester);
+
+      await tester.enterText(find.byKey(kQrPayloadFieldKey), 'mutfak-kapisi');
+      await tester.tap(find.text('Kaydet'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('QR görevi için bir kod okut ya da yaz'), findsNothing);
+    });
+
     testWidgets('Kod alani secimden sonra gorunur alana kaydirilir', (
       tester,
     ) async {

@@ -87,10 +87,19 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   @override
   void dispose() {
     _label.dispose();
+    _qrPayload.dispose();
     super.dispose();
   }
 
   void _save() {
+    // Kodsuz QR gorevi kapisiz bir alarm demek: kullanici alarmi yalnizca acil
+    // cikisla susturabilirdi. Kaydetmeden once kod zorunlu.
+    if (_mission == AlarmMission.qr && _qrPayload.text.trim().isEmpty) {
+      _revealQrSection();
+      _snack('QR görevi için bir kod okut ya da yaz');
+      return;
+    }
+
     final id =
         widget.alarm?.id ?? DateTime.now().microsecondsSinceEpoch.toString();
     // 7 günün tamamı = "her gün" → modelde boş küme olarak sakla (etiket sade
@@ -593,15 +602,31 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
         .importCustomSound(file.path);
     if (!mounted) return;
     if (soundId == null) {
-      ScaffoldMessenger.of(context)
-        ..clearSnackBars()
-        ..showSnackBar(const SnackBar(content: Text('Ses dosyası alınamadı')));
+      _snack('Ses dosyası alınamadı');
       return;
     }
     setState(() {
       _soundId = soundId;
       _customSoundName = file.name;
     });
+  }
+
+  /// Uyarı çubuğu. Biçim `RemindersScreen` ile aynı: yüzen, yumuşak köşeli ve
+  /// vurgu renginde — uygulamada tek bir geri bildirim dili olsun.
+  void _snack(String message) {
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: tokens.accent,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
   }
 
   Widget _snoozeMinutesSelector() {
