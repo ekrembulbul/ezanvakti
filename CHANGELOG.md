@@ -4,6 +4,12 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.4.1] - 2026-08-25
+
+### Düzeltildi
+- Alarm oluştururken QR kod okutulduktan sonra ekran donuyordu: kod alana yazılıyor ama **"Kaydet" ve geri düğmesi cevap vermiyordu**. Kamera, kod görüş alanında kaldığı sürece aynı kodu her karede yeniden okuyor ve her okuma bir sayfa kapatıyordu; okuyucunun altındaki alarm ekranı da böylece yığından düşüyordu. Artık ilk kod kabul ediliyor, sonrakiler yok sayılıyor.
+- Aynı sorun **QR göreviyle alarm kapatmada** da vardı; görev tamamlandıktan sonra ekranın altındaki sayfa kapanıyordu.
+
 ## [0.4.0] - 2026-08-21
 
 ### Eklendi
