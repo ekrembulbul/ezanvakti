@@ -6,6 +6,13 @@ import '../../../core/theme/tokens_context.dart';
 import '../common/section_label.dart';
 
 const Key kQrScanButtonKey = Key('qr_scan_button');
+
+/// Okutma düğmesinin kenarı.
+///
+/// Alanla aynı yüksekliğe uzatıldığında kare kutu metin alanından daha ağır
+/// görünüyordu; ikincil bir eylem için fazla yer kaplıyor. Alandan küçük ve
+/// dikeyde ortalanmış duruyor.
+const double _kScanButtonSize = 48;
 const Key kQrPayloadFieldKey = Key('qr_payload_field');
 
 /// Alarma kaydedilecek QR kodunu alır: okutarak ya da elle yazarak.
@@ -42,57 +49,54 @@ class QrPayloadField extends StatelessWidget {
         const SizedBox(height: 8),
         // Okutma dugmesi alanin yaninda duruyor: ikisi de ayni isi — kodu
         // doldurmayi — yapiyor, alt alta durunca ikinci bir adim gibi
-        // gorunuyordu. Yukseklik `IntrinsicHeight` ile alandan aliniyor,
-        // sabit bir olcuye baglanmiyor.
-        IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: TextField(
-                  key: kQrPayloadFieldKey,
-                  controller: controller,
-                  style: TextStyle(color: tokens.textPrimary),
-                  decoration: InputDecoration(
-                    hintText: 'Kodu okut ya da yaz',
-                    hintStyle: TextStyle(color: tokens.textTertiary),
-                    filled: true,
-                    fillColor: tokens.surface,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide(color: tokens.divider),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide(color: tokens.divider),
-                    ),
+        // gorunuyordu.
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                key: kQrPayloadFieldKey,
+                controller: controller,
+                style: TextStyle(color: tokens.textPrimary),
+                decoration: InputDecoration(
+                  hintText: 'Kodu okut ya da yaz',
+                  hintStyle: TextStyle(color: tokens.textTertiary),
+                  filled: true,
+                  fillColor: tokens.surface,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: tokens.divider),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: tokens.divider),
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
-              AspectRatio(
-                aspectRatio: 1,
-                child: Tooltip(
-                  // Ikon tek basina kaldigi icin eylemin adi burada yasiyor;
-                  // ekran okuyucu da bunu okuyor.
-                  message: 'Kodu okut',
-                  child: OutlinedButton(
-                    key: kQrScanButtonKey,
-                    onPressed: () => _scan(context),
-                    style: OutlinedButton.styleFrom(
-                      padding: EdgeInsets.zero,
-                      foregroundColor: tokens.accent,
-                      side: BorderSide(color: tokens.accent),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
+            ),
+            const SizedBox(width: 10),
+            SizedBox(
+              width: _kScanButtonSize,
+              height: _kScanButtonSize,
+              child: Tooltip(
+                // Ikon tek basina kaldigi icin eylemin adi burada yasiyor;
+                // ekran okuyucu da bunu okuyor.
+                message: 'Kodu okut',
+                child: OutlinedButton(
+                  key: kQrScanButtonKey,
+                  onPressed: () => _scan(context),
+                  style: OutlinedButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    foregroundColor: tokens.accent,
+                    side: BorderSide(color: tokens.accent),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: const Icon(Icons.qr_code_scanner_rounded, size: 22),
                   ),
+                  child: const Icon(Icons.qr_code_scanner_rounded, size: 20),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
         const SizedBox(height: 8),
         Text(
