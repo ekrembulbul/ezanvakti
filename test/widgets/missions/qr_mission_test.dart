@@ -55,4 +55,34 @@ void main() {
     expect(find.textContaining('acil çıkışı'), findsOneWidget);
     expect(find.byKey(kQrScannerKey), findsNothing);
   });
+
+  testWidgets('Kod goruste kalirsa gorev bir kez tamamlanir', (tester) async {
+    var completed = 0;
+    final codes = StreamController<String>.broadcast();
+    addTearDown(codes.close);
+
+    await tester.pumpWidget(
+      wrapWithTheme(
+        QrMission(
+          expected: 'mutfak-kapisi',
+          codes: codes.stream,
+          onCompleted: () => completed++,
+        ),
+      ),
+    );
+
+    codes
+      ..add('mutfak-kapisi')
+      ..add('mutfak-kapisi')
+      ..add('mutfak-kapisi');
+    await tester.pumpAndSettle();
+
+    expect(
+      completed,
+      1,
+      reason:
+          'Kamera her karede okuyor; tamamlama tekrarlarsa gorev ekraninin '
+          'altindaki sayfa da yigindan dusuyor',
+    );
+  });
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
@@ -36,15 +38,29 @@ class QrMission extends StatefulWidget {
 class _QrMissionState extends State<QrMission> {
   bool _mismatch = false;
 
+  StreamSubscription<String>? _injected;
+
+  /// Kod görüş alanında kaldığı sürece okuma her karede yeniden geliyor.
+  /// Tamamlama iki kez çağrılırsa görev ekranının altındaki sayfa da yığından
+  /// düşüyor; ekran duruyor ama dokunmalara cevap vermiyor.
+  bool _completed = false;
+
   @override
   void initState() {
     super.initState();
-    widget.codes?.listen(_onCode);
+    _injected = widget.codes?.listen(_onCode);
+  }
+
+  @override
+  void dispose() {
+    _injected?.cancel();
+    super.dispose();
   }
 
   void _onCode(String code) {
-    if (!mounted) return;
+    if (!mounted || _completed) return;
     if (code.trim() == widget.expected.trim()) {
+      _completed = true;
       widget.onCompleted();
       return;
     }

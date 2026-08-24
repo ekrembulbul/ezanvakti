@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
-
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 import '../common/section_label.dart';
+import 'qr_scanner_screen.dart';
 
 const Key kQrScanButtonKey = Key('qr_scan_button');
 
@@ -124,20 +123,11 @@ class QrPayloadField extends StatelessWidget {
   }
 }
 
-/// Tam ekran okuyucu; okunan ilk kodu döner.
 Future<String?> _openScanner(BuildContext context) {
   return Navigator.of(context).push<String>(
     MaterialPageRoute(
       fullscreenDialog: true,
-      builder: (context) => Scaffold(
-        appBar: AppBar(title: const Text('Kodu okut')),
-        body: MobileScanner(
-          onDetect: (capture) {
-            final value = capture.barcodes.firstOrNull?.rawValue;
-            if (value != null) Navigator.of(context).pop(value);
-          },
-        ),
-      ),
+      builder: (_) => const QrScannerScreen(),
     ),
   );
 }
