@@ -27,24 +27,30 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('Okutma dugmesi alanin yaninda ve ondan kucuk', (tester) async {
+  testWidgets('Okutma dugmesi alanla ayni yukseklikte bir kare', (tester) async {
     await pump(tester);
 
-    final field = tester.getRect(find.byKey(kQrPayloadFieldKey));
+    // Cizilen kutu olculuyor: alanin yerlesim yuksekligi 56 olsa da kutusu
+    // icinde ortalanip daha kisa kalabiliyor.
+    final field = tester.getRect(find.byType(InputDecorator));
     final button = tester.getRect(find.byKey(kQrScanButtonKey));
 
     expect(button.left, greaterThan(field.right), reason: 'alanin saginda');
-    expect(button.width, button.height, reason: 'kare');
     expect(
       button.height,
-      lessThan(field.height),
+      moreOrLessEquals(field.height, epsilon: 0.5),
       reason:
-          'Alanla ayni yukseklige uzatilinca ikincil eylem metin alanindan '
-          'daha agir gorunuyordu',
+          'Yukseklik IntrinsicHeight ile alandan turetilince dugme alandan '
+          'uzun cikiyordu; olcu artik ikisine birden veriliyor',
+    );
+    expect(
+      button.width,
+      moreOrLessEquals(button.height, epsilon: 0.5),
+      reason: 'kare',
     );
     expect(
       button.center.dy,
-      moreOrLessEquals(field.center.dy, epsilon: 1),
+      moreOrLessEquals(field.center.dy, epsilon: 0.5),
       reason: 'dikeyde ortali',
     );
   });
