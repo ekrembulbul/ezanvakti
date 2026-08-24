@@ -21,11 +21,10 @@ class MissionTuning {
   /// Zincirin sert tavanları. İkisinden hangisi önce dolarsa zincir durur —
   /// bir hata sonsuz alarma dönüşmesin.
   ///
-  /// CIHAZ TESTI: ilk dogrulama turu icin kasten dusuk. Bir hata olursa
-  /// telefon dakikalarla sinirli sure dirdir etsin, saatlerce degil.
-  /// Kalibrasyon sonrasi 40 / 60'a cikarilacak.
-  static const int maxRearms = 5;
-  static const int chainDeadlineMinutes = 10;
+  /// 60 dakika, en inatçı uykucunun bile kalkması için fazlasıyla yeterli bir
+  /// pencere; ötesi kullanıcıyı korumaktan çıkıp cezalandırmaya döner.
+  static const int maxRearms = 40;
+  static const int chainDeadlineMinutes = 60;
 
   /// Acil çıkış kademesi: tavan ve gerileme.
   static const int abortMaxLevel = 3;
@@ -36,9 +35,7 @@ class MissionTuning {
   /// QR en uzun süreyi alır: kodun bulunduğu yere yürümek gerekiyor.
   static const Map<AlarmMission, int> _timeouts = {
     AlarmMission.none: 0,
-    // CIHAZ TESTI: olcum hizli olsun diye 90 yerine 30. Kalibrasyon sonrasi
-    // gercek degere donecek.
-    AlarmMission.math: 30,
+    AlarmMission.math: 90,
     AlarmMission.shake: 60,
     AlarmMission.qr: 180,
   };

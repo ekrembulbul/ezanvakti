@@ -32,9 +32,7 @@ class MathQuestion {
 class MathChallenge {
   const MathChallenge._();
 
-  /// CIHAZ TESTI: seviye 1 gecici olarak tek soru. Kalibrasyon sonrasi 2'ye
-  /// donecek.
-  static const Map<int, int> _counts = {1: 1, 2: 3, 3: 5};
+  static const Map<int, int> _counts = {1: 2, 2: 3, 3: 5};
 
   static int _clampLevel(int level) => level.clamp(1, 3);
 

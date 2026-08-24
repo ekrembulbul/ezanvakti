@@ -68,16 +68,31 @@ void main() {
     expect(dots, hasLength(total));
   });
 
-  testWidgets('Tek soruluk gorevde ilerleme gostergesi cizilmez', (
+  testWidgets('Ilerleme gostergesi yalnizca birden fazla soruda cizilir', (
     tester,
   ) async {
-    await tester.pumpWidget(
-      wrapWithTheme(
-        MathMission(level: 1, random: Random(7), onCompleted: () {}),
-      ),
-    );
-    // Seviye 1 su an tek soru; nokta dizisi gereksiz gurultu olurdu.
-    expect(find.byKey(kMathProgressKey), findsNothing);
+    // Kural soru sayisina bagli, seviyeye degil: tek soruda nokta dizisi
+    // gereksiz gurultu olurdu. Sayilar kalibrasyonla degisebildigi icin
+    // beklenti dogrudan `questionCount`tan turetiliyor.
+    for (final level in [1, 2, 3]) {
+      await tester.pumpWidget(
+        wrapWithTheme(
+          MathMission(
+            key: ValueKey(level),
+            level: level,
+            random: Random(7),
+            onCompleted: () {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(kMathProgressKey),
+        MathChallenge.questionCount(level) > 1 ? findsOneWidget : findsNothing,
+        reason: 'seviye $level',
+      );
+    }
   });
 
   testWidgets('Bos cevap gonderilemez', (tester) async {
