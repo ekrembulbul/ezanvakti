@@ -4,6 +4,30 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.4.0] - 2026-08-21
+
+### Eklendi
+- **Görevle kapatma:** alarm artık kaydırıp geçilemiyor; susturmak için seçtiğin görevi yapman gerekiyor. Üç görev var — **Matematik** (soruları çöz), **Sallama** (telefonu hedeflenen sayıda salla), **QR okutma** (yatağından uzağa yapıştırdığın kodu okut). Görev yapılmazsa alarm geri döner. *Şimdilik yalnızca iOS'ta.*
+- QR görevinin kodu alarm oluşturulurken **okutularak ya da elle yazılarak** kaydedilir. Kod girilmeden görevli alarm kaydedilemez.
+- **Erteleme sayısı sınırı:** her alarm için kaç kez ertelenebileceği seçilebiliyor. Görevli alarmlarda "Sınırsız" listelenmez — görev hiç yapılmadan sonsuza kadar ertelenebilirdi.
+- **Kademeli acil çıkış:** görevi yapamadığın durumlar için çıkış hep duruyor, ama her kullanımda zorlaşıyor: basılı tutma → cümle yazma → cümle + geri sayım. Bir hafta kullanılmazsa kademe geriler.
+- Ertelenen alarmın ne zaman çalacağı **alarm satırında ve ana ekrandaki SIRADAKİ kartında** görünüyor. Ertelenmiş görevli alarm, görev yapılmadan kapatılamıyor.
+- Bildirim satırına da **tek seferlik atlama** eylemi eklendi; daha önce yalnızca alarmlarda vardı.
+
+### Değiştirildi
+- **Silme onayı kalktı.** Alarm, bildirim ve konum listelerinde satırı sola kaydırmak doğrudan siliyor; altta "Geri al" çıkıyor. İki adımlık onay, tek adımlık geri almadan daha zahmetliydi.
+- Alarm ekranındaki seçim satırları (ses, erteleme, görev) uygulamanın satır diline geçti; değerler sağa yaslı, erteleme ayarları "Ertele"ye bağlı olduğu belli.
+- Alt gezinme çubuğunda seçili sekme, ikonu **ve** etiketiyle birlikte vurgulanıyor; öğeler kenarlara daha dengeli dağıldı.
+- Çalar ekran uygulamanın tasarım diline taşındı; iOS'a Türkçe yerelleştirme eklendi.
+- Matematik görev ekranı yeniden düzenlendi: soru tek odak noktası, ilerleme noktalarla gösteriliyor.
+
+### Düzeltildi
+- Silme geri bildirimi tüm bildirim ve alarmların yeniden planlanmasını bekliyordu; "Geri al" satır kaybolduktan saniyeler sonra beliriyordu.
+- Görev zincirinin güvenlik tavanı her planlamada sıfırlanıyordu; durmuş bir zincir yeniden canlanıp alarmın sürekli çalmasına yol açabiliyordu.
+- Görev ekranı üst üste açılabiliyor, her açılış geri sayımı baştan başlatıyordu.
+- Görev süresi dolmadan nöbetçi alarmı erken çaldırıyordu.
+- Görev gövdeleri dar ekranda taşıyordu.
+
 ## [0.3.3] - 2026-08-04
 
 ### Düzeltildi
