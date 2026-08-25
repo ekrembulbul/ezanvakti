@@ -1,4 +1,3 @@
-import '../../../core/theme/tokens_context.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/models/notification_setting.dart';
@@ -43,35 +42,32 @@ class NotificationTile extends StatelessWidget {
       ? 'Tam vaktinde'
       : '${setting.minutesBefore} dk önce';
 
-  /// Alt metin ve yanındaki tek seferlik atlama eylemi.
-  ///
-  /// Satırdaki anahtar **kalıcı** aç/kapa; atlama ayrı bir eylem olarak
-  /// duruyor ki hangisinin ne yaptığı okunabilsin. Alarmlar listesiyle aynı
-  /// desen.
-  Widget _subtitle(BuildContext context) {
-    final tokens = context.tokens;
-    final canSkip =
-        setting.isActive && nextFireAt != null && onSkipToggle != null;
-    if (!canSkip) return Text(_offsetText);
+  /// Atlanan bildirim de kapalı görünür: kullanıcı için ikisi de "bu sefer
+  /// gelmeyecek" demek. Atlanan örnek geçince satır kendiliğinden açılır.
+  bool get _isOn => setting.isActive && !_skipping;
 
-    return Row(
-      children: [
-        Flexible(
-          child: Text(
-            isSkipped ? 'Yalnızca bu sefer atlanacak' : _offsetText,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        const Text(' · '),
-        GestureDetector(
-          onTap: onSkipToggle,
-          child: Text(
-            isSkipped ? 'Geri al' : 'Bu seferi atla',
-            style: TextStyle(color: tokens.accent),
-          ),
-        ),
-      ],
-    );
+  bool get _skipping => isSkipped && nextFireAt != null;
+
+  /// Satırın alt metni. Tek seferlik atlama ayrı bir eylem değil: anahtar
+  /// kapatılınca altta çıkan çubuktan seçiliyor.
+  String get _subtitle {
+    if (_skipping) return 'Yalnızca bu sefer atlanacak';
+    if (!setting.isActive) return 'Kapalı';
+    return _offsetText;
+  }
+
+  void _onSwitch(bool value) {
+    if (!value) {
+      onToggle?.call();
+      return;
+    }
+    // Açılıyor: bekleyen tek seferlik atlama varsa önce o kalkar, yoksa
+    // bildirim kalıcı olarak açılır.
+    if (_skipping && onSkipToggle != null) {
+      onSkipToggle!();
+      return;
+    }
+    onToggle?.call();
   }
 
   @override
@@ -79,12 +75,12 @@ class NotificationTile extends StatelessWidget {
     return GroupedRow(
       icon: PrayerUtils.getPrayerIcon(setting.prayerType),
       title: Text(PrayerUtils.getPrayerName(setting.prayerType)),
-      subtitle: _subtitle(context),
+      subtitle: Text(_subtitle),
       onTap: onTap,
-      dimmed: !setting.isActive || !hasPermission,
+      dimmed: !_isOn || !hasPermission,
       trailing: Switch(
-        value: setting.isActive,
-        onChanged: hasPermission ? (_) => onToggle?.call() : null,
+        value: _isOn,
+        onChanged: hasPermission ? _onSwitch : null,
       ),
     );
   }
