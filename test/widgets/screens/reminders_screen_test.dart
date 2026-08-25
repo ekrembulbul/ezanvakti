@@ -275,4 +275,30 @@ void main() {
     expect(appState.skips.single.kind, SkipKind.alarm);
     expect(appState.skips.single.reference, sahur.id);
   });
+
+  testWidgets('Kapatma cubugu dokunulmazsa kendiliginden kalkar', (
+    tester,
+  ) async {
+    await storage.saveAlarm(sahur);
+    appState.setAlarms(const [sahur]);
+    await pump(tester);
+
+    await tester.tap(find.text('Alarmlar'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(Switch));
+    await tester.pumpAndSettle();
+    expect(find.text('Yalnızca bu sefer'), findsOneWidget);
+
+    // Sure + cikis animasyonu.
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pump(const Duration(milliseconds: 750));
+
+    expect(
+      find.text('Yalnızca bu sefer'),
+      findsNothing,
+      reason:
+          "Eylemli snackbar Flutter'da varsayilan olarak kalici; kullanici "
+          'dokunmazsa cubuk hic kapanmiyordu',
+    );
+  });
 }

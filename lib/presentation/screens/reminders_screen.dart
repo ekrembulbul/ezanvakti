@@ -380,7 +380,7 @@ class _RemindersScreenState extends State<RemindersScreen>
     if (isActive) return;
 
     _snack(
-      '${alarmTimeLabel(alarm)} alarmı kapatıldı',
+      'Alarm kapatıldı',
       action: fireAt == null
           ? null
           : SnackBarAction(
@@ -482,9 +482,17 @@ class _RemindersScreenState extends State<RemindersScreen>
         backgroundColor: isError
             ? Theme.of(context).colorScheme.error
             : context.tokens.accent,
+        // Eylemli snackbar Flutter'da varsayilan olarak **kalici**
+        // (`persist = action != null`): kullanici eyleme dokunmazsa hic
+        // kapanmiyordu. Sure dolunca kendiliginden kalksin.
+        persist: false,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         margin: const EdgeInsets.all(16),
+        // Varsayilan esik 0.25: eylem etiketi cubugun dortte birinden genisse
+        // alt satira duesuyor ve cubuk iki kat yukseliyor. "Yalnizca bu sefer"
+        // bu esigi asiyordu; yaziyi kisaltmak yerine esigi yukselttik.
+        actionOverflowThreshold: 0.5,
       ),
     );
   }
