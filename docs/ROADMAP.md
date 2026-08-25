@@ -79,7 +79,7 @@ Hedef: Vakitte yalnızca sessiz bildirim değil, **sesli alarm/ezan** çalması.
 
 **Platform stratejisi (doğrulanması önerilir):**
 - **Android** 🟢 — gerçek alarm mümkün: `AlarmManager.setAlarmClock()` + full-screen intent + foreground service. exact alarm izni (mevcut) gerekir; bazı cihazlarda pil optimizasyonu gecikme yapabilir.
-- **iOS 26+** 🟡 — Apple **AlarmKit** (WWDC 2025) ile 3. parti uygulamalar sessiz mod/Focus'u delen gerçek sistem alarmı kurabiliyor. Uygulama iOS 26'ya geçti; bu kapı açık. Native (platform-channel) entegrasyon gerekir, olgun hazır plugin beklenmemeli.
+- **iOS 26+** 🟡 — Apple **AlarmKit** (WWDC 2025) ile 3. parti uygulamalar sessiz mod/Focus'u delen gerçek sistem alarmı kurabiliyor. Uygulamanın hedefi widget çalışmasıyla **17.0**'a çıktı; AlarmKit 26 istediği için `#available(iOS 26, *)` dallanmasıyla ele alınmalı. Native (platform-channel) entegrasyon gerekir, olgun hazır plugin beklenmemeli.
 - **iOS < 26** 🔴 — gerçek alarm API'si yok. Pratikte **arka plan ses** hilesiyle taklit edilir (uygulama canlı kaldıkça `.playback` oturumuyla sessiz modu delip döngüde çalar). Kırılgan: kullanıcı uygulamayı force-quit ederse çalmaz, pil tüketir. `Critical Alerts` entitlement'ı genel alarm uygulamalarına pratikte verilmiyor.
 
 > Hedef deneyim: **iOS 26+ → AlarmKit**, **eski iOS → arka plan ses (sınırları kullanıcıya dürüstçe belirtilerek)**, **Android → gerçek AlarmManager alarmı**. Kısıtlar resmî dokümanlardan doğrulanmalı (Apple AlarmKit/Critical Alerts, Android `USE_EXACT_ALARM` politikaları).
