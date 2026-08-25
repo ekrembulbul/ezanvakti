@@ -32,12 +32,14 @@ class MissionTuning {
 
   /// Görev süresi, tipe göre. Görev ekranı açıldığı anda işlemeye başlar.
   ///
-  /// QR en uzun süreyi alır: kodun bulunduğu yere yürümek gerekiyor.
+  /// QR en uzun süreyi alır: kodun bulunduğu yere yürümek gerekiyor. Yine de
+  /// 3 dakika cihazda fazla uzun geldi — ekranda donmuş gibi duran bir sayaç
+  /// güven vermiyor.
   static const Map<AlarmMission, int> _timeouts = {
     AlarmMission.none: 0,
     AlarmMission.math: 90,
     AlarmMission.shake: 60,
-    AlarmMission.qr: 180,
+    AlarmMission.qr: 120,
   };
 
   /// [mission] için görev süresi (sn). [AlarmMission.none] için 0.

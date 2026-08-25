@@ -6,6 +6,7 @@ import 'package:sensors_plus/sensors_plus.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
+import 'mission_metrics.dart';
 import '../../../features/alarms/domain/shake_detector.dart';
 
 const Key kShakeProgressKey = Key('shake_progress');
@@ -91,34 +92,44 @@ class _ShakeMissionState extends State<ShakeMission>
     final remaining = (_target - _detector.count).clamp(0, _target);
     final progress = _target == 0 ? 1.0 : _detector.count / _target;
 
-    return SingleChildScrollView(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          ScaleTransition(
-            scale: _pulse,
-            child: Icon(
-              Icons.vibration_rounded,
-              size: 72,
-              color: tokens.accent,
-            ),
+    // Sigdiginda dikeyde ortalanir, sigmadiginda kaydirilir: icerik ustte
+    // kalip altinda kocaman bir bosluk birakmasin.
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ScaleTransition(
+                scale: _pulse,
+                child: Icon(
+                  Icons.vibration_rounded,
+                  size: 72,
+                  color: tokens.accent,
+                ),
+              ),
+              const SizedBox(height: 28),
+              Text(
+                '$remaining',
+                key: kShakeProgressKey,
+                style: AppTypography.counter.copyWith(
+                  color: tokens.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                remaining > 0 ? 'kez daha salla' : 'tamamlandı',
+                style: AppTypography.rowTitle.copyWith(
+                  fontSize: kMissionLeadFontSize,
+                  color: tokens.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 28),
+              _bar(tokens, progress),
+            ],
           ),
-          const SizedBox(height: 28),
-          Text(
-            '$remaining',
-            key: kShakeProgressKey,
-            style: AppTypography.counter.copyWith(color: tokens.textPrimary),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            remaining > 0 ? 'kez daha salla' : 'tamamlandı',
-            style: AppTypography.rowSubtitle.copyWith(
-              color: tokens.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 28),
-          _bar(tokens, progress),
-        ],
+        ),
       ),
     );
   }

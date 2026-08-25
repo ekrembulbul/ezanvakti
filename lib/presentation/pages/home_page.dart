@@ -65,6 +65,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       _loadPrayerData();
       _startLocationMonitoring();
       _scheduleMidnightRefresh();
+      // Soguk acilis `resumed` yasam dongusu olayi uretmiyor: uygulama
+      // tamamen kapatilmisken alarm durdurulup acilirsa gorev ekrani hic
+      // acilmiyor, dahasi bekleyen oturum `AppState`e hic yazilmadigi icin
+      // ertelenmis gorevli alarm kapatilabilir/atlanabilir hale geliyordu.
+      openMissionIfPending(context);
     });
   }
 
