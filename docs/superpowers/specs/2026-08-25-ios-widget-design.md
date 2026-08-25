@@ -65,9 +65,10 @@ Implementasyonun ilk adımında gerçek cihazda ölçülecek (bkz. §9 R2).
 Dizin yapısı `docs/ARCHITECTURE.md`'deki feature-first + katmanlı düzene uyar:
 
 ```
-lib/core/interfaces/widget_publisher.dart               soyutlama
+lib/core/interfaces/widget_publisher.dart                     soyutlama
 lib/features/home_widget/domain/widget_snapshot.dart          model + toJson
 lib/features/home_widget/domain/widget_snapshot_builder.dart  saf dönüşüm
+lib/features/home_widget/domain/widget_snapshot_publish.dart  üret + yayınla + hatayı yut
 lib/features/home_widget/data/home_widget_publisher.dart      home_widget kabuğu
 ```
 
@@ -76,6 +77,11 @@ DateTime now)` alıp `WidgetSnapshot` döner, hiçbir platform bağımlılığı
 ve testlerin asıl hedefidir. **Yayınlama ise arayüz arkasındadır**
 (`WidgetPublisher`); testlerde fake ile değiştirilir, iOS dışı platformlarda
 no-op'tur.
+
+`widget_snapshot_publish.dart` ikisini birleştiren ince bir fonksiyondur ve
+D11'deki hata izolasyonunun yaşadığı yerdir. Ayrı durmasının sebebi test
+edilebilirlik: `HomePage`'in içine gömülseydi "yayınlama patlarsa akış kesilmez"
+kuralı ancak bir widget testiyle doğrulanabilirdi.
 
 Swift tarafı:
 
@@ -214,22 +220,37 @@ yükleme aşamasında patlar.
 
 ## 10. Test stratejisi
 
-**Dart birim testleri** (`test/home_widget/`) — asıl kapsama burada, çünkü
-`WidgetSnapshotBuilder` saf:
+Sorumluluk sınırı testlerin de sınırıdır: **paketleme** Dart'ta, **yorumlama**
+(sıradaki vakit, gün dilimi) Swift'te yaşar (§4), dolayısıyla her biri kendi
+tarafında test edilir. Aynı kuralı iki dilde test etmek, iki kopyanın
+birbirinden sessizce ayrışmasını engellemez — asıl koruma D16'daki portun saf
+tutulmasıdır.
 
-- sıradaki vaktin doğru seçilmesi
-- Yatsı sonrası ertesi güne geçiş
-- gece yarısı–İmsak aralığı (dünün gecesi)
-- 7 günlük pencerenin eksik veriyle kırpılması
-- boş vakit listesi
+**Dart birim testleri** (`test/home_widget/`) — `WidgetSnapshotBuilder` saf
+olduğu için paketleme kapsaması burada:
+
+- bugünden önceki günler elenir, bugün dahil edilir
+- gece yarısından sonra (ör. 02:00) çalıştırıldığında bugünün günü hâlâ dahil edilir
+- pencere en fazla 7 gün (D8)
+- önbellekte daha az gün varsa pencere kısalır
+- boş vakit listesi → boş `days`
+- saatler sıfır dolgulu `"HH:mm"` (D7)
+- `locationLabel`, `Location.displayName` ile aynı
 
 **Yayınlama testi** — `WidgetPublisher` fake'i ile `_loadPrayerData`'nın
 yayınlamayı çağırdığı ve **yayınlama hata verse bile yükleme akışının
 kesilmediği** (D11) doğrulanır.
 
-**Swift birim testleri** — `NextPrayer`, `DayPhase` ve snapshot
-decode/`schemaVersion` reddi. WidgetKit'e dokunmayan saf tipler olduğu için
-normal XCTest target'ında koşar.
+**Swift birim testleri** — WidgetKit'e dokunmayan saf tipler olduğu için normal
+XCTest target'ında koşar:
+
+- `NextPrayer`: gün içindeki sıradaki vaktin seçilmesi; Yatsı sonrası ertesi
+  günün İmsak'ına geçiş; pencerenin son gününde sıradaki vakit bulunamaması
+- `DayPhase`: dört dilimin sınırları; gecenin Akşam'da değil **Yatsı'da**
+  başlaması; gece yarısı–İmsak aralığının `night` olması; tam vakit anının bir
+  **sonraki** dilime ait olması (M5)
+- `WidgetSnapshot`: geçerli JSON decode; bilinmeyen `schemaVersion`'ın
+  reddedilmesi (D9); bozuk saat biçiminin çökme değil hata üretmesi
 
 **Cihaz testi** — widget'ın gerçek davranışı (timeline reload'ları, kilit
 ekranı render'ı, `.timer` metninin accessory ailelerdeki güncellenmesi)
