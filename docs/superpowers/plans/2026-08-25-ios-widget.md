@@ -862,12 +862,13 @@ Xcode'da elle yapılan adımlar. Bu task kod üretmez, altyapı kurar.
 
 - [ ] **Step 1: Apple Developer portalında hazırlık (elle)**
 
-1. Yeni App ID: `com.ekrembulbul.ezanvakti.EzanVaktiWidget`
-2. App Group oluştur: `group.com.ekrembulbul.ezanvakti`
-3. App Group'u **her iki** App ID'ye (`com.ekrembulbul.ezanvakti` ve widget'ınki) ekle
+1. App Group oluştur: `group.com.ekrembulbul.ezanvakti`
+2. Yeni App ID: `com.ekrembulbul.ezanvakti.EzanVaktiWidget`, App Groups capability'si açık
+3. App Group'u **her iki** App ID'ye (`com.ekrembulbul.ezanvakti` ve widget'ınki) ata
 4. Widget App ID'si için App Store dağıtım profili üret; adı `com.ekrembulbul.ezanvakti.EzanVaktiWidget AppStore` olsun (Task 14 bu adı bekliyor)
+5. **Ana uygulamanın dağıtım profilini yeniden üret.** 3. adım App ID'nin capability'lerini değiştirdiği için mevcut profil geçersiz oldu; eski profille imzalanan build TestFlight'a çıkmaz.
 
-Bu adımlar kodla halledilemez; portalda elle yapılır.
+Bu adımlar kodla halledilemez; portalda elle yapılır. 4 ve 5'te üretilen profiller Task 14'ün ön koşulu olan GitHub secret'larına da girecek.
 
 - [ ] **Step 2: Xcode'da extension target'ı ekle**
 
@@ -2228,16 +2229,23 @@ Dort aile: systemSmall, systemMedium, accessoryRectangular, accessoryInline."
 
 ---
 
-### Task 14: Fastlane imzalama güncellemesi
+### Task 14: Fastlane ve CI imzalama güncellemesi
 
 Bu atlanırsa CI yeşil görünür, TestFlight yükleme aşamasında patlar.
 
+İki ayrı yer var: fastlane hangi profili hangi target'a uygulayacağını bilmiyor, **ve** workflow profili tek bir secret'tan kuruyor (`ios-testflight.yml:46-54`) — widget'ın profili oraya hiç ulaşmıyor.
+
 **Files:**
 - Modify: `ios/fastlane/Fastfile:6-7,37-59`
+- Modify: `.github/workflows/ios-testflight.yml:46-54`
 
 **Interfaces:**
 - Consumes: Task 6'daki portal profilleri
 - Produces: (yok — build altyapısı)
+
+**Ön koşul (elle):** GitHub deposunda iki secret güncellenmeli:
+- `IOS_APPSTORE_PROFILE_BASE64` — **yeniden üretilmiş** ana uygulama profili. App ID'ye App Group capability'si eklemek mevcut profili geçersiz kılar; eski secret'la build imzalanmaz.
+- `IOS_WIDGET_PROFILE_BASE64` — yeni widget profili (`base64 -i profil.mobileprovision | pbcopy`).
 
 - [ ] **Step 1: Widget sabitlerini ekle**
 
@@ -2279,21 +2287,59 @@ Mevcut `update_code_signing_settings` bloğunun **hemen ardına**:
         },
 ```
 
-- [ ] **Step 4: Sözdizimini doğrula**
+- [ ] **Step 4: Workflow'a ikinci profili kur**
+
+`.github/workflows/ios-testflight.yml`'deki "App Store provisioning profile'i kur" adımını şununla değiştir:
+
+```yaml
+      - name: Provisioning profile'lari kur (uygulama + widget)
+        env:
+          PROFILE_B64: ${{ secrets.IOS_APPSTORE_PROFILE_BASE64 }}
+          WIDGET_PROFILE_B64: ${{ secrets.IOS_WIDGET_PROFILE_BASE64 }}
+        run: |
+          PROFILES_DIR="$HOME/Library/MobileDevice/Provisioning Profiles"
+          mkdir -p "$PROFILES_DIR"
+
+          install_profile() {
+            local b64="$1" name="$2"
+            if [ -z "$b64" ]; then
+              echo "HATA: $name profili icin secret tanimli degil" >&2
+              exit 1
+            fi
+            echo "$b64" | base64 --decode > "$RUNNER_TEMP/$name.mobileprovision"
+            UUID=$(security cms -D -i "$RUNNER_TEMP/$name.mobileprovision" \
+              | plutil -extract UUID raw -)
+            cp "$RUNNER_TEMP/$name.mobileprovision" "$PROFILES_DIR/$UUID.mobileprovision"
+            echo "$name profili kuruldu (UUID: $UUID)"
+          }
+
+          install_profile "$PROFILE_B64" appstore
+          install_profile "$WIDGET_PROFILE_B64" widget
+```
+
+Boş secret'ta sessizce devam etmek yerine hemen durduruyoruz: eksik profil, build'in sonunda anlaşılması zor bir imza hatasına dönüşür.
+
+- [ ] **Step 5: Sözdizimini doğrula**
 
 Run: `cd ios && bundle exec fastlane lanes && cd ..`
 Expected: `beta` lane'i listelenir, sözdizimi hatası yok.
 
+Run: `python3 -c "import yaml,sys; yaml.safe_load(open('.github/workflows/ios-testflight.yml')); print('yaml ok')"`
+Expected: `yaml ok`
+
 ⚠️ Gerçek imzalama yalnızca CI'da (`macos-15`, gerçek secret'larla) doğrulanabilir. Yerelde sözdizimi kontrolü yeterli; ilk `ios-v*` tag'inde workflow izlenmeli.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add ios/fastlane/Fastfile
-git commit -m "chore: fastlane imzasina widget extension eklendi
+git add ios/fastlane/Fastfile .github/workflows/ios-testflight.yml
+git commit -m "chore: fastlane ve CI imzasina widget extension eklendi
 
 Widget ayri bir bundle ID; Runner'in profili gecmiyor. Ikinci profil hem imza
-ayarina hem export map'ine eklendi."
+ayarina hem export map'ine hem de workflow'un profil kurulumuna eklendi.
+
+Uygulamanin App ID'sine App Group capability'si eklemek mevcut profili
+gecersiz kildigi icin IOS_APPSTORE_PROFILE_BASE64 secret'i da yenilenmeli."
 ```
 
 ---
