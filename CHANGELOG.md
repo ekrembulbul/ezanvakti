@@ -4,6 +4,25 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.5.1] - 2026-08-29
+
+### Eklendi
+- Widget'lara **tarih**: gün adı, miladi tarih ve hicri tarih. Hicri tarih uygulamanın hesabıyla birebir aynı.
+- Widget'a **hizalama ayarı**: sola yaslı, ortalı veya sağa yaslı. Widget'a uzun basıp "Widget'ı Düzenle" ile seçiliyor.
+- Sıradaki vakit ertesi güne aitse widget artık **"YARIN"** yazıyor.
+
+### Düzeltildi
+- **Orta boy widget iki farklı günü gösteriyordu:** Yatsı'dan sonra soldaki vakit yarına, sağdaki liste bugüne aitti ve listede hiçbir satır vurgulanmıyordu.
+- **Kilit ekranı kapalıyken (Always-On) geri sayım** "5 hours 51 minutes" gibi okunmaz bir biçime düşüyordu; artık `5:34:--` yazıyor.
+- Açık temada widget zemini düz beyaz kart gibi görünüyordu.
+- Widget'a dokununca açılan adres uygulamada tanımlı değildi.
+- **Alarm ses seçicisindeki üç seçenek aynı sesi çalıyordu.** Projede ses dosyası olmadığı için "Ezan" ve "Alarm sesi" de sistem varsayılanına düşüyordu; çalışmayan iki seçenek kaldırıldı, varsayılan sistem alarm sesi oldu.
+
+### Değişti
+- Widget'lar dikeyde yeniden düzenlendi: tarih ve konum üstte küçük, vakit ve geri sayım altta baskın. Alt boşluklar kapandı.
+- Kilit ekranı widget'ından "SIRADAKİ" etiketi kalktı, geri sayım büyüdü.
+- Saatin üstündeki tek satırlık (inline) kilit ekranı widget'ı kaldırıldı.
+
 ## [0.5.0] - 2026-08-26
 
 ### Eklendi
