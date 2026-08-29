@@ -65,6 +65,24 @@ final class PrayerTimelineTests: XCTestCase {
         XCTAssertEqual(result[2].date, at(25, 14, 2))
     }
 
+    /// Vakitler tam dakikada oldugu icin canli sayac dakika hanesini her :00'da
+    /// degistiriyor. Kareler de :00'a hizali olmali; now + k dakika olsaydi
+    /// kilit ekrani canli sayacin bir dakika onunde kalirdi.
+    func testEntriesAlignToMinuteBoundaries() {
+        let now = at(25, 14, 0).addingTimeInterval(27)
+        let result = entries(days: ["2026-08-25", "2026-08-26"], now: now)
+        XCTAssertEqual(result[0].date, now)
+        XCTAssertEqual(result[1].date, at(25, 14, 1))
+        XCTAssertEqual(result[2].date, at(25, 14, 2))
+    }
+
+    func testAlignedWindowStillCoversTwoHours() {
+        let now = at(25, 14, 0).addingTimeInterval(27)
+        let result = entries(days: ["2026-08-25", "2026-08-26"], now: now)
+        XCTAssertEqual(result.count, PrayerTimeline.windowMinutes + 1)
+        XCTAssertEqual(result.last?.date, at(25, 16, 0))
+    }
+
     func testWindowCoversTwoHours() {
         let result = entries(days: ["2026-08-25", "2026-08-26"], now: at(25, 14, 0))
         XCTAssertEqual(result.count, PrayerTimeline.windowMinutes + 1)
