@@ -14,6 +14,11 @@ proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
 ### Değişti
 - **iOS minimum sürümü 13.0'dan 17.0'a yükseldi.** Kilit ekranı widget'ları için gerekli; iOS 13–16 çalıştıran cihazlar bu sürümden itibaren güncelleme alamayacak.
+- Hatırlatıcı satırlarındaki ayrı "Bu seferi atla" eylemi kalktı; tek seferlik atlama artık kapatma anahtarının uzantısı. Anahtarı kapatınca çıkan çubuktan "Yalnızca bu sefer" seçilebiliyor, atlanan satır kapalı görünüyor ve alt metni hangisi olduğunu yazıyor.
+
+### Düzeltildi
+- **Görev ekranları uykulu gözle okunacak hâle getirildi.** Uygulama tamamen kapalıyken alarm durdurulduğunda görev ekranı hiç açılmıyor, ertelenmiş görevli alarm da satırdan kapatılabiliyordu — soğuk açılışta bekleyen görev oturumu okunmuyordu.
+- Eylemli bildirim çubukları ekranda kalıcı oluyor ve iki satıra taşıyordu; artık süresi dolunca kendiliğinden kapanıyor ve tek satırda duruyor.
 
 ## [0.4.1] - 2026-08-25
 
