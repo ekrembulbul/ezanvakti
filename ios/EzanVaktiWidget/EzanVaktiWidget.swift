@@ -1,84 +1,82 @@
-//
-//  EzanVaktiWidget.swift
-//  EzanVaktiWidget
-//
-//  Created by Ekrem BULBUL on 29.08.2026.
-//
-
-import WidgetKit
 import SwiftUI
+import WidgetKit
 
 struct Provider: TimelineProvider {
-    func placeholder(in context: Context) -> SimpleEntry {
-        SimpleEntry(date: Date(), emoji: "😀")
+    func placeholder(in context: Context) -> PrayerEntry {
+        PrayerEntry(date: Date(), content: .noData)
     }
 
-    func getSnapshot(in context: Context, completion: @escaping (SimpleEntry) -> ()) {
-        let entry = SimpleEntry(date: Date(), emoji: "😀")
-        completion(entry)
+    func getSnapshot(in context: Context, completion: @escaping (PrayerEntry) -> Void) {
+        let entries = PrayerTimeline.entries(
+            for: SnapshotStore.load(), now: Date(), calendar: .current
+        )
+        completion(entries.first ?? placeholder(in: context))
     }
 
-    func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
-        var entries: [SimpleEntry] = []
+    func getTimeline(in context: Context, completion: @escaping (Timeline<PrayerEntry>) -> Void) {
+        let now = Date()
+        let entries = PrayerTimeline.entries(
+            for: SnapshotStore.load(), now: now, calendar: .current
+        )
 
-        // Generate a timeline consisting of five entries an hour apart, starting from the current date.
-        let currentDate = Date()
-        for hourOffset in 0 ..< 5 {
-            let entryDate = Calendar.current.date(byAdding: .hour, value: hourOffset, to: currentDate)!
-            let entry = SimpleEntry(date: entryDate, emoji: "😀")
-            entries.append(entry)
-        }
+        // Timeline tükendiğinde WidgetKit yeniden sorar; snapshot 7 gün
+        // taşıdığı için uygulama hiç açılmasa bile taze 48 saat üretilir.
+        // Veri yokken bir saat sonra tekrar bakılır: uygulama bu arada
+        // açılmış olabilir.
+        let refreshAt = entries.last.map { $0.date > now ? $0.date : now.addingTimeInterval(3600) }
+            ?? now.addingTimeInterval(3600)
 
-        let timeline = Timeline(entries: entries, policy: .atEnd)
-        completion(timeline)
+        completion(Timeline(entries: entries, policy: .after(refreshAt)))
     }
-
-//    func relevances() async -> WidgetRelevances<Void> {
-//        // Generate a list containing the contexts this widget is relevant in.
-//    }
 }
 
-struct SimpleEntry: TimelineEntry {
-    let date: Date
-    let emoji: String
-}
+struct EzanVaktiWidgetEntryView: View {
+    @Environment(\.widgetFamily) private var family
+    let entry: PrayerEntry
 
-struct EzanVaktiWidgetEntryView : View {
-    var entry: Provider.Entry
+    private var phase: DayPhase {
+        if case let .ready(_, _, phase, _, _) = entry.content { return phase }
+        return .fallback
+    }
 
     var body: some View {
-        VStack {
-            Text("Time:")
-            Text(entry.date, style: .time)
+        content
+            .widgetURL(URL(string: "ezanvakti://home"))
+            .containerBackground(for: .widget) {
+                switch family {
+                case .systemSmall, .systemMedium:
+                    PhaseBackground(phase: phase)
+                default:
+                    AccessoryWidgetBackground()
+                }
+            }
+    }
 
-            Text("Emoji:")
-            Text(entry.emoji)
+    @ViewBuilder
+    private var content: some View {
+        switch family {
+        case .systemSmall: SmallView(entry: entry)
+        case .systemMedium: MediumView(entry: entry)
+        case .accessoryRectangular: RectangularView(entry: entry)
+        case .accessoryInline: InlineView(entry: entry)
+        default: SmallView(entry: entry)
         }
     }
 }
 
 struct EzanVaktiWidget: Widget {
-    let kind: String = "EzanVaktiWidget"
+    /// Dart tarafındaki `HomeWidgetPublisher.widgetKind` ile birebir aynı
+    /// olmalı; aksi halde reload hiçbir widget'a ulaşmaz.
+    let kind = "EzanVaktiWidget"
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
-            if #available(iOS 17.0, *) {
-                EzanVaktiWidgetEntryView(entry: entry)
-                    .containerBackground(.fill.tertiary, for: .widget)
-            } else {
-                EzanVaktiWidgetEntryView(entry: entry)
-                    .padding()
-                    .background()
-            }
+            EzanVaktiWidgetEntryView(entry: entry)
         }
-        .configurationDisplayName("My Widget")
-        .description("This is an example widget.")
+        .configurationDisplayName("Ezan Vakti")
+        .description("Sıradaki vakit ve geri sayım.")
+        .supportedFamilies([
+            .systemSmall, .systemMedium, .accessoryRectangular, .accessoryInline,
+        ])
     }
-}
-
-#Preview(as: .systemSmall) {
-    EzanVaktiWidget()
-} timeline: {
-    SimpleEntry(date: .now, emoji: "😀")
-    SimpleEntry(date: .now, emoji: "🤩")
 }

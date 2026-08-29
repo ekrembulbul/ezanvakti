@@ -21,7 +21,10 @@ struct SmallView: View {
         let palette = Palette.forPhase(phase, colorScheme: colorScheme)
 
         return VStack(alignment: .leading, spacing: 2) {
-            Text(next.name.localizedUppercase)
+            // Cihaz dili Turkce degilse localizedUppercase "i" harfini
+            // noktasiz "I" yapiyor; uygulama tamamen Turkce oldugu icin
+            // buyuk harf donusumu tr_TR ile zorlaniyor.
+            Text(next.name.uppercased(with: Locale(identifier: "tr_TR")))
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(palette.accent)
 
