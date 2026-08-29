@@ -10,7 +10,7 @@ struct MediumView: View {
             MessageView(text: "Vakitler için uygulamayı aç", phase: .fallback)
         case .needsUpdate:
             MessageView(text: "Uygulamayı güncelleyin", phase: .fallback)
-        case let .ready(next, day, phase, locationLabel, isStale):
+        case let .ready(next, day, phase, locationLabel, isStale, _):
             ready(
                 next: next, day: day, phase: phase,
                 locationLabel: locationLabel, isStale: isStale

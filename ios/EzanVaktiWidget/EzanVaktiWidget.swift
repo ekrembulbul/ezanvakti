@@ -35,7 +35,7 @@ struct EzanVaktiWidgetEntryView: View {
     let entry: PrayerEntry
 
     private var phase: DayPhase {
-        if case let .ready(_, _, phase, _, _) = entry.content { return phase }
+        if case let .ready(_, _, phase, _, _, _) = entry.content { return phase }
         return .fallback
     }
 

@@ -10,7 +10,7 @@ struct InlineView: View {
             Text("Ezan Vakti · uygulamayı aç")
         case .needsUpdate:
             Text("Ezan Vakti · güncelle")
-        case let .ready(next, _, _, _, _):
+        case let .ready(next, _, _, _, _, _):
             // Yer yetmezse geri sayım düşer, vakit ve saat kalır.
             ViewThatFits {
                 HStack(spacing: 4) {

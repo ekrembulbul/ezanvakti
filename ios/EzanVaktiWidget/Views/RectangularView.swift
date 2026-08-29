@@ -11,7 +11,7 @@ struct RectangularView: View {
             Text("Vakitler için uygulamayı aç").font(.system(size: 12))
         case .needsUpdate:
             Text("Uygulamayı güncelleyin").font(.system(size: 12))
-        case let .ready(next, _, _, _, isStale):
+        case let .ready(next, _, _, _, isStale, _):
             VStack(alignment: .leading, spacing: 1) {
                 Text(isStale ? "GÜNCEL DEĞİL" : "SIRADAKİ")
                     .font(.system(size: 10, weight: .semibold))

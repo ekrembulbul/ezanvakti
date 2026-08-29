@@ -10,7 +10,7 @@ struct SmallView: View {
             MessageView(text: "Vakitler için uygulamayı aç", phase: .fallback)
         case .needsUpdate:
             MessageView(text: "Uygulamayı güncelleyin", phase: .fallback)
-        case let .ready(next, _, phase, locationLabel, isStale):
+        case let .ready(next, _, phase, locationLabel, isStale, _):
             ready(next: next, phase: phase, locationLabel: locationLabel, isStale: isStale)
         }
     }
