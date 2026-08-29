@@ -64,6 +64,12 @@ struct Palette {
         }
     }
 
+    /// Açık temada duraklar uygulamanınkinden **koyudur**.
+    ///
+    /// Uygulamada gradyan koca bir ekrana yayılıyor ve yumuşak bir geçiş
+    /// okunuyor; 2x2'lik bir kutuda aynı değerler düz beyaz karta dönüşüyordu.
+    /// Renk ailesi (ton) korunur, yalnızca duraklar arası kontrast açılır.
+    /// Metin renkleri değişmedi; ilk durak koyulaştığı için kontrast arttı.
     private static func light(_ phase: DayPhase) -> Palette {
         switch phase {
         case .morning: // NİLÜFER
@@ -71,28 +77,28 @@ struct Palette {
                 accent: Color(hex: 0x265F8E),
                 textPrimary: Color(hex: 0x0E1D2C),
                 textSecondary: Color(hex: 0x43596D),
-                backgroundStops: [Color(hex: 0xDCE9F7), Color(hex: 0xEDF3FA), Color(hex: 0xF8FBFD)]
+                backgroundStops: [Color(hex: 0xB8D2ED), Color(hex: 0xDCE9F7), Color(hex: 0xF3F8FC)]
             )
         case .afternoon: // SEDEF
             return Palette(
                 accent: Color(hex: 0x2A5B68),
                 textPrimary: Color(hex: 0x0F1C21),
                 textSecondary: Color(hex: 0x435A62),
-                backgroundStops: [Color(hex: 0xE2ECF0), Color(hex: 0xF1F6F8), Color(hex: 0xF9FCFC)]
+                backgroundStops: [Color(hex: 0xC2D8DE), Color(hex: 0xE2ECF0), Color(hex: 0xF4F9FA)]
             )
         case .evening: // GÜLKURUSU
             return Palette(
                 accent: Color(hex: 0x983F62),
                 textPrimary: Color(hex: 0x201A1E),
                 textSecondary: Color(hex: 0x5A4A50),
-                backgroundStops: [Color(hex: 0xF7E7EB), Color(hex: 0xFAF2F4), Color(hex: 0xFDFAFA)]
+                backgroundStops: [Color(hex: 0xEFCBD6), Color(hex: 0xF7E7EB), Color(hex: 0xFCF5F6)]
             )
         case .night: // LEYLAK
             return Palette(
                 accent: Color(hex: 0x5E3A80),
                 textPrimary: Color(hex: 0x1A1424),
                 textSecondary: Color(hex: 0x4F4260),
-                backgroundStops: [Color(hex: 0xEBE4F1), Color(hex: 0xF7F4F9), Color(hex: 0xFCFBFD)]
+                backgroundStops: [Color(hex: 0xD6C8E4), Color(hex: 0xEBE4F1), Color(hex: 0xF8F5FA)]
             )
         }
     }
