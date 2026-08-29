@@ -32,6 +32,9 @@
 		8657F26C2E6EA961F2721AC7 /* PrayerTimelineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E46E2062F6BABF50EC8A11BF /* PrayerTimelineTests.swift */; };
 		1D58000C0AAF5B831BBC6872 /* PrayerTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF9F590ECDCCF88727C8B8A /* PrayerTimeline.swift */; };
 		0D181F8975EB153334137F37 /* PrayerTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DF9F590ECDCCF88727C8B8A /* PrayerTimeline.swift */; };
+		68BEE60ED8DAA68A9FA15DD1 /* CountdownTextTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4280F191DE27AD369B03B16 /* CountdownTextTests.swift */; };
+		EE1A2EFE159B86176351444D /* CountdownText.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBDFEDB6C3F415A35276C269 /* CountdownText.swift */; };
+		0ED3B885852040D9C0E8469C /* CountdownText.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBDFEDB6C3F415A35276C269 /* CountdownText.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -113,6 +116,8 @@
 		E5037545AF269911350383C5 /* DayPhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayPhase.swift; sourceTree = "<group>"; };
 		E46E2062F6BABF50EC8A11BF /* PrayerTimelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrayerTimelineTests.swift; sourceTree = "<group>"; };
 		3DF9F590ECDCCF88727C8B8A /* PrayerTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrayerTimeline.swift; sourceTree = "<group>"; };
+		D4280F191DE27AD369B03B16 /* CountdownTextTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountdownTextTests.swift; sourceTree = "<group>"; };
+		DBDFEDB6C3F415A35276C269 /* CountdownText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountdownText.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -173,6 +178,7 @@
 		331C8082294A63A400263BE5 /* RunnerTests */ = {
 			isa = PBXGroup;
 			children = (
+				D4280F191DE27AD369B03B16 /* CountdownTextTests.swift */,
 				E46E2062F6BABF50EC8A11BF /* PrayerTimelineTests.swift */,
 				78E52F47C605E236FD6E5A56 /* DayPhaseTests.swift */,
 				9AC5AB60BE9D299ED3BCEF1A /* NextPrayerTests.swift */,
@@ -221,6 +227,7 @@
 		F6C121BC357F1CC6F08F51A0 /* WidgetCore */ = {
 			isa = PBXGroup;
 			children = (
+				DBDFEDB6C3F415A35276C269 /* CountdownText.swift */,
 				3DF9F590ECDCCF88727C8B8A /* PrayerTimeline.swift */,
 				E5037545AF269911350383C5 /* DayPhase.swift */,
 				E196975553A7AF4A714CABE6 /* NextPrayer.swift */,
@@ -514,6 +521,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0ED3B885852040D9C0E8469C /* CountdownText.swift in Sources */,
+				68BEE60ED8DAA68A9FA15DD1 /* CountdownTextTests.swift in Sources */,
 				0D181F8975EB153334137F37 /* PrayerTimeline.swift in Sources */,
 				8657F26C2E6EA961F2721AC7 /* PrayerTimelineTests.swift in Sources */,
 				CE3180FD709F8298E641B1ED /* DayPhase.swift in Sources */,
@@ -539,6 +548,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EE1A2EFE159B86176351444D /* CountdownText.swift in Sources */,
 				1D58000C0AAF5B831BBC6872 /* PrayerTimeline.swift in Sources */,
 				D741A393DD2A38C3FD2E1F7C /* DayPhase.swift in Sources */,
 				4333304CD35DFEC0BD95EEAC /* NextPrayer.swift in Sources */,
