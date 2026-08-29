@@ -529,28 +529,22 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
     );
   }
 
+  /// Seçicide yalnızca gerçekten farklı ses üreten seçenekler durur.
+  ///
+  /// `Ezan` ve `Alarm sesi` kaldırıldı: projede ses dosyası olmadığı için
+  /// ikisi de sistem varsayılanına düşüyordu (`AppDelegate.swift:415-418`).
+  /// Çalışmayan bir seçenek, olmayan seçenekten kötüdür. Gerçek bir ezan
+  /// kaydı bundle'a girdiğinde seçenek geri gelir.
   Widget _soundSelector() {
     final isCustom = _soundId.startsWith('custom:');
     return OptionRow<String>(
       label: 'Ses',
       selected: _soundId,
       valueLabel: (v) => switch (v) {
-        'adhan' => 'Ezan',
-        'alarm' => 'Alarm sesi',
         'default' => 'Varsayılan',
         _ => _customSoundName ?? 'Özel ses',
       },
       items: [
-        const OptionItem(
-          value: 'adhan',
-          label: 'Ezan',
-          icon: Icons.mosque_rounded,
-        ),
-        const OptionItem(
-          value: 'alarm',
-          label: 'Alarm sesi',
-          icon: Icons.notifications_active_rounded,
-        ),
         const OptionItem(
           value: 'default',
           label: 'Varsayılan',

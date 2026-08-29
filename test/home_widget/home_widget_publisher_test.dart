@@ -42,7 +42,7 @@ void main() {
 
     final save = calls.firstWhere((call) => call.method == 'saveWidgetData');
     expect(save.arguments['id'], HomeWidgetPublisher.snapshotKey);
-    expect(save.arguments['data'], contains('"schemaVersion":1'));
+    expect(save.arguments['data'], contains('"schemaVersion":2'));
   });
 
   test('publish widget kind ile guncelleme tetikler', () async {

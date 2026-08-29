@@ -32,7 +32,9 @@ void main() {
         anchor: PrayerType.fajr,
         offsetMinutes: -30,
         weekdays: {1, 3, 5},
-        soundId: 'adhan',
+        // 'adhan' artik temsil edilebilir bir deger degil: fromMap onu
+        // 'default'a esliyor (projede ezan ses dosyasi yok).
+        soundId: 'custom:test.caf',
         vibrate: true,
         snoozeEnabled: true,
         snoozeMinutes: 10,

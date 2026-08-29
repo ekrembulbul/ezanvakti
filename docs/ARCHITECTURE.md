@@ -105,6 +105,13 @@ WidgetSnapshotBuilder (saf) ──▶ WidgetPublisher ──▶ App Group (tek J
 - Yayınlama hatası yukarı sızmaz; vakit gösterimi widget yüzünden bozulmaz.
 - Sorumluluk sınırı testlerin de sınırı: paketleme Dart'ta (`test/home_widget/`),
   yorumlama Swift'te (`ios/RunnerTests/`) sınanır.
+- Payload'da her gün kendi **hicri tarihini** taşır. Swift'te hesaplanmaz:
+  iOS'un `islamicUmmAlQura` takvimi uygulamanın kullandığı `hijri` paketinden
+  gün kayabilir.
+- Timeline **dakika başına** giriş üretir (2 saatlik pencere). Always-On
+  ekranda geri sayımı `CountdownText` ile kendimiz çizeriz; sistemin canlı
+  sayacı orada okunmaz bir biçime düşüyor.
+- Hizalama `AppIntentConfiguration` ile widget ayarıdır.
 
 ## Zaman / timezone
 

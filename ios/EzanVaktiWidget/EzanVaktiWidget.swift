@@ -1,32 +1,40 @@
 import SwiftUI
 import WidgetKit
 
-struct Provider: TimelineProvider {
+struct Provider: AppIntentTimelineProvider {
     func placeholder(in context: Context) -> PrayerEntry {
         PrayerEntry(date: Date(), content: .noData)
     }
 
-    func getSnapshot(in context: Context, completion: @escaping (PrayerEntry) -> Void) {
-        let entries = PrayerTimeline.entries(
+    func snapshot(
+        for configuration: EzanVaktiWidgetIntent, in context: Context
+    ) async -> PrayerEntry {
+        var entry = PrayerTimeline.entries(
             for: SnapshotStore.load(), now: Date(), calendar: .current
-        )
-        completion(entries.first ?? placeholder(in: context))
+        ).first ?? placeholder(in: context)
+        entry.alignment = configuration.alignment
+        return entry
     }
 
-    func getTimeline(in context: Context, completion: @escaping (Timeline<PrayerEntry>) -> Void) {
+    func timeline(
+        for configuration: EzanVaktiWidgetIntent, in context: Context
+    ) async -> Timeline<PrayerEntry> {
         let now = Date()
         let entries = PrayerTimeline.entries(
             for: SnapshotStore.load(), now: now, calendar: .current
-        )
+        ).map { entry -> PrayerEntry in
+            var copy = entry
+            copy.alignment = configuration.alignment
+            return copy
+        }
 
-        // Timeline tükendiğinde WidgetKit yeniden sorar; snapshot 7 gün
-        // taşıdığı için uygulama hiç açılmasa bile taze 48 saat üretilir.
-        // Veri yokken bir saat sonra tekrar bakılır: uygulama bu arada
-        // açılmış olabilir.
-        let refreshAt = entries.last.map { $0.date > now ? $0.date : now.addingTimeInterval(3600) }
-            ?? now.addingTimeInterval(3600)
+        // Timeline tükendiğinde WidgetKit yeniden sorar. Veri yokken bir saat
+        // sonra tekrar bakılır: uygulama bu arada açılmış olabilir.
+        let refreshAt = entries.last.map {
+            $0.date > now ? $0.date : now.addingTimeInterval(3600)
+        } ?? now.addingTimeInterval(3600)
 
-        completion(Timeline(entries: entries, policy: .after(refreshAt)))
+        return Timeline(entries: entries, policy: .after(refreshAt))
     }
 }
 
@@ -35,7 +43,7 @@ struct EzanVaktiWidgetEntryView: View {
     let entry: PrayerEntry
 
     private var phase: DayPhase {
-        if case let .ready(_, _, phase, _, _) = entry.content { return phase }
+        if case let .ready(_, _, phase, _, _, _) = entry.content { return phase }
         return .fallback
     }
 
@@ -55,11 +63,10 @@ struct EzanVaktiWidgetEntryView: View {
     @ViewBuilder
     private var content: some View {
         switch family {
-        case .systemSmall: SmallView(entry: entry)
-        case .systemMedium: MediumView(entry: entry)
+        case .systemSmall: SmallView(entry: entry, alignment: entry.alignment)
+        case .systemMedium: MediumView(entry: entry, alignment: entry.alignment)
         case .accessoryRectangular: RectangularView(entry: entry)
-        case .accessoryInline: InlineView(entry: entry)
-        default: SmallView(entry: entry)
+        default: SmallView(entry: entry, alignment: entry.alignment)
         }
     }
 }
@@ -70,13 +77,15 @@ struct EzanVaktiWidget: Widget {
     let kind = "EzanVaktiWidget"
 
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: kind, provider: Provider()) { entry in
+        AppIntentConfiguration(
+            kind: kind,
+            intent: EzanVaktiWidgetIntent.self,
+            provider: Provider()
+        ) { entry in
             EzanVaktiWidgetEntryView(entry: entry)
         }
         .configurationDisplayName("Ezan Vakti")
         .description("Sıradaki vakit ve geri sayım.")
-        .supportedFamilies([
-            .systemSmall, .systemMedium, .accessoryRectangular, .accessoryInline,
-        ])
+        .supportedFamilies([.systemSmall, .systemMedium, .accessoryRectangular])
     }
 }
