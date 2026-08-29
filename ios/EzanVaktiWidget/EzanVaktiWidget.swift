@@ -65,7 +65,7 @@ struct EzanVaktiWidgetEntryView: View {
         switch family {
         case .systemSmall: SmallView(entry: entry, alignment: entry.alignment)
         case .systemMedium: MediumView(entry: entry, alignment: entry.alignment)
-        case .accessoryRectangular: RectangularView(entry: entry)
+        case .accessoryRectangular: RectangularView(entry: entry, alignment: entry.alignment)
         default: SmallView(entry: entry, alignment: entry.alignment)
         }
     }

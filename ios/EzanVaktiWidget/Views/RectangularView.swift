@@ -5,6 +5,7 @@ import WidgetKit
 struct RectangularView: View {
     @Environment(\.isLuminanceReduced) private var isLuminanceReduced
     let entry: PrayerEntry
+    let alignment: WidgetAlignment
 
     var body: some View {
         switch entry.content {
@@ -18,7 +19,7 @@ struct RectangularView: View {
     }
 
     private func ready(next: PrayerSlot, isStale: Bool, isTomorrow: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 1) {
+        VStack(alignment: alignment.horizontal, spacing: 1) {
             if isStale {
                 Text("GÜNCEL DEĞİL")
                     .font(.system(size: 10, weight: .semibold))
@@ -42,10 +43,11 @@ struct RectangularView: View {
                     Text(next.date, style: .timer)
                 }
             }
-            .font(.system(size: 20, weight: .semibold).monospacedDigit())
+            .font(.system(size: 20, weight: .regular).monospacedDigit())
             .lineLimit(1)
             .minimumScaleFactor(0.6)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment.frame)
+        .multilineTextAlignment(alignment.textAlignment)
     }
 }

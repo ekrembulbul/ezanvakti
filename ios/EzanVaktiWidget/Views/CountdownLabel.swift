@@ -12,6 +12,8 @@ struct CountdownLabel: View {
     let isLuminanceReduced: Bool
     let size: CGFloat
     let color: Color
+    /// Cihazda semibold "cok kalin" bulundu; varsayilan regular.
+    var weight: Font.Weight = .regular
 
     var body: some View {
         Group {
@@ -21,7 +23,7 @@ struct CountdownLabel: View {
                 Text(target, style: .timer)
             }
         }
-        .font(.system(size: size, weight: .semibold).monospacedDigit())
+        .font(.system(size: size, weight: weight).monospacedDigit())
         .foregroundStyle(color)
         .lineLimit(1)
         .minimumScaleFactor(0.5)
