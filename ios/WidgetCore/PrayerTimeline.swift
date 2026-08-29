@@ -18,6 +18,10 @@ enum WidgetContent: Equatable {
 struct PrayerEntry: TimelineEntry {
     let date: Date
     let content: WidgetContent
+
+    /// Kullanıcının "Widget'ı Düzenle" ekranından seçtiği hiza. Timeline saf
+    /// kalsın diye burada varsayılanı var; gerçek değeri provider yazıyor.
+    var alignment: WidgetAlignment = .default
 }
 
 enum PrayerTimeline {
