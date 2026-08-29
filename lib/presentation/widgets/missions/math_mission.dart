@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
+import 'mission_metrics.dart';
 import '../../../features/alarms/domain/math_challenge.dart';
 
 const Key kMathSubmitKey = Key('math_submit');
@@ -161,7 +162,7 @@ class _MathMissionState extends State<MathMission> {
         style: AppTypography.gridValue.copyWith(color: tokens.textPrimary),
         decoration: InputDecoration(
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 16),
+          contentPadding: const EdgeInsets.symmetric(vertical: 22),
           hintText: 'Cevap',
           hintStyle: AppTypography.gridValue.copyWith(
             color: tokens.textTertiary,
@@ -177,7 +178,10 @@ class _MathMissionState extends State<MathMission> {
       opacity: _wrong ? 1 : 0,
       child: Text(
         'Yanlış, tekrar dene.',
-        style: AppTypography.rowSubtitle.copyWith(color: tokens.textSecondary),
+        style: AppTypography.rowSubtitle.copyWith(
+          fontSize: kMissionSupportFontSize,
+          color: tokens.textSecondary,
+        ),
       ),
     );
   }
@@ -185,19 +189,22 @@ class _MathMissionState extends State<MathMission> {
   Widget _submitButton(AppTokens tokens) {
     return SizedBox(
       width: double.infinity,
-      height: 56,
+      height: kMissionButtonHeight,
       child: FilledButton(
         key: kMathSubmitKey,
         onPressed: _submit,
         style: FilledButton.styleFrom(
           backgroundColor: tokens.accent,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(kMissionButtonRadius),
           ),
         ),
         child: Text(
           _index + 1 >= _questions.length ? 'Bitir' : 'Onayla',
-          style: AppTypography.rowTitle.copyWith(color: Colors.white),
+          style: AppTypography.rowTitle.copyWith(
+            color: Colors.white,
+            fontSize: kMissionButtonFontSize,
+          ),
         ),
       ),
     );

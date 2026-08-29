@@ -137,11 +137,16 @@ class _LocationListScreenState extends State<LocationListScreen> {
           backgroundColor: isError
               ? Theme.of(context).colorScheme.error
               : context.tokens.accent,
+          // Eylemli snackbar Flutter'da varsayilan olarak **kalici**
+          // (`persist = action != null`): kullanici eyleme dokunmazsa hic
+          // kapanmiyordu.
+          persist: false,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
           margin: const EdgeInsets.all(16),
+          actionOverflowThreshold: 0.5,
         ),
       );
     }

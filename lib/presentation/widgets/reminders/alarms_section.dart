@@ -80,56 +80,35 @@ class AlarmsSection extends StatelessWidget {
     subtitle: 'Sabit saatli veya vakte göre alarm ekle',
   );
 
-  /// Alt metin ve yanındaki tek seferlik atlama eylemi.
+  /// Satırın alt metni.
   ///
-  /// Satırdaki anahtar **kalıcı** aç/kapa; atlama ayrı bir eylem olarak
-  /// duruyor ki hangisinin ne yaptığı okunabilsin.
-  Widget _subtitle(BuildContext context, Alarm alarm, DateTime? snoozedUntil) {
-    final tokens = context.tokens;
-    if (snoozedUntil != null) {
-      return Text(SnoozeNotice.label(snoozedUntil));
-    }
-
-    final fireAt = nextFireByAlarm[alarm.id];
-    final canSkip =
-        alarm.isActive && fireAt != null && onSkipChanged != null;
-    if (!canSkip) return Text(alarmSubtitle(alarm));
-
-    final occurrence = SkippedOccurrence(
-      kind: SkipKind.alarm,
-      reference: alarm.id,
-      fireAt: fireAt,
-    );
-    final skipped = isSkipped(
-      skips,
-      kind: SkipKind.alarm,
-      reference: alarm.id,
-      fireAt: fireAt,
-    );
-
-    return Row(
-      children: [
-        Flexible(
-          child: Text(
-            skipped ? 'Yalnızca bu sefer atlanacak' : alarmSubtitle(alarm),
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        const Text(' · '),
-        GestureDetector(
-          onTap: () => onSkipChanged!(occurrence, !skipped),
-          child: Text(
-            skipped ? 'Geri al' : 'Bu seferi atla',
-            style: TextStyle(color: tokens.accent),
-          ),
-        ),
-      ],
-    );
+  /// Tek seferlik atlama artık ayrı bir eylem değil: anahtar kapatılınca
+  /// altta çıkan çubuktan seçiliyor. Burada yalnızca **hangi durumda**
+  /// olduğu yazıyor.
+  String _subtitle(Alarm alarm, DateTime? snoozedUntil, bool skipped) {
+    if (snoozedUntil != null) return SnoozeNotice.label(snoozedUntil);
+    if (skipped) return 'Yalnızca bu sefer atlanacak';
+    if (!alarm.isActive) return 'Kapalı';
+    return alarmSubtitle(alarm);
   }
 
   Widget _alarmRow(BuildContext context, Alarm alarm) {
     final snoozedUntil = SnoozeNotice.snoozedUntilFor(missionSession, alarm);
     final canDisable = SnoozeNotice.canDisable(missionSession, alarm);
+
+    final fireAt = nextFireByAlarm[alarm.id];
+    final skipped =
+        fireAt != null &&
+        isSkipped(
+          skips,
+          kind: SkipKind.alarm,
+          reference: alarm.id,
+          fireAt: fireAt,
+        );
+
+    // Atlanan alarm da kapalı görünür: kullanıcı için ikisi de "bu sefer
+    // çalmayacak" demek. Atlanan örnek geçince satır kendiliğinden açılır.
+    final isOn = alarm.isActive && !skipped;
 
     return SwipeToDelete(
       itemKey: ValueKey(alarm.id),
@@ -139,18 +118,35 @@ class AlarmsSection extends StatelessWidget {
       child: GroupedRow(
         icon: Icons.alarm_rounded,
         title: Text(alarmTimeLabel(alarm)),
-        subtitle: _subtitle(context, alarm, snoozedUntil),
+        subtitle: Text(_subtitle(alarm, snoozedUntil, skipped)),
         onTap: () => onEdit(alarm),
-        dimmed: !alarm.isActive,
+        dimmed: !isOn,
         trailing: Switch(
-          value: alarm.isActive,
+          value: isOn,
           onChanged: (value) {
-            // Ertelenmis gorevli alarm kapatilamaz; gorev borcu duruyor.
-            if (!value && !canDisable) {
-              onDisableBlocked?.call(alarm);
+            if (!value) {
+              // Ertelenmis gorevli alarm kapatilamaz; gorev borcu duruyor.
+              if (!canDisable) {
+                onDisableBlocked?.call(alarm);
+                return;
+              }
+              onToggle(alarm, false);
               return;
             }
-            onToggle(alarm, value);
+            // Aciliyor: bekleyen tek seferlik atlama varsa once o kalkar,
+            // yoksa alarm kalici olarak acilir.
+            if (skipped && onSkipChanged != null) {
+              onSkipChanged!(
+                SkippedOccurrence(
+                  kind: SkipKind.alarm,
+                  reference: alarm.id,
+                  fireAt: fireAt,
+                ),
+                false,
+              );
+              return;
+            }
+            onToggle(alarm, true);
           },
         ),
       ),

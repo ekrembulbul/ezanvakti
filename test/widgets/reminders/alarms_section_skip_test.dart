@@ -43,45 +43,71 @@ void main() {
     ),
   );
 
-  testWidgets('Satirda tek seferlik atlama eylemi gorunur', (tester) async {
+  final skipOgle = {
+    SkippedOccurrence(kind: SkipKind.alarm, reference: 'ogle', fireAt: fireAt),
+  };
+
+  bool switchValue(WidgetTester tester) =>
+      tester.widget<Switch>(find.byType(Switch)).value;
+
+  testWidgets('Satirda ayri bir atlama eylemi yok', (tester) async {
     await tester.pumpWidget(build());
-    expect(find.text('Bu seferi atla'), findsOneWidget);
+    // Atlama artik anahtar kapatilinca alttaki cubuktan seciliyor.
+    expect(find.text('Bu seferi atla'), findsNothing);
+    expect(switchValue(tester), isTrue);
   });
 
-  testWidgets('Atlama eylemi dogru occurrence ile bildirir', (tester) async {
-    SkippedOccurrence? seen;
-    var value = false;
+  testWidgets('Atlanan alarm kapali gorunur', (tester) async {
+    await tester.pumpWidget(build(skips: skipOgle));
+
+    expect(find.text('Yalnızca bu sefer atlanacak'), findsOneWidget);
+    expect(
+      switchValue(tester),
+      isFalse,
+      reason: 'kullanici icin atlanmis da kapali da "bu sefer calmayacak"',
+    );
+  });
+
+  testWidgets('Kapali alarmin alt metni "Kapalı"', (tester) async {
     await tester.pumpWidget(
       build(
+        alarms: const [
+          Alarm(id: 'ogle', kind: AlarmKind.fixed, isActive: false),
+        ],
+      ),
+    );
+    expect(find.text('Kapalı'), findsOneWidget);
+  });
+
+  testWidgets('Atlanan alarmi acmak atlamayi kaldirir, alarmi acmaz', (
+    tester,
+  ) async {
+    SkippedOccurrence? seen;
+    var value = true;
+    var toggled = false;
+    await tester.pumpWidget(
+      build(
+        skips: skipOgle,
         onSkipChanged: (o, s) {
           seen = o;
           value = s;
         },
+        onToggle: (a, b) => toggled = true,
       ),
     );
-    await tester.tap(find.text('Bu seferi atla'));
+
+    await tester.tap(find.byType(Switch));
     await tester.pump();
 
     expect(seen?.reference, 'ogle');
     expect(seen?.kind, SkipKind.alarm);
     expect(seen?.fireAt, fireAt);
-    expect(value, isTrue);
-  });
-
-  testWidgets('Atlanmissa metin ve eylem tersine doner', (tester) async {
-    await tester.pumpWidget(
-      build(
-        skips: {
-          SkippedOccurrence(
-            kind: SkipKind.alarm,
-            reference: 'ogle',
-            fireAt: fireAt,
-          ),
-        },
-      ),
+    expect(value, isFalse, reason: 'atlama kalkiyor');
+    expect(
+      toggled,
+      isFalse,
+      reason: 'alarm zaten aktif; ayrica acilmaya calisilmamali',
     );
-    expect(find.text('Yalnızca bu sefer atlanacak'), findsOneWidget);
-    expect(find.text('Geri al'), findsOneWidget);
   });
 
   testWidgets('Ertelenmis alarmda atlama yerine erteleme bilgisi cikar', (
@@ -98,7 +124,6 @@ void main() {
       ),
     );
     expect(find.textContaining('Ertelendi'), findsOneWidget);
-    expect(find.text('Bu seferi atla'), findsNothing);
   });
 
   testWidgets('Ertelenmis gorevli alarm kapatilamaz', (tester) async {

@@ -4,6 +4,22 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.5.0] - 2026-08-26
+
+### Eklendi
+- **iOS ana ekran widget'ı** (küçük ve orta boy): sıradaki vakit, saati ve geri sayım. Orta boyda ayrıca günün altı vaktinin şeridi — geçenler soluk, sıradaki vurgulu.
+- **iOS kilit ekranı widget'ı** (dikdörtgen ve satır içi).
+- Widget uygulamanın gün dilimi paletini kullanıyor: vakit geçtikçe zemin sabahtan geceye kayıyor.
+- Widget uygulama açılmadan da doğru kalıyor — bir haftalık vakit verisi paylaşılıyor ve sıradaki vakti widget kendisi hesaplıyor.
+
+### Değişti
+- **iOS minimum sürümü 13.0'dan 17.0'a yükseldi.** Kilit ekranı widget'ları için gerekli; iOS 13–16 çalıştıran cihazlar bu sürümden itibaren güncelleme alamayacak.
+- Hatırlatıcı satırlarındaki ayrı "Bu seferi atla" eylemi kalktı; tek seferlik atlama artık kapatma anahtarının uzantısı. Anahtarı kapatınca çıkan çubuktan "Yalnızca bu sefer" seçilebiliyor, atlanan satır kapalı görünüyor ve alt metni hangisi olduğunu yazıyor.
+
+### Düzeltildi
+- **Görev ekranları uykulu gözle okunacak hâle getirildi.** Uygulama tamamen kapalıyken alarm durdurulduğunda görev ekranı hiç açılmıyor, ertelenmiş görevli alarm da satırdan kapatılabiliyordu — soğuk açılışta bekleyen görev oturumu okunmuyordu.
+- Eylemli bildirim çubukları ekranda kalıcı oluyor ve iki satıra taşıyordu; artık süresi dolunca kendiliğinden kapanıyor ve tek satırda duruyor.
+
 ## [0.4.1] - 2026-08-25
 
 ### Düzeltildi

@@ -172,6 +172,29 @@ class _MissionHostState extends State<_MissionHost> {
     if (mounted) Navigator.of(context).pop();
   }
 
+  /// Görev gövdesi **bir kez** kuruluyor.
+  ///
+  /// Sayaç saniyede bir `setState` çağırıyor; gövde her karede yeniden
+  /// yaratılırsa alt ağaç da yeniden kuruluyor ve QR görevinde kamera
+  /// önizlemesi donuyordu. Aynı örnek geçildiğinde Flutter o alt ağacı hiç
+  /// yeniden inşa etmiyor.
+  late final Widget _body = switch (widget.alarm.mission) {
+    AlarmMission.math => MathMission(
+      level: widget.alarm.missionLevel,
+      random: Random(),
+      onCompleted: _complete,
+    ),
+    AlarmMission.shake => ShakeMission(
+      level: widget.alarm.missionLevel,
+      onCompleted: _complete,
+    ),
+    AlarmMission.qr => QrMission(
+      expected: widget.alarm.qrPayload ?? '',
+      onCompleted: _complete,
+    ),
+    AlarmMission.none => const SizedBox.shrink(),
+  };
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -184,22 +207,7 @@ class _MissionHostState extends State<_MissionHost> {
         onCompleted: _complete,
         onAbortRequested: _abort,
         onSnooze: _snoozeRemaining > 0 ? _snooze : null,
-        child: switch (widget.alarm.mission) {
-          AlarmMission.math => MathMission(
-            level: widget.alarm.missionLevel,
-            random: Random(),
-            onCompleted: _complete,
-          ),
-          AlarmMission.shake => ShakeMission(
-            level: widget.alarm.missionLevel,
-            onCompleted: _complete,
-          ),
-          AlarmMission.qr => QrMission(
-            expected: widget.alarm.qrPayload ?? '',
-            onCompleted: _complete,
-          ),
-          AlarmMission.none => const SizedBox.shrink(),
-        },
+        child: _body,
       ),
     );
   }

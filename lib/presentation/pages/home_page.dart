@@ -30,6 +30,8 @@ import '../screens/reminders_screen.dart';
 import '../services/location_service.dart';
 import '../services/data_loader_service.dart';
 import '../services/day_rollover.dart';
+import '../../core/interfaces/widget_publisher.dart';
+import '../../features/home_widget/domain/widget_snapshot_publish.dart';
 import '../services/reminder_rescheduler.dart';
 import '../controllers/location_monitor_controller.dart';
 import '../../core/theme/theme_controller.dart';
@@ -65,6 +67,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       _loadPrayerData();
       _startLocationMonitoring();
       _scheduleMidnightRefresh();
+      // Soguk acilis `resumed` yasam dongusu olayi uretmiyor: uygulama
+      // tamamen kapatilmisken alarm durdurulup acilirsa gorev ekrani hic
+      // acilmiyor, dahasi bekleyen oturum `AppState`e hic yazilmadigi icin
+      // ertelenmis gorevli alarm kapatilabilir/atlanabilir hale geliyordu.
+      openMissionIfPending(context);
     });
   }
 
@@ -284,6 +291,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         location: location,
         prayerTimes: data.all,
         skips: data.skips,
+      );
+
+      await publishWidgetSnapshot(
+        publisher: ServiceLocator().get<WidgetPublisher>(),
+        logger: logger,
+        location: location,
+        prayerTimes: data.all,
+        now: DateTime.now(),
       );
     } catch (e) {
       logger.error('Failed to load prayer data', e);

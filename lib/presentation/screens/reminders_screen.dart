@@ -253,12 +253,56 @@ class _RemindersScreenState extends State<RemindersScreen>
     await _syncNotifications(appState);
   }
 
+  /// Kapatma, "yalnızca bu sefer"in giriş kapısı: kayıt kapatılır ve altta
+  /// çıkan çubuk tek seferliğe çevirme seçeneğini sunar.
   Future<void> _toggleNotification(NotificationSetting setting) async {
     final appState = context.read<AppState>();
+    final turningOff = setting.isActive;
+    // Sıradaki tetiklenme kapatmadan **önce** hesaplanmalı: kapalı kayıt
+    // planlamada yer almıyor.
+    final fireAt = turningOff ? _nextFireOf(appState, setting) : null;
+
     await _settingsManager.updateSetting(
       setting.copyWith(isActive: !setting.isActive),
     );
     await _syncNotifications(appState);
+    if (!turningOff) return;
+
+    _snack(
+      'Bildirim kapatıldı',
+      action: fireAt == null
+          ? null
+          : SnackBarAction(
+              label: 'Yalnızca bu sefer',
+              textColor: Colors.white,
+              onPressed: () => _skipOnceNotification(setting, fireAt),
+            ),
+    );
+  }
+
+  DateTime? _nextFireOf(AppState appState, NotificationSetting setting) =>
+      resolveNextFirePerNotification(
+        settings: appState.notificationSettings,
+        prayerTimes: appState.prayerTimes,
+        now: DateTime.now(),
+      )[notificationKey(setting)];
+
+  /// Kapatılan bildirimi geri açar ve yalnızca sıradaki örneği atlar.
+  Future<void> _skipOnceNotification(
+    NotificationSetting setting,
+    DateTime fireAt,
+  ) async {
+    final appState = context.read<AppState>();
+    await _settingsManager.updateSetting(setting.copyWith(isActive: true));
+    await _syncNotifications(appState);
+    await _toggleSkip(
+      SkippedOccurrence(
+        kind: SkipKind.notification,
+        reference: notificationKey(setting),
+        fireAt: fireAt,
+      ),
+      true,
+    );
   }
 
   // --- Alarm mutasyonları ---
@@ -323,10 +367,43 @@ class _RemindersScreenState extends State<RemindersScreen>
     );
   }
 
+  /// Kapatma, "yalnızca bu sefer"in giriş kapısı: alarm kapatılır ve altta
+  /// çıkan çubuk tek seferliğe çevirme seçeneğini sunar.
   Future<void> _toggleAlarm(Alarm alarm, bool isActive) async {
     final appState = context.read<AppState>();
+    // Sıradaki çalış kapatmadan **önce** hesaplanmalı: kapalı alarm
+    // planlamada yer almıyor.
+    final fireAt = isActive ? null : _nextFireByAlarm(appState)[alarm.id];
+
     await _alarmsManager.setActive(alarm, isActive);
     await _syncAlarms(appState);
+    if (isActive) return;
+
+    _snack(
+      'Alarm kapatıldı',
+      action: fireAt == null
+          ? null
+          : SnackBarAction(
+              label: 'Yalnızca bu sefer',
+              textColor: Colors.white,
+              onPressed: () => _skipOnceAlarm(alarm, fireAt),
+            ),
+    );
+  }
+
+  /// Kapatılan alarmı geri açar ve yalnızca sıradaki çalışı atlar.
+  Future<void> _skipOnceAlarm(Alarm alarm, DateTime fireAt) async {
+    final appState = context.read<AppState>();
+    await _alarmsManager.setActive(alarm, true);
+    await _syncAlarms(appState);
+    await _toggleSkip(
+      SkippedOccurrence(
+        kind: SkipKind.alarm,
+        reference: alarm.id,
+        fireAt: fireAt,
+      ),
+      true,
+    );
   }
 
   /// Kaydırınca onay sorulmadan siler; geri alma "Geri al" ile veriliyor.
@@ -405,9 +482,17 @@ class _RemindersScreenState extends State<RemindersScreen>
         backgroundColor: isError
             ? Theme.of(context).colorScheme.error
             : context.tokens.accent,
+        // Eylemli snackbar Flutter'da varsayilan olarak **kalici**
+        // (`persist = action != null`): kullanici eyleme dokunmazsa hic
+        // kapanmiyordu. Sure dolunca kendiliginden kalksin.
+        persist: false,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         margin: const EdgeInsets.all(16),
+        // Varsayilan esik 0.25: eylem etiketi cubugun dortte birinden genisse
+        // alt satira duesuyor ve cubuk iki kat yukseliyor. "Yalnizca bu sefer"
+        // bu esigi asiyordu; yaziyi kisaltmak yerine esigi yukselttik.
+        actionOverflowThreshold: 0.5,
       ),
     );
   }

@@ -6,6 +6,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
+import 'mission_metrics.dart';
 
 const Key kQrScannerKey = Key('qr_scanner');
 const Key kQrHintKey = Key('qr_hint');
@@ -89,6 +90,7 @@ class _QrMissionState extends State<QrMission> {
           key: kQrHintKey,
           textAlign: TextAlign.center,
           style: AppTypography.rowTitle.copyWith(
+            fontSize: kMissionLeadFontSize,
             color: _mismatch ? tokens.accent : tokens.textPrimary,
           ),
         ),
@@ -99,6 +101,7 @@ class _QrMissionState extends State<QrMission> {
               : 'Kamerayı koda doğru tut.',
           textAlign: TextAlign.center,
           style: AppTypography.rowSubtitle.copyWith(
+            fontSize: kMissionSupportFontSize,
             color: tokens.textSecondary,
           ),
         ),
@@ -145,6 +148,7 @@ class _QrMissionState extends State<QrMission> {
           description,
           textAlign: TextAlign.center,
           style: AppTypography.rowSubtitle.copyWith(
+            fontSize: kMissionSupportFontSize,
             color: tokens.textSecondary,
           ),
         ),

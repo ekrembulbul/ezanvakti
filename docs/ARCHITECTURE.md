@@ -28,6 +28,7 @@ Her feature kendi içinde `data/` (dış dünya) ve `domain/` (iş kuralları) o
 | `prayer_times` | `awqat_salah_provider` (API), `sqlite_storage` | `prayer_times_repository`, `offline_state_manager` |
 | `notifications` | `flutter_local_notification_service` | `notification_scheduler`, `notification_settings_manager` |
 | `location` | `photon_geocoding_service` (online adres araması), `place_suggestion`, `gps_label` | `location_repository`, `location_service`, `location_monitor_service` |
+| `home_widget` | `home_widget_publisher` (App Group'a yazma) | `widget_snapshot`, `widget_snapshot_builder`, `widget_snapshot_publish` |
 
 ### `lib/presentation` — UI
 - **`pages/`** — `AppRoot` (ilk açılış yönlendirmesi), `HomePage` (ana orkestrasyon).
@@ -81,6 +82,29 @@ NotificationScheduler ──▶ NotificationService (flutter_local_notifications
 - Her vakit için iki tetik mümkün: tam vakit (offset 0) ve X dk önce.
 - Lokasyon/kaynak değişiminde eski planlar iptal edilip yenileri kurulmalıdır.
 - Android 12+ için exact alarm izni `ExactAlarmService` ile kontrol edilir; izin yoksa inexact zamanlamaya düşülür.
+
+## Veri akışı — iOS widget
+
+```
+_loadPrayerData (home_page.dart)
+        │  başarılı yükleme sonrası
+        ▼
+WidgetSnapshotBuilder (saf) ──▶ WidgetPublisher ──▶ App Group (tek JSON)
+                                                            │
+                                            WidgetKit extension (ayrı process)
+```
+
+- Payload 7 gün taşır; widget uygulama açılmadan da doğru kalır.
+- Saatler `"HH:mm"` olarak yazılır, offset'li ISO değil — uygulama vakitleri
+  timezone taşımayan cihaz-yerel wall-clock olarak üretiyor
+  (`awqat_salah_provider.dart:407`). Offset yazmak widget'a uygulamada olmayan
+  bir semantik uydurmak olurdu.
+- **Sıradaki vakit ve gün dilimi Swift tarafında hesaplanır** (`ios/WidgetCore/`).
+  Snapshot'a yazılsaydı widget, uygulama açılmadıkça bir sonraki vakte
+  geçemezdi.
+- Yayınlama hatası yukarı sızmaz; vakit gösterimi widget yüzünden bozulmaz.
+- Sorumluluk sınırı testlerin de sınırı: paketleme Dart'ta (`test/home_widget/`),
+  yorumlama Swift'te (`ios/RunnerTests/`) sınanır.
 
 ## Zaman / timezone
 

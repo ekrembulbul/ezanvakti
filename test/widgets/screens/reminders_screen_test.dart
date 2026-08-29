@@ -4,15 +4,18 @@ import 'package:ezanvakti/core/interfaces/alarm_service.dart';
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
 import 'package:ezanvakti/core/interfaces/notification_service.dart';
 import 'package:ezanvakti/core/models/alarm.dart';
+import 'package:ezanvakti/core/models/skipped_occurrence.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart';
 import 'package:ezanvakti/core/providers/app_state.dart';
 import 'package:ezanvakti/core/services/exact_alarm_service.dart';
 import 'package:ezanvakti/features/alarms/domain/alarm_scheduler.dart';
 import 'package:ezanvakti/features/alarms/domain/alarms_manager.dart';
+import 'package:ezanvakti/features/notifications/domain/skip_manager.dart';
 import 'package:ezanvakti/features/notifications/domain/notification_scheduler.dart';
 import 'package:ezanvakti/features/notifications/domain/notification_settings_manager.dart';
 import 'package:ezanvakti/presentation/screens/reminders_screen.dart';
 import 'package:ezanvakti/presentation/services/reminder_rescheduler.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
@@ -91,6 +94,7 @@ void main() {
     locator.register<ExactAlarmService>(ExactAlarmService());
     locator.register<AlarmService>(alarmService);
     locator.register<AlarmsManager>(AlarmsManager(storage: storage));
+    locator.register<SkipManager>(SkipManager(storage: storage));
     locator.register<NotificationSettingsManager>(
       NotificationSettingsManager(storage: storage),
     );
@@ -237,5 +241,64 @@ void main() {
     await tester.pump(const Duration(milliseconds: 600));
     blocking.gate.complete();
     await tester.pumpAndSettle();
+  });
+
+  testWidgets('Alarm kapatilinca "Yalnizca bu sefer" teklif edilir', (
+    tester,
+  ) async {
+    await storage.saveAlarm(sahur);
+    appState.setAlarms(const [sahur]);
+    await pump(tester);
+
+    await tester.tap(find.text('Alarmlar'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(Switch));
+    await tester.pumpAndSettle();
+
+    expect(appState.alarms.single.isActive, isFalse, reason: 'once kapanir');
+    expect(find.text('Yalnızca bu sefer'), findsOneWidget);
+
+    await tester.tap(find.text('Yalnızca bu sefer'));
+    await tester.pumpAndSettle();
+
+    expect(
+      appState.alarms.single.isActive,
+      isTrue,
+      reason: 'tek seferlik atlama kalici kapatma degil; alarm geri acilir',
+    );
+    expect(
+      appState.skips,
+      hasLength(1),
+      reason: 'yalnizca siradaki calis atlanir',
+    );
+    expect(appState.skips.single.kind, SkipKind.alarm);
+    expect(appState.skips.single.reference, sahur.id);
+  });
+
+  testWidgets('Kapatma cubugu dokunulmazsa kendiliginden kalkar', (
+    tester,
+  ) async {
+    await storage.saveAlarm(sahur);
+    appState.setAlarms(const [sahur]);
+    await pump(tester);
+
+    await tester.tap(find.text('Alarmlar'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(Switch));
+    await tester.pumpAndSettle();
+    expect(find.text('Yalnızca bu sefer'), findsOneWidget);
+
+    // Sure + cikis animasyonu.
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pump(const Duration(milliseconds: 750));
+
+    expect(
+      find.text('Yalnızca bu sefer'),
+      findsNothing,
+      reason:
+          "Eylemli snackbar Flutter'da varsayilan olarak kalici; kullanici "
+          'dokunmazsa cubuk hic kapanmiyordu',
+    );
   });
 }

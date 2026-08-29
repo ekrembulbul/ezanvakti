@@ -76,6 +76,12 @@ void main() {
   late BuildContext hostContext;
 
   Future<void> pumpLauncher(WidgetTester tester) async {
+    // Varsayilan 800x600 test yuzeyi telefon degil; gorev ekrani buyuk
+    // olculere gecince govde gorunur alanin disina tasiyordu.
+    tester.view.physicalSize = const Size(1206, 2622);
+    tester.view.devicePixelRatio = 3.0;
+    addTearDown(tester.view.reset);
+
     await tester.pumpWidget(
       ChangeNotifierProvider<AppState>.value(
         value: appState,
@@ -123,6 +129,7 @@ void main() {
       if (answer == null) fail('Soru ekranda bulunamadi');
 
       await tester.enterText(find.byKey(kMathFieldKey), '$answer');
+      await tester.ensureVisible(find.byKey(kMathSubmitKey));
       await tester.tap(find.byKey(kMathSubmitKey));
       await settle(tester);
     }
@@ -166,6 +173,13 @@ void main() {
         find.byType(MissionScreen),
         findsNothing,
         reason: 'ortada calan alarm yok; gorev bir sonraki calista sorulur',
+      );
+      expect(
+        appState.missionSession?.snoozedUntil,
+        isNotNull,
+        reason:
+            'Oturum AppStatee yazilmazsa ertelenmis gorevli alarm satirdan '
+            'kapatilabilir ve atlanabilir hale geliyor',
       );
     });
 
@@ -269,6 +283,33 @@ void main() {
 
       expect(find.byType(ShakeMission), findsOneWidget);
       expect(find.byType(MathMission), findsNothing);
+
+      await abortOut(tester);
+    });
+
+    testWidgets('Sayac ilerlerken gorev govdesi yeniden kurulmaz', (
+      tester,
+    ) async {
+      await openWith(
+        tester,
+        mathAlarm.copyWith(
+          id: 'qrsabit',
+          mission: AlarmMission.qr,
+          qrPayload: 'mutfak-kapisi',
+        ),
+      );
+
+      final before = tester.widget<QrMission>(find.byType(QrMission));
+      await tester.pump(const Duration(seconds: 3));
+      final after = tester.widget<QrMission>(find.byType(QrMission));
+
+      expect(
+        identical(before, after),
+        isTrue,
+        reason:
+            'Sayac saniyede bir setState cagiriyor; govde her karede yeniden '
+            'yaratilinca QR kamera onizlemesi doniyordu',
+      );
 
       await abortOut(tester);
     });
