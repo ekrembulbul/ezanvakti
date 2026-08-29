@@ -29,9 +29,9 @@ enum PrayerTimeline {
     ///
     /// Always-On ekranda geri sayımı biz çiziyoruz (`CountdownText`) ve widget
     /// görünümleri önceden hazırlandığı için sayının dakikada bir değişmesinin
-    /// tek yolu dakika başına giriş üretmek. Girişler yenileme bütçesi
-    /// harcamaz; harcayan, timeline tükendiğinde istenen yenilemedir. İki
-    /// saatlik pencere günde ~12 yenileme demek.
+    /// tek yolu dakika başına giriş üretmek (bkz. `moments`). Girişler
+    /// yenileme bütçesi harcamaz; harcayan, timeline tükendiğinde istenen
+    /// yenilemedir. İki saatlik pencere günde ~12 yenileme demek.
     static let windowMinutes = 120
 
     static func entries(
@@ -63,15 +63,38 @@ enum PrayerTimeline {
             return [PrayerEntry(date: now, content: .noData)]
         }
 
-        return (0...windowMinutes).map { minute in
-            let moment = now.addingTimeInterval(TimeInterval(minute * 60))
-            return PrayerEntry(
+        return moments(from: now, calendar: calendar).map { moment in
+            PrayerEntry(
                 date: moment,
                 content: content(
                     for: snapshot, slots: slots, at: moment, calendar: calendar
                 )
             )
         }
+    }
+
+    /// `now`, ardından pencere sonuna kadar her **tam dakika** (:00).
+    ///
+    /// Vakitler tam dakikada olduğu için canlı sayaç dakika hanesini her
+    /// :00'da değiştiriyor; kareler de oraya hizalı olmalı. `now + k dakika`
+    /// olsaydı kare, canlı sayacın bir dakika önünde kalırdı ve kilit ekranı
+    /// açıkken 4:25:33 gösteren widget Always-On'da 4:26 derdi.
+    private static func moments(from now: Date, calendar: Calendar) -> [Date] {
+        let end = now.addingTimeInterval(TimeInterval(windowMinutes * 60))
+        var result = [now]
+
+        var next = ceilToMinute(now, calendar: calendar)
+        if next == now { next = next.addingTimeInterval(60) }
+        while next <= end {
+            result.append(next)
+            next = next.addingTimeInterval(60)
+        }
+        return result
+    }
+
+    private static func ceilToMinute(_ date: Date, calendar: Calendar) -> Date {
+        let floor = calendar.dateInterval(of: .minute, for: date)?.start ?? date
+        return floor == date ? date : floor.addingTimeInterval(60)
     }
 
     private static func content(
