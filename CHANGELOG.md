@@ -4,6 +4,17 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.5.2] - 2026-08-30
+
+### Düzeltildi
+- **Widget'a dokununca uygulama üzerine ikinci bir ana sayfa açılıyordu** ("sağdan ekran geliyormuş gibi"). Widget'ın gönderdiği adres, Flutter'ın derin bağlantı işlemiyle ana sayfanın üstüne bir kopya olarak push ediliyordu; adres kaldırıldı, dokunuş uygulamayı doğrudan açıyor.
+- **Always-On ekranda geri sayım canlı sayacın bir dakika önünde kalıyordu** (açıkken 4:25:33, kilitleyince 4:26). Kareler artık tam dakikaya hizalı ve her kare geçerli olduğu dakikayı gösteriyor.
+
+### Değişti
+- Widget yazı boyutları yeniden ayarlandı: tarih satırları büyüdü, vakit saati ve geri sayım küçülüp inceldi.
+- Orta boy widget'ta vakit listesindeki ad–saat arası boşluk daraltıldı.
+- Hizalama ayarı (sol/orta/sağ) kilit ekranı widget'ında da geçerli.
+
 ## [0.5.1] - 2026-08-29
 
 ### Eklendi
