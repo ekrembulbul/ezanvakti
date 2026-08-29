@@ -36,18 +36,31 @@ class WidgetSnapshotDay {
   final DateTime date;
   final WidgetDayTimes times;
 
-  const WidgetSnapshotDay({required this.date, required this.times});
+  /// Uygulamanın gösterdiği hicri tarih (`HijriFormatter.format` çıktısı).
+  ///
+  /// Swift tarafında hesaplanmıyor: iOS'un `islamicUmmAlQura` takvimi
+  /// uygulamanın kullandığı `hijri` paketinden gün kayabiliyor ve widget'ın
+  /// uygulamadan farklı tarih göstermesi kabul edilemez.
+  final String hijri;
+
+  const WidgetSnapshotDay({
+    required this.date,
+    required this.times,
+    required this.hijri,
+  });
 
   Map<String, dynamic> toJson() => {
     'date': _yyyyMMdd(date),
+    'hijri': hijri,
     'times': times.toJson(),
   };
 }
 
 class WidgetSnapshot {
-  /// Swift tarafı bilmediği bir sürüm görürse "uygulamayı güncelleyin"
-  /// durumuna düşer. Payload'ın şekli değişirse bu artırılmalı.
-  static const int schemaVersion = 1;
+  /// 2: günlere `hijri` alanı eklendi. Widget 1'i de kabul eder; o payload'da
+  /// hicri satırı çizilmez. Bilinmeyen sürümde widget "uygulamayı güncelleyin"
+  /// durumuna düşer.
+  static const int schemaVersion = 2;
 
   final String locationLabel;
 

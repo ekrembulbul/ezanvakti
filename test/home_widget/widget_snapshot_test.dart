@@ -9,6 +9,7 @@ void main() {
       days: [
         WidgetSnapshotDay(
           date: DateTime(2026, 8, 25),
+          hijri: '13 Rebiülevvel 1448',
           times: WidgetDayTimes(
             fajr: DateTime(2026, 8, 25, 4, 12),
             sunrise: DateTime(2026, 8, 25, 5, 52),
@@ -21,8 +22,13 @@ void main() {
       ],
     );
 
-    test('schemaVersion 1 yazilir', () {
-      expect(snapshot.toJson()['schemaVersion'], 1);
+    test('schemaVersion 2 yazilir', () {
+      expect(snapshot.toJson()['schemaVersion'], 2);
+    });
+
+    test('hicri tarih gune yazilir', () {
+      final day = (snapshot.toJson()['days'] as List).first;
+      expect(day['hijri'], '13 Rebiülevvel 1448');
     });
 
     test('saatler sifir dolgulu HH:mm bicimindedir', () {
