@@ -10,6 +10,7 @@ Mevcut durum, kısa vadeli iyileştirmeler ve planlanan özellikler. Ürün sın
 - ✅ Aladhan (Diyanet method=13) kaynağı, SQLite cache, offline gösterim
 - ✅ Vakit bazlı bildirimler (tam vakit + X dk önce), izin yönetimi
 - ✅ Hicri tarih, karanlık tema
+- ✅ iOS widget: ana ekran (küçük/orta) ve kilit ekranı (dikdörtgen/satır içi)
 
 ## Kısa vadeli iyileştirmeler (teknik borç)
 
@@ -50,9 +51,11 @@ Açık kalanlar:
 > olsaydı mantıklı olurdu — bu uygulamada paylaşılan mantık (vakit hesabı, ayarlar, bildirim)
 > baskın, native dokunuş az (alarm, widget, kıble).
 >
-> **Sıradaki somut adım:** Küçük bir **native fizibilite spike'ı** — Android gerçek alarm
-> (`AlarmManager.setAlarmClock` + full-screen intent) + iOS 26 AlarmKit + her iki platformda
-> basit bir widget. Davranışı tahminle değil ölçümle netleştirip sonra tasarıma geçilecek.
+> **Widget tarafı bu yaklaşımla doğrulandı:** iOS widget'ı Flutter çekirdeği korunarak,
+> App Group üzerinden veri paylaşan native bir WidgetKit extension'ı olarak yazıldı.
+> Alarm tarafında hâlâ ölçüm gerekiyor: Android gerçek alarm
+> (`AlarmManager.setAlarmClock` + full-screen intent) ve iOS 26 AlarmKit davranışı
+> tahminle değil ölçümle netleştirilmeli.
 
 ### 🔔 Alarm / Ezan sesi (öncelikli)
 
@@ -90,12 +93,15 @@ Büyük ölçüde uygulandı: kayıtlı lokasyon listesi, ekleme (arama/GPS), d�
 ### 🌍 Yeni kaynak/ülke desteği
 Aladhan koordinat tabanlı olduğundan **global vakit zaten çalışıyor**; kullanıcı konum başına hesaplama yöntemini (`method`) seçebiliyor. İleride: `PrayerTimeProvider` soyutlamasıyla farklı bir sağlayıcı (ör. backend proxy üzerinden Diyanet resmi API) eklenebilir.
 
-### 🧩 Ana ekran widget'ı
-Bir sonraki vakti + geri sayımı gösteren home screen widget'ı. Native modül işi (yukarıdaki mimari karara göre Flutter korunur):
-- Widget UI'ı **native** yazılır: iOS WidgetKit/SwiftUI, Android Glance/RemoteViews. Widget ayrı process'te çalışır; içinde Flutter engine çalışamaz.
-- **Asıl mühendislik işi veri paylaşımı:** widget, vakitleri Flutter'ı çalıştırmadan okumak zorunda. Vakitler native'in erişebileceği paylaşılan alana yazılmalı — iOS **App Group** (paylaşılan UserDefaults/dosya), Android SharedPreferences/dosya. Kaynak veri zaten SQLite'ta hazır; "sonraki birkaç vakit"i bu paylaşılan store'a senkronlamak gerekir.
-- `home_widget` paketi Flutter↔native köprüsünü ve güncellemeyi kolaylaştırır (versiyon/güncel API doğrulanmalı).
-- Widget güncelleme tetikleyicileri: veri yenilenince + zamanlanmış (iOS timeline / Android WorkManager).
+### 🧩 Android widget'ı
+iOS widget'ı tamamlandı — bkz. [tasarım](superpowers/specs/2026-08-25-ios-widget-design.md).
+Veri App Group'a tek JSON snapshot olarak yazılıyor; sıradaki vakit ve gün dilimi
+Swift tarafında hesaplanıyor, böylece uygulama günlerce açılmasa da widget ilerliyor.
+
+Android turu aynı snapshot şemasından beslenecek: `WidgetSnapshotBuilder` ve
+`WidgetPublisher` platformdan bağımsız yazıldığı için eklenecek olan yalnızca
+native yazıcı (SharedPreferences/dosya) ve Glance/RemoteViews UI'ı.
+
 
 ### 🌐 Lokalizasyon altyapısı
 Kullanıcıya görünen metinler şu an kod içinde Türkçe sabit. İleride çoklu dil için `flutter_localizations` + ARB dosyalarına taşınabilir.
