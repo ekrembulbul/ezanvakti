@@ -17,6 +17,10 @@ struct SnapshotTimes: Decodable, Equatable {
 struct SnapshotDay: Decodable, Equatable {
     /// `"yyyy-MM-dd"`. Offset taşımaz; cihaz-yerel wall-clock olarak yorumlanır.
     let date: String
+
+    /// Uygulamanın hesapladığı hicri tarih. v1 payload'da yoktur.
+    let hijri: String?
+
     let times: SnapshotTimes
 }
 
@@ -24,9 +28,11 @@ struct SnapshotDay: Decodable, Equatable {
 ///
 /// Dart tarafındaki karşılığı `lib/features/home_widget/domain/widget_snapshot.dart`.
 struct WidgetSnapshot: Decodable, Equatable {
-    /// Uygulamanın yazdığı sürüm. Bilinmeyen sürüm reddedilir; çöp çizmek
-    /// yerine kullanıcıya "uygulamayı güncelleyin" gösterilir.
-    static let supportedSchemaVersion = 1
+    /// v1 hâlâ kabul edilir: güncelleme anında App Group'ta eski payload
+    /// duruyor olabilir ve onu reddetmek, uygulama zaten güncelken
+    /// "uygulamayı güncelleyin" göstermek olurdu. Bilinmeyen sürüm reddedilir;
+    /// çöp çizmek yerine kullanıcıya güncelleme mesajı gösterilir.
+    static let supportedSchemaVersions: Set<Int> = [1, 2]
 
     let schemaVersion: Int
     let locationLabel: String
@@ -40,7 +46,7 @@ struct WidgetSnapshot: Decodable, Equatable {
             throw SnapshotLoadError.malformed
         }
 
-        guard snapshot.schemaVersion == supportedSchemaVersion else {
+        guard supportedSchemaVersions.contains(snapshot.schemaVersion) else {
             throw SnapshotLoadError.unsupportedSchema
         }
         return snapshot

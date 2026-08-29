@@ -1,5 +1,6 @@
 import '../../../core/models/location.dart';
 import '../../../core/models/prayer_time.dart';
+import '../../../core/utils/hijri_formatter.dart';
 import 'widget_snapshot.dart';
 
 /// Vakit listesini widget penceresine çeviren saf dönüşüm.
@@ -34,15 +35,19 @@ class WidgetSnapshotBuilder {
   static DateTime _dayOf(DateTime date) =>
       DateTime(date.year, date.month, date.day);
 
-  static WidgetSnapshotDay _toDay(PrayerTime time) => WidgetSnapshotDay(
-    date: _dayOf(time.date),
-    times: WidgetDayTimes(
-      fajr: time.fajr,
-      sunrise: time.sunrise,
-      dhuhr: time.dhuhr,
-      asr: time.asr,
-      maghrib: time.maghrib,
-      isha: time.isha,
-    ),
-  );
+  static WidgetSnapshotDay _toDay(PrayerTime time) {
+    final day = _dayOf(time.date);
+    return WidgetSnapshotDay(
+      date: day,
+      hijri: HijriFormatter.format(day),
+      times: WidgetDayTimes(
+        fajr: time.fajr,
+        sunrise: time.sunrise,
+        dhuhr: time.dhuhr,
+        asr: time.asr,
+        maghrib: time.maghrib,
+        isha: time.isha,
+      ),
+    );
+  }
 }

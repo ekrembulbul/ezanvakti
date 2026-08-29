@@ -59,7 +59,7 @@ class Alarm {
     this.anchor = PrayerType.fajr,
     this.offsetMinutes = 0,
     this.weekdays = const {},
-    this.soundId = 'adhan',
+    this.soundId = 'default',
     this.vibrate = true,
     this.snoozeEnabled = true,
     this.snoozeMinutes = 5,
@@ -118,7 +118,7 @@ class Alarm {
       ),
       offsetMinutes: map['offset_minutes'] as int? ?? 0,
       weekdays: weekdays,
-      soundId: (map['sound_id'] as String?) ?? 'adhan',
+      soundId: _migrateSoundId(map['sound_id'] as String?),
       vibrate: (map['vibrate'] as int? ?? 1) == 1,
       snoozeEnabled: (map['snooze_enabled'] as int? ?? 1) == 1,
       snoozeMinutes: map['snooze_minutes'] as int? ?? 5,
@@ -218,4 +218,14 @@ class Alarm {
 
   static bool _setEquals(Set<int> a, Set<int> b) =>
       a.length == b.length && a.containsAll(b);
+}
+
+/// Projede hiçbir ses dosyası yok; `adhan` ve `alarm` zaten sessizce sistem
+/// varsayılanına düşüyordu (`AppDelegate.swift:415-418`). Seçenekler
+/// seçiciden kaldırıldığı için kayıtlı değerler de eşleniyor — yoksa eski
+/// alarmlar seçicide "Özel ses" diye görünürdü.
+String _migrateSoundId(String? stored) {
+  if (stored == null || stored.isEmpty) return 'default';
+  if (stored == 'adhan' || stored == 'alarm') return 'default';
+  return stored;
 }

@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
+import 'package:ezanvakti/core/utils/hijri_formatter.dart';
 import 'package:ezanvakti/features/home_widget/domain/widget_snapshot_builder.dart';
 
 PrayerTime _day(DateTime date) => PrayerTime(
@@ -95,6 +96,16 @@ void main() {
         today.add(const Duration(days: 1)),
         today.add(const Duration(days: 2)),
       ]);
+    });
+
+    test('hicri tarih HijriFormatter ciktisiyla ayni', () {
+      final snapshot = WidgetSnapshotBuilder.build(
+        location: _location,
+        prayerTimes: _range(today, 1),
+        now: DateTime(2026, 8, 25, 14, 0),
+      );
+
+      expect(snapshot.days.first.hijri, HijriFormatter.format(today));
     });
 
     test('locationLabel Location.displayName ile aynidir', () {

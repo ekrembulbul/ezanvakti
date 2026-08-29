@@ -6,7 +6,8 @@ enum WidgetContent: Equatable {
         day: SnapshotDay,
         phase: DayPhase,
         locationLabel: String,
-        isStale: Bool
+        isStale: Bool,
+        isTomorrow: Bool
     )
     /// Widget kurulmuş ama uygulama hiç açılmamış.
     case noData
@@ -17,20 +18,22 @@ enum WidgetContent: Equatable {
 struct PrayerEntry: TimelineEntry {
     let date: Date
     let content: WidgetContent
+
+    /// Kullanıcının "Widget'ı Düzenle" ekranından seçtiği hiza. Timeline saf
+    /// kalsın diye burada varsayılanı var; gerçek değeri provider yazıyor.
+    var alignment: WidgetAlignment = .default
 }
 
 enum PrayerTimeline {
-    /// Timeline'ın ileriyi görme mesafesi. Payload 7 gün taşısa da her
-    /// reload'da yalnızca bu kadarı üretilir; gerisi bir sonraki reload'da
-    /// tazelenir.
-    static let horizonHours = 48
+    /// Timeline'ın ileriyi görme mesafesi, dakika cinsinden.
+    ///
+    /// Always-On ekranda geri sayımı biz çiziyoruz (`CountdownText`) ve widget
+    /// görünümleri önceden hazırlandığı için sayının dakikada bir değişmesinin
+    /// tek yolu dakika başına giriş üretmek. Girişler yenileme bütçesi
+    /// harcamaz; harcayan, timeline tükendiğinde istenen yenilemedir. İki
+    /// saatlik pencere günde ~12 yenileme demek.
+    static let windowMinutes = 120
 
-    static let maxEntries = 14
-
-    /// Geri sayım için giriş üretilmez — `Text(date, style: .timer)` sistem
-    /// tarafından reload'suz çizilir. Giriş yalnızca **içerik değiştiğinde**,
-    /// yani her vakit geçişinde üretilir; vakit geçişi aynı zamanda gün dilimi
-    /// sınırıdır, dolayısıyla tek liste hem sıradaki vakti hem gradyanı taşır.
     static func entries(
         for result: Result<WidgetSnapshot, SnapshotLoadError>?,
         now: Date,
@@ -60,12 +63,9 @@ enum PrayerTimeline {
             return [PrayerEntry(date: now, content: .noData)]
         }
 
-        let horizon = now.addingTimeInterval(TimeInterval(horizonHours * 3600))
-        let boundaries = slots.map(\.date).filter { $0 > now && $0 <= horizon }
-        let moments = ([now] + boundaries).prefix(maxEntries)
-
-        return moments.map { moment in
-            PrayerEntry(
+        return (0...windowMinutes).map { minute in
+            let moment = now.addingTimeInterval(TimeInterval(minute * 60))
+            return PrayerEntry(
                 date: moment,
                 content: content(
                     for: snapshot, slots: slots, at: moment, calendar: calendar
@@ -80,9 +80,6 @@ enum PrayerTimeline {
         at moment: Date,
         calendar: Calendar
     ) -> WidgetContent {
-        let key = dateKey(moment, calendar: calendar)
-        let today = snapshot.days.first { $0.date == key }
-
         guard let next = slots.first(where: { $0.date > moment }) else {
             // Pencere tükendi: son bilinen günü bayat olarak göster. Boş kutu
             // bırakmaktansa eski veriyi "güncel değil" damgasıyla göstermek
@@ -92,16 +89,24 @@ enum PrayerTimeline {
                 day: snapshot.days[snapshot.days.count - 1],
                 phase: DayPhase.fallback,
                 locationLabel: snapshot.locationLabel,
-                isStale: true
+                isStale: true,
+                isTomorrow: false
             )
         }
 
+        // Liste, sıradaki vaktin gününü gösterir. `moment`'in gününü
+        // gösterseydi Yatsı'dan sonra sol sütun yarını, sağ sütun bugünü
+        // gösterirdi ve vurgulanacak satır listede hiç bulunmazdı.
+        let nextDayKey = dateKey(next.date, calendar: calendar)
+        let day = snapshot.days.first { $0.date == nextDayKey }
+
         return .ready(
             next: next,
-            day: today ?? snapshot.days[snapshot.days.count - 1],
+            day: day ?? snapshot.days[snapshot.days.count - 1],
             phase: DayPhase.resolve(slots: slots, now: moment, calendar: calendar),
             locationLabel: snapshot.locationLabel,
-            isStale: today == nil
+            isStale: day == nil,
+            isTomorrow: nextDayKey != dateKey(moment, calendar: calendar)
         )
     }
 

@@ -7,6 +7,7 @@ final class DayPhaseTests: XCTestCase {
         NextPrayer.slots(
             days: [SnapshotDay(
                 date: "2026-08-25",
+                hijri: "13 Rebiülevvel 1448",
                 times: SnapshotTimes(
                     fajr: "04:12", sunrise: "05:52", dhuhr: "13:15",
                     asr: "16:58", maghrib: "20:26", isha: "21:58"
