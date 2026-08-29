@@ -4,6 +4,21 @@
 	<dict>
 		<key>CADisableMinimumFrameDurationOnPhone</key>
 		<true/>
+		<!-- Widget'a dokununca acilan adres (EzanVaktiWidget.swift, widgetURL).
+		     Sema tanimli olmadan iOS adresi uygulamaya teslim etmiyor. -->
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleTypeRole</key>
+				<string>Editor</string>
+				<key>CFBundleURLName</key>
+				<string>com.ekrembulbul.ezanvakti</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>ezanvakti</string>
+				</array>
+			</dict>
+		</array>
 		<key>NSCameraUsageDescription</key>
 	<string>QR görevli alarmı kapatmak için kaydettiğiniz kodu okutmak üzere kameraya erişim gerekiyor.</string>
 	<key>CFBundleDevelopmentRegion</key>
