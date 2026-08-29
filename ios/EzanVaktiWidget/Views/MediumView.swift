@@ -42,7 +42,7 @@ struct MediumView: View {
                             .joined(separator: " · ")
                     )
                 }
-                .font(.system(size: 10))
+                .font(.system(size: 12))
                 .foregroundStyle(palette.textSecondary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
@@ -59,14 +59,14 @@ struct MediumView: View {
                 .minimumScaleFactor(0.7)
 
                 Text(next.date, format: .dateTime.hour().minute())
-                    .font(.system(size: 24, weight: .semibold))
+                    .font(.system(size: 20, weight: .semibold))
                     .foregroundStyle(palette.textPrimary)
 
                 CountdownLabel(
                     entry: entry,
                     target: next.date,
                     isLuminanceReduced: isLuminanceReduced,
-                    size: 26,
+                    size: 24,
                     color: palette.textPrimary
                 )
             }
@@ -74,14 +74,17 @@ struct MediumView: View {
             .multilineTextAlignment(alignment.textAlignment)
 
             // Altı satır dikeyde yayılıp yüksekliğin tamamını kaplar; 0.5.0'da
-            // listenin altında ölü alan kalıyordu.
+            // listenin altında ölü alan kalıyordu. Yatayda ise içeriğine
+            // sarılır: sütun genişliğin yarısını kaplayınca satırdaki Spacer
+            // adı sola, saati sağa itiyor ve arada bir uçurum kalıyordu.
             VStack(spacing: 0) {
                 ForEach(Array(slots.enumerated()), id: \.element.name) { index, slot in
                     if index > 0 { Spacer(minLength: 0) }
                     row(slot: slot, next: next, palette: palette)
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .fixedSize(horizontal: true, vertical: false)
+            .frame(maxHeight: .infinity)
         }
         .opacity(isStale ? 0.55 : 1)
     }
@@ -92,10 +95,10 @@ struct MediumView: View {
         let isPast = slot.date < entry.date
         let weight: Font.Weight = isNext ? .semibold : .regular
 
-        return HStack(spacing: 6) {
+        return HStack(spacing: 0) {
             Text(slot.name)
                 .font(.system(size: 12, weight: weight))
-            Spacer(minLength: 4)
+            Spacer(minLength: 12)
             Text(slot.date, format: .dateTime.hour().minute())
                 .font(.system(size: 12, weight: weight).monospacedDigit())
         }

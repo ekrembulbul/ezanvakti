@@ -40,7 +40,7 @@ struct SmallView: View {
                 }
                 Text(isStale ? "Güncel değil" : locationLabel)
             }
-            .font(.system(size: 10))
+            .font(.system(size: 12))
             .foregroundStyle(palette.textSecondary)
             .lineLimit(1)
             .minimumScaleFactor(0.8)
@@ -59,14 +59,14 @@ struct SmallView: View {
                 .minimumScaleFactor(0.7)
 
                 Text(next.date, format: .dateTime.hour().minute())
-                    .font(.system(size: 24, weight: .semibold))
+                    .font(.system(size: 20, weight: .semibold))
                     .foregroundStyle(palette.textPrimary)
 
                 CountdownLabel(
                     entry: entry,
                     target: next.date,
                     isLuminanceReduced: isLuminanceReduced,
-                    size: 32,
+                    size: 26,
                     color: palette.textPrimary
                 )
             }

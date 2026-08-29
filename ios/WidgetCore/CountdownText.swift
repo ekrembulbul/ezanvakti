@@ -6,10 +6,16 @@ import Foundation
 /// yok, saat hanesi yalnızca gerekince çıkar — ama saniye yerine tire koyar.
 /// Sebep: widget saniyede bir güncellenemiyor, timeline dakika başına giriş
 /// üretiyor. Donmuş bir saniye rakamı, tireden daha yanıltıcı olurdu.
+///
+/// Metin, girişin **geçerli olduğu pencere boyunca** sistemin göstereceği
+/// dakikadır; girişin başladığı andaki değil. Kalan süre tam 4:25:00 iken
+/// sonraki 59 saniye "4:24:xx" görüneceği için kare "4:24" der. Aksi halde
+/// Always-On canlı sayacın bir dakika önünde kalırdı.
 enum CountdownText {
     static func format(from: Date, to: Date) -> String {
-        let remaining = max(0, Int(to.timeIntervalSince(from)))
-        let totalMinutes = remaining / 60
+        let wholeSeconds = Int(ceil(to.timeIntervalSince(from)))
+        let windowSeconds = max(0, wholeSeconds - 1)
+        let totalMinutes = windowSeconds / 60
         let hours = totalMinutes / 60
         let minutes = totalMinutes % 60
 

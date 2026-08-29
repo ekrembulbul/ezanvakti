@@ -48,8 +48,14 @@ struct EzanVaktiWidgetEntryView: View {
     }
 
     var body: some View {
+        // Bilerek widgetURL yok. URL verilmeyince dokunus uygulamayi zaten
+        // aciyor. URL verildiginde ise Flutter'in yerlesik derin baglanti
+        // islemi adresi MaterialApp'e "pushRouteInformation" olarak iletiyor;
+        // yolu bos bir adres '/' rotasina cevriliyor ve home: uzerine ikinci
+        // bir AppRoot sagdan kayarak push ediliyor (app.dart:1636-1644).
+        // Belirli bir ekrana baglanti gerekirse once Dart tarafinda Router ya
+        // da onGenerateRoute kurulmali.
         content
-            .widgetURL(URL(string: "ezanvakti://home"))
             .containerBackground(for: .widget) {
                 switch family {
                 case .systemSmall, .systemMedium:
@@ -65,7 +71,7 @@ struct EzanVaktiWidgetEntryView: View {
         switch family {
         case .systemSmall: SmallView(entry: entry, alignment: entry.alignment)
         case .systemMedium: MediumView(entry: entry, alignment: entry.alignment)
-        case .accessoryRectangular: RectangularView(entry: entry)
+        case .accessoryRectangular: RectangularView(entry: entry, alignment: entry.alignment)
         default: SmallView(entry: entry, alignment: entry.alignment)
         }
     }

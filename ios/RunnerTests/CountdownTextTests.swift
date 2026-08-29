@@ -14,7 +14,15 @@ final class CountdownTextTests: XCTestCase {
     }
 
     func testMinutesArePaddedOnlyWhenHoursPresent() {
-        XCTAssertEqual(text(after: 5 * 3600 + 4 * 60), "5:04:--")
+        XCTAssertEqual(text(after: 5 * 3600 + 4 * 60 + 30), "5:04:--")
+    }
+
+    /// Metin, girisin gecerli oldugu pencere boyunca sistemin gosterecegi
+    /// dakikadir. Kalan sure tam 5:04:00 iken sonraki 59 saniye "5:03:xx"
+    /// gorunecegi icin kare "5:03" der; "5:04" demek Always-On'u canli
+    /// sayacin bir dakika onune gecirirdi.
+    func testWholeMinuteShowsTheMinuteAboutToBeDisplayed() {
+        XCTAssertEqual(text(after: 5 * 3600 + 4 * 60), "5:03:--")
     }
 
     /// Bir saatin altinda sistem "34:42" yaziyor, saat hanesi hic cikmiyor.
@@ -30,8 +38,17 @@ final class CountdownTextTests: XCTestCase {
         XCTAssertEqual(text(after: -120), "0:--")
     }
 
-    /// Saniye kalintisi asagi yuvarlanir; 59 saniye kala hala "0:--".
+    func testLastMinuteShowsZero() {
+        XCTAssertEqual(text(after: 60), "0:--")
+    }
+
     func testPartialMinuteRoundsDown() {
         XCTAssertEqual(text(after: 59), "0:--")
+    }
+
+    /// Saniye altı kesir yukarı yuvarlanır: 15900.4 sn kala sistem hâlâ
+    /// "4:25:00" gösteriyor, biz de "4:25" demeliyiz.
+    func testSubSecondRemainderDoesNotDropAMinute() {
+        XCTAssertEqual(text(after: 4 * 3600 + 25 * 60 + 0.4), "4:25:--")
     }
 }

@@ -48,7 +48,7 @@ Numaralandırma ilk turdan devam eder.
 | D21 | Timeline yoğunluğu | **Dakika başına giriş.** ~2 saatlik pencere, sonra yenileme. **D12 ve D14 iptal** | Kendi çizdiğimiz sayının doğru olması için tek yol. Widget görünümleri önceden çiziliyor; `Date()` render anında değil, hazırlama anında okunur |
 | D22 | Yenileme bütçesi | 2 saatlik pencere ≈ 120 giriş, günde ~12 yenileme | Girişler bütçe harcamaz, yenilemeler harcar. 12/gün, gözlenen tavanların çok altında |
 | D23 | Hizalama | Sol/orta/sağ, **widget ayarı** olarak. `StaticConfiguration` → `AppIntentConfiguration`. **D4 genişler** | Galeriye üç kopya koymak yerine iOS'un standart "Widget'ı Düzenle" akışı. D4'ün konum kararı değişmiyor: konum hâlâ aktif konumu izler |
-| D24 | Hizalamanın kapsamı | Yalnızca `systemSmall` ve `systemMedium` | Kullanıcı kararı. Kilit ekranı ailelerinde yerleşimi sistem dayatıyor, ayarın görünür etkisi olmazdı |
+| D24 | Hizalamanın kapsamı | ~~Yalnızca `systemSmall` ve `systemMedium`~~ **Düzeltme (0.5.2):** `accessoryRectangular` da dahil | Kullanıcı 0.5.1'i cihazda görünce kilit ekranında da istedi. Dikdörtgen içinde sola/ortaya/sağa yaslama görünür bir fark yaratıyor; "sistem dayatıyor" gerekçesi yalnızca inline için doğruydu |
 | D25 | `accessoryInline` | **Kaldırılır.** **D3 daralır** | Kullanıcı kararı. Tek satır, tek renk; bu turdaki iyileştirmelerin hiçbiri oraya uygulanamıyor ve kullanıcı özelliği istemiyor |
 | D26 | Dikdörtgen kilit ekranı | "SIRADAKİ" satırı kalkar, geri sayım büyür | Etiket bilgi taşımıyor; yerini widget'ın asıl işine bırakıyor |
 | D27 | Bilgi hiyerarşisi | Tarih ve konum **üstte ve küçük**; vakit adı, saati ve geri sayım **altta ve baskın** | Kullanıcı kararı: "asıl önemli olan ezan saati ve geri sayım" |
