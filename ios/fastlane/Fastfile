@@ -6,6 +6,11 @@ platform :ios do
   APPSTORE_PROFILE_NAME = "com.ekrembulbul.ezanvakti AppStore"
   APP_BUNDLE_ID = "com.ekrembulbul.ezanvakti"
 
+  # Widget extension ayri bir bundle ID; Runner'in profili gecmez.
+  WIDGET_BUNDLE_ID = "com.ekrembulbul.ezanvakti.EzanVaktiWidget"
+  WIDGET_PROFILE_NAME = "com.ekrembulbul.ezanvakti.EzanVaktiWidget AppStore"
+  WIDGET_TARGET = "EzanVaktiWidgetExtension"
+
   desc "IPA derle ve TestFlight'a yukle (manuel imza)"
   lane :beta do
     # App Store Connect API anahtari yalnizca YUKLEME icin kullanilir; imza/profil
@@ -41,6 +46,18 @@ platform :ios do
       targets: ["Runner"],
     )
 
+    # Widget icin ikinci profil. Global xcargs yerine yine hedefe ozel ayar
+    # veriliyor ki Pod framework'leri profil dayatmasindan etkilenmesin.
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: "Runner.xcodeproj",
+      team_id: ENV["APPLE_TEAM_ID"],
+      code_sign_identity: "Apple Distribution",
+      bundle_identifier: WIDGET_BUNDLE_ID,
+      profile_name: WIDGET_PROFILE_NAME,
+      targets: [WIDGET_TARGET],
+    )
+
     # xcodebuild yalnizca verilen sertifika + profili kullanir; App Store Connect'e
     # gidip sertifika/profil URETMEZ. -allowProvisioningUpdates bilerek kaldirildi.
     build_app(
@@ -55,6 +72,7 @@ platform :ios do
         signingStyle: "manual",
         provisioningProfiles: {
           APP_BUNDLE_ID => APPSTORE_PROFILE_NAME,
+          WIDGET_BUNDLE_ID => WIDGET_PROFILE_NAME,
         },
       },
     )

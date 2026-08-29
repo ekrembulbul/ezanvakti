@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:http/http.dart' as http;
 import '../../features/prayer_times/data/awqat_salah_provider.dart';
 import '../../features/prayer_times/data/sqlite_storage.dart';
@@ -10,6 +12,7 @@ import '../../features/notifications/data/flutter_local_notification_service.dar
 import '../../features/notifications/domain/notification_scheduler.dart';
 import '../../features/notifications/domain/notification_settings_manager.dart';
 import '../../features/notifications/domain/skip_manager.dart';
+import '../../features/home_widget/data/home_widget_publisher.dart';
 import '../interfaces/alarm_service.dart';
 import '../../features/alarms/data/native_alarm_service.dart';
 import '../../features/alarms/domain/alarm_scheduler.dart';
@@ -18,6 +21,7 @@ import '../../features/alarms/domain/alarms_manager.dart';
 import '../interfaces/prayer_time_provider.dart';
 import '../interfaces/local_storage.dart';
 import '../interfaces/notification_service.dart';
+import '../interfaces/widget_publisher.dart';
 import '../services/timezone_service.dart';
 import '../services/exact_alarm_service.dart';
 import '../theme/theme_controller.dart';
@@ -138,6 +142,13 @@ class ServiceLocator {
         notificationScheduler: notificationScheduler,
         alarmScheduler: alarmScheduler,
       ),
+    );
+
+    // Widget yalnızca iOS'ta var; diğer platformlarda yayınlama no-op.
+    register<WidgetPublisher>(
+      Platform.isIOS
+          ? HomeWidgetPublisher(logger: logger)
+          : const NoopWidgetPublisher(),
     );
 
     register<SkipManager>(SkipManager(storage: localStorage));
