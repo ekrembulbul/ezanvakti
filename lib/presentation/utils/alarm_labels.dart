@@ -1,4 +1,5 @@
 import '../../core/models/alarm.dart';
+import '../../core/models/alarm_mission.dart';
 import 'prayer_name_helper.dart';
 
 /// "07:30" (sabit) veya "İmsak −30 dk" (çıpalı).
@@ -33,3 +34,11 @@ String weekdaysLabel(Set<int> weekdays) {
   final sorted = weekdays.toList()..sort();
   return sorted.map((d) => names[d - 1]).join(', ');
 }
+
+/// Görev adının kullanıcıya görünen hali.
+String missionLabel(AlarmMission mission) => switch (mission) {
+  AlarmMission.none => 'Görev yok',
+  AlarmMission.math => 'Matematik',
+  AlarmMission.shake => 'Sallama',
+  AlarmMission.qr => 'QR okutma',
+};
