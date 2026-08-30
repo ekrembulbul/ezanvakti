@@ -8,10 +8,15 @@ import '../models/alarm_mission.dart';
 class MissionTuning {
   const MissionTuning._();
 
-  /// Alarm durduruldu ama görev ekranı hiç açılmadı; alarmın dönmesi için
-  /// beklenen süre. Durdurup uykuya dönen kullanıcı tam görev süresini
-  /// beklemeden yakalanmalı.
-  static const int graceSeconds = 20;
+  /// Görevli alarmda ara ekranda seçim süresi. Alarm durduruldu, kullanıcı
+  /// "Görevi yap"a ya da "Ertele"ye basmadı; bu kadar saniye sonra alarm
+  /// döner. 20 sn ekranı okuyup basmak için dar geldi (spec 2026-08-30 D12).
+  static const int graceSeconds = 30;
+
+  /// Görevsiz alarmda ara ekranın açık kalma süresi. Dolarsa "Tamam" sayılır:
+  /// oturum kapanır, alarmlar yeniden kurulur. Ceza yok — görevsizde durdurma
+  /// zaten kesin — ama ekran sonsuza kadar da açık kalmasın.
+  static const int stopScreenSeconds = 45;
 
   /// Sağlama merdiveni: `stopIntent` hiç çalışmazsa devreye giren, alarm
   /// kurulurken önden dizilen yedekler.
@@ -32,14 +37,14 @@ class MissionTuning {
 
   /// Görev süresi, tipe göre. Görev ekranı açıldığı anda işlemeye başlar.
   ///
-  /// QR en uzun süreyi alır: kodun bulunduğu yere yürümek gerekiyor. Yine de
-  /// 3 dakika cihazda fazla uzun geldi — ekranda donmuş gibi duran bir sayaç
-  /// güven vermiyor.
+  /// QR önce 120 sn idi (kodun bulunduğu yere yürüme payı); cihazda fazla
+  /// uzun geldi, kullanıcı kararıyla 90'a indi — ekranda donmuş gibi duran
+  /// bir sayaç güven vermiyor.
   static const Map<AlarmMission, int> _timeouts = {
     AlarmMission.none: 0,
     AlarmMission.math: 90,
     AlarmMission.shake: 60,
-    AlarmMission.qr: 120,
+    AlarmMission.qr: 90,
   };
 
   /// [mission] için görev süresi (sn). [AlarmMission.none] için 0.

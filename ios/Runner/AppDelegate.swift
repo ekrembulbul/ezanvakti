@@ -76,20 +76,33 @@ enum MissionChainStore {
 
     enqueueStopEvent(alarmId: alarmId)
 
+    // Eski oturumlarda bayrak yok: hepsi gorevliydi.
+    let gated = s["gated"] as? Bool ?? true
     let rearmCount = s["rearmCount"] as? Int ?? 0
     let maxRearms = s["maxRearms"] as? Int ?? 40
     let chainDeadline = s["chainDeadlineMillis"] as? Double ?? 0
     let nowMillis = Date().timeIntervalSince1970 * 1000
 
-    // Cift ust sinir: bir hata sonsuz alarma donusmesin.
-    guard rearmCount < maxRearms, nowMillis < chainDeadline else {
+    switch MissionStopPolicy.action(
+      gated: gated, rearmCount: rearmCount, maxRearms: maxRearms,
+      nowMillis: nowMillis, chainDeadlineMillis: chainDeadline)
+    {
+    case .ignore:
+      // Gorevsiz: durdurma kesin (spec 2026-08-30 D3). Uygulama acilinca
+      // ara ekran erteleme sunar; olay kuyrukta.
+      AlarmKitHandler.notifyDart(alarmId: alarmId)
+      return
+    case .stopChain:
+      // Cift ust sinir: bir hata sonsuz alarma donusmesin.
       s["pending"] = false
       save(s)
       NSLog("mission|chain|stopped|bounds|id=\(alarmId)")
       return
+    case .rearm:
+      break
     }
 
-    let grace = s["graceSeconds"] as? Int ?? 20
+    let grace = s["graceSeconds"] as? Int ?? 30
     s["rearmCount"] = rearmCount + 1
     s["deadlineMillis"] = nowMillis + Double(grace * 1000)
     save(s)
@@ -177,7 +190,7 @@ class AlarmKitHandler {
     case "snoozeMission":
       snoozeMission(call.arguments, result)
     case "completeMission", "abortMission":
-      endMission(result)
+      endMission(call.arguments, result)
     case "importCustomSound":
       let args = call.arguments as? [String: Any]
       result(importCustomSound(path: args?["path"] as? String, name: args?["name"] as? String))
@@ -219,7 +232,6 @@ class AlarmKitHandler {
     let uuid = uuidFor(idStr)
     let sound = alertSound(args["soundId"] as? String)
     let snoozeEnabled = (args["snoozeEnabled"] as? NSNumber)?.boolValue ?? false
-    let snoozeMinutes = (args["snoozeMinutes"] as? NSNumber)?.intValue ?? 5
     // Uyarının vurgu rengi: alarmın çalacağı anın paleti (Dart tarafı hesaplar).
     let theme = args["theme"] as? [String: Any]
     let tint = Self.color(fromHex: theme?["accent"] as? String) ?? Self.fallbackTint
@@ -228,28 +240,20 @@ class AlarmKitHandler {
 
     let title: LocalizedStringResource =
       label.isEmpty ? "Ezan Vakti & Alarm" : LocalizedStringResource(stringLiteral: label)
-    let alert: AlarmPresentation.Alert
-    var countdownPresentation: AlarmPresentation.Countdown?
-    var countdownDuration: Alarm.CountdownDuration?
+    // Uyari yalnizca durdur dugmesi tasir. Sistemin Ertele dugmesi
+    // (.countdown) sayilamiyordu; erteleme uygulama icindeki ara ekrana
+    // tasindi (spec 2026-08-30 D5).
+    let alert = AlarmPresentation.Alert(title: title)
+    let countdownPresentation: AlarmPresentation.Countdown? = nil
+    let countdownDuration: Alarm.CountdownDuration? = nil
     var stopIntent: (any LiveActivityIntent)?
 
-    if missionEnabled {
-      // Gorev acik: erteleme sistem uyarisindan kaldirilir (uygulama icine
-      // tasindi), zincirin calisabilmesi icin stopIntent baglanir.
-      alert = AlarmPresentation.Alert(title: title)
+    // Uygulamayi acan alarm: gorevli, ya da gorevsiz ama erteleme acik.
+    // Erteleme kapali gorevsiz alarm bugunku gibi: sadece durdur, uygulama
+    // acilmaz (D2).
+    let opensApp = missionEnabled || snoozeEnabled
+    if opensApp {
       stopIntent = MissionStopIntent()
-    } else if snoozeEnabled {
-      // Gorevsiz yol bugunku davranistir; dokunulmadi.
-      let snoozeButton = AlarmButton(
-        text: "Ertele", textColor: .white, systemImageName: "zzz")
-      alert = AlarmPresentation.Alert(
-        title: title,
-        secondaryButton: snoozeButton, secondaryButtonBehavior: .countdown)
-      countdownPresentation = AlarmPresentation.Countdown(title: "Erteleme")
-      countdownDuration = Alarm.CountdownDuration(
-        preAlert: nil, postAlert: Double(snoozeMinutes * 60))
-    } else {
-      alert = AlarmPresentation.Alert(title: title)
     }
 
     let presentation = AlarmPresentation(alert: alert, countdown: countdownPresentation)
@@ -265,7 +269,7 @@ class AlarmKitHandler {
     Task {
       do {
         _ = try await AlarmManager.shared.schedule(id: uuid, configuration: config)
-        if missionEnabled {
+        if opensApp {
           // Yapilandirma her planlamada tazelenir ama **canli durum**
           // korunur. scheduleAlarms uygulama one gelince, veri yenilenince,
           // alarm duzenlenince tekrar tekrar cagriliyor; burada pending ve
@@ -276,6 +280,8 @@ class AlarmKitHandler {
           var session: [String: Any] = chainConfig
           session["alarmId"] = idStr
           session["label"] = label
+          // Gorevsizde durdurma kesin: handleStop nobetci kurmaz (D3/D10).
+          session["gated"] = missionEnabled
           session["tintHex"] = theme?["accent"] as? String ?? ""
           if isSameAlarm, let existing {
             for key in [
@@ -292,7 +298,8 @@ class AlarmKitHandler {
 
           // Saglama merdiveni: stopIntent hic calismazsa kapi yine kapali
           // kalsin. Hizli zincirle id cakismasin diye 1000'den baslar.
-          if let ladder = chainConfig["ladderMillis"] as? [Double] {
+          // Merdiven kapiyi kapali tutmak icin; gorevsizde kapi yok (D11).
+          if missionEnabled, let ladder = chainConfig["ladderMillis"] as? [Double] {
             for (i, millis) in ladder.enumerated() {
               Self.scheduleLadderStep(
                 alarmId: idStr,
@@ -494,14 +501,27 @@ class AlarmKitHandler {
     result(nil)
   }
 
-  /// Görev tamamlandı ya da acil çıkış kullanıldı: zincirdeki tüm alarmlar
-  /// iptal edilir, oturum kapanır.
-  private func endMission(_ result: @escaping FlutterResult) {
+  /// Görev tamamlandı ya da acil çıkış kullanıldı: **yalnızca o alarmın**
+  /// zinciri (nöbetçi + merdiven) iptal edilir, oturum kapanır.
+  ///
+  /// Eskiden `cancelAll` çağrılıyordu ve defterdeki her alarmı siliyordu:
+  /// Güneş alarmının QR görevi tamamlanınca aynı güne kurulu 08:45 gitmişti.
+  /// Birincil alarm da bilerek bırakılıyor — uygulama öne gelirken yeniden
+  /// planlanmış olabilir ve aynı UUID'yi taşıyor; silmek yarınki çalışı
+  /// da götürürdü.
+  private func endMission(_ arguments: Any?, _ result: @escaping FlutterResult) {
     guard #available(iOS 26.1, *) else {
       result(nil)
       return
     }
-    cancelAll()
+    let alarmId =
+      (arguments as? [String: Any])?["id"] as? String
+      ?? MissionChainStore.session()?["alarmId"] as? String
+    if let alarmId {
+      for key in MissionChainKeys.select(alarmId: alarmId, from: Array(uuidMap().keys)) {
+        cancel(idStr: key)
+      }
+    }
     MissionChainStore.clear()
     result(nil)
   }

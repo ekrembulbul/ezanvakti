@@ -13,12 +13,16 @@ void main() {
   });
 
   group('MissionTuning', () {
-    test('QR suresi matematikten uzun', () {
-      // Kodun bulundugu yere yurumek gerekiyor; spec D13.
-      expect(
-        MissionTuning.timeoutSecondsFor(AlarmMission.qr),
-        greaterThan(MissionTuning.timeoutSecondsFor(AlarmMission.math)),
-      );
+    test('QR suresi 90 saniye', () {
+      // Spec D13 QR'i en uzun tutmustu (yurume payi); cihazda 120 sn fazla
+      // uzun geldi, kullanici karariyla 90'a indi -- matematikle esit.
+      expect(MissionTuning.timeoutSecondsFor(AlarmMission.qr), 90);
+    });
+
+    test('Ara ekran sureleri', () {
+      // Spec 2026-08-30 D12, kullanici karari: 20 sn okuyup basmak icin dar.
+      expect(MissionTuning.graceSeconds, 30);
+      expect(MissionTuning.stopScreenSeconds, 45);
     });
 
     test('Her gorev tipi icin pozitif sure tanimli', () {

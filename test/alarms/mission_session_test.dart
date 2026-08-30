@@ -22,6 +22,33 @@ void main() {
       expect(s.isPending, isFalse);
     });
 
+    test('stoppedAt verilmezse firedAt ile ayni', () {
+      final s = MissionSession(alarmId: 'a', firedAt: firedAt);
+      expect(s.stoppedAt, firedAt);
+    });
+
+    test('stoppedAt JSON ile korunur, eski kayitta firedAt e duser', () {
+      final later = firedAt.add(const Duration(minutes: 10));
+      final s = MissionSession(alarmId: 'a', firedAt: firedAt, stoppedAt: later);
+      expect(MissionSession.fromJson(s.toJson()).stoppedAt, later);
+
+      final legacy = MissionSession.fromJson({
+        'alarm_id': 'a',
+        'fired_at': firedAt.toIso8601String(),
+      });
+      expect(legacy.stoppedAt, firedAt);
+    });
+
+    test('copyWith stoppedAt i degistirir, firedAt i korur', () {
+      final later = firedAt.add(const Duration(minutes: 10));
+      final s = MissionSession(
+        alarmId: 'a',
+        firedAt: firedAt,
+      ).copyWith(stoppedAt: later);
+      expect(s.firedAt, firedAt);
+      expect(s.stoppedAt, later);
+    });
+
     test('toJson/fromJson degerleri korur', () {
       final s = MissionSession(
         alarmId: 'sahur',

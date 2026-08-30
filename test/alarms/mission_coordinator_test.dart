@@ -31,6 +31,23 @@ void main() {
     expect(await storage.getMissionSession(), isNotNull);
   });
 
+  /// Erteleme sonrasi ikinci durdurma: ara ekranin geri sayimi ve bayatlik
+  /// kontrolu son durdurma anina bagli, ilk calisa degil.
+  test('resume: yeni durdurma olayi stoppedAt i gunceller', () async {
+    await storage.saveMissionSession(
+      MissionSession(alarmId: 'sahur', firedAt: firedAt),
+    );
+    final again = firedAt.add(const Duration(minutes: 5));
+    service.pendingEvents = [
+      MissionStopEvent(alarmId: 'sahur', stoppedAt: again),
+    ];
+
+    final session = await coordinator.resume();
+
+    expect(session!.firedAt, firedAt);
+    expect(session.stoppedAt, again);
+  });
+
   test('resume: olay yoksa mevcut oturum korunur', () async {
     await storage.saveMissionSession(
       MissionSession(alarmId: 'sahur', firedAt: firedAt),

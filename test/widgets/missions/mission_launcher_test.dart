@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ezanvakti/core/config/mission_tuning.dart';
 import 'package:ezanvakti/core/di/service_locator.dart';
 import 'package:ezanvakti/core/interfaces/alarm_service.dart';
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
@@ -8,8 +9,10 @@ import 'package:ezanvakti/core/models/alarm_mission.dart';
 import 'package:ezanvakti/core/models/mission_session.dart';
 import 'package:ezanvakti/core/models/mission_stop_event.dart';
 import 'package:ezanvakti/core/providers/app_state.dart';
+import 'package:ezanvakti/features/alarms/domain/alarm_scheduler.dart';
 import 'package:ezanvakti/features/alarms/domain/alarms_manager.dart';
 import 'package:ezanvakti/features/alarms/domain/mission_coordinator.dart';
+import 'package:ezanvakti/presentation/screens/alarm_stop_screen.dart';
 import 'package:ezanvakti/presentation/screens/mission_launcher.dart';
 import 'package:ezanvakti/presentation/screens/mission_screen.dart';
 import 'package:ezanvakti/presentation/widgets/missions/abort_dialog.dart';
@@ -63,6 +66,9 @@ void main() {
     locator.register<AlarmService>(alarmService);
     locator.register<AlarmsManager>(AlarmsManager(storage: storage));
     locator.register<MissionCoordinator>(coordinator);
+    locator.register<AlarmScheduler>(
+      AlarmScheduler(alarmService: alarmService, storage: storage),
+    );
   });
 
   /// `_MissionHost` saniyelik bir sayaç çalıştırıyor; `pumpAndSettle` bu
@@ -101,6 +107,14 @@ void main() {
   Future<void> open(WidgetTester tester) async {
     await pumpLauncher(tester);
     unawaited(openMissionIfPending(hostContext));
+    await settle(tester);
+  }
+
+  /// Yeni akista hak varken once ara ekran geliyor; gorev testleri oradan
+  /// gecer. Ekran yoksa hicbir sey yapmaz.
+  Future<void> enterMission(WidgetTester tester) async {
+    if (find.byKey(kStopPrimaryKey).evaluate().isEmpty) return;
+    await tester.tap(find.byKey(kStopPrimaryKey));
     await settle(tester);
   }
 
@@ -144,6 +158,7 @@ void main() {
       ];
 
       await open(tester);
+      await enterMission(tester);
 
       expect(find.byType(MissionScreen), findsOneWidget);
       expect(find.byType(MathMission), findsOneWidget);
@@ -168,6 +183,7 @@ void main() {
       );
 
       await open(tester);
+      await enterMission(tester);
 
       expect(
         find.byType(MissionScreen),
@@ -187,6 +203,7 @@ void main() {
       await storage.saveAlarm(mathAlarm);
 
       await open(tester);
+      await enterMission(tester);
 
       expect(find.byType(MissionScreen), findsNothing);
       expect(alarmService.begun, isEmpty);
@@ -198,6 +215,7 @@ void main() {
       ];
 
       await open(tester);
+      await enterMission(tester);
 
       expect(find.byType(MissionScreen), findsNothing);
       expect(
@@ -207,14 +225,22 @@ void main() {
       );
     });
 
-    testWidgets('Gorevsiz alarmda zincir kapatilir', (tester) async {
-      const plain = Alarm(id: 'duz', kind: AlarmKind.fixed, hour: 7);
+    testWidgets('Gorevsiz, erteleme kapali alarmda zincir kapatilir', (
+      tester,
+    ) async {
+      const plain = Alarm(
+        id: 'duz',
+        kind: AlarmKind.fixed,
+        hour: 7,
+        snoozeEnabled: false,
+      );
       await storage.saveAlarm(plain);
       alarmService.pendingEvents = [
         MissionStopEvent(alarmId: plain.id, stoppedAt: stoppedAt),
       ];
 
       await open(tester);
+      await enterMission(tester);
 
       expect(find.byType(MissionScreen), findsNothing);
       expect(alarmService.completed, [plain.id]);
@@ -227,6 +253,7 @@ void main() {
       ];
 
       await open(tester);
+      await enterMission(tester);
       expect(find.byType(MissionScreen), findsOneWidget);
 
       unawaited(openMissionIfPending(hostContext));
@@ -259,6 +286,7 @@ void main() {
         MissionStopEvent(alarmId: alarm.id, stoppedAt: stoppedAt),
       ];
       await open(tester);
+      await enterMission(tester);
     }
 
     /// Acil çıkışla kapatır: shake ve QR gövdeleri testte tamamlanamıyor
@@ -342,6 +370,227 @@ void main() {
   });
 
   group('Ekrandan cikis yollari', () {
+    /// Cihazda gorulen hata: Gunes alarminin QR gorevi tamamlaninca native
+    /// taraf her seyi iptal etti ve ayni gune kurulu 08:45 hic calmadi.
+    /// Gorev bitince alarmlar yeniden kurulmali.
+    testWidgets('Gorev tamamlaninca alarmlar yeniden planlanir', (
+      tester,
+    ) async {
+      await storage.saveAlarm(mathAlarm);
+      alarmService.pendingEvents = [
+        MissionStopEvent(alarmId: mathAlarm.id, stoppedAt: stoppedAt),
+      ];
+
+      await open(tester);
+      await enterMission(tester);
+      expect(alarmService.scheduled, isEmpty);
+
+      await solveMath(tester);
+
+      expect(alarmService.completed, [mathAlarm.id]);
+      expect(
+        alarmService.scheduled,
+        [mathAlarm.id],
+        reason: 'zincir kapaninca bir sonraki calis yeniden kurulmali',
+      );
+    });
+
+    /// Erteleme aktif nobetciyi ileri kuruyor; yeniden planlama once her seyi
+    /// iptal ettigi icin ertelemeden sonra cagrilirsa nobetci silinir ve
+    /// erteleme sessizce kaybolur.
+    testWidgets('Ertelemede alarmlar yeniden planlanmaz', (tester) async {
+      await storage.saveAlarm(mathAlarm);
+      alarmService.pendingEvents = [
+        MissionStopEvent(alarmId: mathAlarm.id, stoppedAt: stoppedAt),
+      ];
+
+      await open(tester);
+      await enterMission(tester);
+      await tester.tap(find.byKey(kMissionSnoozeKey));
+      await settle(tester);
+
+      expect(alarmService.snoozed, isNotEmpty);
+      expect(alarmService.scheduled, isEmpty);
+      expect(alarmService.cancelAllCount, 0);
+    });
+
+    const plainSnooze = Alarm(
+      id: 'is',
+      kind: AlarmKind.fixed,
+      hour: 8,
+      minute: 45,
+      label: 'İş',
+      snoozeEnabled: true,
+      snoozeMinutes: 10,
+      maxSnoozes: 1,
+    );
+
+    testWidgets('Gorevsiz alarmda ara ekran acilir', (tester) async {
+      await storage.saveAlarm(plainSnooze);
+      alarmService.pendingEvents = [
+        MissionStopEvent(alarmId: plainSnooze.id, stoppedAt: DateTime.now()),
+      ];
+
+      await open(tester);
+
+      expect(find.byType(AlarmStopScreen), findsOneWidget);
+      expect(find.text('Tamam'), findsOneWidget);
+      expect(find.byType(MissionScreen), findsNothing);
+      expect(alarmService.begun, isEmpty, reason: 'gorev yok, begin cagrilmaz');
+    });
+
+    testWidgets('Gorevsiz: Tamam oturumu kapatir ve alarmlari yeniden kurar', (
+      tester,
+    ) async {
+      await storage.saveAlarm(plainSnooze);
+      alarmService.pendingEvents = [
+        MissionStopEvent(alarmId: plainSnooze.id, stoppedAt: DateTime.now()),
+      ];
+
+      await open(tester);
+      await tester.tap(find.byKey(kStopPrimaryKey));
+      await settle(tester);
+
+      expect(find.byType(AlarmStopScreen), findsNothing);
+      expect(alarmService.completed, [plainSnooze.id]);
+      expect(alarmService.scheduled, [plainSnooze.id]);
+      expect(await storage.getMissionSession(), isNull);
+    });
+
+    testWidgets('Gorevsiz: Ertele sayar, yeniden kurmaz', (tester) async {
+      await storage.saveAlarm(plainSnooze);
+      alarmService.pendingEvents = [
+        MissionStopEvent(alarmId: plainSnooze.id, stoppedAt: DateTime.now()),
+      ];
+
+      await open(tester);
+      await tester.tap(find.byKey(kStopSnoozeKey));
+      await settle(tester);
+
+      expect(find.byType(AlarmStopScreen), findsNothing);
+      expect(alarmService.snoozed, [(id: plainSnooze.id, minutes: 10)]);
+      expect(alarmService.scheduled, isEmpty);
+      expect((await storage.getMissionSession())!.snoozeUsed, 1);
+    });
+
+    testWidgets('Gorevsiz: hak bitince ekran acilmaz, oturum kapanir', (
+      tester,
+    ) async {
+      await storage.saveAlarm(plainSnooze);
+      await storage.saveMissionSession(
+        MissionSession(
+          alarmId: plainSnooze.id,
+          firedAt: DateTime.now(),
+          snoozeUsed: 1,
+        ),
+      );
+      alarmService.pendingEvents = [
+        MissionStopEvent(alarmId: plainSnooze.id, stoppedAt: DateTime.now()),
+      ];
+
+      await open(tester);
+
+      expect(find.byType(AlarmStopScreen), findsNothing);
+      expect(alarmService.completed, [plainSnooze.id]);
+      expect(alarmService.scheduled, [plainSnooze.id]);
+    });
+
+    testWidgets('Gorevsiz: bayat durdurma ekran acmaz', (tester) async {
+      await storage.saveAlarm(plainSnooze);
+      alarmService.pendingEvents = [
+        MissionStopEvent(
+          alarmId: plainSnooze.id,
+          stoppedAt: DateTime.now().subtract(const Duration(minutes: 30)),
+        ),
+      ];
+
+      await open(tester);
+
+      expect(find.byType(AlarmStopScreen), findsNothing);
+      expect(alarmService.completed, [plainSnooze.id]);
+    });
+
+    /// Sayac gercek saati okuyor (DateTime.now), tester.pump sahte saati
+    /// ilerletiyor; bu yuzden durdurma ani pencerenin son saniyesine konuyor:
+    /// ekran acilir (bayat degil), ilk tik'te kalan sure sifira duser.
+    testWidgets('Gorevsiz: sure dolunca ekran kendini kapatir', (tester) async {
+      await storage.saveAlarm(plainSnooze);
+      alarmService.pendingEvents = [
+        MissionStopEvent(
+          alarmId: plainSnooze.id,
+          stoppedAt: DateTime.now().subtract(
+            const Duration(seconds: MissionTuning.stopScreenSeconds - 1),
+          ),
+        ),
+      ];
+
+      await open(tester);
+      expect(find.byType(AlarmStopScreen), findsOneWidget);
+
+      await tester.pump(const Duration(seconds: 3));
+      await settle(tester);
+
+      expect(find.byType(AlarmStopScreen), findsNothing);
+      expect(alarmService.completed, [plainSnooze.id]);
+      expect(alarmService.scheduled, [plainSnooze.id]);
+    });
+
+    testWidgets('Gorevli, hak varken once ara ekran; Gorevi yap goreve gecer', (
+      tester,
+    ) async {
+      await storage.saveAlarm(mathAlarm);
+      alarmService.pendingEvents = [
+        MissionStopEvent(alarmId: mathAlarm.id, stoppedAt: DateTime.now()),
+      ];
+
+      await open(tester);
+      expect(find.byType(AlarmStopScreen), findsOneWidget);
+      expect(find.text('Görevi yap'), findsOneWidget);
+      expect(alarmService.begun, isEmpty, reason: 'begin gorev ekraninda');
+
+      await tester.tap(find.byKey(kStopPrimaryKey));
+      await settle(tester);
+
+      expect(find.byType(AlarmStopScreen), findsNothing);
+      expect(find.byType(MissionScreen), findsOneWidget);
+      expect(alarmService.begun, [mathAlarm.id]);
+    });
+
+    testWidgets('Gorevli, hak yokken dogrudan gorev ekrani', (tester) async {
+      await storage.saveAlarm(mathAlarm);
+      await storage.saveMissionSession(
+        MissionSession(
+          alarmId: mathAlarm.id,
+          firedAt: DateTime.now(),
+          snoozeUsed: 2,
+        ),
+      );
+      alarmService.pendingEvents = [
+        MissionStopEvent(alarmId: mathAlarm.id, stoppedAt: DateTime.now()),
+      ];
+
+      await open(tester);
+
+      expect(find.byType(AlarmStopScreen), findsNothing);
+      expect(find.byType(MissionScreen), findsOneWidget);
+    });
+
+    testWidgets('Gorevli: ara ekranda Ertele sayar ve kapatir', (tester) async {
+      await storage.saveAlarm(mathAlarm);
+      alarmService.pendingEvents = [
+        MissionStopEvent(alarmId: mathAlarm.id, stoppedAt: DateTime.now()),
+      ];
+
+      await open(tester);
+      await tester.tap(find.byKey(kStopSnoozeKey));
+      await settle(tester);
+
+      expect(find.byType(AlarmStopScreen), findsNothing);
+      expect(find.byType(MissionScreen), findsNothing);
+      expect(alarmService.snoozed, [(id: mathAlarm.id, minutes: 5)]);
+      expect(alarmService.scheduled, isEmpty);
+    });
+
     testWidgets('Gorev tamamlaninca native temizlenir', (tester) async {
       await storage.saveAlarm(mathAlarm);
       alarmService.pendingEvents = [
@@ -349,6 +598,7 @@ void main() {
       ];
 
       await open(tester);
+      await enterMission(tester);
       await solveMath(tester);
 
       expect(alarmService.completed, [mathAlarm.id]);
@@ -362,6 +612,7 @@ void main() {
       ];
 
       await open(tester);
+      await enterMission(tester);
       expect(find.byKey(kMissionSnoozeKey), findsOneWidget);
 
       await tester.tap(find.byKey(kMissionSnoozeKey));
@@ -384,6 +635,7 @@ void main() {
       ];
 
       await open(tester);
+      await enterMission(tester);
       await tester.tap(find.byKey(kMissionAbortKey));
       await settle(tester);
 

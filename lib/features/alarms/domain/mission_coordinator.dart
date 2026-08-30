@@ -28,6 +28,7 @@ class MissionCoordinator {
     final session = existing != null && existing.alarmId == latest.alarmId
         ? existing.copyWith(
             rearmCount: existing.rearmCount + 1,
+            stoppedAt: latest.stoppedAt,
             clearDeadline: true,
             // Alarm calip kapatildi: erteleme penceresi bitti.
             clearSnoozedUntil: true,

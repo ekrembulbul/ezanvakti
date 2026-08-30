@@ -5,6 +5,12 @@
 class MissionSession {
   final String alarmId;
   final DateTime firedAt;
+
+  /// Son durdurma anı. İlk çalışta [firedAt] ile aynı; erteleme sonrası alarm
+  /// yeniden çalıp durdurulunca ilerler. Ara ekranın geri sayımı ve bayatlık
+  /// kontrolü buna bağlı — [firedAt] ilk çalışta sabitleniyor.
+  final DateTime stoppedAt;
+
   final int snoozeUsed;
   final int rearmCount;
 
@@ -22,18 +28,20 @@ class MissionSession {
   const MissionSession({
     required this.alarmId,
     required this.firedAt,
+    DateTime? stoppedAt,
     this.snoozeUsed = 0,
     this.rearmCount = 0,
     this.deadlineAt,
     this.snoozedUntil,
     this.completedAt,
-  });
+  }) : stoppedAt = stoppedAt ?? firedAt;
 
   bool get isPending => completedAt == null;
 
   Map<String, dynamic> toJson() => {
     'alarm_id': alarmId,
     'fired_at': firedAt.toIso8601String(),
+    'stopped_at': stoppedAt.toIso8601String(),
     'snooze_used': snoozeUsed,
     'rearm_count': rearmCount,
     'deadline_at': deadlineAt?.toIso8601String(),
@@ -44,6 +52,10 @@ class MissionSession {
   factory MissionSession.fromJson(Map<String, dynamic> json) => MissionSession(
     alarmId: json['alarm_id'] as String,
     firedAt: DateTime.parse(json['fired_at'] as String),
+    stoppedAt: switch (json['stopped_at']) {
+      final String s => DateTime.tryParse(s),
+      _ => null,
+    },
     snoozeUsed: json['snooze_used'] as int? ?? 0,
     rearmCount: json['rearm_count'] as int? ?? 0,
     deadlineAt: switch (json['deadline_at']) {
@@ -61,6 +73,7 @@ class MissionSession {
   );
 
   MissionSession copyWith({
+    DateTime? stoppedAt,
     int? snoozeUsed,
     int? rearmCount,
     DateTime? deadlineAt,
@@ -71,6 +84,7 @@ class MissionSession {
   }) => MissionSession(
     alarmId: alarmId,
     firedAt: firedAt,
+    stoppedAt: stoppedAt ?? this.stoppedAt,
     snoozeUsed: snoozeUsed ?? this.snoozeUsed,
     rearmCount: rearmCount ?? this.rearmCount,
     deadlineAt: clearDeadline ? null : (deadlineAt ?? this.deadlineAt),

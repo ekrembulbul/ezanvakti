@@ -4,6 +4,28 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.5.4] - 2026-08-30
+
+### Eklendi
+- **Alarm durunca karar ekranı.** Alarmı durdurunca uygulama açılıyor ve büyük iki düğme çıkıyor: görevli alarmda "Görevi yap / Ertele", görevsizde "Tamam / Ertele". Erteleme süresi düğmenin üstünde, kalan hak altında.
+
+### Düzeltildi
+- **Görevsiz alarmlarda "Erteleme sayısı" ayarı hiçbir şey yapmıyordu** — sistem uyarısındaki Ertele düğmesi sayılamıyordu, sınırsız ertelenebiliyordu. Erteleme artık uygulama içinde sayılıyor; sistem düğmesi kaldırıldı.
+- Görevsiz alarm çalıp kapatıldıktan sonra ertesi günkü alarm, uygulama açılana kadar kurulmuyordu; "Tamam" artık ertesi günü kuruyor.
+
+### Değişti
+- Görevli alarmda ara ekranda seçim süresi 30 sn (dolarsa alarm döner). Görevsizde ekran 45 sn sonra kendini kapatıyor.
+- Erteleme kapalı görevsiz alarmlar eskisi gibi: durdurunca uygulama açılmaz.
+
+## [0.5.3] - 2026-08-30
+
+### Düzeltildi
+- **Bir alarmın görevi tamamlanınca aynı güne kurulu diğer alarmlar siliniyordu.** Güneş alarmının QR görevi bitince 08:45 alarmı hiç çalmıyordu. Artık yalnızca biten alarmın zinciri temizleniyor ve görev bitince alarmlar yeniden kuruluyor.
+
+### Değişti
+- QR görevinin süresi 120 saniyeden 90 saniyeye indi.
+- Always-On ekranda geri sayım deneme amaçlı sistemin aralık sayacıyla çiziliyor (bayatlama sorunu için ölçüm).
+
 ## [0.5.2] - 2026-08-30
 
 ### Düzeltildi

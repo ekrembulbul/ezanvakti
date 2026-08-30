@@ -41,6 +41,10 @@
 		2A221CB930D062D458051B3C /* WidgetAlignmentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81B761C52D3968D9DE59ABDE /* WidgetAlignmentTests.swift */; };
 		7F89BBDC37907E18CC346161 /* WidgetAlignment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B35C0B70A6D9BCF39798FCC /* WidgetAlignment.swift */; };
 		D4378F6083BC7EE01F47AF6E /* WidgetAlignment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B35C0B70A6D9BCF39798FCC /* WidgetAlignment.swift */; };
+		FAFB5317C339A04947386D61 /* MissionChainKeysTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 658488B63AB7688B8CC98A61 /* MissionChainKeysTests.swift */; };
+		829997E19CBDA7275DAB3186 /* MissionChainKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFD52B237E5D440A5C7EE976 /* MissionChainKeys.swift */; };
+		8A5E96BE942E62D6008C7CC8 /* MissionStopPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7892FE509B28D70BAC1532D /* MissionStopPolicyTests.swift */; };
+		15F418BCCFE937096135DC30 /* MissionStopPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C93353C3414D398555C7C49 /* MissionStopPolicy.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -128,6 +132,10 @@
 		1AAC6FB0C672D65512B05353 /* DayLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayLabel.swift; sourceTree = "<group>"; };
 		81B761C52D3968D9DE59ABDE /* WidgetAlignmentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetAlignmentTests.swift; sourceTree = "<group>"; };
 		3B35C0B70A6D9BCF39798FCC /* WidgetAlignment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetAlignment.swift; sourceTree = "<group>"; };
+		658488B63AB7688B8CC98A61 /* MissionChainKeysTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissionChainKeysTests.swift; sourceTree = "<group>"; };
+		DFD52B237E5D440A5C7EE976 /* MissionChainKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissionChainKeys.swift; sourceTree = "<group>"; };
+		B7892FE509B28D70BAC1532D /* MissionStopPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissionStopPolicyTests.swift; sourceTree = "<group>"; };
+		9C93353C3414D398555C7C49 /* MissionStopPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissionStopPolicy.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -188,6 +196,8 @@
 		331C8082294A63A400263BE5 /* RunnerTests */ = {
 			isa = PBXGroup;
 			children = (
+				B7892FE509B28D70BAC1532D /* MissionStopPolicyTests.swift */,
+				658488B63AB7688B8CC98A61 /* MissionChainKeysTests.swift */,
 				81B761C52D3968D9DE59ABDE /* WidgetAlignmentTests.swift */,
 				0CD673697130AB97D2EBC5AF /* DayLabelTests.swift */,
 				D4280F191DE27AD369B03B16 /* CountdownTextTests.swift */,
@@ -278,6 +288,8 @@
 		97C146F01CF9000F007C117D /* Runner */ = {
 			isa = PBXGroup;
 			children = (
+				9C93353C3414D398555C7C49 /* MissionStopPolicy.swift */,
+				DFD52B237E5D440A5C7EE976 /* MissionChainKeys.swift */,
 				C3387B1130431F4A00A8248F /* Runner.entitlements */,
 				97C146FA1CF9000F007C117D /* Main.storyboard */,
 				97C146FD1CF9000F007C117D /* Assets.xcassets */,
@@ -535,6 +547,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8A5E96BE942E62D6008C7CC8 /* MissionStopPolicyTests.swift in Sources */,
+				FAFB5317C339A04947386D61 /* MissionChainKeysTests.swift in Sources */,
 				D4378F6083BC7EE01F47AF6E /* WidgetAlignment.swift in Sources */,
 				2A221CB930D062D458051B3C /* WidgetAlignmentTests.swift in Sources */,
 				30435F2AD59CA4FEFCDA7DC0 /* DayLabel.swift in Sources */,
@@ -557,6 +571,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				15F418BCCFE937096135DC30 /* MissionStopPolicy.swift in Sources */,
+				829997E19CBDA7275DAB3186 /* MissionChainKeys.swift in Sources */,
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 			);
