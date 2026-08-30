@@ -38,7 +38,11 @@ struct RectangularView: View {
             // "SIRADAKİ" etiketi kalktı; yerini widget'ın asıl işi aldı.
             Group {
                 if isLuminanceReduced {
-                    Text(CountdownText.format(from: entry.date, to: next.date))
+                    // SPIKE (0.5.3): bkz. CountdownLabel.
+                    Text(
+                        timerInterval: min(entry.date, next.date)...next.date,
+                        countsDown: true
+                    )
                 } else {
                     Text(next.date, style: .timer)
                 }

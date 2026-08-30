@@ -18,7 +18,15 @@ struct CountdownLabel: View {
     var body: some View {
         Group {
             if isLuminanceReduced {
-                Text(CountdownText.format(from: entry.date, to: target))
+                // SPIKE (0.5.3): sistemin aralik sayaci Always-On'da dakika
+                // dakika sayiyor mu? Canli Etkinliklerde sayiyor; widget'ta
+                // cihazda dogrulanacak. Sayiyorsa dakikalik kareler tamamen
+                // kalkar, CountdownText silinir ve bayatlama sorunu kokten biter.
+                // Sayamiyorsa bu satir CountdownText'e geri doner.
+                Text(
+                    timerInterval: min(entry.date, target)...target,
+                    countsDown: true
+                )
             } else {
                 Text(target, style: .timer)
             }
