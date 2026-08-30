@@ -11,7 +11,9 @@ import '../../core/providers/app_state.dart';
 import '../../core/interfaces/alarm_service.dart';
 import '../../core/models/alarm.dart';
 import '../../core/models/alarm_mission.dart';
+import '../../core/utils/app_logger.dart';
 import '../../features/alarms/domain/abort_gate.dart';
+import '../../features/alarms/domain/alarm_scheduler.dart';
 import '../../features/alarms/domain/alarms_manager.dart';
 import '../../features/alarms/domain/mission_coordinator.dart';
 import '../widgets/missions/abort_dialog.dart';
@@ -46,6 +48,7 @@ Future<void> openMissionIfPending(BuildContext context) async {
   // diye bir sey beklemesin.
   if (alarm == null || !alarm.mission.requiresGate) {
     await coordinator.complete(session.alarmId);
+    if (context.mounted) await rearmAlarms(context);
     return;
   }
 
@@ -147,6 +150,8 @@ class _MissionHostState extends State<_MissionHost> {
 
   Future<void> _complete() async {
     await _coordinator.complete(widget.alarm.id);
+    if (!mounted) return;
+    await rearmAlarms(context);
     if (mounted) Navigator.of(context).pop();
   }
 
@@ -169,6 +174,8 @@ class _MissionHostState extends State<_MissionHost> {
     final confirmed = await showAbortDialog(context: context, level: level);
     if (!confirmed) return;
     await _coordinator.abort(widget.alarm.id, DateTime.now());
+    if (!mounted) return;
+    await rearmAlarms(context);
     if (mounted) Navigator.of(context).pop();
   }
 
@@ -210,5 +217,27 @@ class _MissionHostState extends State<_MissionHost> {
         child: _body,
       ),
     );
+  }
+}
+
+/// Zincir kapandıktan sonra alarmları yeniden kurar.
+///
+/// Native taraf görev bitince zinciri temizliyor; alarmlar AlarmKit'e tek
+/// seferlik kurulduğu için bir sonraki çalışı yeniden kurmak Dart'ın işi.
+/// Bu olmayınca cihazda görülen şey: Güneş alarmının QR görevi tamamlandı,
+/// aynı güne kurulu 08:45 hiç çalmadı.
+///
+/// **Ertelemede çağrılmaz**: `scheduleAlarms` önce her şeyi iptal ediyor,
+/// ertelemenin kurduğu nöbetçiyi de silerdi. Hata yukarı sızmaz — görev
+/// ekranı kapanmalı; yeniden kurma bir sonraki öne gelişte tekrar denenir.
+Future<void> rearmAlarms(BuildContext context) async {
+  final appState = context.read<AppState>();
+  try {
+    await ServiceLocator().get<AlarmScheduler>().scheduleAlarms(
+      prayerTimes: appState.prayerTimes,
+      skips: appState.skips,
+    );
+  } catch (e, stackTrace) {
+    AppLogger().warning('Gorev sonrasi alarm yeniden kurulamadi', e, stackTrace);
   }
 }

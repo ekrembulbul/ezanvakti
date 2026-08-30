@@ -17,6 +17,12 @@ class FakeAlarmService implements AlarmService {
   final List<String> completed = [];
   final List<String> aborted = [];
 
+  /// Yeniden planlama izi: `cancelAllAlarms` ve `scheduleAlarm` cagrilari
+  /// sirayla. Gorev bitince alarmlarin yeniden kurulup kurulmadigini
+  /// dogrulamak icin.
+  final List<String> scheduled = [];
+  int cancelAllCount = 0;
+
   @override
   Future<List<MissionStopEvent>> consumeMissionEvents() async {
     final events = pendingEvents;
@@ -61,13 +67,13 @@ class FakeAlarmService implements AlarmService {
     required AlarmMission mission,
     required int missionLevel,
     required Map<String, dynamic> chainConfig,
-  }) async {}
+  }) async => scheduled.add(id);
 
   @override
   Future<void> cancelAlarm(String id) async {}
 
   @override
-  Future<void> cancelAllAlarms() async {}
+  Future<void> cancelAllAlarms() async => cancelAllCount++;
 
   @override
   Future<String?> importCustomSound(String sourcePath) async => null;

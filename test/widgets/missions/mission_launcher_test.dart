@@ -8,6 +8,7 @@ import 'package:ezanvakti/core/models/alarm_mission.dart';
 import 'package:ezanvakti/core/models/mission_session.dart';
 import 'package:ezanvakti/core/models/mission_stop_event.dart';
 import 'package:ezanvakti/core/providers/app_state.dart';
+import 'package:ezanvakti/features/alarms/domain/alarm_scheduler.dart';
 import 'package:ezanvakti/features/alarms/domain/alarms_manager.dart';
 import 'package:ezanvakti/features/alarms/domain/mission_coordinator.dart';
 import 'package:ezanvakti/presentation/screens/mission_launcher.dart';
@@ -63,6 +64,9 @@ void main() {
     locator.register<AlarmService>(alarmService);
     locator.register<AlarmsManager>(AlarmsManager(storage: storage));
     locator.register<MissionCoordinator>(coordinator);
+    locator.register<AlarmScheduler>(
+      AlarmScheduler(alarmService: alarmService, storage: storage),
+    );
   });
 
   /// `_MissionHost` saniyelik bir sayaç çalıştırıyor; `pumpAndSettle` bu
@@ -342,6 +346,48 @@ void main() {
   });
 
   group('Ekrandan cikis yollari', () {
+    /// Cihazda gorulen hata: Gunes alarminin QR gorevi tamamlaninca native
+    /// taraf her seyi iptal etti ve ayni gune kurulu 08:45 hic calmadi.
+    /// Gorev bitince alarmlar yeniden kurulmali.
+    testWidgets('Gorev tamamlaninca alarmlar yeniden planlanir', (
+      tester,
+    ) async {
+      await storage.saveAlarm(mathAlarm);
+      alarmService.pendingEvents = [
+        MissionStopEvent(alarmId: mathAlarm.id, stoppedAt: stoppedAt),
+      ];
+
+      await open(tester);
+      expect(alarmService.scheduled, isEmpty);
+
+      await solveMath(tester);
+
+      expect(alarmService.completed, [mathAlarm.id]);
+      expect(
+        alarmService.scheduled,
+        [mathAlarm.id],
+        reason: 'zincir kapaninca bir sonraki calis yeniden kurulmali',
+      );
+    });
+
+    /// Erteleme aktif nobetciyi ileri kuruyor; yeniden planlama once her seyi
+    /// iptal ettigi icin ertelemeden sonra cagrilirsa nobetci silinir ve
+    /// erteleme sessizce kaybolur.
+    testWidgets('Ertelemede alarmlar yeniden planlanmaz', (tester) async {
+      await storage.saveAlarm(mathAlarm);
+      alarmService.pendingEvents = [
+        MissionStopEvent(alarmId: mathAlarm.id, stoppedAt: stoppedAt),
+      ];
+
+      await open(tester);
+      await tester.tap(find.byKey(kMissionSnoozeKey));
+      await settle(tester);
+
+      expect(alarmService.snoozed, isNotEmpty);
+      expect(alarmService.scheduled, isEmpty);
+      expect(alarmService.cancelAllCount, 0);
+    });
+
     testWidgets('Gorev tamamlaninca native temizlenir', (tester) async {
       await storage.saveAlarm(mathAlarm);
       alarmService.pendingEvents = [
