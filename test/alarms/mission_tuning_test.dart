@@ -13,12 +13,10 @@ void main() {
   });
 
   group('MissionTuning', () {
-    test('QR suresi matematikten uzun', () {
-      // Kodun bulundugu yere yurumek gerekiyor; spec D13.
-      expect(
-        MissionTuning.timeoutSecondsFor(AlarmMission.qr),
-        greaterThan(MissionTuning.timeoutSecondsFor(AlarmMission.math)),
-      );
+    test('QR suresi 90 saniye', () {
+      // Spec D13 QR'i en uzun tutmustu (yurume payi); cihazda 120 sn fazla
+      // uzun geldi, kullanici karariyla 90'a indi -- matematikle esit.
+      expect(MissionTuning.timeoutSecondsFor(AlarmMission.qr), 90);
     });
 
     test('Her gorev tipi icin pozitif sure tanimli', () {

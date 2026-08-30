@@ -65,16 +65,18 @@ void main() {
       );
     });
 
-    test('QR suresi matematikten uzun oldugu icin son tarih de uzak', () {
+    /// Daha uzun gorev -> daha uzak son tarih. QR ile matematik artik esit
+    /// (90 sn, kullanici karari); ayrim sallama (60) ile matematik arasinda.
+    test('Uzun gorevin son tarihi daha uzak', () {
+      final shake = MissionChain.deadlineAfterBegin(
+        now: fired,
+        mission: AlarmMission.shake,
+      );
       final math = MissionChain.deadlineAfterBegin(
         now: fired,
         mission: AlarmMission.math,
       );
-      final qr = MissionChain.deadlineAfterBegin(
-        now: fired,
-        mission: AlarmMission.qr,
-      );
-      expect(qr.isAfter(math), isTrue);
+      expect(math.isAfter(shake), isTrue);
     });
   });
 
