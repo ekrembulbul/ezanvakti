@@ -108,9 +108,10 @@ WidgetSnapshotBuilder (saf) ──▶ WidgetPublisher ──▶ App Group (tek J
 - Payload'da her gün kendi **hicri tarihini** taşır. Swift'te hesaplanmaz:
   iOS'un `islamicUmmAlQura` takvimi uygulamanın kullandığı `hijri` paketinden
   gün kayabilir.
-- Timeline **dakika başına** giriş üretir (2 saatlik pencere). Always-On
-  ekranda geri sayımı `CountdownText` ile kendimiz çizeriz; sistemin canlı
-  sayacı orada okunmaz bir biçime düşüyor.
+- Timeline yalnızca **vakit sınırlarında** giriş üretir (48 saat ufuk). Geri
+  sayımı sistemin aralık sayacı (`Text(timerInterval:)`) çizer — Always-On'da
+  da; 0.5.4'te cihazda ölçüldü. Sayaç hedef tarihten hesaplandığı için hangi
+  girişin ekranda olduğu önemsiz.
 - Hizalama `AppIntentConfiguration` ile widget ayarıdır.
 
 ## Zaman / timezone

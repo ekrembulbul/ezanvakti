@@ -2,9 +2,6 @@ import SwiftUI
 
 struct SmallView: View {
     @Environment(\.colorScheme) private var colorScheme
-    /// Always-On ekranda `true`. Sistemin canlı sayacı orada okunmaz bir
-    /// biçime düşüyor; o durumda geri sayımı kendimiz çiziyoruz.
-    @Environment(\.isLuminanceReduced) private var isLuminanceReduced
 
     let entry: PrayerEntry
     let alignment: WidgetAlignment
@@ -65,7 +62,6 @@ struct SmallView: View {
                 CountdownLabel(
                     entry: entry,
                     target: next.date,
-                    isLuminanceReduced: isLuminanceReduced,
                     size: 26,
                     color: palette.textPrimary
                 )

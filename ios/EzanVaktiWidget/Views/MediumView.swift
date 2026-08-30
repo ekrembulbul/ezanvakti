@@ -2,7 +2,6 @@ import SwiftUI
 
 struct MediumView: View {
     @Environment(\.colorScheme) private var colorScheme
-    @Environment(\.isLuminanceReduced) private var isLuminanceReduced
 
     let entry: PrayerEntry
     let alignment: WidgetAlignment
@@ -65,7 +64,6 @@ struct MediumView: View {
                 CountdownLabel(
                     entry: entry,
                     target: next.date,
-                    isLuminanceReduced: isLuminanceReduced,
                     size: 24,
                     color: palette.textPrimary
                 )
