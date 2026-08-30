@@ -177,7 +177,7 @@ class AlarmKitHandler {
     case "snoozeMission":
       snoozeMission(call.arguments, result)
     case "completeMission", "abortMission":
-      endMission(result)
+      endMission(call.arguments, result)
     case "importCustomSound":
       let args = call.arguments as? [String: Any]
       result(importCustomSound(path: args?["path"] as? String, name: args?["name"] as? String))
@@ -494,14 +494,27 @@ class AlarmKitHandler {
     result(nil)
   }
 
-  /// Görev tamamlandı ya da acil çıkış kullanıldı: zincirdeki tüm alarmlar
-  /// iptal edilir, oturum kapanır.
-  private func endMission(_ result: @escaping FlutterResult) {
+  /// Görev tamamlandı ya da acil çıkış kullanıldı: **yalnızca o alarmın**
+  /// zinciri (nöbetçi + merdiven) iptal edilir, oturum kapanır.
+  ///
+  /// Eskiden `cancelAll` çağrılıyordu ve defterdeki her alarmı siliyordu:
+  /// Güneş alarmının QR görevi tamamlanınca aynı güne kurulu 08:45 gitmişti.
+  /// Birincil alarm da bilerek bırakılıyor — uygulama öne gelirken yeniden
+  /// planlanmış olabilir ve aynı UUID'yi taşıyor; silmek yarınki çalışı
+  /// da götürürdü.
+  private func endMission(_ arguments: Any?, _ result: @escaping FlutterResult) {
     guard #available(iOS 26.1, *) else {
       result(nil)
       return
     }
-    cancelAll()
+    let alarmId =
+      (arguments as? [String: Any])?["id"] as? String
+      ?? MissionChainStore.session()?["alarmId"] as? String
+    if let alarmId {
+      for key in MissionChainKeys.select(alarmId: alarmId, from: Array(uuidMap().keys)) {
+        cancel(idStr: key)
+      }
+    }
     MissionChainStore.clear()
     result(nil)
   }
