@@ -4,7 +4,7 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
-## [Yayınlanmamış]
+## [0.5.5] - 2026-08-30
 
 ### Düzeltildi
 - **Always-On ekranda widget geri sayımı 15 dakikaya kadar bayatlayabiliyordu.** 0.5.4'teki ölçüm sistemin aralık sayacının Always-On'da çalıştığını gösterdi; geri sayım artık her iki modda da sistem tarafından çiziliyor, dakikalık kare üretimi kaldırıldı. Vakit geçince sayaç 0:00'da duruyor (eskiden yukarı saymaya başlıyordu).
