@@ -8,10 +8,15 @@ import '../models/alarm_mission.dart';
 class MissionTuning {
   const MissionTuning._();
 
-  /// Alarm durduruldu ama görev ekranı hiç açılmadı; alarmın dönmesi için
-  /// beklenen süre. Durdurup uykuya dönen kullanıcı tam görev süresini
-  /// beklemeden yakalanmalı.
-  static const int graceSeconds = 20;
+  /// Görevli alarmda ara ekranda seçim süresi. Alarm durduruldu, kullanıcı
+  /// "Görevi yap"a ya da "Ertele"ye basmadı; bu kadar saniye sonra alarm
+  /// döner. 20 sn ekranı okuyup basmak için dar geldi (spec 2026-08-30 D12).
+  static const int graceSeconds = 30;
+
+  /// Görevsiz alarmda ara ekranın açık kalma süresi. Dolarsa "Tamam" sayılır:
+  /// oturum kapanır, alarmlar yeniden kurulur. Ceza yok — görevsizde durdurma
+  /// zaten kesin — ama ekran sonsuza kadar da açık kalmasın.
+  static const int stopScreenSeconds = 45;
 
   /// Sağlama merdiveni: `stopIntent` hiç çalışmazsa devreye giren, alarm
   /// kurulurken önden dizilen yedekler.

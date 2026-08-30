@@ -19,6 +19,12 @@ void main() {
       expect(MissionTuning.timeoutSecondsFor(AlarmMission.qr), 90);
     });
 
+    test('Ara ekran sureleri', () {
+      // Spec 2026-08-30 D12, kullanici karari: 20 sn okuyup basmak icin dar.
+      expect(MissionTuning.graceSeconds, 30);
+      expect(MissionTuning.stopScreenSeconds, 45);
+    });
+
     test('Her gorev tipi icin pozitif sure tanimli', () {
       for (final m in AlarmMission.values.where((m) => m.requiresGate)) {
         expect(MissionTuning.timeoutSecondsFor(m), greaterThan(0));
