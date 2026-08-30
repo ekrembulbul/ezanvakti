@@ -58,35 +58,36 @@ final class PrayerTimelineTests: XCTestCase {
         )
     }
 
-    func testEntriesAreOneMinuteApart() {
+    /// Geri sayimi sistem cizdigi icin kare yalnizca icerik degisince gerekir:
+    /// her vakit gecisinde. Dakikalik kare uretimi 0.5.4'te olculup kaldirildi.
+    func testEntriesLandOnPrayerBoundariesOnly() {
         let result = entries(days: ["2026-08-25", "2026-08-26"], now: at(25, 14, 0))
-        XCTAssertEqual(result[0].date, at(25, 14, 0))
-        XCTAssertEqual(result[1].date, at(25, 14, 1))
-        XCTAssertEqual(result[2].date, at(25, 14, 2))
+        XCTAssertEqual(result[1].date, at(25, 16, 58))  // İkindi
+        XCTAssertEqual(result[2].date, at(25, 20, 26))  // Akşam
+        XCTAssertEqual(result[3].date, at(25, 21, 58))  // Yatsı
+        XCTAssertEqual(result[4].date, at(26, 4, 12))   // ertesi İmsak
     }
 
-    /// Vakitler tam dakikada oldugu icin canli sayac dakika hanesini her :00'da
-    /// degistiriyor. Kareler de :00'a hizali olmali; now + k dakika olsaydi
-    /// kilit ekrani canli sayacin bir dakika onunde kalirdi.
-    func testEntriesAlignToMinuteBoundaries() {
-        let now = at(25, 14, 0).addingTimeInterval(27)
-        let result = entries(days: ["2026-08-25", "2026-08-26"], now: now)
-        XCTAssertEqual(result[0].date, now)
-        XCTAssertEqual(result[1].date, at(25, 14, 1))
-        XCTAssertEqual(result[2].date, at(25, 14, 2))
+    func testHorizonIsCapped() {
+        let result = entries(
+            days: ["2026-08-25", "2026-08-26", "2026-08-27", "2026-08-28"],
+            now: at(25, 14, 0)
+        )
+        XCTAssertLessThanOrEqual(result.count, PrayerTimeline.maxEntries)
+        let horizon = at(25, 14, 0).addingTimeInterval(
+            TimeInterval(PrayerTimeline.horizonHours * 3600)
+        )
+        XCTAssertTrue(result.allSatisfy { $0.date <= horizon })
     }
 
-    func testAlignedWindowStillCoversTwoHours() {
-        let now = at(25, 14, 0).addingTimeInterval(27)
-        let result = entries(days: ["2026-08-25", "2026-08-26"], now: now)
-        XCTAssertEqual(result.count, PrayerTimeline.windowMinutes + 1)
-        XCTAssertEqual(result.last?.date, at(25, 16, 0))
-    }
-
-    func testWindowCoversTwoHours() {
+    func testEntryAtBoundaryAdvancesToTheNextPrayer() {
         let result = entries(days: ["2026-08-25", "2026-08-26"], now: at(25, 14, 0))
-        XCTAssertEqual(result.count, PrayerTimeline.windowMinutes + 1)
-        XCTAssertEqual(result.last?.date, at(25, 16, 0))
+        guard case let .ready(first, _, _, _, _, _) = result[0].content,
+              case let .ready(second, _, _, _, _, _) = result[1].content else {
+            return XCTFail("ready bekleniyordu")
+        }
+        XCTAssertEqual(first.name, "İkindi")
+        XCTAssertEqual(second.name, "Akşam")
     }
 
     func testEntryCarriesItsOwnDayPhase() {
@@ -97,9 +98,6 @@ final class PrayerTimelineTests: XCTestCase {
         XCTAssertEqual(phase, .afternoon)
     }
 
-    /// M3/M4: 23:00'te siradaki vakit yarinin Imsak'i; liste de yarini
-    /// gostermeli, yoksa iki sutun farkli gune bakar ve vurgu listede
-    /// karsilik bulmaz.
     func testListFollowsTheDayOfTheNextPrayer() {
         let result = entries(days: ["2026-08-25", "2026-08-26"], now: at(25, 23, 0))
         guard case let .ready(next, day, _, _, _, isTomorrow) = result[0].content else {
@@ -117,17 +115,6 @@ final class PrayerTimelineTests: XCTestCase {
         }
         XCTAssertEqual(day.date, "2026-08-25")
         XCTAssertFalse(isTomorrow)
-    }
-
-    /// Pencere icinde vakit gecince o girisin siradakisi degismeli.
-    func testEntryAfterBoundaryAdvancesToTheNextPrayer() {
-        let result = entries(days: ["2026-08-25", "2026-08-26"], now: at(25, 16, 57))
-        guard case let .ready(before, _, _, _, _, _) = result[0].content,
-              case let .ready(after, _, _, _, _, _) = result[2].content else {
-            return XCTFail("ready bekleniyordu")
-        }
-        XCTAssertEqual(before.name, "İkindi")
-        XCTAssertEqual(after.name, "Akşam")
     }
 
     func testStaleSnapshotIsMarked() {

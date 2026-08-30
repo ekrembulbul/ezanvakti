@@ -25,14 +25,12 @@ struct PrayerEntry: TimelineEntry {
 }
 
 enum PrayerTimeline {
-    /// Timeline'ın ileriyi görme mesafesi, dakika cinsinden.
-    ///
-    /// Always-On ekranda geri sayımı biz çiziyoruz (`CountdownText`) ve widget
-    /// görünümleri önceden hazırlandığı için sayının dakikada bir değişmesinin
-    /// tek yolu dakika başına giriş üretmek (bkz. `moments`). Girişler
-    /// yenileme bütçesi harcamaz; harcayan, timeline tükendiğinde istenen
-    /// yenilemedir. İki saatlik pencere günde ~12 yenileme demek.
-    static let windowMinutes = 120
+    /// Timeline'ın ileriyi görme mesafesi. Payload 7 gün taşısa da her
+    /// reload'da yalnızca bu kadarı üretilir; gerisi bir sonraki reload'da
+    /// tazelenir.
+    static let horizonHours = 48
+
+    static let maxEntries = 14
 
     static func entries(
         for result: Result<WidgetSnapshot, SnapshotLoadError>?,
@@ -63,7 +61,16 @@ enum PrayerTimeline {
             return [PrayerEntry(date: now, content: .noData)]
         }
 
-        return moments(from: now, calendar: calendar).map { moment in
+        // Geri sayımı sistem çiziyor (`Text(timerInterval:)`) — Always-On'da
+        // da; 0.5.4'te cihazda ölçüldü. Kare yalnızca **içerik değiştiğinde**,
+        // yani her vakit geçişinde gerekir. Vakit geçişi aynı zamanda gün
+        // dilimi sınırıdır, tek liste hem sıradaki vakti hem gradyanı taşır.
+        // Dakikalık kare üretimi (0.5.1–0.5.3) buna gerek bırakmıyordu.
+        let horizon = now.addingTimeInterval(TimeInterval(horizonHours * 3600))
+        let boundaries = slots.map(\.date).filter { $0 > now && $0 <= horizon }
+        let moments = ([now] + boundaries).prefix(maxEntries)
+
+        return moments.map { moment in
             PrayerEntry(
                 date: moment,
                 content: content(
@@ -71,30 +78,6 @@ enum PrayerTimeline {
                 )
             )
         }
-    }
-
-    /// `now`, ardından pencere sonuna kadar her **tam dakika** (:00).
-    ///
-    /// Vakitler tam dakikada olduğu için canlı sayaç dakika hanesini her
-    /// :00'da değiştiriyor; kareler de oraya hizalı olmalı. `now + k dakika`
-    /// olsaydı kare, canlı sayacın bir dakika önünde kalırdı ve kilit ekranı
-    /// açıkken 4:25:33 gösteren widget Always-On'da 4:26 derdi.
-    private static func moments(from now: Date, calendar: Calendar) -> [Date] {
-        let end = now.addingTimeInterval(TimeInterval(windowMinutes * 60))
-        var result = [now]
-
-        var next = ceilToMinute(now, calendar: calendar)
-        if next == now { next = next.addingTimeInterval(60) }
-        while next <= end {
-            result.append(next)
-            next = next.addingTimeInterval(60)
-        }
-        return result
-    }
-
-    private static func ceilToMinute(_ date: Date, calendar: Calendar) -> Date {
-        let floor = calendar.dateInterval(of: .minute, for: date)?.start ?? date
-        return floor == date ? date : floor.addingTimeInterval(60)
     }
 
     private static func content(

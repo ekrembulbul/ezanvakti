@@ -151,3 +151,19 @@ hicri alanı olmadan kabul edilmesi, bilinmeyen sürümün reddi.
 **Cihaz:** Always-On'da geri sayım biçimi (R5), widget ayarından hizalama
 değişimi, dokununca uygulamanın açılışı (R7), gece dilimi + açık temada zemin
 kontrastı (D33).
+
+## 10. Düzeltme — 0.5.4 ölçümü
+
+0.5.4 build'inde Always-On dalında sistemin aralık sayacı
+(`Text(timerInterval:countsDown:)`) denendi ve **çalıştı**: sönük ekranda
+`4:25:33` biçiminde, dakikada bir ilerliyor. Sonuç:
+
+- **D19 iptal.** Hibrit çizim yok; geri sayım her iki modda da sistemin aralık
+  sayacıyla çizilir. `Text(date, style: .timer)` da terk edildi — vakit
+  geçince yukarı saymaya başlıyordu, aralık sayacı 0:00'da durur.
+- **D20 iptal.** Kendi çizimimiz yok; `CountdownText` silindi.
+- **D21 ve D22 iptal.** Kareler yalnızca vakit sınırlarında (D12/D14'teki
+  gibi, 48 saat ufuk). Cihazda gözlenen 15 dakikalık bayatlama, kare
+  değişimine bağımlılıktan geliyordu; sayaç hedef tarihten hesaplandığı için
+  hangi karenin ekranda olduğu artık önemsiz.
+- **R5 ve R6 kapandı.**

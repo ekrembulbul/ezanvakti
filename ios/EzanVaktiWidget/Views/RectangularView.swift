@@ -3,7 +3,6 @@ import WidgetKit
 
 /// Kilit ekranı ailelerinde sistem tek renge indirger; gradyan denenmez.
 struct RectangularView: View {
-    @Environment(\.isLuminanceReduced) private var isLuminanceReduced
     let entry: PrayerEntry
     let alignment: WidgetAlignment
 
@@ -36,17 +35,8 @@ struct RectangularView: View {
             .minimumScaleFactor(0.8)
 
             // "SIRADAKİ" etiketi kalktı; yerini widget'ın asıl işi aldı.
-            Group {
-                if isLuminanceReduced {
-                    // SPIKE (0.5.3): bkz. CountdownLabel.
-                    Text(
-                        timerInterval: min(entry.date, next.date)...next.date,
-                        countsDown: true
-                    )
-                } else {
-                    Text(next.date, style: .timer)
-                }
-            }
+            // Sistemin aralık sayacı: Always-On'da da sayıyor (0.5.4 ölçümü).
+            Text(timerInterval: min(entry.date, next.date)...next.date, countsDown: true)
             .font(.system(size: 20, weight: .regular).monospacedDigit())
             .lineLimit(1)
             .minimumScaleFactor(0.6)
