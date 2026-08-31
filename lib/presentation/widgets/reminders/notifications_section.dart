@@ -39,6 +39,9 @@ class NotificationsSection extends StatelessWidget {
   final ValueChanged<NotificationSetting> onEdit;
   final Future<void> Function(NotificationSetting) onDelete;
 
+  /// "Cuma namazı" hazır şablonunu ekler; şablon zaten varsa düğme çıkmaz.
+  final VoidCallback? onAddFridayReminder;
+
   const NotificationsSection({
     this.nextFireByNotification = const {},
     this.skips = const {},
@@ -53,7 +56,14 @@ class NotificationsSection extends StatelessWidget {
     required this.onToggle,
     required this.onEdit,
     required this.onDelete,
+    this.onAddFridayReminder,
   });
+
+  /// Cuma öğle vaktine kurulmuş, yalnızca Cuma çalan bir satır var mı.
+  bool get _hasFridayReminder => settings.any(
+    (setting) =>
+        setting.prayerType == PrayerType.dhuhr && setting.weekdays.contains(5),
+  );
 
   SkippedOccurrence _occurrence(NotificationSetting setting) =>
       SkippedOccurrence(
@@ -120,6 +130,24 @@ class NotificationsSection extends StatelessWidget {
             height: 1.5,
           ),
         ),
+        if (onAddFridayReminder != null && !_hasFridayReminder) ...[
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: OutlinedButton.icon(
+              onPressed: onAddFridayReminder,
+              icon: const Icon(Icons.mosque_rounded, size: 18),
+              label: const Text('Cuma namazı hatırlatıcısı ekle'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: tokens.accent,
+                side: BorderSide(color: tokens.accent),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+            ),
+          ),
+        ],
         const SizedBox(height: 20),
         SectionLabel('${sorted.length} hatırlatma'),
         const SizedBox(height: 10),
@@ -127,9 +155,7 @@ class NotificationsSection extends StatelessWidget {
           children: [
             for (final setting in sorted)
               SwipeToDelete(
-                itemKey: ValueKey(
-                  '${setting.prayerType.name}-${setting.minutesBefore}',
-                ),
+                itemKey: ValueKey(notificationKey(setting)),
                 onDelete: () => onDelete(setting),
                 child: NotificationTile(
                   setting: setting,

@@ -181,56 +181,82 @@ class _RemindersScreenState extends State<RemindersScreen>
 
   // --- Bildirim mutasyonları ---
 
-  Future<void> _addNotification(PrayerType type, int minutesBefore) async {
+  Future<void> _addNotification(
+    PrayerType type,
+    int minutesBefore, [
+    Set<int> weekdays = const {},
+    String? label,
+  ]) async {
     final appState = context.read<AppState>();
+    final setting = NotificationSetting(
+      prayerType: type,
+      isActive: true,
+      minutesBefore: minutesBefore,
+      weekdays: weekdays,
+      label: label,
+      soundId: appState.generalSettings.defaultSound,
+    );
     final exists = appState.notificationSettings.any(
-      (s) => s.prayerType == type && s.minutesBefore == minutesBefore,
+      (s) =>
+          s.prayerType == type &&
+          s.minutesBefore == minutesBefore &&
+          s.weekdaysCsv == setting.weekdaysCsv,
     );
     if (exists) {
       _snack('Bu bildirim zaten mevcut', isError: true);
       return;
     }
 
-    await _settingsManager.addSetting(
-      NotificationSetting(
-        prayerType: type,
-        isActive: true,
-        minutesBefore: minutesBefore,
-      ),
-    );
+    await _settingsManager.addSetting(setting);
     await _syncNotifications(appState);
     _snack('Bildirim eklendi');
+  }
+
+  /// Hazır şablon: Cuma öğle vaktinden 45 dk önce, "Cuma namazı" etiketiyle.
+  Future<void> _addFridayReminder() async {
+    await _addNotification(PrayerType.dhuhr, 45, const {5}, 'Cuma namazı');
   }
 
   Future<void> _updateNotification(
     NotificationSetting original,
     PrayerType type,
-    int minutesBefore,
-  ) async {
+    int minutesBefore, [
+    Set<int> weekdays = const {},
+    String? label,
+  ]) async {
     final appState = context.read<AppState>();
+    final updated = NotificationSetting(
+      prayerType: type,
+      isActive: original.isActive,
+      minutesBefore: minutesBefore,
+      soundId: original.soundId,
+      weekdays: weekdays,
+      label: label,
+    );
     final duplicate = appState.notificationSettings.any(
       (s) =>
           s.prayerType == type &&
           s.minutesBefore == minutesBefore &&
+          s.weekdaysCsv == updated.weekdaysCsv &&
           !(s.prayerType == original.prayerType &&
-              s.minutesBefore == original.minutesBefore),
+              s.minutesBefore == original.minutesBefore &&
+              s.weekdaysCsv == original.weekdaysCsv),
     );
     if (duplicate) {
       _snack('Bu bildirim zaten mevcut', isError: true);
       return;
     }
 
-    final updated = original.copyWith(
-      prayerType: type,
-      minutesBefore: minutesBefore,
-    );
     final keyChanged =
-        type != original.prayerType || minutesBefore != original.minutesBefore;
+        type != original.prayerType ||
+        minutesBefore != original.minutesBefore ||
+        updated.weekdaysCsv != original.weekdaysCsv;
 
     if (keyChanged) {
       await _settingsManager.removeSetting(
         prayerType: original.prayerType,
         minutesBefore: original.minutesBefore,
+        weekdays: original.weekdaysCsv,
       );
       await _settingsManager.addSetting(updated);
     } else {
@@ -247,6 +273,7 @@ class _RemindersScreenState extends State<RemindersScreen>
     await _settingsManager.removeSetting(
       prayerType: setting.prayerType,
       minutesBefore: setting.minutesBefore,
+      weekdays: setting.weekdaysCsv,
     );
     await _syncNotifications(appState);
     _snack(
@@ -470,9 +497,9 @@ class _RemindersScreenState extends State<RemindersScreen>
         initialSetting: initial,
         submitLabel: initial == null ? null : 'Güncelle',
         title: initial == null ? null : 'Bildirimi Güncelle',
-        onAdd: (type, minutes) => initial == null
-            ? _addNotification(type, minutes)
-            : _updateNotification(initial, type, minutes),
+        onAdd: (type, minutes, weekdays, label) => initial == null
+            ? _addNotification(type, minutes, weekdays, label)
+            : _updateNotification(initial, type, minutes, weekdays, label),
       ),
     );
   }
@@ -589,6 +616,7 @@ class _RemindersScreenState extends State<RemindersScreen>
                 _notificationService.openExactAlarmSettings,
             onToggle: _toggleNotification,
             onEdit: (setting) => _showNotificationSheet(initial: setting),
+            onAddFridayReminder: _addFridayReminder,
             onDelete: _deleteNotification,
           ),
           AlarmsSection(

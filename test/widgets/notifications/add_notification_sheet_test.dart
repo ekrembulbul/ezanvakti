@@ -1,6 +1,7 @@
 import 'package:ezanvakti/core/models/notification_setting.dart';
 import 'package:ezanvakti/presentation/widgets/notifications/add_notification_bottom_sheet.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../theme_harness.dart';
@@ -8,7 +9,7 @@ import '../theme_harness.dart';
 void main() {
   Future<void> pumpSheet(
     WidgetTester tester, {
-    void Function(PrayerType, int)? onAdd,
+    void Function(PrayerType, int, Set<int>, String?)? onAdd,
     Brightness brightness = Brightness.dark,
   }) async {
     tester.view.physicalSize = const Size(1206, 2622);
@@ -16,7 +17,7 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       wrapWithTheme(
-        AddNotificationBottomSheet(onAdd: onAdd ?? (_, _) {}),
+        AddNotificationBottomSheet(onAdd: onAdd ?? (_, _, _, _) {}),
         brightness: brightness,
       ),
     );
@@ -57,7 +58,7 @@ void main() {
 
     await pumpSheet(
       tester,
-      onAdd: (t, m) {
+      onAdd: (t, m, _, _) {
         type = t;
         minutes = m;
       },
@@ -73,7 +74,7 @@ void main() {
   testWidgets('Baska vakit secilince o vakit ile eklenir', (tester) async {
     PrayerType? type;
 
-    await pumpSheet(tester, onAdd: (t, _) => type = t);
+    await pumpSheet(tester, onAdd: (t, _, _, _) => type = t);
 
     await tester.tap(find.text('Akşam'));
     await tester.pump();
@@ -81,6 +82,42 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(type, PrayerType.maghrib);
+  });
+
+  testWidgets('Gunler ve etiket kaydedilir', (tester) async {
+    Set<int>? weekdays;
+    String? label;
+
+    await pumpSheet(
+      tester,
+      onAdd: (_, _, w, l) {
+        weekdays = w;
+        label = l;
+      },
+    );
+
+    // Varsayilan 7 gun secili; Pazartesi disindaki 6 gunu kapatinca yalnizca
+    // Pazartesi kalir ve model bunu kume olarak alir.
+    for (final day in ['Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pa']) {
+      await tester.tap(find.text(day));
+      await tester.pump();
+    }
+    await tester.enterText(find.byType(TextField), 'Sahur');
+    await tester.tap(find.text('Bildirim Ekle'));
+    await tester.pumpAndSettle();
+
+    expect(weekdays, {1});
+    expect(label, 'Sahur');
+  });
+
+  testWidgets('Butun gunler seciliyse model bos kume alir', (tester) async {
+    Set<int>? weekdays;
+
+    await pumpSheet(tester, onAdd: (_, _, w, _) => weekdays = w);
+    await tester.tap(find.text('Bildirim Ekle'));
+    await tester.pumpAndSettle();
+
+    expect(weekdays, isEmpty);
   });
 
   // Secim bandi tekerlegin ustune cizilir; opak bir renk secili satiri

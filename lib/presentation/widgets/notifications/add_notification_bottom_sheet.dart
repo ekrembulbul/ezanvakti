@@ -10,7 +10,14 @@ import '../common/section_label.dart';
 import '../../../core/constants/notification_constants.dart';
 
 class AddNotificationBottomSheet extends StatefulWidget {
-  final void Function(PrayerType prayerType, int minutesBefore) onAdd;
+  /// [weekdays] boş küme = her gün; [label] boşsa varsayılan başlık kullanılır.
+  final void Function(
+    PrayerType prayerType,
+    int minutesBefore,
+    Set<int> weekdays,
+    String? label,
+  )
+  onAdd;
   final PrayerTime? prayerTime;
   final NotificationSetting? initialSetting;
   final String? submitLabel;
@@ -38,6 +45,10 @@ class _AddNotificationBottomSheetState
   int _selectedOffset = _defaultOffset;
   String? _errorText;
 
+  /// UI'da her zaman 7 gün seçili gösterilir; modelde "hepsi" boş kümedir.
+  late Set<int> _weekdays;
+  late TextEditingController _label;
+
   @override
   void initState() {
     super.initState();
@@ -45,6 +56,15 @@ class _AddNotificationBottomSheetState
     _selectedType = initial?.prayerType ?? PrayerType.fajr;
     _isBefore = (initial?.minutesBefore ?? 0) > 0;
     _selectedOffset = initial?.minutesBefore ?? _defaultOffset;
+    final days = initial?.weekdays ?? const <int>{};
+    _weekdays = days.isEmpty ? {1, 2, 3, 4, 5, 6, 7} : {...days};
+    _label = TextEditingController(text: initial?.label ?? '');
+  }
+
+  @override
+  void dispose() {
+    _label.dispose();
+    super.dispose();
   }
 
   int _maxOffsetFor(PrayerType prayer) {
@@ -75,7 +95,24 @@ class _AddNotificationBottomSheetState
     setState(() => _errorText = null);
 
     Navigator.of(context).pop();
-    widget.onAdd(_selectedType, minutes);
+    final label = _label.text.trim();
+    widget.onAdd(
+      _selectedType,
+      minutes,
+      _weekdays.length == 7 ? const <int>{} : _weekdays,
+      label.isEmpty ? null : label,
+    );
+  }
+
+  void _toggleDay(int day) {
+    setState(() {
+      if (_weekdays.contains(day)) {
+        // En az bir gün kalsın: hiç çalmayan bildirim anlamsız.
+        if (_weekdays.length > 1) _weekdays.remove(day);
+      } else {
+        _weekdays.add(day);
+      }
+    });
   }
 
   int _normalizedOffset(int value) {
@@ -140,6 +177,31 @@ class _AddNotificationBottomSheetState
               const Center(child: SectionLabel('Bildirim Zamanı')),
               const SizedBox(height: 12),
               _buildTimeSelector(),
+              const SizedBox(height: 24),
+              const Center(child: SectionLabel('Günler')),
+              const SizedBox(height: 12),
+              _buildWeekdaySelector(),
+              const SizedBox(height: 24),
+              const Center(child: SectionLabel('Etiket (isteğe bağlı)')),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _label,
+                style: TextStyle(color: tokens.textPrimary),
+                decoration: InputDecoration(
+                  hintText: 'Örn. Cuma namazı',
+                  hintStyle: TextStyle(color: tokens.textTertiary),
+                  filled: true,
+                  fillColor: tokens.surface,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: tokens.border),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: tokens.border),
+                  ),
+                ),
+              ),
               const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
@@ -166,6 +228,47 @@ class _AddNotificationBottomSheetState
           ),
         ),
       ),
+    );
+  }
+
+  /// Gün çipleri; alarm ekranındaki kalıpla aynı (1=Pazartesi).
+  Widget _buildWeekdaySelector() {
+    const names = ['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pa'];
+
+    return Row(
+      children: List.generate(7, (index) {
+        final day = index + 1;
+        final selected = _weekdays.contains(day);
+        return Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(right: index < 6 ? 6 : 0),
+            child: GestureDetector(
+              onTap: () => _toggleDay(day),
+              child: Container(
+                height: 44,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: selected
+                      ? tokens.accent.withValues(alpha: 0.2)
+                      : tokens.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: selected ? tokens.accent : tokens.border,
+                  ),
+                ),
+                child: Text(
+                  names[index],
+                  style: TextStyle(
+                    color: selected ? tokens.accent : tokens.textSecondary,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }),
     );
   }
 
@@ -412,9 +515,4 @@ class _AddNotificationBottomSheetState
 
   /// Yardımcı metotların hepsi renk okuyor; tek kısayol.
   AppTokens get tokens => context.tokens;
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
 }

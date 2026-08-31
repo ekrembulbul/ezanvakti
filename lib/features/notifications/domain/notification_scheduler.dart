@@ -62,8 +62,16 @@ class NotificationScheduler {
     final candidates = <_NotificationCandidate>[];
     final seenIds = <String>{};
 
+    // Spesifik (belirli günlere kısıtlı) satırlar önce denenir: aynı
+    // (gün, vakit, sapma) kimliğini paylaşan iki satırda Cuma'ya özel olan
+    // genel satırı bastırsın (`seenIds` gerisini hallediyor).
+    final orderedSettings = [
+      ...settings.where((setting) => setting.isDayScoped),
+      ...settings.where((setting) => !setting.isDayScoped),
+    ];
+
     for (final prayerTime in prayerTimes) {
-      for (final setting in settings) {
+      for (final setting in orderedSettings) {
         if (!setting.isActive) continue;
 
         final prayerDateTime = _getPrayerDateTime(
@@ -71,6 +79,10 @@ class NotificationScheduler {
           setting.prayerType,
         );
         if (prayerDateTime == null) continue;
+
+        // Gün filtresi vaktin gününe bakar; sapmalı bildirim bir önceki güne
+        // düşse bile satır hangi vakit için kurulduysa o güne aittir.
+        if (!setting.firesOnWeekday(prayerDateTime.weekday)) continue;
 
         // Geçmişi ve pencere dışını ele.
         if (prayerDateTime.isBefore(now) || prayerDateTime.isAfter(cutoff)) {
@@ -200,6 +212,8 @@ class NotificationScheduler {
   }
 
   String _getNotificationTitle(NotificationSetting setting) {
+    final label = setting.label;
+    if (label != null && label.trim().isNotEmpty) return label.trim();
     if (setting.minutesBefore == 0) {
       return _getPrayerName(setting.prayerType);
     } else {
