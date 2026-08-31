@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import '../../../l10n/l10n_extensions.dart';
+import '../../utils/time_format_context.dart';
 
 import '../../../core/models/notification_setting.dart';
 import '../../../core/models/prayer_time.dart';
@@ -75,7 +76,7 @@ class PrayerGrid extends StatelessWidget {
         FittedBox(
           fit: BoxFit.scaleDown,
           child: Text(
-            SectionLabel.toTurkishUpperCase(PrayerUtils.getPrayerName(type)),
+            SectionLabel.toTurkishUpperCase(context.l10n.prayerName(type)),
             style: AppTypography.gridPrayerName.copyWith(
               color: isActive ? tokens.accent : tokens.textTertiary,
             ),
@@ -85,7 +86,7 @@ class PrayerGrid extends StatelessWidget {
         FittedBox(
           fit: BoxFit.scaleDown,
           child: Text(
-            DateFormat('HH:mm').format(time),
+            context.formatTime(time),
             style: AppTypography.gridValue.copyWith(
               color: valueColor,
               fontWeight: isActive ? FontWeight.w800 : FontWeight.w700,

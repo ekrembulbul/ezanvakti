@@ -21,11 +21,18 @@ abstract class NotificationService {
 
   Future<bool> isPermissionGranted();
 
+  /// [soundId] `NotificationSounds` değerlerinden biri ya da null (sistem).
+  /// [silent] doğruysa ses hiç çalmaz (sessiz pencere ya da "Sessiz" seçimi).
+  /// [timeSensitive] doğruysa bildirim Odak modunda da anında gösterilir —
+  /// sessiz anahtarını **delmez**.
   Future<void> scheduleNotification({
     required String id,
     required DateTime scheduledTime,
     required String title,
     required String body,
+    String? soundId,
+    bool silent = false,
+    bool timeSensitive = true,
   });
 
   Future<void> cancelNotification(String id);

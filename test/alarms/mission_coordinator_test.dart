@@ -25,7 +25,7 @@ void main() {
     service.pendingEvents = [
       MissionStopEvent(alarmId: 'sahur', stoppedAt: firedAt),
     ];
-    final session = await coordinator.resume();
+    final session = (await coordinator.resume()).session;
     expect(session, isNotNull);
     expect(session!.alarmId, 'sahur');
     expect(await storage.getMissionSession(), isNotNull);
@@ -42,7 +42,7 @@ void main() {
       MissionStopEvent(alarmId: 'sahur', stoppedAt: again),
     ];
 
-    final session = await coordinator.resume();
+    final session = (await coordinator.resume()).session;
 
     expect(session!.firedAt, firedAt);
     expect(session.stoppedAt, again);
@@ -52,8 +52,22 @@ void main() {
     await storage.saveMissionSession(
       MissionSession(alarmId: 'sahur', firedAt: firedAt),
     );
-    final session = await coordinator.resume();
+    final session = (await coordinator.resume()).session;
     expect(session!.alarmId, 'sahur');
+  });
+
+  /// Zincir tavana carpti (K3): oturum kapanmali, gorev ekrani acilmamali.
+  test('resume: chainStopped olayi oturumu kapatir', () async {
+    await storage.saveMissionSession(
+      MissionSession(alarmId: 'sahur', firedAt: firedAt),
+    );
+    service.pendingEvents = [
+      MissionStopEvent(alarmId: 'sahur', stoppedAt: firedAt, chainStopped: true),
+    ];
+    final result = await coordinator.resume();
+    expect(result.chainStoppedAlarmId, 'sahur');
+    expect(result.session, isNull);
+    expect(await storage.getMissionSession(), isNull);
   });
 
   test('begin native tarafa haber verir', () async {

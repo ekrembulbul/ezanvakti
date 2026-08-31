@@ -147,12 +147,12 @@ void main() {
       // fonksiyondan ayni gunle kimlik uretir, saatten bagimsiz.
       final fromCard = NotificationScheduler.notificationIdFor(
         date: DateTime(2026, 8, 3),
-        prayerType: PrayerType.maghrib,
+        pointIndex: PrayerType.maghrib.index,
         minutesBefore: 10,
       );
       final fromScheduler = NotificationScheduler.notificationIdFor(
         date: DateTime(2026, 8, 3, 23, 59),
-        prayerType: PrayerType.maghrib,
+        pointIndex: PrayerType.maghrib.index,
         minutesBefore: 10,
       );
 
@@ -162,12 +162,12 @@ void main() {
     test('Farkli gun farkli kimlik', () {
       final today = NotificationScheduler.notificationIdFor(
         date: DateTime(2026, 8, 3),
-        prayerType: PrayerType.maghrib,
+        pointIndex: PrayerType.maghrib.index,
         minutesBefore: 10,
       );
       final tomorrow = NotificationScheduler.notificationIdFor(
         date: DateTime(2026, 8, 4),
-        prayerType: PrayerType.maghrib,
+        pointIndex: PrayerType.maghrib.index,
         minutesBefore: 10,
       );
 

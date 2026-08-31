@@ -3,6 +3,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart' hide Location;
 import '../../../core/models/location.dart';
 import '../../../core/utils/app_logger.dart';
+import '../../../l10n/device_localizations.dart';
 import '../data/gps_label.dart';
 import 'location_repository.dart';
 
@@ -185,7 +186,11 @@ class LocationMonitorService {
 
       if (placemarks.isEmpty) return null;
 
-      final label = resolveGpsLabel(placemarks.first);
+      final l10n = await deviceLocalizations();
+      final label = resolveGpsLabel(
+        placemarks.first,
+        fallbackLabel: l10n.locationTypeGps,
+      );
 
       // Ham GPS koordinatı doğrudan kullanılır; il/ilçe yalnızca etikettir.
       return Location(

@@ -71,9 +71,11 @@ class NativeAlarmService implements AlarmService {
     required AlarmMission mission,
     required int missionLevel,
     required Map<String, dynamic> chainConfig,
+    List<int> repeatWeekdays = const [],
   }) async {
     if (!_hasNative) return;
     await _channel.invokeMethod('scheduleAlarm', {
+      'repeatWeekdays': repeatWeekdays,
       'id': id,
       'timeMillis': scheduledTime.millisecondsSinceEpoch,
       'label': label,

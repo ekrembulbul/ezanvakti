@@ -1,9 +1,15 @@
 import 'package:flutter_test/flutter_test.dart';
+import '../support/l10n_helper.dart';
+import 'package:ezanvakti/l10n/app_localizations.dart';
 import 'package:ezanvakti/core/services/timezone_service.dart';
 import 'package:ezanvakti/core/services/dst_change_detector.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 void main() {
+  late AppLocalizations l10n;
+
+  setUpAll(() async => l10n = await loadTestL10n());
+
   group('Timezone Service - Initialization', () {
     late TimezoneService timezoneService;
 
@@ -195,9 +201,10 @@ void main() {
     });
 
     test('Can get DST status message', () {
-      final message = dstDetector.getDSTStatusMessage(DateTime.now());
+      final message = dstDetector.getDSTStatusMessage(DateTime.now(), l10n);
 
-      expect(message, contains('saati'));
+      // Metin cevrilmis geliyor; icerik yerine bicim sinaniyor.
+      expect(message, isNotEmpty);
       expect(message, contains('UTC'));
     });
   });
@@ -500,8 +507,8 @@ void main() {
       final winterDate = DateTime(2024, 1, 15);
       final summerDate = DateTime(2024, 7, 15);
 
-      final winterMessage = dstDetector.getDSTStatusMessage(winterDate);
-      final summerMessage = dstDetector.getDSTStatusMessage(summerDate);
+      final winterMessage = dstDetector.getDSTStatusMessage(winterDate, l10n);
+      final summerMessage = dstDetector.getDSTStatusMessage(summerDate, l10n);
 
       expect(winterMessage, contains('UTC+3'));
       expect(summerMessage, contains('UTC+3'));

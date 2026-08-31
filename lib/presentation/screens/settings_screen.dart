@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import '../utils/directional_icons.dart';
+import '../../l10n/l10n_extensions.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import '../../core/constants/app_constants.dart';
 import '../../core/models/location.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/tokens_context.dart';
@@ -10,12 +11,18 @@ import '../widgets/common/app_surface.dart';
 import '../widgets/common/grouped_list.dart';
 import '../widgets/common/section_label.dart';
 import '../widgets/settings/appearance_section.dart';
+import '../widgets/settings/general_section.dart';
+import '../widgets/settings/notification_prefs_section.dart';
 
 class SettingsScreen extends StatefulWidget {
   final Location currentLocation;
   final String dataSource;
   final VoidCallback? onChangeLocation;
   final VoidCallback? onCalculationSettings;
+  final VoidCallback? onQuietWindows;
+
+  /// Bildirim tercihleri değişince planlamayı tazelemek için.
+  final Future<void> Function()? onNotificationPrefsChanged;
 
   /// Verilmezse ekran kendi özet diyaloğunu gösterir.
   final VoidCallback? onPrivacy;
@@ -26,6 +33,8 @@ class SettingsScreen extends StatefulWidget {
     this.dataSource = 'Aladhan API',
     this.onChangeLocation,
     this.onCalculationSettings,
+    this.onQuietWindows,
+    this.onNotificationPrefsChanged,
     this.onPrivacy,
   });
 
@@ -47,7 +56,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final packageInfo = await PackageInfo.fromPlatform();
       if (mounted) setState(() => _version = packageInfo.version);
     } catch (_) {
-      if (mounted) setState(() => _version = 'Bilinmiyor');
+      if (mounted) setState(() => _version = context.l10n.versionUnknown);
     }
   }
 
@@ -56,14 +65,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      appBar: const SimpleAppBar(title: 'Ayarlar'),
+      appBar: SimpleAppBar(title: context.l10n.settingsTitle),
       body: AppSurface(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
           children: [
             _buildHeader(),
             const SizedBox(height: 32),
-            const SectionLabel('Genel'),
+            SectionLabel(context.l10n.settingsGeneral),
             const SizedBox(height: 10),
             GroupedList(
               children: [
@@ -71,34 +80,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   icon: widget.currentLocation.type == LocationType.gps
                       ? Icons.my_location_rounded
                       : Icons.location_on_rounded,
-                  title: 'Konum',
+                  title: context.l10n.settingsLocation,
                   value: widget.currentLocation.displayName,
                   onTap: widget.onChangeLocation,
                 ),
                 _row(
                   icon: Icons.tune_rounded,
-                  title: 'Hesaplama',
+                  title: context.l10n.settingsCalculation,
                   onTap: widget.onCalculationSettings,
                 ),
               ],
             ),
+            const SizedBox(height: 12),
+            const GeneralSection(),
             const SizedBox(height: 26),
-            const SectionLabel('Görünüm'),
+            SectionLabel(context.l10n.settingsNotificationsAndSound),
+            const SizedBox(height: 10),
+            NotificationPrefsSection(
+              onChanged: widget.onNotificationPrefsChanged,
+            ),
+            const SizedBox(height: 12),
+            GroupedList(
+              children: [
+                _row(
+                  icon: Icons.notifications_off_rounded,
+                  title: context.l10n.settingsQuietWindows,
+                  value: null,
+                  onTap: widget.onQuietWindows,
+                ),
+              ],
+            ),
+            const SizedBox(height: 26),
+            SectionLabel(context.l10n.settingsAppearance),
             const SizedBox(height: 10),
             const AppearanceSection(),
             const SizedBox(height: 26),
-            const SectionLabel('Bilgi'),
+            SectionLabel(context.l10n.settingsInfo),
             const SizedBox(height: 10),
             GroupedList(
               children: [
                 _row(
                   icon: Icons.cloud_download_rounded,
-                  title: 'Veri kaynağı',
+                  title: context.l10n.settingsDataSource,
                   value: widget.dataSource,
                 ),
                 _row(
                   icon: Icons.lock_rounded,
-                  title: 'Gizlilik',
+                  title: context.l10n.settingsPrivacy,
                   onTap: widget.onPrivacy ?? _showPrivacy,
                 ),
               ],
@@ -141,9 +169,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           if (onTap != null)
             Padding(
-              padding: const EdgeInsets.only(left: 6),
+              padding: const EdgeInsetsDirectional.only(start: 6),
               child: Icon(
-                Icons.chevron_right_rounded,
+                context.forwardChevron,
                 size: 20,
                 color: tokens.textTertiary,
               ),
@@ -159,13 +187,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Column(
       children: [
         Text(
-          AppConstants.appTitle,
+          context.l10n.appName,
           textAlign: TextAlign.center,
           style: AppTypography.rowTitle.copyWith(color: tokens.textPrimary),
         ),
         const SizedBox(height: 4),
         Text(
-          _version.isEmpty ? 'Sürüm yükleniyor...' : 'Sürüm $_version',
+          _version.isEmpty
+              ? context.l10n.settingsVersionLoading
+              : context.l10n.settingsVersion(_version),
           style: AppTypography.rowSubtitle.copyWith(color: tokens.textTertiary),
         ),
       ],
@@ -176,7 +206,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final tokens = context.tokens;
 
     return Text(
-      'Vakitler cihazınızda saklanır, dışarı gönderilmez.',
+      context.l10n.settingsFooter,
       textAlign: TextAlign.center,
       style: AppTypography.hint.copyWith(
         color: tokens.textTertiary,
@@ -196,13 +226,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: tokens.backgroundStops[1],
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
-          'Gizlilik',
+          context.l10n.settingsPrivacy,
           style: AppTypography.rowTitle.copyWith(color: tokens.textPrimary),
         ),
         content: Text(
-          'Konumunuz yalnızca namaz vakitlerini hesaplamak için kullanılır ve '
-          'cihazınızda saklanır. Vakit verisi Aladhan API üzerinden koordinatla '
-          'sorgulanır; kişisel bilgi gönderilmez.',
+          context.l10n.privacyBody,
           style: AppTypography.rowSubtitle.copyWith(
             color: tokens.textSecondary,
             height: 1.5,
@@ -211,7 +239,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Tamam'),
+            child: Text(context.l10n.actionOk),
           ),
         ],
       ),

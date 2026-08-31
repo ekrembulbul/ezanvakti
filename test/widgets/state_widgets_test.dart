@@ -13,7 +13,8 @@ void main() {
     );
 
     expect(indicator.color, tokensFor().accent);
-    expect(find.text('Yükleniyor...'), findsOneWidget);
+    // Mesaj artik opsiyonel: metin cagiran taraftan (ceviriden) geliyor.
+    expect(find.byType(Text), findsNothing);
   });
 
   testWidgets('LoadingState ozel mesaj alabilir', (tester) async {

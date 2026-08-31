@@ -17,7 +17,6 @@ import 'package:ezanvakti/presentation/screens/reminders_screen.dart';
 import 'package:ezanvakti/presentation/services/reminder_rescheduler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart';
 import 'dart:async';
 
 import '../../support/fakes.dart';
@@ -121,10 +120,7 @@ void main() {
 
   Future<void> pump(WidgetTester tester) async {
     await tester.pumpWidget(
-      ChangeNotifierProvider<AppState>.value(
-        value: appState,
-        child: wrapWithTheme(const RemindersScreen()),
-      ),
+      wrapWithTheme(const RemindersScreen(), appState: appState),
     );
     await tester.pumpAndSettle();
   }

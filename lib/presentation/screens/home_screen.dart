@@ -12,6 +12,8 @@ import '../../core/utils/prayer_utils.dart';
 import '../services/upcoming_resolver.dart';
 import '../widgets/common/app_surface.dart';
 import '../widgets/common/state_widgets.dart';
+import '../../features/ramadan/domain/ramadan_countdown.dart';
+import '../../l10n/l10n_extensions.dart';
 import '../widgets/home/countdown_hero.dart';
 import '../widgets/home/day_ruler.dart';
 import '../widgets/home/home_top_bar.dart';
@@ -19,6 +21,9 @@ import '../widgets/home/prayer_grid.dart';
 import '../widgets/home/upcoming_card.dart';
 
 class HomeScreen extends StatefulWidget {
+  /// Ramazan modu açık mı; sayaç ve başlıklar buna göre değişir.
+  final bool ramadanActive;
+
   final Location location;
   final PrayerTime? todaysPrayerTime;
   final PrayerTime? tomorrowsPrayerTime;
@@ -57,6 +62,7 @@ class HomeScreen extends StatefulWidget {
 
   const HomeScreen({
     this.missionSession,
+    this.ramadanActive = false,
     super.key,
     required this.location,
     this.todaysPrayerTime,
@@ -138,18 +144,33 @@ class _HomeScreenState extends State<HomeScreen> {
     if (today == null) {
       // İlk yüklemede veri henüz gelmediyse boş ekran yerine yükleniyor göster.
       if (widget.lastUpdateTime == null) return const LoadingState();
-      return const EmptyState(
+      return EmptyState(
         icon: Icons.hourglass_empty_rounded,
-        message: 'Veri bulunamadı',
+        message: context.l10n.offlineNoData,
       );
     }
 
     final now = DateTime.now();
-    final nextTime = PrayerUtils.getNextPrayerTime(
-      today,
-      widget.tomorrowsPrayerTime,
-    );
-    final nextName = PrayerUtils.getNextPrayerName(today);
+
+    // Ramazan'da sayaç sıradaki vakte değil iftara/sahura sayar: kullanıcının
+    // o ay boyunca beklediği bilgi bu.
+    final ramadan = widget.ramadanActive
+        ? RamadanCountdown.resolve(
+            now: now,
+            today: today,
+            tomorrow: widget.tomorrowsPrayerTime,
+          )
+        : null;
+
+    final nextTime =
+        ramadan?.time ??
+        PrayerUtils.getNextPrayerTime(today, widget.tomorrowsPrayerTime);
+    final nextType = PrayerUtils.getNextPrayerType(today);
+    final nextName = ramadan == null
+        ? (nextType == null ? null : context.l10n.prayerName(nextType))
+        : (ramadan.kind == RamadanCountdownKind.iftar
+              ? context.l10n.ramadanIftarCountdown
+              : context.l10n.ramadanSuhoorCountdown);
 
     return Column(
       children: [

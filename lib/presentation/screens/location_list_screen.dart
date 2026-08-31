@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/l10n_extensions.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/tokens_context.dart';
 import '../../core/models/location.dart';
@@ -39,6 +40,7 @@ class _LocationListScreenState extends State<LocationListScreen> {
   }
 
   Future<void> _loadLocations() async {
+    final l10n = context.l10n;
     setState(() => _isLoading = true);
     try {
       final locations = await widget.locationRepository.getSavedLocations();
@@ -48,7 +50,7 @@ class _LocationListScreenState extends State<LocationListScreen> {
       });
     } catch (e) {
       setState(() => _isLoading = false);
-      _showSnackBar('Konumlar yüklenemedi: $e', isError: true);
+      _showSnackBar(l10n.locationsLoadFailed(e), isError: true);
     }
   }
 
@@ -89,36 +91,38 @@ class _LocationListScreenState extends State<LocationListScreen> {
       Navigator.popUntil(context, (route) => route.isFirst);
     } else {
       _loadLocations();
-      _showSnackBar('Konum güncellendi');
+      _showSnackBar(context.l10n.locationUpdated);
     }
   }
 
   /// Onay sorulmadan siler; geri alma "Geri al" ile verilir.
   Future<void> _deleteLocation(Location location) async {
+    final l10n = context.l10n;
     try {
       await widget.locationRepository.deleteLocation(location.id);
       _loadLocations();
       _showSnackBar(
-        '${location.displayName} silindi',
+        l10n.locationDeleted(location.displayName),
         action: SnackBarAction(
-          label: 'Geri al',
+          label: l10n.snackUndo,
           textColor: Colors.white,
           onPressed: () => _restoreLocation(location),
         ),
       );
     } catch (e) {
-      _showSnackBar('Hata: $e', isError: true);
+      _showSnackBar(l10n.errorGenericWith(e), isError: true);
     }
   }
 
   /// Silinen konumu **aynı id ile** geri yazar; kayıtlı vakitler ve alarm
   /// eşleşmeleri bozulmasın.
   Future<void> _restoreLocation(Location location) async {
+    final l10n = context.l10n;
     try {
       await widget.locationRepository.saveLocation(location);
       _loadLocations();
     } catch (e) {
-      _showSnackBar('Geri alınamadı: $e', isError: true);
+      _showSnackBar(l10n.locationUndoFailed(e), isError: true);
     }
   }
 
@@ -158,12 +162,12 @@ class _LocationListScreenState extends State<LocationListScreen> {
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       appBar: SimpleAppBar(
-        title: 'Konumlar',
+        title: context.l10n.locationsTitle,
         actions: [
           AppBarActionButton(
             icon: Icons.add_location_alt_rounded,
             onTap: _addNewLocation,
-            tooltip: 'Yeni Konum',
+            tooltip: context.l10n.locationAdd,
           ),
           const SizedBox(width: 8),
         ],
@@ -179,19 +183,18 @@ class _LocationListScreenState extends State<LocationListScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const LoadingState(message: 'Konumlar yükleniyor...');
+      return LoadingState(message: context.l10n.locationsLoading);
     }
 
     if (_locations.isEmpty) {
       return EmptyState(
         icon: Icons.location_off_rounded,
-        message: 'Henüz konum eklenmedi',
-        subtitle:
-            'GPS ile otomatik tespit edin veya\nmanuel olarak konum ekleyin.',
+        message: context.l10n.locationsEmpty,
+        subtitle: context.l10n.locationsEmptyHint,
         action: ElevatedButton.icon(
           onPressed: _addNewLocation,
           icon: const Icon(Icons.add_location_alt_rounded),
-          label: const Text('Konum Ekle'),
+          label: Text(context.l10n.locationAdd),
         ),
       );
     }
@@ -199,14 +202,14 @@ class _LocationListScreenState extends State<LocationListScreen> {
     return ListView(
       padding: const EdgeInsets.only(top: 12, bottom: 24),
       children: [
-        SectionLabel('${_locations.length} konum'),
+        SectionLabel(context.l10n.locationsCount(_locations.length)),
         const SizedBox(height: 10),
         GroupedList(
           children: [for (final location in _locations) _tile(location)],
         ),
         const SizedBox(height: 12),
         Text(
-          'Aktif olmayan konumu silmek için satırı sola kaydırın.',
+          context.l10n.locationsSwipeHint,
           style: AppTypography.hint.copyWith(
             color: context.tokens.textTertiary,
           ),
@@ -224,7 +227,7 @@ class _LocationListScreenState extends State<LocationListScreen> {
           ? Icons.my_location_rounded
           : Icons.location_on_rounded,
       title: Text(location.displayName),
-      subtitle: Text(location.type.displayName),
+      subtitle: Text(context.l10n.locationTypeLabel(location.type)),
       onTap: isActive
           ? null
           : () {
@@ -261,7 +264,7 @@ class _LocationListScreenState extends State<LocationListScreen> {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
-        'AKTİF',
+        context.l10n.locationActive,
         style: AppTypography.sectionLabel.copyWith(
           color: tokens.backgroundStops.last,
           letterSpacing: 0.5,

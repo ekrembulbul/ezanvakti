@@ -20,6 +20,9 @@ import UIKit
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "EzanAlarmKit") {
       AlarmKitHandler.register(with: registrar)
     }
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "EzanHeading") {
+      HeadingStreamHandler.register(with: registrar)
+    }
   }
 }
 
@@ -30,7 +33,9 @@ import UIKit
 /// böylece kullanıcı görev ekranına düşer.
 @available(iOS 26.1, *)
 struct MissionStopIntent: LiveActivityIntent {
-  static let title: LocalizedStringResource = "Alarmı durdur"
+  // Metin `*.lproj/Localizable.strings` içinde bu İngilizce anahtarla
+  // çevriliyor; cihaz dili neyse o gösterilir.
+  static let title: LocalizedStringResource = "Stop alarm"
   static let openAppWhenRun: Bool = true
 
   init() {}
@@ -93,9 +98,13 @@ enum MissionChainStore {
       AlarmKitHandler.notifyDart(alarmId: alarmId)
       return
     case .stopChain:
-      // Cift ust sinir: bir hata sonsuz alarma donusmesin.
+      // Cift ust sinir: bir hata sonsuz alarma donusmesin. Dart tarafi
+      // olayla haberdar edilir ki oturumu kapatip alarmlari yeniden kursun
+      // (K3); aksi halde bayat gorev ekrani aciliyordu.
       s["pending"] = false
       save(s)
+      enqueueEvent(alarmId: alarmId, chainStopped: true)
+      AlarmKitHandler.notifyDart(alarmId: alarmId)
       NSLog("mission|chain|stopped|bounds|id=\(alarmId)")
       return
     case .rearm:
@@ -118,12 +127,18 @@ enum MissionChainStore {
   }
 
   static func enqueueStopEvent(alarmId: String) {
+    enqueueEvent(alarmId: alarmId, chainStopped: false)
+  }
+
+  static func enqueueEvent(alarmId: String, chainStopped: Bool) {
     var queue =
       UserDefaults.standard.array(forKey: eventsKey) as? [[String: Any]] ?? []
-    queue.append([
+    var event: [String: Any] = [
       "alarmId": alarmId,
       "stoppedAt": Date().timeIntervalSince1970 * 1000,
-    ])
+    ]
+    if chainStopped { event["chainStopped"] = true }
+    queue.append(event)
     UserDefaults.standard.set(queue, forKey: eventsKey)
   }
 
@@ -239,7 +254,7 @@ class AlarmKitHandler {
     let chainConfig = args["chainConfig"] as? [String: Any] ?? [:]
 
     let title: LocalizedStringResource =
-      label.isEmpty ? "Ezan Vakti & Alarm" : LocalizedStringResource(stringLiteral: label)
+      label.isEmpty ? "Prayer Times & Alarm" : LocalizedStringResource(stringLiteral: label)
     // Uyari yalnizca durdur dugmesi tasir. Sistemin Ertele dugmesi
     // (.countdown) sayilamiyordu; erteleme uygulama icindeki ara ekrana
     // tasindi (spec 2026-08-30 D5).
@@ -259,9 +274,22 @@ class AlarmKitHandler {
     let presentation = AlarmPresentation(alert: alert, countdown: countdownPresentation)
     let attributes = AlarmAttributes<EzanAlarmMetadata>(
       presentation: presentation, metadata: EzanAlarmMetadata(), tintColor: tint)
+    // Tekrarli sabit alarm: sistem her hafta kendisi kurar; uygulama hic
+    // acilmasa da ertesi calis garanti (K1/F1a). Bos liste = tek seferlik.
+    let repeatWeekdays = args["repeatWeekdays"] as? [Int] ?? []
+    let schedule: AlarmKit.Alarm.Schedule
+    if repeatWeekdays.isEmpty {
+      schedule = .fixed(date)
+    } else {
+      let comps = Calendar.current.dateComponents([.hour, .minute], from: date)
+      schedule = .relative(
+        .init(
+          time: .init(hour: comps.hour ?? 0, minute: comps.minute ?? 0),
+          repeats: .weekly(Self.localeWeekdays(fromIso: repeatWeekdays))))
+    }
     let config = AlarmManager.AlarmConfiguration(
       countdownDuration: countdownDuration,
-      schedule: .fixed(date),
+      schedule: schedule,
       attributes: attributes,
       stopIntent: stopIntent,
       sound: sound)
@@ -365,7 +393,7 @@ class AlarmKitHandler {
     let uuid = AlarmKitHandler().uuidFor(watchdogId)
     let label = session["label"] as? String ?? ""
     let title: LocalizedStringResource =
-      label.isEmpty ? "Ezan Vakti & Alarm" : LocalizedStringResource(stringLiteral: label)
+      label.isEmpty ? "Prayer Times & Alarm" : LocalizedStringResource(stringLiteral: label)
     let alert = AlarmPresentation.Alert(title: title)
     let attributes = AlarmAttributes<EzanAlarmMetadata>(
       presentation: AlarmPresentation(alert: alert),
@@ -384,6 +412,16 @@ class AlarmKitHandler {
         NSLog("mission|watchdog|failed|id=\(watchdogId)|\(error)")
       }
     }
+  }
+
+  /// ISO hafta günlerini (1=Pazartesi..7=Pazar) `Locale.Weekday`e çevirir;
+  /// tanınmayan değerler sessizce elenir (Dart tarafı 1..7 garanti eder).
+  static func localeWeekdays(fromIso days: [Int]) -> [Locale.Weekday] {
+    let map: [Int: Locale.Weekday] = [
+      1: .monday, 2: .tuesday, 3: .wednesday, 4: .thursday,
+      5: .friday, 6: .saturday, 7: .sunday,
+    ]
+    return days.compactMap { map[$0] }
   }
 
   /// Vakit verisi yokken kullanılan palet (ERGUVAN) vurgusu; Dart tarafındaki

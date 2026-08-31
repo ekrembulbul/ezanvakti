@@ -14,6 +14,45 @@ struct SnapshotTimes: Decodable, Equatable {
     let isha: String
 }
 
+/// Uygulamanın kendi dilinde ürettiği etiketler (v3+).
+///
+/// Widget'ta ayrı bir çeviri dosyası tutmak yerine metinler uygulamadan
+/// geliyor: kullanıcı uygulama içinde dil seçtiğinde widget da o dile geçer,
+/// cihaz dili farklı olsa bile.
+struct SnapshotLabels: Decodable, Equatable {
+    let fajr: String?
+    let sunrise: String?
+    let dhuhr: String?
+    let asr: String?
+    let maghrib: String?
+    let isha: String?
+    let tomorrow: String?
+    let stale: String?
+    let openApp: String?
+    let updateApp: String?
+
+    /// Siri cevabı: `{prayer}`, `{time}` ve `{remaining}` yer tutucuları.
+    let siriAnswer: String?
+
+    /// Kalan süre: `{hours}` ve `{minutes}` yer tutucuları.
+    let durationHourMinute: String?
+    let durationHour: String?
+    let durationMinute: String?
+
+    func name(for key: PrayerKey) -> String {
+        let value: String?
+        switch key {
+        case .fajr: value = fajr
+        case .sunrise: value = sunrise
+        case .dhuhr: value = dhuhr
+        case .asr: value = asr
+        case .maghrib: value = maghrib
+        case .isha: value = isha
+        }
+        return value ?? key.defaultName
+    }
+}
+
 struct SnapshotDay: Decodable, Equatable {
     /// `"yyyy-MM-dd"`. Offset taşımaz; cihaz-yerel wall-clock olarak yorumlanır.
     let date: String
@@ -32,11 +71,14 @@ struct WidgetSnapshot: Decodable, Equatable {
     /// duruyor olabilir ve onu reddetmek, uygulama zaten güncelken
     /// "uygulamayı güncelleyin" göstermek olurdu. Bilinmeyen sürüm reddedilir;
     /// çöp çizmek yerine kullanıcıya güncelleme mesajı gösterilir.
-    static let supportedSchemaVersions: Set<Int> = [1, 2]
+    static let supportedSchemaVersions: Set<Int> = [1, 2, 3]
 
     let schemaVersion: Int
     let locationLabel: String
     let days: [SnapshotDay]
+
+    /// v3'te gelir; eski payload'da yok ve Türkçe varsayılanlar kullanılır.
+    let labels: SnapshotLabels?
 
     static func decode(_ json: Data) throws -> WidgetSnapshot {
         let snapshot: WidgetSnapshot

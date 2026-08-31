@@ -1,12 +1,19 @@
 import 'package:ezanvakti/core/config/mission_tuning.dart';
+import 'package:ezanvakti/l10n/app_localizations.dart';
+import 'package:ezanvakti/l10n/l10n_extensions.dart';
 import 'package:ezanvakti/features/alarms/domain/abort_gate.dart';
 import 'package:ezanvakti/presentation/widgets/missions/abort_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../theme_harness.dart';
+import '../../support/l10n_helper.dart';
 
 void main() {
+  late AppLocalizations l10n;
+
+  setUpAll(() async => l10n = await loadTestL10n());
+
   Widget build(int level, {required void Function() onConfirmed}) =>
       wrapWithTheme(AbortDialog(level: level, onConfirmed: onConfirmed));
 
@@ -51,7 +58,7 @@ void main() {
     await tester.pumpWidget(build(1, onConfirmed: () {}));
     expect(find.byType(TextField), findsOneWidget);
     expect(
-      find.textContaining(AbortGate.requirementFor(1).phrase),
+      find.textContaining(l10n.abortPhrase(AbortPhrase.short)),
       findsWidgets,
     );
   });
@@ -72,7 +79,7 @@ void main() {
 
     await tester.enterText(
       find.byType(TextField),
-      AbortGate.requirementFor(1).phrase,
+      l10n.abortPhrase(AbortGate.requirementFor(1).phrase!),
     );
     await hold(tester);
 
@@ -100,7 +107,7 @@ void main() {
       build(MissionTuning.abortMaxLevel, onConfirmed: () => confirmed = true),
     );
 
-    await tester.enterText(find.byType(TextField), req.phrase);
+    await tester.enterText(find.byType(TextField), l10n.abortPhrase(req.phrase!));
     await hold(tester);
     expect(confirmed, isFalse);
 

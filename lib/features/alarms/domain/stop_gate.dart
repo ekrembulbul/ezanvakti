@@ -50,6 +50,14 @@ class StopGate {
       return StopDecision.showStopScreen;
     }
 
+    // Görevli yolda da bayatlık sınırı: dünkü oturum bugünkü açılışta görev
+    // ekranı açmamalı (31 Ağustos olayı). Eşik, zincirin sert tavanıyla aynı
+    // pencere — tavan dolduktan sonra görev borcu da düşer.
+    final staleAt = session.stoppedAt.add(
+      const Duration(minutes: MissionTuning.chainDeadlineMinutes),
+    );
+    if (!now.isBefore(staleAt)) return StopDecision.closeAndRearm;
+
     return hasChoice ? StopDecision.showStopScreen : StopDecision.openMission;
   }
 

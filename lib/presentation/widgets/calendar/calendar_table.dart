@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/l10n_extensions.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/models/notification_setting.dart';
@@ -43,7 +44,7 @@ class CalendarHeaderRow extends StatelessWidget {
                   fit: BoxFit.scaleDown,
                   child: Text(
                     SectionLabel.toTurkishUpperCase(
-                      PrayerUtils.getPrayerName(type),
+                      context.l10n.prayerName(type),
                     ),
                     style: AppTypography.gridPrayerName.copyWith(
                       color: tokens.textTertiary,
@@ -136,8 +137,9 @@ class _CalendarRow extends StatelessWidget {
 
   Widget _dayLabel(BuildContext context) {
     final tokens = context.tokens;
-    final dayNumber = DateFormat('d MMM', 'tr_TR').format(day.date);
-    final weekday = DateFormat('EEEE', 'tr_TR').format(day.date);
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final dayNumber = DateFormat('d MMM', locale).format(day.date);
+    final weekday = DateFormat('EEEE', locale).format(day.date);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -159,7 +161,7 @@ class _CalendarRow extends StatelessWidget {
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
-              'BUGÜN',
+              context.l10n.today,
               style: AppTypography.sectionLabel.copyWith(
                 color: tokens.backgroundStops.last,
                 letterSpacing: 0.5,

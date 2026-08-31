@@ -69,11 +69,12 @@ class AlarmRingService : Service() {
             fullScreen,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        val title = if (args.label.isNotBlank()) args.label else "Ezan Vakti & Alarm"
+        val title = if (args.label.isNotBlank()) args.label
+        else getString(R.string.alarm_default_label)
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_notification)
             .setContentTitle(title)
-            .setContentText("Alarm çalıyor")
+            .setContentText(getString(R.string.alarm_ringing))
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setOngoing(true)
@@ -168,10 +169,10 @@ class AlarmRingService : Service() {
             if (mgr.getNotificationChannel(CHANNEL_ID) == null) {
                 val ch = NotificationChannel(
                     CHANNEL_ID,
-                    "Ezan Vakti Alarmları",
+                    getString(R.string.alarm_channel_name),
                     NotificationManager.IMPORTANCE_HIGH,
                 ).apply {
-                    description = "Sesli alarmlar"
+                    description = getString(R.string.alarm_channel_description)
                     // Ses servis tarafından (alarm akışında) çalınır; kanal sessiz.
                     setSound(null, null)
                     enableVibration(false)

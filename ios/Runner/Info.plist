@@ -4,28 +4,32 @@
 	<dict>
 		<key>CADisableMinimumFrameDurationOnPhone</key>
 		<true/>
+		<!-- Kullanıcıya görünen metinler burada **taban (İngilizce)** değerdir.
+		     Cihaz dili tr/ar ise ilgili `*.lproj/InfoPlist.strings` devreye girer;
+		     desteklenmeyen dilde buradaki İngilizce kalır. -->
 		<key>NSCameraUsageDescription</key>
-	<string>QR görevli alarmı kapatmak için kaydettiğiniz kodu okutmak üzere kameraya erişim gerekiyor.</string>
+		<string>Camera access is needed to scan the code you saved, so you can dismiss an alarm with a QR task.</string>
 	<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleDisplayName</key>
-		<string>Ezan Vakti &amp; Alarm</string>
+		<string>Prayer Times &amp; Alarm</string>
 		<key>CFBundleExecutable</key>
 		<string>$(EXECUTABLE_NAME)</string>
 		<key>CFBundleIdentifier</key>
 		<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 		<key>CFBundleInfoDictionaryVersion</key>
 		<string>6.0</string>
-		<!-- Uygulama tamamen Türkçe. Bu liste olmadan iOS, uygulama adına
-		     çizdiği sistem metinlerini (AlarmKit uyarısındaki "slide to stop"
-		     gibi) geliştirme diline, yani İngilizce'ye düşürüyor. -->
+		<!-- Desteklenen diller. Bu liste olmadan iOS, uygulama adına çizdiği
+		     sistem metinlerini (AlarmKit uyarısındaki "slide to stop" gibi)
+		     geliştirme diline düşürüyor. -->
 		<key>CFBundleLocalizations</key>
 		<array>
-			<string>tr</string>
 			<string>en</string>
+			<string>tr</string>
+			<string>ar</string>
 		</array>
 		<key>CFBundleName</key>
-		<string>Ezan Vakti</string>
+		<string>Prayer Times</string>
 		<key>CFBundlePackageType</key>
 		<string>APPL</string>
 		<key>CFBundleShortVersionString</key>
@@ -39,11 +43,11 @@
 		<key>LSRequiresIPhoneOS</key>
 		<true/>
 		<key>NSLocationWhenInUseUsageDescription</key>
-		<string>Namaz vakitlerini bulunduğunuz konuma göre göstermek için konum iznine ihtiyaç var.</string>
+		<string>Location access is needed to show prayer times for where you are.</string>
 		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-		<string>Namaz vakitlerini bulunduğunuz konuma göre göstermek için konum iznine ihtiyaç var.</string>
+		<string>Location access is needed to show prayer times for where you are.</string>
 		<key>NSAlarmKitUsageDescription</key>
-		<string>Namaz vakitleri ve seçtiğiniz saatler için sesli alarm kurmak amacıyla alarm iznine ihtiyaç var.</string>
+		<string>Alarm access is needed to set audible alarms for prayer times and the times you choose.</string>
 		<key>UIApplicationSceneManifest</key>
 		<dict>
 			<key>UIApplicationSupportsMultipleScenes</key>

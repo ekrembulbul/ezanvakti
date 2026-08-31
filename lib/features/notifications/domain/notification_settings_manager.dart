@@ -24,7 +24,9 @@ class NotificationSettingsManager {
     final index = settings.indexWhere(
       (s) =>
           s.prayerType == setting.prayerType &&
-          s.minutesBefore == setting.minutesBefore,
+          s.derivedKind == setting.derivedKind &&
+          s.minutesBefore == setting.minutesBefore &&
+          s.weekdaysCsv == setting.weekdaysCsv,
     );
 
     if (index != -1) {
@@ -42,11 +44,15 @@ class NotificationSettingsManager {
   Future<void> toggleSetting({
     required PrayerType prayerType,
     required int minutesBefore,
+    String weekdays = '',
   }) async {
     final settings = await getSettings();
 
     final index = settings.indexWhere(
-      (s) => s.prayerType == prayerType && s.minutesBefore == minutesBefore,
+      (s) =>
+          s.prayerType == prayerType &&
+          s.minutesBefore == minutesBefore &&
+          s.weekdaysCsv == weekdays,
     );
 
     if (index != -1) {
@@ -167,12 +173,16 @@ class NotificationSettingsManager {
   Future<void> removeSetting({
     required PrayerType prayerType,
     required int minutesBefore,
+    String weekdays = '',
+    String derivedKind = '',
   }) async {
     await storage.deleteNotificationSetting(
       prayerType: prayerType,
       minutesBefore: minutesBefore,
+      weekdays: weekdays,
+      derivedKind: derivedKind,
     );
-    _logger.debug('Removed setting $prayerType ($minutesBefore dk)');
+    _logger.debug('Removed setting $prayerType ($minutesBefore dk) [$weekdays]');
   }
 
   Future<void> addSetting(NotificationSetting setting) async {

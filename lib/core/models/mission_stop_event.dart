@@ -6,7 +6,15 @@ class MissionStopEvent {
   final String alarmId;
   final DateTime stoppedAt;
 
-  const MissionStopEvent({required this.alarmId, required this.stoppedAt});
+  /// Native zincir sert tavana (süre/tekrar) çarptı: bu bir durdurma değil,
+  /// "zincir bitti" bildirimi. Görev ekranı açılmaz; oturum kapatılır.
+  final bool chainStopped;
+
+  const MissionStopEvent({
+    required this.alarmId,
+    required this.stoppedAt,
+    this.chainStopped = false,
+  });
 
   factory MissionStopEvent.fromMap(Map<Object?, Object?> map) =>
       MissionStopEvent(
@@ -14,5 +22,6 @@ class MissionStopEvent {
         stoppedAt: DateTime.fromMillisecondsSinceEpoch(
           (map['stoppedAt'] as num).toInt(),
         ),
+        chainStopped: map['chainStopped'] == true,
       );
 }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
+import '../../l10n/l10n_extensions.dart';
 
 import '../../core/models/alarm.dart';
 import '../../core/theme/app_tokens.dart';
@@ -53,6 +55,7 @@ class MissionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
+    final l10n = context.l10n;
 
     return Scaffold(
       backgroundColor: tokens.backgroundStops.last,
@@ -62,15 +65,15 @@ class MissionScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _header(tokens),
+              _header(tokens, l10n),
               const SizedBox(height: 20),
               Expanded(child: child),
               const SizedBox(height: 20),
               if (onSnooze != null && snoozeRemaining > 0) ...[
-                _snoozeButton(tokens),
+                _snoozeButton(tokens, l10n),
                 const SizedBox(height: 12),
               ],
-              _abortButton(tokens),
+              _abortButton(tokens, l10n),
             ],
           ),
         ),
@@ -78,8 +81,8 @@ class MissionScreen extends StatelessWidget {
     );
   }
 
-  Widget _header(AppTokens tokens) {
-    final title = alarm.label.isEmpty ? 'Alarm' : alarm.label;
+  Widget _header(AppTokens tokens, AppLocalizations l10n) {
+    final title = alarm.label.isEmpty ? l10n.alarmDefaultLabel : alarm.label;
 
     return Column(
       children: [
@@ -97,7 +100,7 @@ class MissionScreen extends StatelessWidget {
         // Süre dolduysa alarm geri dönüyor; sayaç 0'da donmuş gibi görünmesin.
         if (_expired)
           Text(
-            'Süre doldu, alarm geri dönüyor',
+            l10n.missionTimeUp,
             textAlign: TextAlign.center,
             style: AppTypography.screenTitle.copyWith(
               fontSize: 22,
@@ -114,7 +117,7 @@ class MissionScreen extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'süre bitince alarm geri döner',
+            l10n.missionCountdownNote,
             textAlign: TextAlign.center,
             style: AppTypography.hint.copyWith(
               fontSize: 14,
@@ -128,7 +131,7 @@ class MissionScreen extends StatelessWidget {
 
   /// Erteleme süresi düğmenin üstünde yazıyor: uyanmamış biri "Ertele"nin kaç
   /// dakika olduğunu hatırlamak zorunda kalmasın.
-  Widget _snoozeButton(AppTokens tokens) {
+  Widget _snoozeButton(AppTokens tokens, AppLocalizations l10n) {
     return SizedBox(
       height: kMissionButtonHeight,
       child: FilledButton(
@@ -146,7 +149,7 @@ class MissionScreen extends StatelessWidget {
         child: FittedBox(
           fit: BoxFit.scaleDown,
           child: Text(
-            '${alarm.snoozeMinutes} dk ertele · $snoozeRemaining hak',
+            l10n.missionSnoozeAction(alarm.snoozeMinutes, snoozeRemaining),
             style: AppTypography.rowTitle.copyWith(
               fontSize: kMissionButtonFontSize,
             ),
@@ -156,7 +159,7 @@ class MissionScreen extends StatelessWidget {
     );
   }
 
-  Widget _abortButton(AppTokens tokens) {
+  Widget _abortButton(AppTokens tokens, AppLocalizations l10n) {
     return SizedBox(
       height: _kSecondaryButtonHeight,
       child: OutlinedButton(
@@ -172,7 +175,7 @@ class MissionScreen extends StatelessWidget {
         child: FittedBox(
           fit: BoxFit.scaleDown,
           child: Text(
-            'Alarmı tamamen kapat',
+            l10n.missionCloseCompletely,
             style: AppTypography.rowTitle.copyWith(fontSize: 17),
           ),
         ),

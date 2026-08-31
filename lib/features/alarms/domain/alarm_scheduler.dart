@@ -2,6 +2,7 @@ import '../../../core/config/mission_tuning.dart';
 import '../../../core/interfaces/alarm_service.dart';
 import '../../../core/interfaces/local_storage.dart';
 import '../../../core/models/alarm.dart';
+import '../../../core/models/alarm_mission.dart';
 import '../../../core/models/alarm_theme.dart';
 import '../../../core/models/notification_setting.dart' show PrayerType;
 import '../../../core/models/prayer_time.dart';
@@ -51,8 +52,20 @@ class AlarmScheduler {
 
     final now = DateTime.now();
     final currentAppearance = appearance();
+    final failures = <String, String>{};
     for (final alarm in alarms) {
       if (!alarm.isActive) continue;
+      if (alarm.kind == AlarmKind.anchored) {
+        await _scheduleAnchoredSeries(
+          alarm: alarm,
+          now: now,
+          byDate: byDate,
+          skips: skips,
+          currentAppearance: currentAppearance,
+          failures: failures,
+        );
+        continue;
+      }
       final fire = computeNextFire(
         alarm: alarm,
         now: now,
@@ -65,6 +78,7 @@ class AlarmScheduler {
       // başarısızlık hata ayıklamayı imkânsız kılar.
       try {
         await alarmService.scheduleAlarm(
+          repeatWeekdays: _relativeWeekdaysFor(alarm, now: now, skips: skips),
           id: alarm.id,
           scheduledTime: fire,
           label: alarm.label,
@@ -90,7 +104,84 @@ class AlarmScheduler {
           },
         );
       } catch (e) {
-        _logger.warning('Alarm planlanamadı (id: ${alarm.id})', e);
+        // Log; kullanıcıya gösterilmiyor, çevrilmiyor.
+        _logger.warning('Alarm scheduling failed (id: ${alarm.id})', e);
+        failures[alarm.id] = _shortMessage(e);
+      }
+    }
+
+    // Kalıcı kayıt arayüz içindir; yazılamaması planlamayı düşürmemeli
+    // (testlerdeki kısmi sahte depolar da desteklemeyebilir).
+    try {
+      await storage.saveAlarmScheduleFailures(failures);
+    } catch (e) {
+      _logger.warning('Alarm hata kaydi yazilamadi', e);
+    }
+  }
+
+  /// Satırda gösterilecek kadar kısa hata özeti.
+  static String _shortMessage(Object error) {
+    final text = error.toString();
+    return text.length <= 120 ? text : text.substring(0, 120);
+  }
+
+  /// Çıpalı alarmın önümüzdeki çalışlarını önden dizer (K1/F1b): saat her
+  /// gün kaydığı için native tekrar kurulamaz; bunun yerine 7 güne kadar ayrı
+  /// kayıt kurulur. Birincil çalış `alarm.id` ile (görev oturumu ve skip
+  /// kayıtları bu id ile eşleşiyor), ileri günler `<id>#d<N>` ile ve görevsiz/
+  /// ertelemesiz kurulur — degrade: uygulama günlerce açılmazsa alarm yine
+  /// çalar ama durdurulduğunda görev ekranı açılmaz; ilk açılış diziyi tazeler.
+  Future<void> _scheduleAnchoredSeries({
+    required Alarm alarm,
+    required DateTime now,
+    required Map<DateTime, PrayerTime> byDate,
+    required Set<SkippedOccurrence> skips,
+    required AlarmAppearance currentAppearance,
+    required Map<String, String> failures,
+  }) async {
+    final fires = computeNextFires(
+      alarm: alarm,
+      now: now,
+      prayerTimesByDate: byDate,
+      skips: skips,
+    );
+    for (var i = 0; i < fires.length; i++) {
+      final fire = fires[i];
+      final primary = i == 0;
+      try {
+        await alarmService.scheduleAlarm(
+          id: primary ? alarm.id : '${alarm.id}#d$i',
+          scheduledTime: fire,
+          label: alarm.label,
+          soundId: alarm.soundId,
+          vibrate: alarm.vibrate,
+          snoozeEnabled: primary && alarm.snoozeEnabled,
+          snoozeMinutes: alarm.snoozeMinutes,
+          theme: themeForFire(fire, byDate, currentAppearance),
+          mission: primary ? alarm.mission : AlarmMission.none,
+          missionLevel: alarm.missionLevel,
+          chainConfig: primary
+              ? {
+                  'graceSeconds': MissionTuning.graceSeconds,
+                  'maxRearms': MissionTuning.maxRearms,
+                  'chainDeadlineMillis':
+                      MissionChain.chainDeadline(fire).millisecondsSinceEpoch,
+                  'missionTimeoutSeconds': MissionTuning.timeoutSecondsFor(
+                    alarm.mission,
+                  ),
+                  'ladderMillis': [
+                    for (final t in MissionChain.ladder(fire))
+                      t.millisecondsSinceEpoch,
+                  ],
+                }
+              : const <String, dynamic>{},
+        );
+      } catch (e) {
+        _logger.warning(
+          'Alarm scheduling failed (id: ${alarm.id}, day $i)',
+          e,
+        );
+        failures[alarm.id] = _shortMessage(e);
       }
     }
   }
@@ -118,6 +209,35 @@ class AlarmScheduler {
     );
   }
 
+  /// Sabit saatli tekrarlı alarm için native haftalık tekrar günleri
+  /// (1=Pazartesi..7=Pazar, sıralı). Çıpalı alarm relative olamaz (saat her
+  /// gün kayar) ve "yalnızca bu sefer atla" devredeyken native tekrar o
+  /// örneği atlayamayacağı için tek seferlik yola düşülür — atlanan gün
+  /// geçince bir sonraki planlamada tekrar native tekrara döner.
+  static List<int> _relativeWeekdaysFor(
+    Alarm alarm, {
+    required DateTime now,
+    required Set<SkippedOccurrence> skips,
+  }) {
+    if (alarm.kind != AlarmKind.fixed) return const [];
+    final withSkips = computeNextFire(
+      alarm: alarm,
+      now: now,
+      prayerTimesByDate: const {},
+      skips: skips,
+    );
+    final withoutSkips = computeNextFire(
+      alarm: alarm,
+      now: now,
+      prayerTimesByDate: const {},
+    );
+    if (withSkips == null || withSkips != withoutSkips) return const [];
+    final days = alarm.weekdays.isEmpty
+        ? const {1, 2, 3, 4, 5, 6, 7}
+        : alarm.weekdays;
+    return days.toList()..sort();
+  }
+
   /// [now]'dan sonraki ilk geçerli tetiklenme anını döner; [searchDays] gün
   /// içinde uygun gün/vakit bulunamazsa null. Çıpalı alarmlar için ilgili günün
   /// vakti [prayerTimesByDate]'te yoksa o gün atlanır.
@@ -128,8 +248,30 @@ class AlarmScheduler {
     int searchDays = 8,
     Set<SkippedOccurrence> skips = const {},
   }) {
+    final fires = computeNextFires(
+      alarm: alarm,
+      now: now,
+      prayerTimesByDate: prayerTimesByDate,
+      searchDays: searchDays,
+      limit: 1,
+      skips: skips,
+    );
+    return fires.isEmpty ? null : fires.first;
+  }
+
+  /// [computeNextFire]'ın dizi hali: sıradaki en fazla [limit] geçerli
+  /// tetiklenme anı. Çıpalı ön dizim (F1b) bunun üzerine kurulu.
+  static List<DateTime> computeNextFires({
+    required Alarm alarm,
+    required DateTime now,
+    required Map<DateTime, PrayerTime> prayerTimesByDate,
+    int searchDays = 8,
+    int limit = 7,
+    Set<SkippedOccurrence> skips = const {},
+  }) {
+    final fires = <DateTime>[];
     final today = _dateKey(now);
-    for (var i = 0; i < searchDays; i++) {
+    for (var i = 0; i < searchDays && fires.length < limit; i++) {
       final day = today.add(Duration(days: i));
       if (!alarm.firesOnWeekday(day.weekday)) continue;
 
@@ -163,9 +305,9 @@ class AlarmScheduler {
       );
       if (skipped) continue;
 
-      return candidate;
+      fires.add(candidate);
     }
-    return null;
+    return fires;
   }
 
   static DateTime _anchorTime(PrayerTime pt, PrayerType anchor) {

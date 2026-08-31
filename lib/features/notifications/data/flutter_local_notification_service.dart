@@ -4,9 +4,14 @@ import 'package:android_intent_plus/android_intent.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
+import '../../../core/constants/notification_sounds.dart';
 import '../../../core/interfaces/notification_service.dart';
 import '../../../core/models/notification_setting.dart';
 import '../../../core/utils/app_logger.dart';
+import '../../../l10n/device_localizations.dart';
+
+/// Tek Android bildirim kanali; ses basina kanal Android turunda gelecek.
+const String _androidChannelId = 'ezan_vakti_channel';
 
 class FlutterLocalNotificationService implements NotificationService {
   final FlutterLocalNotificationsPlugin _plugin =
@@ -40,10 +45,14 @@ class FlutterLocalNotificationService implements NotificationService {
           AndroidFlutterLocalNotificationsPlugin
         >();
     if (androidPlugin != null) {
-      const androidChannel = AndroidNotificationChannel(
-        'ezan_vakti_channel',
-        'Ezan Vakti Bildirimleri',
-        description: 'Namaz vakitlerini bildiren bildirimler',
+      // Kanal adi sistem ayarlarinda gorunur. `createNotificationChannel`
+      // ayni id ile cagrilinca adi gunceller; cihaz dili degisince her
+      // acilista duzelir.
+      final l10n = await deviceLocalizations();
+      final androidChannel = AndroidNotificationChannel(
+        _androidChannelId,
+        l10n.androidChannelName,
+        description: l10n.androidChannelDescription,
         importance: Importance.high,
       );
       await androidPlugin.createNotificationChannel(androidChannel);
@@ -116,23 +125,38 @@ class FlutterLocalNotificationService implements NotificationService {
     required DateTime scheduledTime,
     required String title,
     required String body,
+    String? soundId,
+    bool silent = false,
+    bool timeSensitive = true,
   }) async {
-    const androidDetails = AndroidNotificationDetails(
-      'ezan_vakti_channel',
-      'Ezan Vakti Bildirimleri',
-      channelDescription: 'Namaz vakitlerini bildiren bildirimler',
+    // Android'de ses kanala bağlı ve kanal sesi sonradan değişmiyor; ses
+    // başına kanal Android turunda gelecek. Şimdilik sessizlik kanal
+    // seviyesinden değil, iOS tarafından uygulanıyor.
+    // Kanal `init` icinde olusturuluyor; buradaki ad/aciklama yalnizca kanal
+    // hic yoksa kullanilir.
+    final channelL10n = await deviceLocalizations();
+    final androidDetails = AndroidNotificationDetails(
+      _androidChannelId,
+      channelL10n.androidChannelName,
+      channelDescription: channelL10n.androidChannelDescription,
       importance: Importance.high,
       priority: Priority.high,
       icon: 'ic_stat_notification',
     );
 
-    const iosDetails = DarwinNotificationDetails(
+    final iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
-      presentSound: true,
+      presentSound: !silent,
+      sound: silent ? null : NotificationSounds.fileFor(soundId),
+      // Time sensitive: Odak modunda özete düşmek yerine anında görünür.
+      // Sessiz anahtarını delmez — o yalnızca AlarmKit'in yapabildiği şey.
+      interruptionLevel: timeSensitive
+          ? InterruptionLevel.timeSensitive
+          : InterruptionLevel.active,
     );
 
-    const details = NotificationDetails(
+    final details = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );
@@ -195,15 +219,16 @@ class FlutterLocalNotificationService implements NotificationService {
     _logger.debug('Pending notifications count: ${pending.length}');
 
     return pending.map((notification) {
-      // Kimlik dayOrdinal*10000 + prayerIndex*1000 + minutesBefore olarak
-      // kodlanır; vakit ve offset buradan geri çözülür (gün-içi saat OS
-      // bekleyen listesinde yer almaz, bu yüzden tarih gün başına yuvarlanır).
+      // Kimlik (gün % 10000)*200000 + nokta*10000 + offset olarak kodlanır;
+      // nokta ve offset buradan geri çözülür. Gün alanı modlandığı için
+      // mutlak tarih geri getirilemez — bekleyen listede yalnızca teşhis
+      // amaçlı kullanıldığından gün başı yeterli.
       final raw = notification.id;
-      final minutesBefore = raw % 1000;
-      final prayerIndex = (raw ~/ 1000) % 10;
-      final dayOrdinal = raw ~/ 10000;
-      final prayerType = prayerIndex < PrayerType.values.length
-          ? PrayerType.values[prayerIndex]
+      final minutesBefore = raw % 10000;
+      final pointIndex = (raw ~/ 10000) % 20;
+      final dayOrdinal = raw ~/ 200000;
+      final prayerType = pointIndex < PrayerType.values.length
+          ? PrayerType.values[pointIndex]
           : PrayerType.fajr;
 
       return ScheduledNotification(

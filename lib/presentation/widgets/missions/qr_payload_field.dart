@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/l10n_extensions.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 import '../common/section_label.dart';
@@ -25,10 +26,15 @@ class QrPayloadField extends StatelessWidget {
   /// Testlerde kamera açılmasın diye; verilirse okutma bunun sonucunu kullanır.
   final Future<String?> Function(BuildContext context)? scanOverride;
 
+  /// Okutma başarıyla sonuçlanınca çağrılır (elle yazmada çağrılmaz);
+  /// düzenleme ekranı kodu kütüphaneye kaydetmeyi buradan önerir.
+  final ValueChanged<String>? onScanned;
+
   const QrPayloadField({
     super.key,
     required this.controller,
     this.scanOverride,
+    this.onScanned,
   });
 
   Future<void> _scan(BuildContext context) async {
@@ -36,6 +42,7 @@ class QrPayloadField extends StatelessWidget {
     final code = await scanner(context);
     if (code == null) return;
     controller.text = code;
+    onScanned?.call(code);
   }
 
   @override
@@ -45,7 +52,7 @@ class QrPayloadField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionLabel('QR KOD'),
+        SectionLabel(context.l10n.qrSectionLabel),
         const SizedBox(height: 8),
         // Okutma dugmesi alanin yaninda duruyor: ikisi de ayni isi — kodu
         // doldurmayi — yapiyor, alt alta durunca ikinci bir adim gibi
@@ -67,7 +74,7 @@ class QrPayloadField extends StatelessWidget {
                   textAlignVertical: TextAlignVertical.center,
                   style: TextStyle(color: tokens.textPrimary),
                   decoration: InputDecoration(
-                    hintText: 'Kodu okut ya da yaz',
+                    hintText: context.l10n.qrFieldHint,
                     hintStyle: TextStyle(color: tokens.textTertiary),
                     filled: true,
                     fillColor: tokens.surface,
@@ -91,7 +98,7 @@ class QrPayloadField extends StatelessWidget {
               child: Tooltip(
                 // Ikon tek basina kaldigi icin eylemin adi burada yasiyor;
                 // ekran okuyucu da bunu okuyor.
-                message: 'Kodu okut',
+                message: context.l10n.qrScanTooltip,
                 child: OutlinedButton(
                   key: kQrScanButtonKey,
                   onPressed: () => _scan(context),
@@ -111,8 +118,7 @@ class QrPayloadField extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text(
-          'Kodu yatağından uzak bir yere yapıştır: banyo kapısı, mutfak. '
-          'Alarm ancak bu kod okutulunca kapanır.',
+          context.l10n.qrFieldNote,
           style: AppTypography.hint.copyWith(
             color: tokens.textTertiary,
             height: 1.5,

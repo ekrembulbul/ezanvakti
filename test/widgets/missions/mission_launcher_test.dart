@@ -21,7 +21,6 @@ import 'package:ezanvakti/presentation/widgets/missions/qr_mission.dart';
 import 'package:ezanvakti/presentation/widgets/missions/shake_mission.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:provider/provider.dart';
 
 import '../../alarms/fakes/fake_alarm_service.dart';
 import '../../support/fakes.dart';
@@ -49,7 +48,9 @@ void main() {
     maxSnoozes: 2,
   );
 
-  final stoppedAt = DateTime(2026, 8, 21, 6, 30);
+  // Sabit gecmis tarih kullanilamaz: StopGate artik 60 dk sonra oturumu
+  // bayat sayip ekran acmiyor (Task 1). Testler "az once durdu" varsayar.
+  final stoppedAt = DateTime.now();
 
   setUp(() async {
     storage = FakeStorage();
@@ -89,16 +90,14 @@ void main() {
     addTearDown(tester.view.reset);
 
     await tester.pumpWidget(
-      ChangeNotifierProvider<AppState>.value(
-        value: appState,
-        child: wrapWithTheme(
-          Builder(
-            builder: (context) {
-              hostContext = context;
-              return const SizedBox.expand();
-            },
-          ),
+      wrapWithTheme(
+        Builder(
+          builder: (context) {
+            hostContext = context;
+            return const SizedBox.expand();
+          },
         ),
+        appState: appState,
       ),
     );
     await tester.pump();

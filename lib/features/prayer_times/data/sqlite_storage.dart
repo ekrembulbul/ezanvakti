@@ -6,9 +6,15 @@ import '../../../core/models/prayer_time.dart';
 import '../../../core/models/location.dart';
 import '../../../core/models/notification_setting.dart';
 import '../../../core/models/alarm.dart';
+import '../../../core/models/qr_code_entry.dart';
 import '../../../core/models/calculation_params.dart';
 import '../../../core/models/calculation_settings.dart';
 import '../../../core/models/appearance_settings.dart';
+import '../../../core/models/derived_time.dart';
+import '../../../core/models/general_settings.dart';
+import '../../../core/models/fasting_log.dart';
+import '../../../core/models/prayer_log.dart';
+import '../../../core/models/quiet_window.dart';
 import '../../../core/models/abort_state.dart';
 import '../../../core/models/mission_session.dart';
 import '../../../core/models/skipped_occurrence.dart';
@@ -30,7 +36,7 @@ class SqliteStorage implements LocalStorage {
 
     return await openDatabase(
       path,
-      version: 8,
+      version: 13,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -59,15 +65,7 @@ class SqliteStorage implements LocalStorage {
       )
     ''');
 
-    await db.execute('''
-      CREATE TABLE notification_settings (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        prayer_type TEXT NOT NULL,
-        is_active INTEGER NOT NULL,
-        minutes_before INTEGER NOT NULL,
-        UNIQUE(prayer_type, minutes_before)
-      )
-    ''');
+    await _createNotificationSettingsTable(db);
 
     await db.execute('''
       CREATE TABLE locations (
@@ -91,6 +89,72 @@ class SqliteStorage implements LocalStorage {
     ''');
 
     await _createAlarmsTable(db);
+    await _createQrCodesTable(db);
+    await _createTrackingTables(db);
+  }
+
+  /// v12: namaz takibi, kaza sayaçları ve zikir sayacı.
+  Future<void> _createTrackingTables(Database db) async {
+    await db.execute('''
+      CREATE TABLE prayer_log (
+        date TEXT NOT NULL,
+        prayer_type TEXT NOT NULL,
+        status TEXT NOT NULL,
+        PRIMARY KEY (date, prayer_type)
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE qada_counts (
+        prayer_type TEXT PRIMARY KEY,
+        count INTEGER NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE dhikr_log (
+        date TEXT PRIMARY KEY,
+        count INTEGER NOT NULL
+      )
+    ''');
+    await _createFastingTable(db);
+  }
+
+  /// v13: oruç takibi. Kaza orucu sayısı `settings` tablosunda tutuluyor —
+  /// tek bir sayı için ayrı tablo gereksiz.
+  Future<void> _createFastingTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE fasting_log (
+        date TEXT PRIMARY KEY,
+        status TEXT NOT NULL
+      )
+    ''');
+  }
+
+  /// v11 şeması: kimlik (vakit, türetilmiş nokta, sapma, günler) dörtlüsü.
+  Future<void> _createNotificationSettingsTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE notification_settings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        prayer_type TEXT NOT NULL,
+        derived_kind TEXT NOT NULL DEFAULT '',
+        is_active INTEGER NOT NULL,
+        minutes_before INTEGER NOT NULL,
+        sound_id TEXT,
+        weekdays TEXT NOT NULL DEFAULT '',
+        label TEXT,
+        UNIQUE(prayer_type, derived_kind, minutes_before, weekdays)
+      )
+    ''');
+  }
+
+  Future<void> _createQrCodesTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE qr_codes (
+        id TEXT PRIMARY KEY,
+        label TEXT NOT NULL,
+        payload TEXT NOT NULL,
+        created_at TEXT NOT NULL
+      )
+    ''');
   }
 
   Future<void> _createAlarmsTable(Database db) async {
@@ -105,7 +169,7 @@ class SqliteStorage implements LocalStorage {
         anchor TEXT NOT NULL DEFAULT 'fajr',
         offset_minutes INTEGER NOT NULL DEFAULT 0,
         weekdays TEXT NOT NULL DEFAULT '',
-        sound_id TEXT NOT NULL DEFAULT 'adhan',
+        sound_id TEXT NOT NULL DEFAULT 'default',
         vibrate INTEGER NOT NULL DEFAULT 1,
         snooze_enabled INTEGER NOT NULL DEFAULT 1,
         snooze_minutes INTEGER NOT NULL DEFAULT 5,
@@ -201,6 +265,50 @@ class SqliteStorage implements LocalStorage {
     }
     if (oldVersion < 8) {
       await db.execute('ALTER TABLE alarms ADD COLUMN qr_payload TEXT');
+    }
+    if (oldVersion < 13) {
+      await _createFastingTable(db);
+    }
+    if (oldVersion < 12) {
+      await _createTrackingTables(db);
+    }
+    if (oldVersion < 11) {
+      // Türetilmiş nokta alanı; UNIQUE kısıtı dörtlü kimliğe genişledi.
+      // Mevcut satırlar vakit bildirimi olarak korunur (derived_kind = '').
+      await db.execute('ALTER TABLE notification_settings RENAME TO ns_v10');
+      await _createNotificationSettingsTable(db);
+      await db.execute('''
+        INSERT INTO notification_settings
+          (prayer_type, derived_kind, is_active, minutes_before, sound_id,
+           weekdays, label)
+        SELECT prayer_type, '', is_active, minutes_before, sound_id,
+               weekdays, label
+        FROM ns_v10
+      ''');
+      await db.execute('DROP TABLE ns_v10');
+    }
+    if (oldVersion < 10) {
+      // Ses, gün filtresi ve etiket alanları. UNIQUE kısıtı üçlü kimliğe
+      // genişlediği için tablo yeniden oluşturuluyor (v5 kalıbı); mevcut
+      // satırlar "her gün" (boş günler) olarak korunuyor.
+      await db.execute('ALTER TABLE notification_settings RENAME TO ns_old');
+      await _createNotificationSettingsTable(db);
+      await db.execute('''
+        INSERT INTO notification_settings
+          (prayer_type, is_active, minutes_before, sound_id, weekdays, label)
+        SELECT prayer_type, is_active, minutes_before, NULL, '', NULL
+        FROM ns_old
+      ''');
+      await db.execute('DROP TABLE ns_old');
+    }
+    if (oldVersion < 9) {
+      await _createQrCodesTable(db);
+      // 0.5.1'de kaldırılan sesler: model okuma sırasında 'default'a
+      // çeviriyordu; kalıcı temizlik burada (bkz. _migrateSoundId).
+      await db.execute(
+        "UPDATE alarms SET sound_id='default' "
+        "WHERE sound_id IN ('adhan','alarm')",
+      );
     }
   }
 
@@ -422,37 +530,49 @@ class SqliteStorage implements LocalStorage {
 
       final batch = txn.batch();
       for (final setting in settings) {
-        batch.insert('notification_settings', {
-          'prayer_type': setting.prayerType.name,
-          'is_active': setting.isActive ? 1 : 0,
-          'minutes_before': setting.minutesBefore,
-        });
+        batch.insert('notification_settings', _notificationRow(setting));
       }
 
       await batch.commit(noResult: true);
     });
   }
 
+  static Map<String, Object?> _notificationRow(NotificationSetting setting) => {
+    'prayer_type': setting.prayerType.name,
+    // Boş string, NULL yerine: UNIQUE kısıtı NULL'ları eşit saymaz, aynı
+    // vakit-sapma-gün bileşimi tekrar tekrar eklenebilirdi.
+    'derived_kind': setting.derivedKind?.storageValue ?? '',
+    'is_active': setting.isActive ? 1 : 0,
+    'minutes_before': setting.minutesBefore,
+    'sound_id': setting.soundId,
+    'weekdays': setting.weekdaysCsv,
+    'label': setting.label,
+  };
+
   @override
   Future<void> addNotificationSetting(NotificationSetting setting) async {
     final db = await database;
-    await db.insert('notification_settings', {
-      'prayer_type': setting.prayerType.name,
-      'is_active': setting.isActive ? 1 : 0,
-      'minutes_before': setting.minutesBefore,
-    }, conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert(
+      'notification_settings',
+      _notificationRow(setting),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   @override
   Future<void> deleteNotificationSetting({
     required PrayerType prayerType,
     required int minutesBefore,
+    String weekdays = '',
+    String derivedKind = '',
   }) async {
     final db = await database;
     await db.delete(
       'notification_settings',
-      where: 'prayer_type = ? AND minutes_before = ?',
-      whereArgs: [prayerType.name, minutesBefore],
+      where:
+          'prayer_type = ? AND derived_kind = ? AND minutes_before = ? '
+          'AND weekdays = ?',
+      whereArgs: [prayerType.name, derivedKind, minutesBefore, weekdays],
     );
   }
 
@@ -479,6 +599,52 @@ class SqliteStorage implements LocalStorage {
       'key': _notificationDefaultsKey,
       'value': 'true',
     }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  @override
+  Future<String?> getSetting(String key) => _readSetting(key);
+
+  @override
+  Future<void> setSetting(String key, String value) async {
+    final db = await database;
+    await db.insert('settings', {
+      'key': key,
+      'value': value,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  @override
+  Future<GeneralSettings> getGeneralSettings() async {
+    final db = await database;
+    final rows = await db.query(
+      'settings',
+      where: 'key IN (?, ?, ?, ?, ?, ?, ?)',
+      whereArgs: [
+        GeneralSettings.timeFormatKey,
+        GeneralSettings.autoLocationKey,
+        GeneralSettings.showInFocusModeKey,
+        GeneralSettings.defaultSoundKey,
+        GeneralSettings.religiousDaysKey,
+        GeneralSettings.religiousDayEveKey,
+        GeneralSettings.ramadanModeKey,
+      ],
+    );
+    return GeneralSettings.fromMap({
+      for (final row in rows) row['key'] as String: row['value'] as String,
+    });
+  }
+
+  @override
+  Future<void> saveGeneralSettings(GeneralSettings settings) async {
+    final db = await database;
+    final batch = db.batch();
+    settings.toMap().forEach((key, value) {
+      batch.insert('settings', {
+        'key': key,
+        'value': value,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
+    });
+    await batch.commit(noResult: true);
   }
 
   @override
@@ -548,6 +714,212 @@ class SqliteStorage implements LocalStorage {
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
+  static const String _quietWindowsKey = 'quiet_windows';
+
+  /// Tarihi `yyyy-MM-dd` olarak saklıyoruz: sıralama ve aralık sorgusu
+  /// dize karşılaştırmasıyla doğru çalışır.
+  static String _dayKey(DateTime date) {
+    final month = date.month.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
+    return '${date.year}-$month-$day';
+  }
+
+  @override
+  Future<Map<String, PrayerStatus>> getPrayerLog(
+    DateTime from,
+    DateTime to,
+  ) async {
+    final db = await database;
+    final rows = await db.query(
+      'prayer_log',
+      where: 'date >= ? AND date <= ?',
+      whereArgs: [_dayKey(from), _dayKey(to)],
+    );
+    final result = <String, PrayerStatus>{};
+    for (final row in rows) {
+      final status = PrayerStatusX.fromStorage(row['status'] as String?);
+      if (status == null) continue;
+      result['${row['date']}|${row['prayer_type']}'] = status;
+    }
+    return result;
+  }
+
+  @override
+  Future<void> setPrayerLog(
+    DateTime date,
+    PrayerType prayerType,
+    PrayerStatus? status,
+  ) async {
+    final db = await database;
+    if (status == null) {
+      await db.delete(
+        'prayer_log',
+        where: 'date = ? AND prayer_type = ?',
+        whereArgs: [_dayKey(date), prayerType.name],
+      );
+      return;
+    }
+    await db.insert('prayer_log', {
+      'date': _dayKey(date),
+      'prayer_type': prayerType.name,
+      'status': status.storageValue,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  @override
+  Future<Map<PrayerType, int>> getQadaCounts() async {
+    final db = await database;
+    final rows = await db.query('qada_counts');
+    final result = <PrayerType, int>{};
+    for (final row in rows) {
+      final name = row['prayer_type'] as String;
+      for (final type in PrayerType.values) {
+        if (type.name == name) result[type] = row['count'] as int;
+      }
+    }
+    return result;
+  }
+
+  @override
+  Future<void> setQadaCount(PrayerType prayerType, int count) async {
+    final db = await database;
+    await db.insert('qada_counts', {
+      'prayer_type': prayerType.name,
+      'count': clampQadaCount(count),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  static const String _fastingQadaKey = 'fasting_qada_count';
+
+  @override
+  Future<Map<String, FastingStatus>> getFastingLog(
+    DateTime from,
+    DateTime to,
+  ) async {
+    final db = await database;
+    final rows = await db.query(
+      'fasting_log',
+      where: 'date >= ? AND date <= ?',
+      whereArgs: [_dayKey(from), _dayKey(to)],
+    );
+    final result = <String, FastingStatus>{};
+    for (final row in rows) {
+      final status = FastingStatusX.fromStorage(row['status'] as String?);
+      if (status == null) continue;
+      result[row['date'] as String] = status;
+    }
+    return result;
+  }
+
+  @override
+  Future<void> setFastingLog(DateTime date, FastingStatus? status) async {
+    final db = await database;
+    if (status == null) {
+      await db.delete(
+        'fasting_log',
+        where: 'date = ?',
+        whereArgs: [_dayKey(date)],
+      );
+      return;
+    }
+    await db.insert('fasting_log', {
+      'date': _dayKey(date),
+      'status': status.storageValue,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  @override
+  Future<int> getFastingQadaCount() async {
+    final raw = await _readSetting(_fastingQadaKey);
+    return int.tryParse(raw ?? '') ?? 0;
+  }
+
+  @override
+  Future<void> setFastingQadaCount(int count) async {
+    final db = await database;
+    await db.insert('settings', {
+      'key': _fastingQadaKey,
+      'value': clampQadaCount(count).toString(),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  @override
+  Future<int> getDhikrCount(DateTime date) async {
+    final db = await database;
+    final rows = await db.query(
+      'dhikr_log',
+      where: 'date = ?',
+      whereArgs: [_dayKey(date)],
+      limit: 1,
+    );
+    if (rows.isEmpty) return 0;
+    return rows.first['count'] as int;
+  }
+
+  @override
+  Future<void> setDhikrCount(DateTime date, int count) async {
+    final db = await database;
+    await db.insert('dhikr_log', {
+      'date': _dayKey(date),
+      'count': count < 0 ? 0 : count,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  @override
+  Future<List<QuietWindow>> getQuietWindows() async {
+    return decodeQuietWindows(
+      await _readSetting(_quietWindowsKey),
+      onError: (error) {
+        AppLogger().warning(
+          'Sessiz pencereler okunamadi, bos kabul edildi',
+          error,
+        );
+        return const [];
+      },
+    );
+  }
+
+  @override
+  Future<void> saveQuietWindows(List<QuietWindow> windows) async {
+    final db = await database;
+    await db.insert('settings', {
+      'key': _quietWindowsKey,
+      'value': jsonEncode([for (final window in windows) window.toJson()]),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  static const String _alarmScheduleFailuresKey = 'alarm_schedule_failures';
+
+  @override
+  Future<Map<String, String>> getAlarmScheduleFailures() async {
+    final raw = await _readSetting(_alarmScheduleFailuresKey);
+    if (raw == null) return {};
+    try {
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      return decoded.map((k, v) => MapEntry(k, v.toString()));
+    } catch (e) {
+      AppLogger().warning('Alarm hata kaydi okunamadi, bos kabul edildi', e);
+      return {};
+    }
+  }
+
+  @override
+  Future<void> saveAlarmScheduleFailures(Map<String, String> failures) async {
+    final db = await database;
+    if (failures.isEmpty) {
+      await db.delete(
+        'settings',
+        where: 'key = ?',
+        whereArgs: [_alarmScheduleFailuresKey],
+      );
+      return;
+    }
+    await db.insert('settings', {
+      'key': _alarmScheduleFailuresKey,
+      'value': jsonEncode(failures),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
   static const String _missionSessionKey = 'mission_session';
   static const String _abortStateKey = 'mission_abort_state';
 
@@ -614,9 +986,16 @@ class SqliteStorage implements LocalStorage {
     final db = await database;
     await db.update(
       'notification_settings',
-      {'is_active': setting.isActive ? 1 : 0},
-      where: 'prayer_type = ? AND minutes_before = ?',
-      whereArgs: [setting.prayerType.name, setting.minutesBefore],
+      _notificationRow(setting),
+      where:
+          'prayer_type = ? AND derived_kind = ? AND minutes_before = ? '
+          'AND weekdays = ?',
+      whereArgs: [
+        setting.prayerType.name,
+        setting.derivedKind?.storageValue ?? '',
+        setting.minutesBefore,
+        setting.weekdaysCsv,
+      ],
     );
   }
 
@@ -634,7 +1013,15 @@ class SqliteStorage implements LocalStorage {
         NotificationSetting(
           prayerType: matches.first,
           isActive: (row['is_active'] as int) == 1,
+          derivedKind: DerivedTimeKindX.fromStorage(
+            row['derived_kind'] as String?,
+          ),
           minutesBefore: row['minutes_before'] as int,
+          soundId: row['sound_id'] as String?,
+          weekdays: NotificationSetting.parseWeekdays(
+            row['weekdays'] as String?,
+          ),
+          label: row['label'] as String?,
         ),
       );
     }
@@ -761,5 +1148,28 @@ class SqliteStorage implements LocalStorage {
   Future<void> deleteAlarm(String id) async {
     final db = await database;
     await db.delete('alarms', where: 'id = ?', whereArgs: [id]);
+  }
+
+  @override
+  Future<List<QrCodeEntry>> getQrCodes() async {
+    final db = await database;
+    final rows = await db.query('qr_codes', orderBy: 'created_at DESC');
+    return rows.map(QrCodeEntry.fromMap).toList();
+  }
+
+  @override
+  Future<void> saveQrCode(QrCodeEntry entry) async {
+    final db = await database;
+    await db.insert(
+      'qr_codes',
+      entry.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  @override
+  Future<void> deleteQrCode(String id) async {
+    final db = await database;
+    await db.delete('qr_codes', where: 'id = ?', whereArgs: [id]);
   }
 }

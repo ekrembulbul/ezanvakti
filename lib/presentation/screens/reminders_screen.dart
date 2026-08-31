@@ -1,7 +1,9 @@
 import 'dart:async';
+import '../../l10n/l10n_extensions.dart';
 
 import '../services/upcoming_resolver.dart';
 import '../../core/models/prayer_time.dart';
+import '../../core/models/derived_time.dart';
 import '../../core/models/skipped_occurrence.dart';
 import '../../features/alarms/domain/alarm_scheduler.dart';
 import '../../features/notifications/domain/skip_manager.dart';
@@ -9,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/di/service_locator.dart';
+import '../../core/interfaces/local_storage.dart';
 import '../../core/interfaces/alarm_service.dart';
 import '../../core/interfaces/notification_service.dart';
 import '../../core/models/alarm.dart';
@@ -147,9 +150,11 @@ class _RemindersScreenState extends State<RemindersScreen>
 
     _syncQueue = _syncQueue
         .then((_) => _reschedule(appState))
+        .then((_) => _refreshScheduleFailures())
         .catchError((Object error, StackTrace stackTrace) {
           AppLogger().error(
-            'Hatırlatıcı planlaması başarısız',
+            // Log; kullanıcıya gösterilmiyor, çevrilmiyor.
+            'Reminder scheduling failed',
             error,
             stackTrace,
           );
@@ -162,6 +167,16 @@ class _RemindersScreenState extends State<RemindersScreen>
     _queueReschedule(appState);
   }
 
+  /// Son planlamada kurulamayan alarmlar; satır uyarısı için.
+  Map<String, String> _scheduleFailures = {};
+
+  Future<void> _refreshScheduleFailures() async {
+    final failures = await ServiceLocator()
+        .get<LocalStorage>()
+        .getAlarmScheduleFailures();
+    if (mounted) setState(() => _scheduleFailures = failures);
+  }
+
   Future<void> _syncAlarms(AppState appState) async {
     appState.setAlarms(await _alarmsManager.getAlarms());
     _queueReschedule(appState);
@@ -169,56 +184,94 @@ class _RemindersScreenState extends State<RemindersScreen>
 
   // --- Bildirim mutasyonları ---
 
-  Future<void> _addNotification(PrayerType type, int minutesBefore) async {
+  Future<void> _addNotification(
+    PrayerType type,
+    int minutesBefore, [
+    Set<int> weekdays = const {},
+    String? label,
+    DerivedTimeKind? derivedKind,
+  ]) async {
+    final l10n = context.l10n;
     final appState = context.read<AppState>();
+    final setting = NotificationSetting(
+      prayerType: type,
+      derivedKind: derivedKind,
+      isActive: true,
+      minutesBefore: minutesBefore,
+      weekdays: weekdays,
+      label: label,
+      soundId: appState.generalSettings.defaultSound,
+    );
     final exists = appState.notificationSettings.any(
-      (s) => s.prayerType == type && s.minutesBefore == minutesBefore,
+      (s) =>
+          s.prayerType == type &&
+          s.derivedKind == derivedKind &&
+          s.minutesBefore == minutesBefore &&
+          s.weekdaysCsv == setting.weekdaysCsv,
     );
     if (exists) {
-      _snack('Bu bildirim zaten mevcut', isError: true);
+      _snack(l10n.snackNotificationExists, isError: true);
       return;
     }
 
-    await _settingsManager.addSetting(
-      NotificationSetting(
-        prayerType: type,
-        isActive: true,
-        minutesBefore: minutesBefore,
-      ),
-    );
+    await _settingsManager.addSetting(setting);
     await _syncNotifications(appState);
-    _snack('Bildirim eklendi');
+    _snack(l10n.snackNotificationAdded);
+  }
+
+  /// Hazır şablon: Cuma öğle vaktinden 45 dk önce, "Cuma namazı" etiketiyle.
+  Future<void> _addFridayReminder() async {
+    final l10n = context.l10n;
+    await _addNotification(PrayerType.dhuhr, 45, const {5}, l10n.reminderFridayLabel);
   }
 
   Future<void> _updateNotification(
     NotificationSetting original,
     PrayerType type,
-    int minutesBefore,
-  ) async {
+    int minutesBefore, [
+    Set<int> weekdays = const {},
+    String? label,
+    DerivedTimeKind? derivedKind,
+  ]) async {
+    final l10n = context.l10n;
     final appState = context.read<AppState>();
+    final updated = NotificationSetting(
+      prayerType: type,
+      derivedKind: derivedKind,
+      isActive: original.isActive,
+      minutesBefore: minutesBefore,
+      soundId: original.soundId,
+      weekdays: weekdays,
+      label: label,
+    );
     final duplicate = appState.notificationSettings.any(
       (s) =>
           s.prayerType == type &&
+          s.derivedKind == derivedKind &&
           s.minutesBefore == minutesBefore &&
+          s.weekdaysCsv == updated.weekdaysCsv &&
           !(s.prayerType == original.prayerType &&
-              s.minutesBefore == original.minutesBefore),
+              s.derivedKind == original.derivedKind &&
+              s.minutesBefore == original.minutesBefore &&
+              s.weekdaysCsv == original.weekdaysCsv),
     );
     if (duplicate) {
-      _snack('Bu bildirim zaten mevcut', isError: true);
+      _snack(l10n.snackNotificationExists, isError: true);
       return;
     }
 
-    final updated = original.copyWith(
-      prayerType: type,
-      minutesBefore: minutesBefore,
-    );
     final keyChanged =
-        type != original.prayerType || minutesBefore != original.minutesBefore;
+        type != original.prayerType ||
+        derivedKind != original.derivedKind ||
+        minutesBefore != original.minutesBefore ||
+        updated.weekdaysCsv != original.weekdaysCsv;
 
     if (keyChanged) {
       await _settingsManager.removeSetting(
         prayerType: original.prayerType,
         minutesBefore: original.minutesBefore,
+        weekdays: original.weekdaysCsv,
+        derivedKind: original.derivedKind?.storageValue ?? '',
       );
       await _settingsManager.addSetting(updated);
     } else {
@@ -226,21 +279,24 @@ class _RemindersScreenState extends State<RemindersScreen>
     }
 
     await _syncNotifications(appState);
-    _snack('Bildirim güncellendi');
+    _snack(l10n.snackNotificationUpdated);
   }
 
   /// Onay sorulmadan siler; geri alma "Geri al" ile verilir.
   Future<void> _deleteNotification(NotificationSetting setting) async {
+    final l10n = context.l10n;
     final appState = context.read<AppState>();
     await _settingsManager.removeSetting(
       prayerType: setting.prayerType,
       minutesBefore: setting.minutesBefore,
+      weekdays: setting.weekdaysCsv,
+      derivedKind: setting.derivedKind?.storageValue ?? '',
     );
     await _syncNotifications(appState);
     _snack(
-      'Bildirim silindi',
+      l10n.snackNotificationDeleted,
       action: SnackBarAction(
-        label: 'Geri al',
+        label: l10n.snackUndo,
         textColor: Colors.white,
         onPressed: () => _restoreNotification(setting),
       ),
@@ -256,6 +312,7 @@ class _RemindersScreenState extends State<RemindersScreen>
   /// Kapatma, "yalnızca bu sefer"in giriş kapısı: kayıt kapatılır ve altta
   /// çıkan çubuk tek seferliğe çevirme seçeneğini sunar.
   Future<void> _toggleNotification(NotificationSetting setting) async {
+    final l10n = context.l10n;
     final appState = context.read<AppState>();
     final turningOff = setting.isActive;
     // Sıradaki tetiklenme kapatmadan **önce** hesaplanmalı: kapalı kayıt
@@ -269,11 +326,11 @@ class _RemindersScreenState extends State<RemindersScreen>
     if (!turningOff) return;
 
     _snack(
-      'Bildirim kapatıldı',
+      l10n.reminderOff,
       action: fireAt == null
           ? null
           : SnackBarAction(
-              label: 'Yalnızca bu sefer',
+              label: l10n.snackSkipOnce,
               textColor: Colors.white,
               onPressed: () => _skipOnceNotification(setting, fireAt),
             ),
@@ -361,15 +418,13 @@ class _RemindersScreenState extends State<RemindersScreen>
   /// Ertelenmiş görevli alarm kapatılmak istendi. Kapatmak, görevi yapmadan
   /// alarmdan kurtulmanın arka kapısı olurdu.
   void _onDisableBlocked(Alarm alarm) {
-    _snack(
-      'Bu alarm ertelendi ve görevi bekliyor; '
-      'görevi yapmadan kapatılamaz.',
-    );
+    _snack(context.l10n.alarmBlockedSnoozed);
   }
 
   /// Kapatma, "yalnızca bu sefer"in giriş kapısı: alarm kapatılır ve altta
   /// çıkan çubuk tek seferliğe çevirme seçeneğini sunar.
   Future<void> _toggleAlarm(Alarm alarm, bool isActive) async {
+    final l10n = context.l10n;
     final appState = context.read<AppState>();
     // Sıradaki çalış kapatmadan **önce** hesaplanmalı: kapalı alarm
     // planlamada yer almıyor.
@@ -380,11 +435,11 @@ class _RemindersScreenState extends State<RemindersScreen>
     if (isActive) return;
 
     _snack(
-      'Alarm kapatıldı',
+      l10n.alarmTurnedOff,
       action: fireAt == null
           ? null
           : SnackBarAction(
-              label: 'Yalnızca bu sefer',
+              label: l10n.snackSkipOnce,
               textColor: Colors.white,
               onPressed: () => _skipOnceAlarm(alarm, fireAt),
             ),
@@ -412,13 +467,14 @@ class _RemindersScreenState extends State<RemindersScreen>
   /// kaydediliyor, böylece atlama kayıtları ve görev geçmişi eşleşmeye devam
   /// ediyor.
   Future<void> _deleteAlarm(Alarm alarm) async {
+    final l10n = context.l10n;
     final appState = context.read<AppState>();
     await _alarmsManager.delete(alarm.id);
     await _syncAlarms(appState);
     _snack(
-      '${alarmTimeLabel(alarm)} alarmı silindi',
+      l10n.alarmDeleted(alarmTimeLabel(alarm, l10n: l10n)),
       action: SnackBarAction(
-        label: 'Geri al',
+        label: l10n.snackUndo,
         textColor: Colors.white,
         onPressed: () => _restoreAlarm(alarm),
       ),
@@ -456,11 +512,18 @@ class _RemindersScreenState extends State<RemindersScreen>
       builder: (_) => AddNotificationBottomSheet(
         prayerTime: prayerTime,
         initialSetting: initial,
-        submitLabel: initial == null ? null : 'Güncelle',
-        title: initial == null ? null : 'Bildirimi Güncelle',
-        onAdd: (type, minutes) => initial == null
-            ? _addNotification(type, minutes)
-            : _updateNotification(initial, type, minutes),
+        submitLabel: initial == null ? null : context.l10n.remindersUpdate,
+        title: initial == null ? null : context.l10n.remindersUpdateTitle,
+        onAdd: (type, minutes, weekdays, label, derivedKind) => initial == null
+            ? _addNotification(type, minutes, weekdays, label, derivedKind)
+            : _updateNotification(
+                initial,
+                type,
+                minutes,
+                weekdays,
+                label,
+                derivedKind,
+              ),
       ),
     );
   }
@@ -503,7 +566,7 @@ class _RemindersScreenState extends State<RemindersScreen>
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       appBar: SimpleAppBar(
-        title: 'Hatırlatıcılar',
+        title: context.l10n.remindersTitle,
         showBack: false,
         // Tasarimda ekleme eylemi app bar'in saginda; FAB son satiri ortuyordu.
         actions: [
@@ -511,7 +574,9 @@ class _RemindersScreenState extends State<RemindersScreen>
             key: const Key('add_reminder_button'),
             icon: Icons.add_rounded,
             onTap: _add,
-            tooltip: _tab == ReminderTab.alarms ? 'Alarm ekle' : 'Bildirim ekle',
+            tooltip: _tab == ReminderTab.alarms
+                ? context.l10n.alarmAdd
+                : context.l10n.remindersAddButton,
           ),
           const SizedBox(width: 8),
         ],
@@ -524,15 +589,15 @@ class _RemindersScreenState extends State<RemindersScreen>
             children: [
               const SizedBox(height: 8),
               SlidingSegment<ReminderTab>(
-                items: const [
+                items: [
                   SegmentItem(
                     value: ReminderTab.notifications,
-                    label: 'Bildirimler',
+                    label: context.l10n.remindersNotifications,
                     icon: Icons.notifications_rounded,
                   ),
                   SegmentItem(
                     value: ReminderTab.alarms,
-                    label: 'Alarmlar',
+                    label: context.l10n.remindersAlarms,
                     icon: Icons.alarm_rounded,
                   ),
                 ],
@@ -577,11 +642,13 @@ class _RemindersScreenState extends State<RemindersScreen>
                 _notificationService.openExactAlarmSettings,
             onToggle: _toggleNotification,
             onEdit: (setting) => _showNotificationSheet(initial: setting),
+            onAddFridayReminder: _addFridayReminder,
             onDelete: _deleteNotification,
           ),
           AlarmsSection(
             missionSession: appState.missionSession,
             onDisableBlocked: _onDisableBlocked,
+            scheduleFailures: _scheduleFailures,
             nextFireByAlarm: _nextFireByAlarm(appState),
             skips: appState.skips,
             onSkipChanged: _toggleSkip,

@@ -1,0 +1,7 @@
+/* Widget galerisi. */
+"Prayer Times" = "Ezan Vakti";
+"The next prayer and its countdown." = "Sıradaki vakit ve geri sayım.";
+
+/* Siri / Spotlight kısayolu. */
+"Next prayer" = "Sıradaki vakit";
+"Tells the next prayer time and how long is left." = "Sıradaki namaz vaktini ve kalan süreyi söyler.";

@@ -1,4 +1,5 @@
 import '../../../core/models/location.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/models/prayer_time.dart';
 import '../../../core/utils/hijri_formatter.dart';
 import 'widget_snapshot.dart';
@@ -18,6 +19,8 @@ class WidgetSnapshotBuilder {
     required Location location,
     required List<PrayerTime> prayerTimes,
     required DateTime now,
+    WidgetLabels? labels,
+    AppLocalizations? l10n,
   }) {
     final today = DateTime(now.year, now.month, now.day);
 
@@ -28,18 +31,19 @@ class WidgetSnapshotBuilder {
     return WidgetSnapshot(
       locationLabel: location.displayName,
       generatedAt: now,
-      days: upcoming.take(maxDays).map(_toDay).toList(),
+      days: upcoming.take(maxDays).map((time) => _toDay(time, l10n)).toList(),
+      labels: labels,
     );
   }
 
   static DateTime _dayOf(DateTime date) =>
       DateTime(date.year, date.month, date.day);
 
-  static WidgetSnapshotDay _toDay(PrayerTime time) {
+  static WidgetSnapshotDay _toDay(PrayerTime time, AppLocalizations? l10n) {
     final day = _dayOf(time.date);
     return WidgetSnapshotDay(
       date: day,
-      hijri: HijriFormatter.format(day),
+      hijri: HijriFormatter.format(day, l10n),
       times: WidgetDayTimes(
         fajr: time.fajr,
         sunrise: time.sunrise,

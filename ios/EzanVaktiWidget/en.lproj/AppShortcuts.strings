@@ -1,0 +1,3 @@
+/* Base language; kept explicit so `en` is a real bundle localization. */
+"${applicationName} next prayer" = "${applicationName} next prayer";
+"${applicationName} prayer time" = "${applicationName} prayer time";

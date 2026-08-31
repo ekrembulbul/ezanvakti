@@ -1,4 +1,7 @@
 import '../../../core/models/mission_session.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../../l10n/l10n_extensions.dart';
+import '../../utils/time_format_context.dart';
 import '../reminders/snooze_notice.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -7,7 +10,6 @@ import '../../../core/models/skipped_occurrence.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
-import '../../../core/utils/prayer_utils.dart';
 import '../../../features/notifications/domain/notification_scheduler.dart';
 import '../../../features/notifications/domain/skip_rules.dart';
 import '../../utils/alarm_labels.dart' show alarmTimeLabel;
@@ -77,12 +79,12 @@ class UpcomingCard extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         SectionLabel(
-          'Sıradaki',
+          context.l10n.upcomingTitle,
           trailing: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: onSeeAll,
             child: Text(
-              'Tümü',
+              context.l10n.upcomingAll,
               style: AppTypography.hint.copyWith(
                 color: tokens.accent,
                 fontWeight: FontWeight.w700,
@@ -93,7 +95,7 @@ class UpcomingCard extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         if (notification == null && alarm == null)
-          _emptyState(tokens)
+          _emptyState(context, tokens)
         else
           GroupedList(
             children: [
@@ -105,7 +107,7 @@ class UpcomingCard extends StatelessWidget {
     );
   }
 
-  Widget _emptyState(AppTokens tokens) {
+  Widget _emptyState(BuildContext context, AppTokens tokens) {
     return Container(
       height: _kRowHeight,
       alignment: Alignment.center,
@@ -115,7 +117,7 @@ class UpcomingCard extends StatelessWidget {
         border: Border.all(color: tokens.border),
       ),
       child: Text(
-        'Yaklaşan bildirim veya alarm yok',
+        context.l10n.upcomingEmpty,
         style: AppTypography.rowSubtitle.copyWith(color: tokens.textTertiary),
       ),
     );
@@ -123,10 +125,10 @@ class UpcomingCard extends StatelessWidget {
 
   Widget _notificationRow(BuildContext context) {
     final item = notification!;
-    final prayerName = PrayerUtils.getPrayerName(item.setting.prayerType);
+    final prayerName = context.l10n.prayerName(item.setting.prayerType);
     final offset = item.setting.minutesBefore == 0
-        ? 'Tam vaktinde'
-        : '${item.setting.minutesBefore} dk önce';
+        ? context.l10n.reminderOnTime
+        : context.l10n.reminderMinutesBefore(item.setting.minutesBefore);
 
     final occurrence = SkippedOccurrence(
       kind: SkipKind.notification,
@@ -134,7 +136,7 @@ class UpcomingCard extends StatelessWidget {
         // Planlayıcı da kimliği vaktin gününden üretir; ikisi aynı olmak
         // zorunda, yoksa anahtar kapalı görünürken bildirim gelir.
         date: item.prayerDate,
-        prayerType: item.setting.prayerType,
+        pointIndex: NotificationScheduler.pointIndexOf(item.setting),
         minutesBefore: item.setting.minutesBefore,
       ),
       fireAt: item.time,
@@ -150,14 +152,14 @@ class UpcomingCard extends StatelessWidget {
       height: _kRowHeight,
       icon: Icons.notifications_rounded,
       title: Text(
-        '$prayerName bildirimi',
+        context.l10n.upcomingNotification(prayerName),
         style: AppTypography.upcomingRowTitle,
       ),
       subtitle: Text(
         skipped
-            ? 'Yalnızca bu sefer atlanacak · ${_clock(item.time)}'
-            : '$offset · ${_clock(item.time)} · '
-                  '${formatRemaining(item.time.difference(now))}',
+            ? '${context.l10n.reminderSkippedOnce} · ${_clock(context, item.time)}'
+            : '$offset · ${_clock(context, item.time)} · '
+                  '${formatRemaining(item.time.difference(now), context.l10n)}',
       ),
       trailing: _skipSwitch(occurrence, skipped),
     );
@@ -166,7 +168,11 @@ class UpcomingCard extends StatelessWidget {
   Widget _alarmRow(BuildContext context) {
     final tokens = context.tokens;
     final item = alarm!;
-    final label = alarmTimeLabel(item.alarm);
+    final label = alarmTimeLabel(
+      item.alarm,
+      l10n: context.l10n,
+      formatHourMinute: context.formatHourMinute,
+    );
     final title = item.alarm.label.isNotEmpty ? item.alarm.label : label;
 
     final occurrence = SkippedOccurrence(
@@ -193,11 +199,13 @@ class UpcomingCard extends StatelessWidget {
       title: Text(title, style: AppTypography.upcomingRowTitle),
       subtitle: Text(
         switch ((snoozedUntil, skipped)) {
-          (final DateTime until, _) => SnoozeNotice.label(until),
+          (final DateTime until, _) => SnoozeNotice.label(until, context.l10n),
           (_, true) =>
-            'Yalnızca bu sefer atlanacak · '
-                '${_relativeDay(item.time)} ${_clock(item.time)}',
-          _ => '$label · ${_relativeDay(item.time)} ${_clock(item.time)}',
+            '${context.l10n.reminderSkippedOnce} · '
+                '${_relativeDay(context, item.time)} ${_clock(context, item.time)}',
+          _ =>
+            '$label · ${_relativeDay(context, item.time)} '
+                '${_clock(context, item.time)}',
         },
       ),
       // Ertelenmis gorevli alarm atlanamaz: gorev borcu duruyor.
@@ -207,26 +215,30 @@ class UpcomingCard extends StatelessWidget {
     );
   }
 
-  String _clock(DateTime time) => DateFormat('HH:mm').format(time);
+  String _clock(BuildContext context, DateTime time) =>
+      context.formatTime(time);
 
-  /// "bugün" / "yarın" / "Pazartesi".
-  String _relativeDay(DateTime time) {
+  /// "bugün" / "yarın" / gün adı. Gün adı cihaz diline göre biçimlenir.
+  String _relativeDay(BuildContext context, DateTime time) {
     final today = DateTime(now.year, now.month, now.day);
     final target = DateTime(time.year, time.month, time.day);
     final days = target.difference(today).inDays;
 
-    if (days == 0) return 'bugün';
-    if (days == 1) return 'yarın';
-    return DateFormat('EEEE', 'tr_TR').format(time);
+    if (days == 0) return context.l10n.upcomingToday;
+    if (days == 1) return context.l10n.upcomingTomorrow;
+    return DateFormat(
+      'EEEE',
+      Localizations.localeOf(context).toLanguageTag(),
+    ).format(time);
   }
 }
 
 /// Kalan süreyi tasarımın kısa biçimiyle yazar: "2s 43dk", "43dk", "<1dk".
-String formatRemaining(Duration remaining) {
-  if (remaining.inMinutes < 1) return '<1dk';
+String formatRemaining(Duration remaining, AppLocalizations l10n) {
+  if (remaining.inMinutes < 1) return l10n.countdownLessThanMinute;
 
   final hours = remaining.inHours;
   final minutes = remaining.inMinutes % 60;
-  if (hours == 0) return '${minutes}dk';
-  return '${hours}s ${minutes}dk';
+  if (hours == 0) return l10n.countdownMinutesShort(minutes);
+  return l10n.countdownHourMinuteShort(hours, minutes);
 }

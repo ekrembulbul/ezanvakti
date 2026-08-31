@@ -67,15 +67,13 @@ void main() {
     test('Seviye 1 cumle ister, geri sayim istemez', () {
       final r = AbortGate.requirementFor(1);
       expect(r.requiresPhrase, isTrue);
-      expect(r.phrase, isNotEmpty);
+      expect(r.phrase, isNotNull);
       expect(r.countdownSeconds, 0);
     });
 
-    test('Seviye 2 cumlesi seviye 1 den uzun', () {
-      expect(
-        AbortGate.requirementFor(2).phrase.length,
-        greaterThan(AbortGate.requirementFor(1).phrase.length),
-      );
+    test('Seviye 2 daha uzun cumle ister', () {
+      expect(AbortGate.requirementFor(1).phrase, AbortPhrase.short);
+      expect(AbortGate.requirementFor(2).phrase, AbortPhrase.long);
     });
 
     test('Tavan seviyesi geri sayim ekler', () {

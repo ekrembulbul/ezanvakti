@@ -17,6 +17,9 @@ class HomeWidgetPublisher implements WidgetPublisher {
   static const String appGroupId = 'group.com.ekrembulbul.ezanvakti';
   static const String snapshotKey = 'ezanvakti_snapshot';
 
+  /// Swift tarafındaki `SnapshotStore.timeFormatKey` ile birebir aynı.
+  static const String timeFormatKey = 'ezanvakti_time_format';
+
   /// Swift tarafındaki `kind` ile birebir aynı olmalı; aksi halde reload
   /// sessizce hiçbir widget'a ulaşmaz.
   static const String widgetKind = 'EzanVaktiWidget';
@@ -36,6 +39,14 @@ class HomeWidgetPublisher implements WidgetPublisher {
 
     _logger.debug('Widget snapshot published: ${snapshot.days.length} days');
   }
+
+  @override
+  Future<void> publishTimeFormat(String storageValue) async {
+    await HomeWidget.setAppGroupId(appGroupId);
+    await HomeWidget.saveWidgetData<String>(timeFormatKey, storageValue);
+    await HomeWidget.updateWidget(iOSName: widgetKind);
+    _logger.debug('Widget time format published: $storageValue');
+  }
 }
 
 /// iOS dışı platformlarda kullanılır. Widget yalnızca iOS'ta var; diğer
@@ -45,4 +56,7 @@ class NoopWidgetPublisher implements WidgetPublisher {
 
   @override
   Future<void> publish(WidgetSnapshot snapshot) async {}
+
+  @override
+  Future<void> publishTimeFormat(String storageValue) async {}
 }

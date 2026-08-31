@@ -9,11 +9,17 @@ class GpsLocationService {
   // GPS konumu tek satır olarak saklanır; sabit kimlik yeterli.
   static const String _gpsLocationId = 'gps';
 
-  Future<Location> getCurrentGpsLocation() async {
+  /// İzin yokken fırlatılan **kararlı teşhis anahtarı**. Metnin kendisi değil,
+  /// karşılığı arayüz katmanında (l10n) seçilir.
+  static const String permissionRequiredKey = 'location_permission_required';
+
+  /// [fallbackLabel] adres çözülemediğinde il alanına yazılır; çeviri
+  /// çağırandan gelir, servis `BuildContext` tutmaz.
+  Future<Location> getCurrentGpsLocation({String fallbackLabel = 'GPS'}) async {
     final hasPermission = await Geolocator.checkPermission();
     if (hasPermission != LocationPermission.always &&
         hasPermission != LocationPermission.whileInUse) {
-      throw Exception('Konum izni gerekli');
+      throw Exception(permissionRequiredKey);
     }
 
     final position = await Geolocator.getCurrentPosition(
@@ -26,9 +32,9 @@ class GpsLocationService {
     );
 
     final label = placemarks.isNotEmpty
-        ? resolveGpsLabel(placemarks.first)
+        ? resolveGpsLabel(placemarks.first, fallbackLabel: fallbackLabel)
         : (
-            province: 'GPS Konumu',
+            province: fallbackLabel,
             district:
                 '${position.latitude.toStringAsFixed(3)}, '
                 '${position.longitude.toStringAsFixed(3)}',

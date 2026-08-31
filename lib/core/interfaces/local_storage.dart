@@ -3,9 +3,14 @@ import '../models/location.dart';
 import '../models/notification_setting.dart';
 import '../models/calculation_settings.dart';
 import '../models/appearance_settings.dart';
+import '../models/general_settings.dart';
+import '../models/fasting_log.dart';
+import '../models/prayer_log.dart';
+import '../models/quiet_window.dart';
 import '../models/abort_state.dart';
 import '../models/mission_session.dart';
 import '../models/alarm.dart';
+import '../models/qr_code_entry.dart';
 import '../models/skipped_occurrence.dart';
 
 abstract class LocalStorage {
@@ -40,6 +45,54 @@ abstract class LocalStorage {
   /// Uygulama genelindeki varsayılan hesaplama ayarını kaydeder.
   Future<void> saveCalculationSettings(CalculationSettings settings);
 
+  /// [from]–[to] arasındaki namaz kayıtları; anahtar `prayerLogKey` biçiminde.
+  Future<Map<String, PrayerStatus>> getPrayerLog(DateTime from, DateTime to);
+
+  /// Tek bir kaydı yazar; [status] null ise kaydı siler.
+  Future<void> setPrayerLog(
+    DateTime date,
+    PrayerType prayerType,
+    PrayerStatus? status,
+  );
+
+  /// Vakit başına kaza sayıları; kayıt yoksa boş map.
+  Future<Map<PrayerType, int>> getQadaCounts();
+
+  Future<void> setQadaCount(PrayerType prayerType, int count);
+
+  /// [from]–[to] arasındaki oruç kayıtları; anahtar `fastingLogKey`.
+  Future<Map<String, FastingStatus>> getFastingLog(DateTime from, DateTime to);
+
+  /// Tek günün kaydını yazar; [status] null ise siler.
+  Future<void> setFastingLog(DateTime date, FastingStatus? status);
+
+  /// Kaza orucu sayısı; kayıt yoksa 0.
+  Future<int> getFastingQadaCount();
+
+  Future<void> setFastingQadaCount(int count);
+
+  /// O günün zikir sayacı; kayıt yoksa 0.
+  Future<int> getDhikrCount(DateTime date);
+
+  Future<void> setDhikrCount(DateTime date, int count);
+
+  /// Sessiz pencereler; kayıt yoksa boş liste.
+  Future<List<QuietWindow>> getQuietWindows();
+
+  /// Pencere listesinin tamamını değiştirir.
+  Future<void> saveQuietWindows(List<QuietWindow> windows);
+
+  /// `settings` tablosundan tek değer okur; yoksa null. Modellenmeye değmeyen
+  /// küçük bayraklar için (ör. "bu Ramazan sorulmuş mu").
+  Future<String?> getSetting(String key);
+
+  Future<void> setSetting(String key, String value);
+
+  /// Genel tercihler (saat biçimi, otomatik konum); kayıt yoksa varsayılanlar.
+  Future<GeneralSettings> getGeneralSettings();
+
+  Future<void> saveGeneralSettings(GeneralSettings settings);
+
   /// Görünüm tercihlerini döner; kayıt yoksa [AppearanceSettings] varsayılanları.
   Future<AppearanceSettings> getAppearanceSettings();
 
@@ -64,9 +117,13 @@ abstract class LocalStorage {
 
   Future<void> addNotificationSetting(NotificationSetting setting);
 
+  /// [weekdays] kimliğin parçası (CSV, boş = her gün); aynı vakit ve sapmada
+  /// birden fazla satır olabildiği için gerekli.
   Future<void> deleteNotificationSetting({
     required PrayerType prayerType,
     required int minutesBefore,
+    String weekdays = '',
+    String derivedKind = '',
   });
 
   /// Varsayılan bildirimlerin daha önce bir kez oluşturulup oluşturulmadığını
@@ -105,6 +162,21 @@ abstract class LocalStorage {
 
   /// Oturumu yazar; `null` verilirse kaydı siler.
   Future<void> saveMissionSession(MissionSession? session);
+
+  /// Kayıtlı QR kodları, en yeni önce.
+  Future<List<QrCodeEntry>> getQrCodes();
+
+  /// Ekler veya (aynı id ise) günceller.
+  Future<void> saveQrCode(QrCodeEntry entry);
+
+  Future<void> deleteQrCode(String id);
+
+  /// Son planlamada kurulamayan alarmlar: alarmId → kısa hata mesajı.
+  /// Arayüz satırda "Kurulamadı" uyarısını buradan gösterir.
+  Future<Map<String, String>> getAlarmScheduleFailures();
+
+  /// Kaydın tamamını değiştirir; boş map kaydı siler.
+  Future<void> saveAlarmScheduleFailures(Map<String, String> failures);
 
   /// Acil çıkışın global kademesi. Kayıt yoksa sıfır kademe döner.
   Future<AbortState> getAbortState();

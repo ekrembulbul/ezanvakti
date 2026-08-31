@@ -41,7 +41,7 @@ void main() {
       kind: SkipKind.notification,
       reference: NotificationScheduler.notificationIdFor(
         date: notification.prayerDate,
-        prayerType: notification.setting.prayerType,
+        pointIndex: NotificationScheduler.pointIndexOf(notification.setting),
         minutesBefore: notification.setting.minutesBefore,
       ),
       fireAt: notification.time,

@@ -43,6 +43,9 @@ class CalculationMethod {
 /// Aladhan'ın desteklediği hesaplama yöntemleri (id ve görünen ad).
 ///
 /// id değerleri Aladhan API'sinin `method` parametresine birebir karşılık gelir.
+/// Adlar **kurum adıdır ve çevrilmez**; her dilde aynı görünür. Yer adları da
+/// bu yüzden uluslararası yazımıyla yazılır (Makkah, Tehran, …) — aksi hâlde
+/// İngilizce/Arapça cihazda Türkçeleştirilmiş adlar görünüyordu.
 class CalculationMethods {
   const CalculationMethods._();
 
@@ -50,28 +53,28 @@ class CalculationMethods {
     CalculationMethod(id: 1, name: 'Muslim World League'),
     CalculationMethod(id: 2, name: 'Islamic Society of North America (ISNA)'),
     CalculationMethod(id: 3, name: 'Egyptian General Authority of Survey'),
-    CalculationMethod(id: 4, name: 'Umm Al-Qura University, Mekke'),
-    CalculationMethod(id: 5, name: 'University of Islamic Sciences, Karaçi'),
-    CalculationMethod(id: 6, name: 'Institute of Geophysics, Tahran'),
-    CalculationMethod(id: 7, name: 'Shia Ithna-Ashari, Leva Institute, Kum'),
-    CalculationMethod(id: 8, name: 'Körfez Bölgesi'),
-    CalculationMethod(id: 9, name: 'Kuveyt'),
-    CalculationMethod(id: 10, name: 'Katar'),
-    CalculationMethod(id: 11, name: 'Majlis Ugama Islam Singapura, Singapur'),
+    CalculationMethod(id: 4, name: 'Umm Al-Qura University, Makkah'),
+    CalculationMethod(id: 5, name: 'University of Islamic Sciences, Karachi'),
+    CalculationMethod(id: 6, name: 'Institute of Geophysics, Tehran'),
+    CalculationMethod(id: 7, name: 'Shia Ithna-Ashari, Leva Institute, Qom'),
+    CalculationMethod(id: 8, name: 'Gulf Region'),
+    CalculationMethod(id: 9, name: 'Kuwait'),
+    CalculationMethod(id: 10, name: 'Qatar'),
+    CalculationMethod(id: 11, name: 'Majlis Ugama Islam Singapura, Singapore'),
     CalculationMethod(
       id: 12,
       name: 'Union des Organisations Islamiques de France',
     ),
-    CalculationMethod(id: 13, name: 'Diyanet İşleri Başkanlığı (Türkiye)'),
-    CalculationMethod(id: 14, name: 'Rusya Müslümanları Dini İdaresi'),
+    CalculationMethod(id: 13, name: 'Diyanet İşleri Başkanlığı'),
+    CalculationMethod(id: 14, name: 'Spiritual Administration of Muslims of Russia'),
     CalculationMethod(id: 15, name: 'Moonsighting Committee Worldwide'),
-    CalculationMethod(id: 16, name: 'Dubai (BAE)'),
+    CalculationMethod(id: 16, name: 'Dubai (UAE)'),
     CalculationMethod(id: 17, name: 'Jabatan Kemajuan Islam Malaysia (JAKIM)'),
-    CalculationMethod(id: 18, name: 'Tunus'),
-    CalculationMethod(id: 19, name: 'Cezayir'),
-    CalculationMethod(id: 20, name: 'Endonezya Din İşleri Bakanlığı'),
-    CalculationMethod(id: 21, name: 'Fas'),
-    CalculationMethod(id: 22, name: 'Comunidade Islâmica de Lisboa (Portekiz)'),
+    CalculationMethod(id: 18, name: 'Tunisia'),
+    CalculationMethod(id: 19, name: 'Algeria'),
+    CalculationMethod(id: 20, name: 'Kementerian Agama Republik Indonesia'),
+    CalculationMethod(id: 21, name: 'Morocco'),
+    CalculationMethod(id: 22, name: 'Comunidade Islâmica de Lisboa (Portugal)'),
   ];
 
   /// Verilen id'ye karşılık gelen yöntemi döner; bulunamazsa Diyanet'e düşer.
@@ -85,13 +88,12 @@ class CalculationMethods {
 
 /// İkindi (Asr) hesabı için fıkhi mezhep — Aladhan `school` parametresi.
 enum AsrSchool {
-  shafi(value: 0, label: 'Şafi (Standart)'),
-  hanafi(value: 1, label: 'Hanefi');
+  shafi(value: 0),
+  hanafi(value: 1);
 
-  const AsrSchool({required this.value, required this.label});
+  const AsrSchool({required this.value});
 
   final int value;
-  final String label;
 
   static AsrSchool fromValue(int value) {
     return values.firstWhere(
@@ -104,15 +106,14 @@ enum AsrSchool {
 /// Yüksek enlem bölgeleri için imsak/yatsı düzeltme yöntemi —
 /// Aladhan `latitudeAdjustmentMethod` parametresi. `null` ise API varsayılanı.
 enum LatitudeAdjustment {
-  auto(value: null, label: 'Otomatik'),
-  middleOfNight(value: 1, label: 'Gece ortası'),
-  oneSeventh(value: 2, label: 'Gecenin yedide biri'),
-  angleBased(value: 3, label: 'Açı tabanlı');
+  auto(value: null),
+  middleOfNight(value: 1),
+  oneSeventh(value: 2),
+  angleBased(value: 3);
 
-  const LatitudeAdjustment({required this.value, required this.label});
+  const LatitudeAdjustment({required this.value});
 
   final int? value;
-  final String label;
 
   static LatitudeAdjustment fromValue(int? value) {
     return values.firstWhere(

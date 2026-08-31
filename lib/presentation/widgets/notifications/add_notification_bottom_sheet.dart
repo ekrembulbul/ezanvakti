@@ -1,16 +1,26 @@
 import 'package:flutter/cupertino.dart';
+import '../../../l10n/l10n_extensions.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 import '../../../core/models/prayer_time.dart';
+import '../../../core/models/derived_time.dart';
 import '../../../core/models/notification_setting.dart';
 import '../../../core/utils/prayer_utils.dart';
 import '../common/section_label.dart';
 import '../../../core/constants/notification_constants.dart';
 
 class AddNotificationBottomSheet extends StatefulWidget {
-  final void Function(PrayerType prayerType, int minutesBefore) onAdd;
+  /// [weekdays] boş küme = her gün; [label] boşsa varsayılan başlık kullanılır.
+  final void Function(
+    PrayerType prayerType,
+    int minutesBefore,
+    Set<int> weekdays,
+    String? label,
+    DerivedTimeKind? derivedKind,
+  )
+  onAdd;
   final PrayerTime? prayerTime;
   final NotificationSetting? initialSetting;
   final String? submitLabel;
@@ -38,13 +48,30 @@ class _AddNotificationBottomSheetState
   int _selectedOffset = _defaultOffset;
   String? _errorText;
 
+  /// Seçili türetilmiş nokta; null ise satır bir namaz vakti içindir.
+  DerivedTimeKind? _derivedKind;
+
+  /// UI'da her zaman 7 gün seçili gösterilir; modelde "hepsi" boş kümedir.
+  late Set<int> _weekdays;
+  late TextEditingController _label;
+
   @override
   void initState() {
     super.initState();
     final initial = widget.initialSetting;
     _selectedType = initial?.prayerType ?? PrayerType.fajr;
+    _derivedKind = initial?.derivedKind;
     _isBefore = (initial?.minutesBefore ?? 0) > 0;
     _selectedOffset = initial?.minutesBefore ?? _defaultOffset;
+    final days = initial?.weekdays ?? const <int>{};
+    _weekdays = days.isEmpty ? {1, 2, 3, 4, 5, 6, 7} : {...days};
+    _label = TextEditingController(text: initial?.label ?? '');
+  }
+
+  @override
+  void dispose() {
+    _label.dispose();
+    super.dispose();
   }
 
   int _maxOffsetFor(PrayerType prayer) {
@@ -57,14 +84,14 @@ class _AddNotificationBottomSheetState
 
     if (_isBefore) {
       if (_selectedOffset <= 0) {
-        setState(() => _errorText = 'En az 1 dk önce olabilir');
+        setState(() => _errorText = context.l10n.remindersMinOffsetError);
         return;
       }
 
       if (_selectedOffset > maxOffset) {
         setState(() {
           _errorText =
-              'Bu vakitten en fazla $maxOffset dk önce bildirim ekleyebilirsin.';
+              context.l10n.remindersMaxOffsetError(maxOffset);
         });
         return;
       }
@@ -75,7 +102,25 @@ class _AddNotificationBottomSheetState
     setState(() => _errorText = null);
 
     Navigator.of(context).pop();
-    widget.onAdd(_selectedType, minutes);
+    final label = _label.text.trim();
+    widget.onAdd(
+      _selectedType,
+      minutes,
+      _weekdays.length == 7 ? const <int>{} : _weekdays,
+      label.isEmpty ? null : label,
+      _derivedKind,
+    );
+  }
+
+  void _toggleDay(int day) {
+    setState(() {
+      if (_weekdays.contains(day)) {
+        // En az bir gün kalsın: hiç çalmayan bildirim anlamsız.
+        if (_weekdays.length > 1) _weekdays.remove(day);
+      } else {
+        _weekdays.add(day);
+      }
+    });
   }
 
   int _normalizedOffset(int value) {
@@ -86,8 +131,8 @@ class _AddNotificationBottomSheetState
 
   @override
   Widget build(BuildContext context) {
-    final title = widget.title ?? 'Yeni Bildirim Ekle';
-    final submitLabel = widget.submitLabel ?? 'Bildirim Ekle';
+    final title = widget.title ?? context.l10n.remindersAddTitle;
+    final submitLabel = widget.submitLabel ?? context.l10n.remindersAddButton;
 
     final viewInsets = MediaQuery.of(context).viewInsets.bottom;
     return Container(
@@ -129,17 +174,55 @@ class _AddNotificationBottomSheetState
               ),
               const SizedBox(height: 8),
               Text(
-                'Hangi vakitte bildirim almak istiyorsunuz?',
+                context.l10n.remindersWhichPrayer,
                 style: TextStyle(color: tokens.textSecondary),
               ),
               const SizedBox(height: 24),
-              const Center(child: SectionLabel('Namaz Vakti')),
+              Center(child: SectionLabel(context.l10n.remindersPrayerSection)),
               const SizedBox(height: 12),
               _buildPrayerTypeSelector(),
+              const SizedBox(height: 20),
+              Center(child: SectionLabel(context.l10n.remindersDerivedSection)),
+              const SizedBox(height: 8),
+              Text(
+                context.l10n.remindersDerivedHint,
+                textAlign: TextAlign.center,
+                style: AppTypography.hint.copyWith(
+                  color: tokens.textTertiary,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 12),
+              _buildDerivedSelector(),
               const SizedBox(height: 24),
-              const Center(child: SectionLabel('Bildirim Zamanı')),
+              Center(child: SectionLabel(context.l10n.remindersTimeSection)),
               const SizedBox(height: 12),
               _buildTimeSelector(),
+              const SizedBox(height: 24),
+              Center(child: SectionLabel(context.l10n.remindersDaysSection)),
+              const SizedBox(height: 12),
+              _buildWeekdaySelector(),
+              const SizedBox(height: 24),
+              Center(child: SectionLabel(context.l10n.remindersLabelSection)),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _label,
+                style: TextStyle(color: tokens.textPrimary),
+                decoration: InputDecoration(
+                  hintText: context.l10n.reminderFridayLabel,
+                  hintStyle: TextStyle(color: tokens.textTertiary),
+                  filled: true,
+                  fillColor: tokens.surface,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: tokens.border),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: tokens.border),
+                  ),
+                ),
+              ),
               const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
@@ -166,6 +249,93 @@ class _AddNotificationBottomSheetState
           ),
         ),
       ),
+    );
+  }
+
+  /// Türetilmiş nokta çipleri. Seçim vaktin **yerine** geçer: bir çipe
+  /// dokununca o noktanın çıpa vakti de seçilir; tekrar dokunmak seçimi
+  /// kaldırır ve satır yeniden bir vakit bildirimi olur.
+  Widget _buildDerivedSelector() {
+    return Center(
+      child: Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        alignment: WrapAlignment.center,
+        children: DerivedTimeKind.values.map((kind) {
+          final isSelected = kind == _derivedKind;
+          return GestureDetector(
+            onTap: () => setState(() {
+              if (isSelected) {
+                _derivedKind = null;
+              } else {
+                _derivedKind = kind;
+                _selectedType = kind.anchor;
+              }
+            }),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? tokens.accent.withValues(alpha: 0.2)
+                    : tokens.surface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: isSelected ? tokens.accent : tokens.border,
+                ),
+              ),
+              child: Text(
+                context.l10n.derivedName(kind),
+                style: TextStyle(
+                  color: isSelected ? tokens.accent : tokens.textSecondary,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  /// Gün çipleri; alarm ekranındaki kalıpla aynı (1=Pazartesi).
+  Widget _buildWeekdaySelector() {
+    final names = [for (var d = 1; d <= 7; d++) context.l10n.weekdayLetter(d)];
+
+    return Row(
+      children: List.generate(7, (index) {
+        final day = index + 1;
+        final selected = _weekdays.contains(day);
+        return Expanded(
+          child: Padding(
+            padding: EdgeInsetsDirectional.only(end: index < 6 ? 6 : 0),
+            child: GestureDetector(
+              onTap: () => _toggleDay(day),
+              child: Container(
+                height: 44,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: selected
+                      ? tokens.accent.withValues(alpha: 0.2)
+                      : tokens.surface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: selected ? tokens.accent : tokens.border,
+                  ),
+                ),
+                child: Text(
+                  names[index],
+                  style: TextStyle(
+                    color: selected ? tokens.accent : tokens.textSecondary,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }),
     );
   }
 
@@ -203,7 +373,7 @@ class _AddNotificationBottomSheetState
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    PrayerUtils.getPrayerName(type),
+                    context.l10n.prayerName(type),
                     style: TextStyle(
                       color: isSelected ? tokens.accent : tokens.textPrimary,
                       fontWeight: isSelected
@@ -233,7 +403,7 @@ class _AddNotificationBottomSheetState
             runAlignment: WrapAlignment.center,
             children: [
               _buildTimeChip(
-                label: 'Tam vaktinde',
+                label: context.l10n.remindersOnTimeOption,
                 isSelected: !_isBefore,
                 onTap: () {
                   setState(() {
@@ -244,7 +414,7 @@ class _AddNotificationBottomSheetState
                 },
               ),
               _buildTimeChip(
-                label: 'Öncesinde',
+                label: context.l10n.remindersBeforeOption,
                 isSelected: _isBefore,
                 onTap: () {
                   setState(() {
@@ -300,7 +470,7 @@ class _AddNotificationBottomSheetState
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              'Dakika seçin',
+                              context.l10n.remindersPickMinutes,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: AppTypography.rowSubtitle.copyWith(
@@ -309,7 +479,7 @@ class _AddNotificationBottomSheetState
                               ),
                             ),
                             Text(
-                              '1 - $maxOffset dk',
+                              context.l10n.offsetRangeHint(maxOffset),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: AppTypography.sectionLabel.copyWith(
@@ -352,7 +522,7 @@ class _AddNotificationBottomSheetState
                         maxOffset,
                         (i) => Center(
                           child: Text(
-                            '${i + 1} dk',
+                            context.l10n.minutesShort(i + 1),
                             style: TextStyle(
                               color: tokens.textPrimary,
                               fontWeight: FontWeight.w600,
@@ -412,9 +582,4 @@ class _AddNotificationBottomSheetState
 
   /// Yardımcı metotların hepsi renk okuyor; tek kısayol.
   AppTokens get tokens => context.tokens;
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
 }

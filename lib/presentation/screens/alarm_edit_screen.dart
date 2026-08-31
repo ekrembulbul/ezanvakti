@@ -1,4 +1,6 @@
 import '../widgets/missions/qr_payload_field.dart';
+import '../../l10n/l10n_extensions.dart';
+import '../utils/time_format_context.dart';
 import '../widgets/common/option_picker.dart';
 import '../../core/models/alarm_mission.dart';
 import '../../features/alarms/domain/snooze_options.dart';
@@ -9,9 +11,14 @@ import 'package:flutter/material.dart';
 import '../../core/constants/notification_constants.dart';
 import '../../core/di/service_locator.dart';
 import '../../core/interfaces/alarm_service.dart';
+import '../../core/interfaces/local_storage.dart';
+import '../../core/models/qr_code_entry.dart';
+import '../../features/alarms/domain/alarms_manager.dart';
+import '../../features/alarms/domain/qr_library.dart';
 import '../../core/models/alarm.dart';
 import '../../core/models/notification_setting.dart' show PrayerType;
 import '../../core/theme/app_tokens.dart';
+import '../../core/theme/app_typography.dart';
 import '../../core/theme/tokens_context.dart';
 import '../utils/prayer_name_helper.dart';
 import '../widgets/common/app_bar_widgets.dart';
@@ -66,7 +73,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
     // ki "Her gün" hızlı seçimi ve gün çipleri tutarlı/senkron olsun.
     final wd = a?.weekdays ?? const <int>{};
     _weekdays = wd.isEmpty ? {1, 2, 3, 4, 5, 6, 7} : {...wd};
-    _soundId = a?.soundId ?? 'adhan';
+    _soundId = a?.soundId ?? 'default';
     _vibrate = a?.vibrate ?? true;
     _snoozeEnabled = a?.snoozeEnabled ?? true;
     _snoozeMinutes = a?.snoozeMinutes ?? 5;
@@ -96,7 +103,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
     // cikisla susturabilirdi. Kaydetmeden once kod zorunlu.
     if (_mission == AlarmMission.qr && _qrPayload.text.trim().isEmpty) {
       _revealQrSection();
-      _snack('QR görevi için bir kod okut ya da yaz');
+      _snack(context.l10n.alarmQrRequired);
       return;
     }
 
@@ -153,12 +160,14 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       appBar: SimpleAppBar(
-        title: widget.alarm == null ? 'Alarm ekle' : 'Alarmı düzenle',
+        title: widget.alarm == null
+            ? context.l10n.alarmAdd
+            : context.l10n.alarmEdit,
         actions: [
           TextButton(
             onPressed: _save,
             child: Text(
-              'Kaydet',
+              context.l10n.actionSave,
               style: TextStyle(color: context.tokens.accent),
             ),
           ),
@@ -175,18 +184,29 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
             else
               _anchoredSection(),
             const SizedBox(height: 16),
-            _section('Tekrar', _weekdaysSelector()),
+            _section(context.l10n.alarmRepeat, _weekdaysSelector()),
             const SizedBox(height: 16),
-            _section('Etiket', _labelField()),
+            _section(context.l10n.alarmLabel, _labelField()),
             const SizedBox(height: 16),
             _soundSelector(),
-            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.only(top: 4, bottom: 4),
+              child: Text(
+                // AlarmKit seviye API'si vermiyor; ses her zaman sistemin
+                // "Zil Sesi ve Uyarılar" kaydırıcısıyla çalıyor.
+                context.l10n.alarmSoundVolumeNote,
+                style: AppTypography.hint.copyWith(
+                  color: tokens.textTertiary,
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
             _switchTile(
-              'Titreşim',
+              context.l10n.alarmVibrate,
               _vibrate,
               (v) => setState(() => _vibrate = v),
             ),
-            _switchTile('Ertele (snooze)', _snoozeEnabled, (v) {
+            _switchTile(context.l10n.alarmSnooze, _snoozeEnabled, (v) {
               setState(() => _snoozeEnabled = v);
             }),
             if (_snoozeEnabled)
@@ -199,7 +219,18 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
               const SizedBox(height: 12),
               KeyedSubtree(
                 key: _qrSectionKey,
-                child: QrPayloadField(controller: _qrPayload),
+                child: QrPayloadField(
+                  controller: _qrPayload,
+                  onScanned: _offerSaveScannedCode,
+                ),
+              ),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: TextButton.icon(
+                  onPressed: _openSavedCodes,
+                  icon: const Icon(Icons.bookmarks_outlined, size: 18),
+                  label: Text(context.l10n.alarmPickSavedCode),
+                ),
               ),
             ],
           ],
@@ -210,9 +241,15 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
 
   Widget _kindToggle() {
     return SlidingSegment<AlarmKind>(
-      items: const [
-        SegmentItem(value: AlarmKind.fixed, label: 'Sabit saat'),
-        SegmentItem(value: AlarmKind.anchored, label: 'Vakte göre'),
+      items: [
+        SegmentItem(
+          value: AlarmKind.fixed,
+          label: context.l10n.alarmFixedTime,
+        ),
+        SegmentItem(
+          value: AlarmKind.anchored,
+          label: context.l10n.alarmAnchored,
+        ),
       ],
       selected: _kind,
       onChanged: (kind) => setState(() => _kind = kind),
@@ -221,7 +258,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
 
   Widget _fixedSection() {
     return _section(
-      'Saat',
+      context.l10n.alarmFixedSection,
       InkWell(
         onTap: _pickTime,
         borderRadius: BorderRadius.circular(12),
@@ -235,7 +272,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${_hour.toString().padLeft(2, '0')}:${_minute.toString().padLeft(2, '0')}',
+                context.formatHourMinute(_hour, _minute),
                 style: TextStyle(
                   color: tokens.textPrimary,
                   fontSize: 28,
@@ -260,18 +297,18 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         OptionRow<PrayerType>(
-          label: 'Vakit',
-          sheetTitle: 'Hangi vakte göre?',
+          label: context.l10n.alarmAnchorLabel,
+          sheetTitle: context.l10n.alarmAnchorQuestion,
           selected: _anchor,
           items: [
             for (final p in PrayerNameHelper.getAllPrayerTypes())
-              OptionItem(value: p, label: PrayerNameHelper.getName(p)),
+              OptionItem(value: p, label: context.l10n.prayerName(p)),
           ],
           onChanged: (v) => setState(() => _anchor = v),
         ),
         const SizedBox(height: 16),
         _section(
-          'Zamanlama',
+          context.l10n.alarmTimingSection,
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -279,13 +316,13 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                 spacing: 10,
                 runSpacing: 10,
                 children: [
-                  _timeChip('Önce', isBefore, () {
+                  _timeChip(context.l10n.alarmBefore, isBefore, () {
                     setState(() => _offset = -_anchorMagnitude(maxOffset));
                   }),
-                  _timeChip('Tam vaktinde', isExact, () {
+                  _timeChip(context.l10n.alarmExactTime, isExact, () {
                     setState(() => _offset = 0);
                   }),
-                  _timeChip('Sonra', isAfter, () {
+                  _timeChip(context.l10n.alarmAfter, isAfter, () {
                     setState(() => _offset = _anchorMagnitude(maxOffset));
                   }),
                 ],
@@ -365,7 +402,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    isBefore ? 'Vakitten önce' : 'Vakitten sonra',
+                    isBefore ? context.l10n.alarmBeforePrayer : context.l10n.alarmAfterPrayer,
                     style: TextStyle(
                       color: tokens.textPrimary,
                       fontWeight: FontWeight.w600,
@@ -373,7 +410,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                     ),
                   ),
                   Text(
-                    '1 - $maxOffset dk',
+                    context.l10n.offsetRangeHint(maxOffset),
                     style: TextStyle(color: tokens.textSecondary, fontSize: 11),
                   ),
                 ],
@@ -404,7 +441,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                 maxOffset,
                 (i) => Center(
                   child: Text(
-                    '${i + 1} dk',
+                    context.l10n.minutesShort(i + 1),
                     style: TextStyle(
                       color: tokens.textPrimary,
                       fontWeight: FontWeight.w600,
@@ -434,13 +471,13 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            _quickChip('Her gün', _isEveryDay, () {
+            _quickChip(context.l10n.alarmEveryDay, _isEveryDay, () {
               setState(() => _weekdays = {1, 2, 3, 4, 5, 6, 7});
             }),
-            _quickChip('Hafta içi', _isWeekdaysOnly, () {
+            _quickChip(context.l10n.alarmWeekdays, _isWeekdaysOnly, () {
               setState(() => _weekdays = {1, 2, 3, 4, 5});
             }),
-            _quickChip('Hafta sonu', _isWeekendOnly, () {
+            _quickChip(context.l10n.alarmWeekend, _isWeekendOnly, () {
               setState(() => _weekdays = {6, 7});
             }),
           ],
@@ -451,7 +488,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
             final day = i + 1;
             return Expanded(
               child: Padding(
-                padding: EdgeInsets.only(right: i < 6 ? 6 : 0),
+                padding: EdgeInsetsDirectional.only(end: i < 6 ? 6 : 0),
                 child: _dayCell(day),
               ),
             );
@@ -484,7 +521,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   }
 
   Widget _dayCell(int day) {
-    const names = ['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pa'];
+    final names = [for (var d = 1; d <= 7; d++) context.l10n.weekdayLetter(d)];
     final selected = _weekdays.contains(day);
     return GestureDetector(
       onTap: () => _toggleDay(day),
@@ -525,8 +562,14 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
     return TextField(
       controller: _label,
       style: TextStyle(color: tokens.textPrimary),
-      decoration: _fieldDecoration('Örn. Sahur'),
+      decoration: _fieldDecoration(context.l10n.alarmLabelHint),
     );
+  }
+
+  /// Ses etiketi: özel seste dosya adı, diğerlerinde "Varsayılan".
+  String _soundLabel(String soundId) {
+    if (!soundId.startsWith('custom:')) return context.l10n.alarmSoundDefault;
+    return _customSoundName ?? context.l10n.alarmSoundCustom;
   }
 
   /// Seçicide yalnızca gerçekten farklı ses üreten seçenekler durur.
@@ -538,27 +581,24 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   Widget _soundSelector() {
     final isCustom = _soundId.startsWith('custom:');
     return OptionRow<String>(
-      label: 'Ses',
+      label: context.l10n.alarmSound,
       selected: _soundId,
-      valueLabel: (v) => switch (v) {
-        'default' => 'Varsayılan',
-        _ => _customSoundName ?? 'Özel ses',
-      },
+      valueLabel: (v) => _soundLabel(v),
       items: [
-        const OptionItem(
+        OptionItem(
           value: 'default',
-          label: 'Varsayılan',
+          label: context.l10n.alarmSoundDefault,
           icon: Icons.volume_up_rounded,
         ),
         if (isCustom)
           OptionItem(
             value: _soundId,
-            label: _customSoundName ?? 'Özel ses',
+            label: _soundLabel(_soundId),
             icon: Icons.audiotrack_rounded,
           ),
-        const OptionItem(
+        OptionItem(
           value: _pickSoundValue,
-          label: 'Cihazdan ses seç…',
+          label: context.l10n.alarmSoundPick,
           icon: Icons.library_music_outlined,
         ),
       ],
@@ -573,8 +613,8 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   }
 
   Future<void> _pickCustomSound() async {
-    const audioGroup = XTypeGroup(
-      label: 'Ses',
+    final audioGroup = XTypeGroup(
+      label: context.l10n.soundFileTypeLabel,
       extensions: [
         'mp3',
         'm4a',
@@ -596,7 +636,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
         .importCustomSound(file.path);
     if (!mounted) return;
     if (soundId == null) {
-      _snack('Ses dosyası alınamadı');
+      _snack(context.l10n.alarmSoundImportFailed);
       return;
     }
     setState(() {
@@ -625,11 +665,11 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
 
   Widget _snoozeMinutesSelector() {
     return OptionRow<int>(
-      label: 'Erteleme süresi',
+      label: context.l10n.alarmSnoozeMinutes,
       selected: _snoozeMinutes,
       items: [
         for (final m in kSnoozeMinuteOptions)
-          OptionItem(value: m, label: '$m dakika'),
+          OptionItem(value: m, label: context.l10n.alarmSnoozeMinutesOption(m)),
       ],
       onChanged: (v) => setState(() => _snoozeMinutes = v),
     );
@@ -639,9 +679,9 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   /// kendi başlarına değil "Ertele" açıkken anlamlı olduğunu söylüyor.
   Widget _dependentGroup(List<Widget> children) {
     return Padding(
-      padding: const EdgeInsets.only(left: 12),
+      padding: const EdgeInsetsDirectional.only(start: 12),
       child: Container(
-        padding: const EdgeInsets.only(left: 16),
+        padding: const EdgeInsetsDirectional.only(start: 16),
         decoration: BoxDecoration(
           border: Border(left: BorderSide(color: tokens.divider, width: 2)),
         ),
@@ -674,32 +714,32 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   /// bırakacağı için limit en büyük sonlu seçeneğe çekilir.
   Widget _missionSelector() {
     return OptionRow<AlarmMission>(
-      label: 'Kapatma görevi',
-      sheetTitle: 'Alarmı nasıl kapatacaksın?',
+      label: context.l10n.alarmMission,
+      sheetTitle: context.l10n.alarmMissionQuestion,
       selected: _mission,
-      items: const [
+      items: [
         OptionItem(
           value: AlarmMission.none,
-          label: 'Görev yok',
-          description: 'Kaydırarak doğrudan kapanır',
+          label: context.l10n.missionNone,
+          description: context.l10n.missionNoneHint,
           icon: Icons.block_rounded,
         ),
         OptionItem(
           value: AlarmMission.math,
-          label: 'Matematik',
-          description: 'Soruları çözmeden kapanmaz',
+          label: context.l10n.missionMath,
+          description: context.l10n.missionMathHint,
           icon: Icons.calculate_rounded,
         ),
         OptionItem(
           value: AlarmMission.shake,
-          label: 'Sallama',
-          description: 'Telefonu sallayarak kapatılır',
+          label: context.l10n.missionShake,
+          description: context.l10n.missionShakeHint,
           icon: Icons.vibration_rounded,
         ),
         OptionItem(
           value: AlarmMission.qr,
-          label: 'QR okutma',
-          description: 'Kayıtlı kodu okutmadan kapanmaz',
+          label: context.l10n.missionQr,
+          description: context.l10n.missionQrHint,
           icon: Icons.qr_code_scanner_rounded,
         ),
       ],
@@ -713,6 +753,169 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
         if (v == AlarmMission.qr) _revealQrSection();
       },
     );
+  }
+
+  /// Okutulan kodu kütüphaneye kaydetmeyi önerir; ad boş bırakılırsa
+  /// generik ad kullanılır. "Vazgeç" yalnızca kaydı atlar, kod alanda kalır.
+  Future<void> _offerSaveScannedCode(String code) async {
+    // Çeviri asenkron adımlardan önce okunuyor: `await` sonrası context'e
+    // dokunmak (widget ölmüş olabilir) yanlış.
+    final l10n = context.l10n;
+    final nameController = TextEditingController();
+    final save = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.l10n.qrSaveTitle),
+        content: TextField(
+          controller: nameController,
+          autofocus: true,
+          decoration: InputDecoration(hintText: context.l10n.qrSaveHint),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(context.l10n.actionCancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(context.l10n.actionSave),
+          ),
+        ],
+      ),
+    );
+    if (save == true) {
+      final label = nameController.text.trim();
+      await ServiceLocator().get<LocalStorage>().saveQrCode(
+        QrCodeEntry(
+          id: DateTime.now().microsecondsSinceEpoch.toString(),
+          label: label.isEmpty ? l10n.qrDefaultName : label,
+          payload: code,
+          createdAt: DateTime.now(),
+        ),
+      );
+    }
+    nameController.dispose();
+  }
+
+  /// Kayıtlı kodlar alt sayfası: dokunuş seçer, çöp ikonu siler (kodu görev
+  /// olarak kullanan alarm varsa önce uyarır), uzun basış yeniden adlandırır.
+  Future<void> _openSavedCodes() async {
+    final storage = ServiceLocator().get<LocalStorage>();
+    final codes = await storage.getQrCodes();
+    if (!mounted) return;
+    if (codes.isEmpty) {
+      _snack(context.l10n.qrLibraryEmpty);
+      return;
+    }
+    final alarms = await ServiceLocator().get<AlarmsManager>().getAlarms();
+    if (!mounted) return;
+
+    final entries = List.of(codes);
+    await showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) => SafeArea(
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              for (final entry in entries)
+                ListTile(
+                  leading: const Icon(Icons.qr_code_rounded),
+                  title: Text(entry.label),
+                  subtitle: Text(
+                    entry.payload,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  onTap: () {
+                    _qrPayload.text = entry.payload;
+                    Navigator.pop(sheetContext);
+                  },
+                  onLongPress: () async {
+                    final renamed = await _renameCode(entry);
+                    if (renamed != null) {
+                      setSheetState(() {
+                        entries[entries.indexOf(entry)] = renamed;
+                      });
+                    }
+                  },
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete_outline_rounded),
+                    onPressed: () async {
+                      final removed = await _deleteCode(entry, alarms);
+                      if (removed) setSheetState(() => entries.remove(entry));
+                    },
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<QrCodeEntry?> _renameCode(QrCodeEntry entry) async {
+    final nameController = TextEditingController(text: entry.label);
+    final save = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(context.l10n.qrRenameTitle),
+        content: TextField(controller: nameController, autofocus: true),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(context.l10n.actionCancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(context.l10n.actionSave),
+          ),
+        ],
+      ),
+    );
+    QrCodeEntry? renamed;
+    final label = nameController.text.trim();
+    if (save == true && label.isNotEmpty) {
+      renamed = QrCodeEntry(
+        id: entry.id,
+        label: label,
+        payload: entry.payload,
+        createdAt: entry.createdAt,
+      );
+      await ServiceLocator().get<LocalStorage>().saveQrCode(renamed);
+    }
+    nameController.dispose();
+    return renamed;
+  }
+
+  Future<bool> _deleteCode(QrCodeEntry entry, List<Alarm> alarms) async {
+    final users = alarmsUsingQrPayload(
+      alarms,
+      entry.payload,
+      unnamedLabel: context.l10n.alarmDefaultLabel,
+    );
+    if (users.isNotEmpty) {
+      final proceed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(context.l10n.qrInUseTitle),
+          content: Text(context.l10n.qrInUseBody(users.join(', '))),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: Text(context.l10n.actionCancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: Text(context.l10n.qrDeleteAnyway),
+            ),
+          ],
+        ),
+      );
+      if (proceed != true) return false;
+    }
+    await ServiceLocator().get<LocalStorage>().deleteQrCode(entry.id);
+    return true;
   }
 
   /// QR bölümünü görünür alana kaydırır. Bölüm bu kare içinde yaratıldığı için
@@ -740,11 +943,16 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
         : kMaxSnoozeOptions.last;
 
     return OptionRow<int?>(
-      label: 'Erteleme sayısı',
+      label: context.l10n.alarmSnoozeCount,
       selected: current,
       items: [
         for (final v in values)
-          OptionItem(value: v, label: v == null ? 'Sınırsız' : '$v kez'),
+          OptionItem(
+            value: v,
+            label: v == null
+                ? context.l10n.alarmSnoozeUnlimited
+                : context.l10n.alarmSnoozeTimes(v),
+          ),
       ],
       onChanged: (v) => setState(() => _maxSnoozes = v),
     );

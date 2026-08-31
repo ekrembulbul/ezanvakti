@@ -4,6 +4,15 @@ import Foundation
 enum SnapshotStore {
     static let appGroupId = "group.com.ekrembulbul.ezanvakti"
     static let snapshotKey = "ezanvakti_snapshot"
+    static let timeFormatKey = "ezanvakti_time_format"
+
+    /// Kullanıcının 12/24 saat tercihi. Snapshot şemasının parçası **değil**:
+    /// ayrı bir anahtar, çünkü tercih değiştiğinde vakit verisini yeniden
+    /// yazmak gerekmiyor.
+    static func timeFormat() -> TimeFormatPreference {
+        let defaults = UserDefaults(suiteName: appGroupId)
+        return TimeFormatPreference.from(defaults?.string(forKey: timeFormatKey))
+    }
 
     static func load() -> Result<WidgetSnapshot, SnapshotLoadError>? {
         guard

@@ -1,4 +1,5 @@
 import 'dart:math';
+import '../../../l10n/l10n_extensions.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -163,7 +164,7 @@ class _MathMissionState extends State<MathMission> {
         decoration: InputDecoration(
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 22),
-          hintText: 'Cevap',
+          hintText: context.l10n.missionAnswerHint,
           hintStyle: AppTypography.gridValue.copyWith(
             color: tokens.textTertiary,
           ),
@@ -177,7 +178,7 @@ class _MathMissionState extends State<MathMission> {
       duration: _kAnimation,
       opacity: _wrong ? 1 : 0,
       child: Text(
-        'Yanlış, tekrar dene.',
+        context.l10n.missionWrongAnswer,
         style: AppTypography.rowSubtitle.copyWith(
           fontSize: kMissionSupportFontSize,
           color: tokens.textSecondary,
@@ -200,7 +201,9 @@ class _MathMissionState extends State<MathMission> {
           ),
         ),
         child: Text(
-          _index + 1 >= _questions.length ? 'Bitir' : 'Onayla',
+          _index + 1 >= _questions.length
+              ? context.l10n.missionFinish
+              : context.l10n.missionConfirm,
           style: AppTypography.rowTitle.copyWith(
             color: Colors.white,
             fontSize: kMissionButtonFontSize,

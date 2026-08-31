@@ -1,8 +1,12 @@
 import 'dart:async';
+import '../../l10n/app_localizations.dart';
+import '../../l10n/l10n_extensions.dart';
+import 'package:flutter/foundation.dart';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/providers/app_state.dart';
+import '../../core/models/notification_setting.dart';
 
 import '../../core/di/service_locator.dart';
 import '../../core/interfaces/alarm_service.dart';
@@ -24,6 +28,11 @@ import '../../core/interfaces/notification_service.dart';
 import '../screens/home_screen.dart';
 import '../screens/calendar_screen.dart';
 import '../screens/settings_screen.dart';
+import '../screens/quiet_windows_screen.dart';
+import '../screens/tools_screen.dart';
+import 'package:hijri/hijri_calendar.dart';
+import '../../features/home_widget/domain/widget_labels_factory.dart';
+import '../../features/ramadan/domain/ramadan_mode.dart';
 import '../screens/calculation_settings_screen.dart';
 import '../screens/location_list_screen.dart';
 import '../screens/reminders_screen.dart';
@@ -64,6 +73,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     _initializeServices();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       logger.debug('PostFrameCallback executing');
+      _loadGeneralSettings();
+      _refreshRamadanMode();
       _loadPrayerData();
       _startLocationMonitoring();
       _scheduleMidnightRefresh();
@@ -106,6 +117,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       if (!mounted) return;
       _loadPrayerData();
       _scheduleMidnightRefresh();
+      // Gün dönünce Ramazan'a girilmiş ya da çıkılmış olabilir.
+      _refreshRamadanMode();
       openMissionIfPending(context);
     });
 
@@ -173,8 +186,101 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
   }
 
+  /// Genel tercihleri depodan okuyup [AppState]'e taşır; saat biçimi ve
+  /// otomatik konum bu tek kaynaktan okunuyor.
+  /// Ramazan modu; gün dönümünde ve açılışta hesaplanır.
+  bool _ramadanActive = false;
+
+  /// Ramazan'ın ilk gününde sahur/iftar hatırlatmaları bir kez önerilir.
+  static const String _ramadanPromptKey = 'ramadan_prompt_year';
+
+  Future<void> _refreshRamadanMode() async {
+    final settings = await ServiceLocator()
+        .get<LocalStorage>()
+        .getGeneralSettings();
+    final active =
+        settings.ramadanMode && RamadanMode.isActive(DateTime.now());
+    if (!mounted) return;
+    setState(() => _ramadanActive = active);
+    if (active) await _maybeOfferRamadanReminders();
+  }
+
+  /// Yılda bir kez sorar; kullanıcı reddetse de o Ramazan boyunca tekrar
+  /// sormaz — ısrarcı olmak istemiyoruz.
+  Future<void> _maybeOfferRamadanReminders() async {
+    final storage = ServiceLocator().get<LocalStorage>();
+    final hijriYear = HijriCalendar.fromDate(DateTime.now()).hYear.toString();
+    final asked = await storage.getSetting(_ramadanPromptKey);
+    if (asked == hijriYear || !mounted) return;
+    await storage.setSetting(_ramadanPromptKey, hijriYear);
+    if (!mounted) return;
+
+    final accepted = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(dialogContext.l10n.ramadanSetupTitle),
+        content: Text(dialogContext.l10n.ramadanSetupBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(dialogContext.l10n.actionCancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(dialogContext.l10n.ramadanSetupAccept),
+          ),
+        ],
+      ),
+    );
+    if (accepted != true || !mounted) return;
+    await _addRamadanReminders();
+  }
+
+  /// Sahur ve iftar hatırlatmalarını **normal bildirim satırları** olarak
+  /// ekler: Hatırlatıcılar listesinde görünür, silinebilir. Gizli otomatik
+  /// bildirim yok.
+  Future<void> _addRamadanReminders() async {
+    final manager = ServiceLocator().get<NotificationSettingsManager>();
+    final l10n = context.l10n;
+    await manager.addSetting(
+      NotificationSetting(
+        prayerType: PrayerType.fajr,
+        isActive: true,
+        minutesBefore: 45,
+        label: l10n.ramadanSuhoorLabel,
+      ),
+    );
+    await manager.addSetting(
+      NotificationSetting(
+        prayerType: PrayerType.maghrib,
+        isActive: true,
+        label: l10n.ramadanIftarLabel,
+      ),
+    );
+    if (!mounted) return;
+    final appState = context.read<AppState>();
+    appState.setNotificationSettings(await manager.getSettings());
+    await _rescheduleReminders();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(
+        SnackBar(content: Text(context.l10n.ramadanRemindersAdded)),
+      );
+  }
+
+  Future<void> _loadGeneralSettings() async {
+    final settings = await ServiceLocator()
+        .get<LocalStorage>()
+        .getGeneralSettings();
+    if (!mounted) return;
+    context.read<AppState>().setGeneralSettings(settings);
+  }
+
   Future<void> _startLocationMonitoring() async {
     final appState = context.read<AppState>();
+    // Kullanıcı otomatik izlemeyi kapattıysa GPS hiç açılmaz.
+    if (!appState.generalSettings.autoLocation) return;
     _locationMonitorController = LocationMonitorController(
       monitorService: ServiceLocator().get<LocationMonitorService>(),
       locationService: ServiceLocator().get<LocationService>(),
@@ -194,11 +300,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
     final logger = AppLogger();
     final appState = context.read<AppState>();
+    // `await` sonrasi context kullanilamaz; ceviri simdi yakalaniyor.
+    final l10n = context.l10n;
 
     try {
       logger.debug('Manual GPS refresh triggered');
 
-      final gpsLocation = await _locationService.getCurrentGpsLocation();
+      final gpsLocation = await _locationService.getCurrentGpsLocation(
+        fallbackLabel: l10n.gpsFallbackLabel,
+      );
 
       final locationRepository = ServiceLocator().get<LocationRepository>();
       final savedLocation = await locationRepository.saveOrUpdateGpsLocation(
@@ -215,7 +325,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           ..showSnackBar(
             SnackBar(
               content: Text(
-                'GPS konumu güncellendi: ${gpsLocation.displayName}',
+                context.l10n.gpsUpdated(gpsLocation.displayName),
               ),
             ),
           );
@@ -230,7 +340,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           ..showSnackBar(
             SnackBar(
               content: Text(
-                'GPS yenileme hatası: ${e.toString().replaceAll('Exception: ', '')}',
+                l10n.errorGpsRefresh(_gpsErrorText(l10n, e)),
               ),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
@@ -241,6 +351,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         setState(() => _isRefreshingGps = false);
       }
     }
+  }
+
+  /// GPS servisi kullaniciya gosterilecek metni degil, kararli bir teshis
+  /// anahtari firlatir; karsiligi burada seciliyor.
+  String _gpsErrorText(AppLocalizations l10n, Object error) {
+    final text = error.toString().replaceAll('Exception: ', '');
+    if (text == GpsLocationService.permissionRequiredKey) {
+      return l10n.errorLocationPermission;
+    }
+    return text;
   }
 
   /// Vakit penceresini yükler ve bildirim/alarm planlamasını tazeler.
@@ -293,16 +413,22 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         skips: data.skips,
       );
 
+      // Widget kendi sürecinde `AppLocalizations`a erişemiyor; metinler
+      // uygulamanın diliyle birlikte gönderiliyor.
       await publishWidgetSnapshot(
         publisher: ServiceLocator().get<WidgetPublisher>(),
         logger: logger,
         location: location,
         prayerTimes: data.all,
         now: DateTime.now(),
+        labels: mounted ? widgetLabelsFrom(context.l10n) : null,
+        l10n: mounted ? context.l10n : null,
       );
     } catch (e) {
       logger.error('Failed to load prayer data', e);
-      appState.setError('Veri yüklenirken hata oluştu: $e');
+      appState.setError(
+        mounted ? context.l10n.errorDataLoad(e) : e.toString(),
+      );
       appState.setRefreshing(false);
     }
   }
@@ -343,7 +469,29 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           currentLocation: appState.activeLocation!,
           onChangeLocation: _navigateToLocationList,
           onCalculationSettings: _navigateToCalculationSettings,
+          onQuietWindows: _navigateToQuietWindows,
+          onNotificationPrefsChanged: _rescheduleReminders,
         ),
+      ),
+    );
+  }
+
+  /// Bildirim tercihleri değişti: planlama güncel ayarla yeniden kurulur.
+  Future<void> _rescheduleReminders() async {
+    final appState = context.read<AppState>();
+    await ServiceLocator().get<ReminderRescheduler>().reschedule(
+      location: appState.activeLocation,
+      prayerTimes: appState.prayerTimes,
+      skips: appState.skips,
+    );
+  }
+
+  void _navigateToQuietWindows() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        // Pencere değişince planlama hemen tazelenir; kullanıcı ayarı
+        // yaptıktan sonra uygulamayı yeniden açmak zorunda kalmasın.
+        builder: (_) => QuietWindowsScreen(onChanged: _rescheduleReminders),
       ),
     );
   }
@@ -362,7 +510,23 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     if (result == null || result == current) return;
 
     await storage.saveCalculationSettings(result);
+
+    // Yalnızca vakit düzeltmesi değiştiyse önbellek hâlâ geçerli: düzeltme
+    // okurken uygulanıyor. Gereksiz yeniden fetch, rate limit riskidir.
+    final onlyTuneChanged =
+        result.copyWith(tune: current.tune) == current &&
+        !mapEquals(result.tune, current.tune);
+    if (onlyTuneChanged) {
+      await _reloadAfterTuneChange();
+      return;
+    }
     await _applyGlobalCalculationChange();
+  }
+
+  /// Düzeltme değişti: veri aynı, yalnızca okunuşu değişti. Ekran, bildirim,
+  /// alarm ve widget güncel değeri alsın diye yeniden yüklenir.
+  Future<void> _reloadAfterTuneChange() async {
+    await _loadPrayerData();
   }
 
   Future<void> _applyGlobalCalculationChange() async {
@@ -423,7 +587,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       if (mounted) {
         ScaffoldMessenger.of(context)
           ..clearSnackBars()
-          ..showSnackBar(SnackBar(content: Text('Konum değiştirilemedi: $e')));
+          ..showSnackBar(
+            SnackBar(content: Text(context.l10n.errorLocationChange(e))),
+          );
       }
     }
   }
@@ -451,6 +617,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 builder: (context, appState, child) {
                   return HomeScreen(
                     missionSession: appState.missionSession,
+                    ramadanActive: _ramadanActive,
                     location: appState.activeLocation!,
                     todaysPrayerTime: appState.todaysPrayerTime,
                     tomorrowsPrayerTime: appState.tomorrowsPrayerTime,
@@ -483,14 +650,28 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 },
               ),
               const RemindersScreen(),
+              const ToolsScreen(),
             ],
           ),
         ),
         bottomNavigationBar: AppNavBar(
-          items: const [
-            NavItem(label: 'Vakitler', icon: Icons.schedule_rounded),
-            NavItem(label: 'Takvim', icon: Icons.calendar_month_rounded),
-            NavItem(label: 'Hatırlatıcılar', icon: Icons.notifications_rounded),
+          items: [
+            NavItem(
+              label: context.l10n.navPrayerTimes,
+              icon: Icons.schedule_rounded,
+            ),
+            NavItem(
+              label: context.l10n.navCalendar,
+              icon: Icons.calendar_month_rounded,
+            ),
+            NavItem(
+              label: context.l10n.navReminders,
+              icon: Icons.notifications_rounded,
+            ),
+            NavItem(
+              label: context.l10n.navTools,
+              icon: Icons.handyman_rounded,
+            ),
           ],
           selected: _tabIndex,
           onChanged: (index) => setState(() => _tabIndex = index),

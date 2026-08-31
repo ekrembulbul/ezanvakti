@@ -1,4 +1,5 @@
 import '../../core/models/alarm.dart';
+import '../../core/models/derived_time.dart';
 import '../../core/models/notification_setting.dart';
 import '../../core/models/prayer_time.dart';
 import '../../core/utils/prayer_utils.dart';
@@ -80,9 +81,13 @@ Map<String, DateTime> resolveNextFirePerNotification({
   return result;
 }
 
-/// Bildirim ayarının kimliği: vakit + kaç dakika önce.
+/// Bildirim ayarının kimliği: vakit + kaç dakika önce + günler.
+///
+/// Günler kimliğin parçası: aynı vakit ve sapmada "her gün" ve "yalnızca
+/// Cuma" satırları yan yana durabiliyor.
 String notificationKey(NotificationSetting setting) =>
-    '${setting.prayerType.name}-${setting.minutesBefore}';
+    '${setting.prayerType.name}-${setting.derivedKind?.storageValue ?? ''}-'
+    '${setting.minutesBefore}-${setting.weekdaysCsv}';
 
 /// [now]'dan sonra çalacak ilk alarmı döner.
 ///

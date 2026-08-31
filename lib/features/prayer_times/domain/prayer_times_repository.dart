@@ -3,6 +3,7 @@ import '../../../core/interfaces/local_storage.dart';
 import '../../../core/models/prayer_time.dart';
 import '../../../core/models/location.dart';
 import '../../../core/utils/app_logger.dart';
+import 'prayer_time_tuner.dart';
 
 class PrayerTimesRepository {
   final PrayerTimeProvider provider;
@@ -35,7 +36,7 @@ class PrayerTimesRepository {
       if (cachedTimes.isNotEmpty &&
           _isCacheComplete(cachedTimes, startDate, endDate)) {
         logger.debug('Cache HIT: ${cachedTimes.length} days from cache');
-        return cachedTimes;
+        return _tuned(cachedTimes);
       } else {
         logger.debug(
           'Cache MISS: Found ${cachedTimes.length} days, but incomplete. Fetching from remote',
@@ -54,12 +55,13 @@ class PrayerTimesRepository {
       );
 
       if (remoteTimes.isNotEmpty) {
+        // Önbelleğe **ham** veri yazılır; düzeltme okurken uygulanır.
         logger.debug('Saving ${remoteTimes.length} days to cache');
         await storage.savePrayerTimes(remoteTimes, location.id);
         await storage.saveLastUpdateTime(DateTime.now());
       }
 
-      return remoteTimes;
+      return await _tuned(remoteTimes);
     } catch (e) {
       logger.warning('Remote fetch failed, attempting fallback to cache', e);
       final cachedTimes = await storage.getPrayerTimes(
@@ -74,8 +76,23 @@ class PrayerTimesRepository {
       }
 
       logger.info('Fallback successful: ${cachedTimes.length} days from cache');
-      return cachedTimes;
+      return _tuned(cachedTimes);
     }
+  }
+
+  Future<PrayerTime?> _tunedOne(PrayerTime? time) async {
+    if (time == null) return null;
+    final settings = await storage.getCalculationSettings();
+    return PrayerTimeTuner.applyOne(time, settings.tune);
+  }
+
+  /// Kullanıcının vakit düzeltmelerini uygular. Vakit okumanın tek çıkış
+  /// kapısı burası: widget snapshot'ı, planlayıcı ve ekranlar hep buradan
+  /// beslendiği için düzeltme her yerde tutarlı görünür.
+  Future<List<PrayerTime>> _tuned(List<PrayerTime> times) async {
+    if (times.isEmpty) return times;
+    final settings = await storage.getCalculationSettings();
+    return PrayerTimeTuner.apply(times, settings.tune);
   }
 
   Future<PrayerTime?> getDailyPrayerTime({
@@ -97,7 +114,7 @@ class PrayerTimesRepository {
 
       if (cachedTime != null) {
         logger.debug('Cache HIT: Single day from cache');
-        return cachedTime;
+        return _tunedOne(cachedTime);
       } else {
         logger.debug('Cache MISS: Fetching from remote');
       }
@@ -116,7 +133,7 @@ class PrayerTimesRepository {
         await storage.saveLastUpdateTime(DateTime.now());
       }
 
-      return remoteTime;
+      return await _tunedOne(remoteTime);
     } catch (e) {
       logger.warning('Remote fetch failed, attempting fallback to cache', e);
       final cachedTime = await storage.getDailyPrayerTime(
@@ -130,7 +147,7 @@ class PrayerTimesRepository {
       }
 
       logger.info('Fallback successful: Single day from cache');
-      return cachedTime;
+      return _tunedOne(cachedTime);
     }
   }
 

@@ -2,16 +2,23 @@ import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart'
     show PrayerType;
 import 'package:ezanvakti/presentation/utils/alarm_labels.dart';
+import 'package:ezanvakti/l10n/app_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../support/l10n_helper.dart';
 
 /// Etiket fonksiyonlari ekranin disina bagimli degil; karakterizasyon testi
 /// olarak kilitleniyorlar ki yeniden duzenleme sirasinda davranis kaymasin.
 void main() {
+  late AppLocalizations l10n;
+
+  setUpAll(() async => l10n = await loadTestL10n());
+
   group('alarmTimeLabel', () {
     test('Sabit alarm saati sifir dolgulu yazar', () {
       const alarm = Alarm(id: '1', kind: AlarmKind.fixed, hour: 6, minute: 5);
 
-      expect(alarmTimeLabel(alarm), '06:05');
+      expect(alarmTimeLabel(alarm, l10n: l10n), '06:05');
     });
 
     test('Cipali alarm vakit adi ve sapmayi yazar', () {
@@ -22,7 +29,7 @@ void main() {
         offsetMinutes: -30,
       );
 
-      expect(alarmTimeLabel(alarm), 'İmsak −30 dk');
+      expect(alarmTimeLabel(alarm, l10n: l10n), 'İmsak −30 dk');
     });
 
     test('Pozitif sapma arti isaretiyle yazilir', () {
@@ -33,7 +40,7 @@ void main() {
         offsetMinutes: 15,
       );
 
-      expect(alarmTimeLabel(alarm), 'Yatsı +15 dk');
+      expect(alarmTimeLabel(alarm, l10n: l10n), 'Yatsı +15 dk');
     });
 
     test('Sapma sifirsa yalnizca vakit adi', () {
@@ -43,23 +50,23 @@ void main() {
         anchor: PrayerType.isha,
       );
 
-      expect(alarmTimeLabel(alarm), 'Yatsı');
+      expect(alarmTimeLabel(alarm, l10n: l10n), 'Yatsı');
     });
   });
 
   group('weekdaysLabel', () {
     test('Bos kume ve yedi gun "Her gün"', () {
-      expect(weekdaysLabel(const {}), 'Her gün');
-      expect(weekdaysLabel(const {1, 2, 3, 4, 5, 6, 7}), 'Her gün');
+      expect(weekdaysLabel(const {}, l10n), 'Her gün');
+      expect(weekdaysLabel(const {1, 2, 3, 4, 5, 6, 7}, l10n), 'Her gün');
     });
 
     test('Hafta ici ve hafta sonu ozel etiketler', () {
-      expect(weekdaysLabel(const {1, 2, 3, 4, 5}), 'Hafta içi');
-      expect(weekdaysLabel(const {6, 7}), 'Hafta sonu');
+      expect(weekdaysLabel(const {1, 2, 3, 4, 5}, l10n), 'Hafta içi');
+      expect(weekdaysLabel(const {6, 7}, l10n), 'Hafta sonu');
     });
 
     test('Diger kombinasyonlar kisa gun adlariyla siralanir', () {
-      expect(weekdaysLabel(const {3, 1}), 'Pzt, Çar');
+      expect(weekdaysLabel(const {3, 1}, l10n), 'Pzt, Çar');
     });
   });
 
@@ -72,13 +79,13 @@ void main() {
         weekdays: {1, 2, 3, 4, 5},
       );
 
-      expect(alarmSubtitle(alarm), 'Sahur · Hafta içi');
+      expect(alarmSubtitle(alarm, l10n), 'Sahur · Hafta içi');
     });
 
     test('Etiket yoksa yalnizca tekrar bilgisi', () {
       const alarm = Alarm(id: '1', kind: AlarmKind.fixed);
 
-      expect(alarmSubtitle(alarm), 'Her gün');
+      expect(alarmSubtitle(alarm, l10n), 'Her gün');
     });
   });
 }

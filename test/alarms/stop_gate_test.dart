@@ -140,13 +140,33 @@ void main() {
       );
     });
 
-    /// Gorevli alarmda bayatlik yok: kapi native zincir tavaniyla sinirli,
-    /// oturum bekliyorsa gorev hala borc.
-    test('gorevli, eski oturum yine acilir', () {
+    /// Zincir tavani (60 dk) icindeki eski oturum hala borctur.
+    test('gorevli, eski ama tavan icindeki oturum yine acilir', () {
       final late = stoppedAt.add(const Duration(minutes: 20));
       expect(
         StopGate.decide(alarm: gated, session: session(), now: late),
         StopDecision.showStopScreen,
+      );
+    });
+
+    /// Dunku oturum bugunku acilista ekran acmamali: 31 Agustos olayi.
+    test('gorevli, tavani asan bayat oturum kapatilir', () {
+      final stale = stoppedAt.add(
+        const Duration(minutes: MissionTuning.chainDeadlineMinutes + 1),
+      );
+      expect(
+        StopGate.decide(alarm: gated, session: session(), now: stale),
+        StopDecision.closeAndRearm,
+      );
+    });
+
+    test('gorevli, tavana bir dakika kala bayat sayilmaz', () {
+      final fresh = stoppedAt.add(
+        const Duration(minutes: MissionTuning.chainDeadlineMinutes - 1),
+      );
+      expect(
+        StopGate.decide(alarm: gated, session: session(), now: fresh),
+        isNot(StopDecision.closeAndRearm),
       );
     });
   });

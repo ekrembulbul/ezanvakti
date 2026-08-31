@@ -16,7 +16,8 @@ final class PrayerTimelineTests: XCTestCase {
                         asr: "16:58", maghrib: "20:26", isha: "21:58"
                     )
                 )
-            }
+            },
+            labels: nil
         )
     }
 

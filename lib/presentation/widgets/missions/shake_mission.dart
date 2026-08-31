@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../../l10n/l10n_extensions.dart';
 
 import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
@@ -119,7 +120,9 @@ class _ShakeMissionState extends State<ShakeMission>
               ),
               const SizedBox(height: 6),
               Text(
-                remaining > 0 ? 'kez daha salla' : 'tamamlandı',
+                remaining > 0
+                    ? context.l10n.missionShakeRemaining
+                    : context.l10n.missionShakeDone,
                 style: AppTypography.rowTitle.copyWith(
                   fontSize: kMissionLeadFontSize,
                   color: tokens.textSecondary,

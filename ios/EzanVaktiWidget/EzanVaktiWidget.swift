@@ -13,6 +13,7 @@ struct Provider: AppIntentTimelineProvider {
             for: SnapshotStore.load(), now: Date(), calendar: .current
         ).first ?? placeholder(in: context)
         entry.alignment = configuration.alignment
+        entry.timeFormat = SnapshotStore.timeFormat()
         return entry
     }
 
@@ -20,11 +21,13 @@ struct Provider: AppIntentTimelineProvider {
         for configuration: EzanVaktiWidgetIntent, in context: Context
     ) async -> Timeline<PrayerEntry> {
         let now = Date()
+        let timeFormat = SnapshotStore.timeFormat()
         let entries = PrayerTimeline.entries(
             for: SnapshotStore.load(), now: now, calendar: .current
         ).map { entry -> PrayerEntry in
             var copy = entry
             copy.alignment = configuration.alignment
+            copy.timeFormat = timeFormat
             return copy
         }
 
@@ -72,6 +75,7 @@ struct EzanVaktiWidgetEntryView: View {
         case .systemSmall: SmallView(entry: entry, alignment: entry.alignment)
         case .systemMedium: MediumView(entry: entry, alignment: entry.alignment)
         case .accessoryRectangular: RectangularView(entry: entry, alignment: entry.alignment)
+        case .accessoryCircular: CircularView(entry: entry)
         default: SmallView(entry: entry, alignment: entry.alignment)
         }
     }
@@ -90,8 +94,12 @@ struct EzanVaktiWidget: Widget {
         ) { entry in
             EzanVaktiWidgetEntryView(entry: entry)
         }
-        .configurationDisplayName("Ezan Vakti")
-        .description("Sıradaki vakit ve geri sayım.")
-        .supportedFamilies([.systemSmall, .systemMedium, .accessoryRectangular])
+        // Galeri metinleri `*.lproj/Localizable.strings` ile çevriliyor;
+        // buradaki İngilizce metin hem taban hem anahtar.
+        .configurationDisplayName("Prayer Times")
+        .description("The next prayer and its countdown.")
+        .supportedFamilies([
+            .systemSmall, .systemMedium, .accessoryRectangular, .accessoryCircular,
+        ])
     }
 }

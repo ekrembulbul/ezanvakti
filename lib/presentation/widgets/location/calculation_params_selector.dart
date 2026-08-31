@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/l10n_extensions.dart';
 
 import '../../../core/models/calculation_params.dart';
 import '../../../core/theme/tokens_context.dart';
@@ -33,7 +34,7 @@ class CalculationParamsSelector extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _LabeledDropdown<int>(
-          label: 'Hesaplama Yöntemi',
+          label: context.l10n.calcMethodLabel,
           value: method,
           items: [
             for (final m in CalculationMethods.all)
@@ -45,11 +46,11 @@ class CalculationParamsSelector extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         _LabeledDropdown<AsrSchool>(
-          label: 'İkindi (Mezhep)',
+          label: context.l10n.calcAsrLabel,
           value: school,
           items: [
             for (final s in AsrSchool.values)
-              DropdownMenuItem(value: s, child: Text(s.label)),
+              DropdownMenuItem(value: s, child: Text(context.l10n.asrSchoolLabel(s))),
           ],
           onChanged: (value) {
             if (value != null) onSchoolChanged(value);
@@ -64,7 +65,7 @@ class CalculationParamsSelector extends StatelessWidget {
             iconColor: tokens.accent,
             collapsedIconColor: tokens.textTertiary,
             title: Text(
-              'Gelişmiş',
+              context.l10n.calcAdvanced,
               style: TextStyle(
                 color: tokens.textPrimary.withValues(alpha: 0.7),
                 fontSize: 14,
@@ -73,11 +74,14 @@ class CalculationParamsSelector extends StatelessWidget {
             ),
             children: [
               _LabeledDropdown<LatitudeAdjustment>(
-                label: 'Yüksek Enlem Düzeltmesi',
+                label: context.l10n.calcLatitudeLabel,
                 value: latitudeAdjustment,
                 items: [
                   for (final a in LatitudeAdjustment.values)
-                    DropdownMenuItem(value: a, child: Text(a.label)),
+                    DropdownMenuItem(
+                      value: a,
+                      child: Text(context.l10n.latitudeAdjustmentLabel(a)),
+                    ),
                 ],
                 onChanged: (value) {
                   if (value != null) onLatitudeAdjustmentChanged(value);

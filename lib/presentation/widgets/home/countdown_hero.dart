@@ -1,7 +1,8 @@
 import 'dart:async';
+import '../../../l10n/l10n_extensions.dart';
+import '../../utils/time_format_context.dart';
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
@@ -84,7 +85,7 @@ class _CountdownHeroState extends State<CountdownHero> {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
-    final time = DateFormat('HH:mm').format(widget.nextPrayerTime);
+    final time = context.formatTime(widget.nextPrayerTime);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -95,7 +96,7 @@ class _CountdownHeroState extends State<CountdownHero> {
           textBaseline: TextBaseline.alphabetic,
           children: [
             Text(
-              'SONRAKİ',
+              context.l10n.nextLabel,
               style: AppTypography.counterLabel.copyWith(
                 color: tokens.textSecondary,
               ),
@@ -118,7 +119,7 @@ class _CountdownHeroState extends State<CountdownHero> {
         ),
         const SizedBox(height: 10),
         Text(
-          "${widget.nextPrayerName} ezanı $time'de",
+          context.l10n.adhanAt(widget.nextPrayerName, time),
           style: AppTypography.heroSubtitle.copyWith(
             color: tokens.textSecondary,
           ),

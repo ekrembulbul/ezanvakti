@@ -1,4 +1,7 @@
 import '../../../core/models/skipped_occurrence.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../../l10n/l10n_extensions.dart';
+import '../../utils/time_format_context.dart';
 import '../../../features/notifications/domain/skip_rules.dart';
 import '../../../core/models/mission_session.dart';
 import 'snooze_notice.dart';
@@ -40,11 +43,18 @@ class AlarmsSection extends StatelessWidget {
 
   final Set<SkippedOccurrence> skips;
 
+  /// Son planlamada kurulamayan alarmlar (alarmId → mesaj); satırda uyarı
+  /// olarak gösterilir.
+  final Map<String, String> scheduleFailures;
+
   /// Tek seferlik atlama değiştirildiğinde çağrılır.
   final void Function(SkippedOccurrence occurrence, bool skipped)?
   onSkipChanged;
   final ValueChanged<Alarm> onEdit;
   final Future<void> Function(Alarm) onDelete;
+
+  /// Uzun basma menüsünden "Kopyala"; null ise menü yalnızca silme sunar.
+  final ValueChanged<Alarm>? onDuplicate;
 
   const AlarmsSection({
     super.key,
@@ -57,9 +67,11 @@ class AlarmsSection extends StatelessWidget {
     this.onDisableBlocked,
     this.nextFireByAlarm = const {},
     this.skips = const {},
+    this.scheduleFailures = const {},
     this.onSkipChanged,
     required this.onEdit,
     required this.onDelete,
+    this.onDuplicate,
   });
 
   @override
@@ -67,17 +79,17 @@ class AlarmsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        ?_permissionBanner(),
-        Expanded(child: alarms.isEmpty ? _empty() : _list(context)),
+        ?_permissionBanner(context),
+        Expanded(child: alarms.isEmpty ? _empty(context) : _list(context)),
         _footer(context),
       ],
     );
   }
 
-  Widget _empty() => const EmptyState(
+  Widget _empty(BuildContext context) => EmptyState(
     icon: Icons.alarm_off_rounded,
-    message: 'Henüz alarm yok',
-    subtitle: 'Sabit saatli veya vakte göre alarm ekle',
+    message: context.l10n.remindersNoAlarms,
+    subtitle: context.l10n.remindersNoAlarmsHint,
   );
 
   /// Satırın alt metni.
@@ -85,11 +97,19 @@ class AlarmsSection extends StatelessWidget {
   /// Tek seferlik atlama artık ayrı bir eylem değil: anahtar kapatılınca
   /// altta çıkan çubuktan seçiliyor. Burada yalnızca **hangi durumda**
   /// olduğu yazıyor.
-  String _subtitle(Alarm alarm, DateTime? snoozedUntil, bool skipped) {
-    if (snoozedUntil != null) return SnoozeNotice.label(snoozedUntil);
-    if (skipped) return 'Yalnızca bu sefer atlanacak';
-    if (!alarm.isActive) return 'Kapalı';
-    return alarmSubtitle(alarm);
+  String _subtitle(
+    Alarm alarm,
+    DateTime? snoozedUntil,
+    bool skipped,
+    AppLocalizations l10n,
+  ) {
+    if (alarm.isActive && scheduleFailures.containsKey(alarm.id)) {
+      return l10n.reminderScheduleFailed;
+    }
+    if (snoozedUntil != null) return SnoozeNotice.label(snoozedUntil, l10n);
+    if (skipped) return l10n.reminderSkippedOnce;
+    if (!alarm.isActive) return l10n.reminderOff;
+    return alarmSubtitle(alarm, l10n);
   }
 
   Widget _alarmRow(BuildContext context, Alarm alarm) {
@@ -115,39 +135,84 @@ class AlarmsSection extends StatelessWidget {
       // Onay sorulmuyor: silme dogrudan uygulaniyor, geri alma altta
       // "Geri al" ile veriliyor.
       onDelete: () => onDelete(alarm),
-      child: GroupedRow(
-        icon: Icons.alarm_rounded,
-        title: Text(alarmTimeLabel(alarm)),
-        subtitle: Text(_subtitle(alarm, snoozedUntil, skipped)),
-        onTap: () => onEdit(alarm),
-        dimmed: !isOn,
-        trailing: Switch(
-          value: isOn,
-          onChanged: (value) {
-            if (!value) {
-              // Ertelenmis gorevli alarm kapatilamaz; gorev borcu duruyor.
-              if (!canDisable) {
-                onDisableBlocked?.call(alarm);
+      // GroupedRow'un kendi onTap'i InkWell'de; uzun basma dıştan yakalanıyor
+      // ki satır API'sine dokunulmasın.
+      child: GestureDetector(
+        onLongPress: () => _showRowMenu(context, alarm),
+        child: GroupedRow(
+          icon: Icons.alarm_rounded,
+          title: Text(
+          alarmTimeLabel(
+            alarm,
+            l10n: context.l10n,
+            formatHourMinute: context.formatHourMinute,
+          ),
+        ),
+          subtitle: Text(
+            _subtitle(alarm, snoozedUntil, skipped, context.l10n),
+          ),
+          onTap: () => onEdit(alarm),
+          dimmed: !isOn,
+          trailing: Switch(
+            value: isOn,
+            onChanged: (value) {
+              if (!value) {
+                // Ertelenmis gorevli alarm kapatilamaz; gorev borcu duruyor.
+                if (!canDisable) {
+                  onDisableBlocked?.call(alarm);
+                  return;
+                }
+                onToggle(alarm, false);
                 return;
               }
-              onToggle(alarm, false);
-              return;
-            }
-            // Aciliyor: bekleyen tek seferlik atlama varsa once o kalkar,
-            // yoksa alarm kalici olarak acilir.
-            if (skipped && onSkipChanged != null) {
-              onSkipChanged!(
-                SkippedOccurrence(
-                  kind: SkipKind.alarm,
-                  reference: alarm.id,
-                  fireAt: fireAt,
-                ),
-                false,
-              );
-              return;
-            }
-            onToggle(alarm, true);
-          },
+              // Aciliyor: bekleyen tek seferlik atlama varsa once o kalkar,
+              // yoksa alarm kalici olarak acilir.
+              if (skipped && onSkipChanged != null) {
+                onSkipChanged!(
+                  SkippedOccurrence(
+                    kind: SkipKind.alarm,
+                    reference: alarm.id,
+                    fireAt: fireAt,
+                  ),
+                  false,
+                );
+                return;
+              }
+              onToggle(alarm, true);
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Uzun basma menüsü: Kopyala / Sil. Silme swipe ile de yapılabiliyor;
+  /// burada kopyalamanın yanında ikinci bir keşfedilebilir yol olarak durur.
+  void _showRowMenu(BuildContext context, Alarm alarm) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (onDuplicate != null)
+              ListTile(
+                leading: const Icon(Icons.copy_rounded),
+                title: Text(context.l10n.alarmDuplicate),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  onDuplicate!(alarm);
+                },
+              ),
+            ListTile(
+              leading: const Icon(Icons.delete_outline_rounded),
+              title: Text(context.l10n.actionDelete),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                onDelete(alarm);
+              },
+            ),
+          ],
         ),
       ),
     );
@@ -159,21 +224,16 @@ class AlarmsSection extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.only(top: 12, bottom: 24),
       children: [
-        SectionLabel('${alarms.length} alarm'),
+        SectionLabel(context.l10n.remindersAlarmCount(alarms.length)),
         const SizedBox(height: 10),
         GroupedList(
-          children: [
-            for (final alarm in alarms)
-              _alarmRow(context, alarm),
-          ],
+          children: [for (final alarm in alarms) _alarmRow(context, alarm)],
         ),
         const SizedBox(height: 12),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 2),
           child: Text(
-            'Silmek için satırı sola kaydırın; yanlışlıkla silersen alttaki '
-            '"Geri al" ile dönersin. Alarmlar vakit güncellendiğinde otomatik '
-            'yeniden planlanır.',
+            context.l10n.alarmsSwipeHint,
             style: AppTypography.hint.copyWith(
               color: tokens.textTertiary,
               height: 1.5,
@@ -195,7 +255,7 @@ class AlarmsSection extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Alarmlar vakit verisi güncellendikçe yeniden planlanır.',
+              context.l10n.alarmsRescheduleNote,
               style: AppTypography.hint.copyWith(color: tokens.textTertiary),
             ),
           ),
@@ -206,15 +266,13 @@ class AlarmsSection extends StatelessWidget {
 
   /// iOS < 26'da destek yok; izin verilmemişse uyarı + "İzin ver". Her şey
   /// yolundaysa null döner.
-  Widget? _permissionBanner() {
+  Widget? _permissionBanner(BuildContext context) {
     if (!isSupported) {
-      return const Padding(
-        padding: EdgeInsets.only(top: 12),
+      return Padding(
+        padding: const EdgeInsets.only(top: 12),
         child: InfoBanner(
           icon: Icons.info_outline_rounded,
-          text:
-              'Sesli alarm bu cihazda desteklenmiyor (iOS 26 ve üzeri gerekir). '
-              'Alarmlar kaydedilir ancak çalmaz.',
+          text: context.l10n.alarmsUnsupported,
         ),
       );
     }
@@ -223,10 +281,10 @@ class AlarmsSection extends StatelessWidget {
         padding: const EdgeInsets.only(top: 12),
         child: InfoBanner(
           icon: Icons.notifications_off_rounded,
-          text: 'Alarmların çalması için izin gerekiyor.',
+          text: context.l10n.alarmsNeedPermission,
           action: TextButton(
             onPressed: onRequestPermission,
-            child: const Text('İzin ver'),
+            child: Text(context.l10n.permissionGrant),
           ),
         ),
       );

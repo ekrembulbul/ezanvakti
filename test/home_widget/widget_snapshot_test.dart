@@ -22,8 +22,40 @@ void main() {
       ],
     );
 
-    test('schemaVersion 2 yazilir', () {
-      expect(snapshot.toJson()['schemaVersion'], 2);
+    test('etiket verilmezse labels alani yazilmaz (v2 uyumlulugu)', () {
+      expect(snapshot.toJson().containsKey('labels'), isFalse);
+    });
+
+    test('etiket verilirse labels alani yazilir', () {
+      const labels = WidgetLabels(
+        fajr: 'Fajr',
+        sunrise: 'Sunrise',
+        dhuhr: 'Dhuhr',
+        asr: 'Asr',
+        maghrib: 'Maghrib',
+        isha: 'Isha',
+        tomorrow: 'Tomorrow',
+        stale: 'Out of date',
+        openApp: 'Open the app',
+        updateApp: 'Update the app',
+        siriAnswer: '{prayer} at {time}, {remaining} left.',
+        durationHourMinute: '{hours} h {minutes} min',
+        durationHour: '{hours} h',
+        durationMinute: '{minutes} min',
+      );
+      final withLabels = WidgetSnapshot(
+        locationLabel: snapshot.locationLabel,
+        generatedAt: snapshot.generatedAt,
+        days: snapshot.days,
+        labels: labels,
+      );
+      final json = withLabels.toJson()['labels'] as Map<String, String>;
+      expect(json['fajr'], 'Fajr');
+      expect(json['siriAnswer'], contains('{prayer}'));
+    });
+
+    test('schemaVersion 3 yazilir', () {
+      expect(snapshot.toJson()['schemaVersion'], 3);
     });
 
     test('hicri tarih gune yazilir', () {

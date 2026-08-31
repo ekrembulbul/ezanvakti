@@ -4,6 +4,129 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.11.3] - 2026-08-31
+
+### Değişti
+- **Uygulama içindeki dil seçimi kaldırıldı.** Uygulama artık telefonun diline uyar ve değiştirilemez. Telefon Türkçe/İngilizce/Arapça ise arayüz o dilde, başka bir dilse İngilizce olur.
+- **Uygulama adı, izin metinleri, widget galerisi ve Siri komutları da çevrildi.** Ana ekrandaki uygulama adı, konum/kamera/alarm izin diyalogları, widget galerisindeki açıklama ve "sıradaki vakit" sesli komutu artık telefonun dilinde geliyor.
+- **Tarihler cihaz diline göre yazılıyor.** Gün ve ay adları sabit Türkçe biçimlendirmeyle basılıyordu; İngilizce/Arapça telefonda da Türkçe görünüyordu.
+- Hesaplama yöntemlerindeki Türkçeleştirilmiş yer adları uluslararası yazımına çekildi ("Mekke" → "Makkah", "Kuveyt" → "Kuwait"). Kurum adları özel isim olduğu için çevrilmiyor.
+
+### Düzeltildi
+- Ekranlarda kalan son sabit Türkçe metinler çevrildi: alarm düzenleme bölüm başlıkları, alarm durdurma ara ekranı, görev ekranlarındaki düğmeler, QR tarayıcı, hata ekranındaki "Yeniden Dene", konum ekranlarındaki kaydet/geri düğmeleri ve konum türü etiketleri.
+
+### Teknik not
+- iOS tarafında `tr/en/ar.lproj` altında `InfoPlist.strings`, `Localizable.strings` ve `AppShortcuts.strings`; Android tarafında `values-tr/` ve `values-ar/` eklendi. Taban dil (çevirisi olmayan cihazlar için) İngilizce.
+- Sabit Türkçe metin testi artık yalnızca Türkçe'ye özgü harflere değil, ASCII yazılan Türkçe kelimelere de bakıyor — "Ayarlar", "Kaydet", "dk" gibi sızıntılar bu yüzden gözden kaçmıştı. Log çağrıları taramadan muaf.
+
+## [0.11.2] - 2026-08-31
+
+### Değişti
+- **Uygulamada tek bir sabit Türkçe metin kalmadı.** Görev ekranları (matematik, sallama, QR), acil çıkış, alarm durdurma, hatırlatıcı ekleme, hesaplama ayarları, konum ekranları, hata ve bilgi mesajları — hepsi üç dilde.
+- **Hicri ay adları ve dini gün adları çevrildi.** Arapça'da ay adları kendi yazımıyla (رمضان, شعبان), İngilizce'de yerleşik karşılıklarıyla (Ramadan, Sha'ban) görünüyor.
+- **Acil çıkışta yazılacak cümle artık kendi dilinde.** Önce sabit Türkçe cümle isteniyordu; İngilizce ya da Arapça arayüzde bu anlamsızdı.
+- Hesaplama yöntemi adları uluslararası yazımlarına çevrildi ("Karaçi" → "Karachi", "Körfez Bölgesi" → "Gulf Region"). Diyanet İşleri Başkanlığı kurum adı olduğu için olduğu gibi kalıyor.
+
+### Düzeltildi
+- Vakit adları, ikon seçimi ve gün dilimi paleti artık **ada değil kimliğe** bakıyor. Çeviri gelince bu eşleşmeler sessizce bozulacaktı.
+
+### Teknik not
+- Bir test artık `lib/` altında sabit Türkçe metin kalmadığını sürekli doğruluyor; yeni ekranlarda çeviri unutulursa test kırılıyor.
+- Kullanılmayan çevrimdışı durum mesajları ve ölü etiket metotları kaldırıldı.
+
+## [0.11.1] - 2026-08-31
+
+### Düzeltildi
+- **Desteklenmeyen cihaz dilinde artık İngilizce kullanılıyor.** Önce Arapça'ya düşüyordu (desteklenen diller listesi alfabetikti).
+- Uygulama içinde bir dil seçtiysen **bildirimler de o dilde** geliyor; önce cihaz dilini kullanıyordu.
+
+### Eklendi
+- **Widget ve Siri kısayolu artık uygulamanın dilinde.** Metinler widget'a uygulamayla birlikte gönderiliyor (snapshot v3), böylece uygulama içinde seçtiğin dil cihaz dilinden farklı olsa bile widget ona uyuyor.
+- **Konum ekranları çevrildi:** konum listesi, konum ekleme (arama ve GPS) ve konum düzenleme.
+
+### Teknik not
+- Widget'ta vakit eşleşmesi artık ada değil dile bağlı olmayan bir anahtara bakıyor; adlar çevrildiğinde gün dilimi paleti bozulmuyor.
+
+## [0.11.0] - 2026-08-31
+
+### Eklendi
+- **Ramazan modu.** Ramazan boyunca ana ekrandaki sayaç sıradaki vakit yerine **iftara** (gündüz) ya da **sahurun bitişine** (imsaktan önce ve akşamdan sonra) sayar. Takvim sekmesi "Ramazan İmsakiyesi" adını alır.
+- **Sahur ve iftar hatırlatmaları.** Ramazan'ın ilk gününde bir kez sorulur; kabul edersen normal bildirim satırı olarak eklenir — Hatırlatıcılar listesinde görünür ve silinebilir. Gizli otomatik bildirim yok, yılda bir kez sorulur.
+- **Oruç takibi.** Ramazan'da Namaz takibi ekranında oruç ızgarası (tuttum / kaza / muaf) ve kaza orucu sayacı.
+- Ramazan modu Ayarlar'dan kapatılabilir.
+
+### Bilinen sınır
+- Ramazan'ın başlangıcı hicri takvimden hesaplanır; Diyanet ilanından bir gün sapabilir. Sayaç ve imsakiye o günün gerçek vakitlerinden hesaplandığı için içerik doğru kalır.
+- Widget'ta Ramazan'a özel görünüm yok; widget sıradaki vakti göstermeye devam eder.
+
+## [0.10.0] - 2026-08-31
+
+### Eklendi
+- **Üç dil: Türkçe, İngilizce, Arapça.** Ayarlar > Genel > Dil'den seçiliyor; "Sistem" seçilirse cihaz dili kullanılır, desteklenmeyen bir dilde Türkçe'ye düşer.
+- **Arapça'da sağdan sola yerleşim (RTL).** Oklar, kenar boşlukları ve hizalamalar yöne göre dönüyor.
+- Bildirim metinleri de çevrildi: uygulamayı açmadan gelen bildirimler seçili dilde geliyor.
+
+### Bilinen sınır
+- Çeviriler tarafımızdan yapıldı; Arapça metinler için anadili Arapça olan bir gözden geçirme faydalı olur.
+- Widget ve Siri kısayolu metinleri henüz Türkçe (iOS tarafında ayrı bir çeviri dosyası gerekiyor).
+- Konum ekranları ve bazı hata mesajları henüz Türkçe.
+
+## [0.9.0] - 2026-08-31
+
+### Eklendi
+- **Araçlar sekmesi.** Alt gezinmede dördüncü sekme: Vakitler · Takvim · Hatırlatıcılar · Araçlar.
+- **Kıble pusulası.** Kâbe yönü konumundan hesaplanıyor, cihazın pusulası gerçek kuzeye göre okunuyor. Kıbleye dönünce titreşimle haber veriyor; pusula kalibrasyon isterse uyarı çıkıyor.
+- **Namaz takibi ve kaza sayacı.** Son yedi günün ızgarasında her vakte dokunarak "kıldım → kaza → boş" arasında geçiş yapılıyor; ayrıca vakit başına kaza sayacı var. Seri/rozet yok — defter gibi, oyun gibi değil.
+- **Zikirmatik.** Tam ekran dokunma alanı, hedef seçimi (33/99/100/500/1000), tur sayısı; tur tamamlanınca ayrı titreşim. Sayaç günlük tutuluyor.
+- **"Sıradaki vakit" Siri kısayolu.** Uygulamayı açmadan sıradaki vakti ve kalan süreyi söylüyor; Spotlight'ta da çıkıyor.
+- **Kilit ekranı halka widget'ı** (`accessoryCircular`): vakte kalan süre halkası ve vaktin saati.
+- Widget artık uygulamadaki **12/24 saat tercihini** kullanıyor.
+
+### Bilinen sınır
+- Kıble ve Siri kısayolu yalnızca gerçek cihazda anlamlı çalışır.
+- Denetim Merkezi'ne "ezan sessiz" düğmesi eklenmedi: widget uzantısından planlanmış bildirimleri değiştirmek güvenilir değil, çalışmayan bir düğme yanlış güven verirdi.
+
+## [0.8.0] - 2026-08-31
+
+### Eklendi
+- **Türetilmiş vakit hatırlatmaları.** Altı vaktin yanına beş yeni nokta: İşrak (kerahat bitişi), zeval ve akşam öncesi kerahat, şer'i gece yarısı ve gecenin son üçte biri (teheccüd). Hepsi mevcut vakitlerden cihazda hesaplanıyor — ek veri indirilmiyor. Hatırlatıcı eklerken "Türetilmiş Vakitler" bölümünden seçiliyor.
+- **Dini günler.** Kandiller, Ramazan başlangıcı, bayramlar, Aşure, Arefe ve Regaib için akşam vaktinde bildirim; istersen bir gün önce öğle vaktinde de hatırlatır. Ayarlar > Bildirim ve ses'ten açılıyor.
+- **Takvimi paylaş.** Vakit Takvimi sekmesindeki paylaş düğmesi aylık tabloyu görsel olarak paylaşıyor.
+
+### Bilinen sınır
+- Dini gün tarihleri **hicri takvimden hesaplanır**, ilan edilmiş tarihler değildir. Diyanet astronomik gözleme dayandığı için bir gün farklı olabilir; bildirim metni ve ayar açıklaması bunu belirtir.
+- Bildirim kimliği türetilmiş noktayı da kapsadığı için bu sürüme geçerken bekleyen "yalnızca bu sefer atla" işaretleri sıfırlanır. Bildirimlerin kendisi korunur.
+
+## [0.7.0] - 2026-08-31
+
+### Eklendi
+- **Sessiz pencereler.** Belirlediğin aralıklarda bildirimler sessiz gösterilir ya da hiç gösterilmez. Cuma namazı şablonu **açık geliyor** (öğleden 15 dk önce – 60 dk sonra); süresini değiştirebilir, modunu seçebilir ya da tamamen kapatabilirsin — istediğin vakit için kendi pencereni de ekleyebilirsin. Not: iPhone'da bir uygulama telefonu sessize alamaz — bu ayar yalnızca Ezan Vakti bildirimlerini etkiler, alarmlara dokunmaz.
+- **Bildirim başına ses:** sistem sesi, uygulamanın kısa uyarı tonu ya da sessiz. Yeni bildirimlerin varsayılan sesi Ayarlar'dan seçiliyor.
+- **Odak modunda göster.** Açıkken bildirimler Odak modunda özete düşmeden anında görünür. (Telefonun sessiz anahtarını delmez.)
+- **Bildirimlere gün filtresi ve etiket.** Bir hatırlatma yalnızca seçtiğin günlerde çalabiliyor; etiket verirsen bildirim başlığında o yazıyor. Bildirim listesinde tek dokunuşla **Cuma namazı hatırlatıcısı** ekleniyor.
+- **Vakit düzeltmeleri.** Her vakti −15…+15 dk kaydırabilirsin; bildirimler, alarmlar ve widget düzeltilmiş vakti kullanır.
+- **Saat biçimi** (sistem / 24 saat / 12 saat) ve **konumu otomatik izle** anahtarı.
+
+### Değişti
+- Ayarlar ekranı bölümlendi: Genel · Bildirim ve ses · Sessiz pencereler · Görünüm · Bilgi.
+- Vakit düzeltmesi değiştiğinde vakitler yeniden indirilmiyor; düzeltme cihazda uygulanıyor.
+
+### Bilinen değişiklik
+- Bildirimlerin kimliği gün bilgisini de kapsadığı için, bu sürüme geçerken bekleyen "yalnızca bu sefer atla" işaretleri sıfırlanır. Bildirimlerin kendisi korunur.
+
+## [0.6.0] - 2026-08-31
+
+### Düzeltildi
+- **Tekrarlı alarmlar artık uygulama açılmadan da her gün kurulu.** 31 Ağustos'ta alarmların hiç çalmaması bu tasarım açığındandı: sisteme yalnızca tek sonraki çalış yazılıyor, ertesi gün uygulamanın açılmasına kalıyordu. Sabit saatli tekrarlı alarmlar sistemin kendi haftalık tekrarıyla kuruluyor; vakte çıpalı alarmların önümüzdeki 7 çalışı önden diziliyor.
+- **Alarm çalmadan açılan bayat görev ekranı.** Dünden kalan görev oturumu artık 60 dakika sonra kendiliğinden kapanıyor; zincir güvenlik tavanına çarptığında da oturum kapatılıp alarmlar yeniden kuruluyor.
+- **Ses seçicideki hayalet "Özel ses".** Yeni alarm, 0.5.1'de kaldırılan bir ses kimliğiyle başladığı için seçici "Özel ses" gösteriyordu; gerçekte sistem varsayılanı çalıyordu. Varsayılan düzeltildi, eski kayıtlar veritabanında temizleniyor.
+- Kurulamayan alarm satırında artık "Kurulamadı" uyarısı görünüyor; sessiz kaybolmuyor.
+
+### Eklendi
+- **Alarm kopyalama:** satıra uzun basınca Kopyala/Sil menüsü; kopya "(kopya)" etiketiyle düzenleme ekranında açılıyor.
+- **QR kod kütüphanesi:** okutulan kod adlandırılıp kaydedilebiliyor; yeni alarm kurarken "Kayıtlı kodlardan seç" ile yeniden kullanılıyor. Silmede kodu kullanan alarmlar uyarıyla listeleniyor.
+- Ses satırının altında bilgilendirme: alarm, sistemin "Zil Sesi ve Uyarılar" seviyesiyle çalar (iOS üçüncü taraflara ses düzeyi denetimi vermiyor).
+
 ## [0.5.5] - 2026-08-30
 
 ### Düzeltildi

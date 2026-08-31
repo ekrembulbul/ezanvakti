@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">أوقات الصلاة والمنبه</string>
+    <string name="alarm_dismiss">إيقاف</string>
+    <string name="alarm_snooze">تأجيل</string>
+    <string name="alarm_snooze_minutes">تأجيل %d دقيقة</string>
+    <string name="alarm_default_label">أوقات الصلاة والمنبه</string>
+    <string name="alarm_slide_to_stop">اسحب للإيقاف</string>
+    <string name="alarm_ringing">المنبه يرن</string>
+    <string name="alarm_channel_name">منبهات أوقات الصلاة</string>
+    <string name="alarm_channel_description">منبهات صوتية</string>
+</resources>

@@ -1,4 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ezanvakti/core/models/fasting_log.dart';
+import 'package:ezanvakti/core/models/prayer_log.dart';
+import 'package:ezanvakti/core/models/quiet_window.dart';
+import 'package:ezanvakti/core/models/general_settings.dart';
+import 'package:ezanvakti/core/models/qr_code_entry.dart';
 import 'package:ezanvakti/core/models/skipped_occurrence.dart';
 import 'package:ezanvakti/core/interfaces/prayer_time_provider.dart';
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
@@ -54,6 +59,122 @@ class MockPrayerTimeProvider implements PrayerTimeProvider {
 }
 
 class MockLocalStorage implements LocalStorage {
+
+  final Map<String, String> _rawSettings = {};
+
+  @override
+  Future<String?> getSetting(String key) async => _rawSettings[key];
+
+  @override
+  Future<void> setSetting(String key, String value) async =>
+      _rawSettings[key] = value;
+
+  final Map<String, FastingStatus> _fastingLog = {};
+  int _fastingQada = 0;
+
+  @override
+  Future<Map<String, FastingStatus>> getFastingLog(
+    DateTime from,
+    DateTime to,
+  ) async => Map.of(_fastingLog);
+
+  @override
+  Future<void> setFastingLog(DateTime date, FastingStatus? status) async {
+    final key = fastingLogKey(date);
+    if (status == null) {
+      _fastingLog.remove(key);
+    } else {
+      _fastingLog[key] = status;
+    }
+  }
+
+  @override
+  Future<int> getFastingQadaCount() async => _fastingQada;
+
+  @override
+  Future<void> setFastingQadaCount(int count) async => _fastingQada = count;
+
+  final Map<String, PrayerStatus> _prayerLog = {};
+  final Map<PrayerType, int> _qadaCounts = {};
+  final Map<String, int> _dhikrLog = {};
+
+  @override
+  Future<Map<String, PrayerStatus>> getPrayerLog(
+    DateTime from,
+    DateTime to,
+  ) async => Map.of(_prayerLog);
+
+  @override
+  Future<void> setPrayerLog(
+    DateTime date,
+    PrayerType prayerType,
+    PrayerStatus? status,
+  ) async {
+    final key = prayerLogKey(date, prayerType);
+    if (status == null) {
+      _prayerLog.remove(key);
+    } else {
+      _prayerLog[key] = status;
+    }
+  }
+
+  @override
+  Future<Map<PrayerType, int>> getQadaCounts() async => Map.of(_qadaCounts);
+
+  @override
+  Future<void> setQadaCount(PrayerType prayerType, int count) async =>
+      _qadaCounts[prayerType] = clampQadaCount(count);
+
+  @override
+  Future<int> getDhikrCount(DateTime date) async =>
+      _dhikrLog['${date.year}-${date.month}-${date.day}'] ?? 0;
+
+  @override
+  Future<void> setDhikrCount(DateTime date, int count) async =>
+      _dhikrLog['${date.year}-${date.month}-${date.day}'] = count;
+
+  List<QuietWindow> _quietWindows = [];
+
+  @override
+  Future<List<QuietWindow>> getQuietWindows() async => _quietWindows;
+
+  @override
+  Future<void> saveQuietWindows(List<QuietWindow> windows) async =>
+      _quietWindows = windows;
+
+  GeneralSettings _generalSettings = const GeneralSettings();
+
+  @override
+  Future<GeneralSettings> getGeneralSettings() async => _generalSettings;
+
+  @override
+  Future<void> saveGeneralSettings(GeneralSettings settings) async =>
+      _generalSettings = settings;
+
+  final List<QrCodeEntry> _qrCodes = [];
+
+  @override
+  Future<List<QrCodeEntry>> getQrCodes() async => List.of(_qrCodes);
+
+  @override
+  Future<void> saveQrCode(QrCodeEntry entry) async {
+    _qrCodes.removeWhere((e) => e.id == entry.id);
+    _qrCodes.insert(0, entry);
+  }
+
+  @override
+  Future<void> deleteQrCode(String id) async =>
+      _qrCodes.removeWhere((e) => e.id == id);
+
+  Map<String, String> _alarmScheduleFailures = {};
+
+  @override
+  Future<Map<String, String>> getAlarmScheduleFailures() async =>
+      _alarmScheduleFailures;
+
+  @override
+  Future<void> saveAlarmScheduleFailures(Map<String, String> failures) async =>
+      _alarmScheduleFailures = failures;
   @override
   Future<AppearanceSettings> getAppearanceSettings() async =>
       const AppearanceSettings();
@@ -197,6 +318,8 @@ class MockLocalStorage implements LocalStorage {
   Future<void> deleteNotificationSetting({
     required PrayerType prayerType,
     required int minutesBefore,
+    String weekdays = '',
+    String derivedKind = '',
   }) async {
     _notificationSettings = _notificationSettings
         .where(
@@ -306,6 +429,9 @@ class MockNotificationService implements NotificationService {
     required DateTime scheduledTime,
     required String title,
     required String body,
+    String? soundId,
+    bool silent = false,
+    bool timeSensitive = true,
   }) async {
     _scheduledNotifications[id] = ScheduledNotification(
       id: id,

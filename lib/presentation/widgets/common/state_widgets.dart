@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../../../l10n/l10n_extensions.dart';
+
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 
 class LoadingState extends StatelessWidget {
-  final String message;
+  final String? message;
 
-  const LoadingState({super.key, this.message = 'Yükleniyor...'});
+  const LoadingState({super.key, this.message});
 
   @override
   Widget build(BuildContext context) {
@@ -17,13 +19,15 @@ class LoadingState extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CircularProgressIndicator(color: tokens.accent),
-          const SizedBox(height: 20),
-          Text(
-            message,
-            style: AppTypography.rowSubtitle.copyWith(
-              color: tokens.textSecondary,
+          if (message != null) ...[
+            const SizedBox(height: 20),
+            Text(
+              message!,
+              style: AppTypography.rowSubtitle.copyWith(
+                color: tokens.textSecondary,
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -70,7 +74,7 @@ class ErrorState extends StatelessWidget {
               ElevatedButton.icon(
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Yeniden Dene'),
+                label: Text(context.l10n.actionRetry),
               ),
           ],
         ),

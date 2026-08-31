@@ -1,18 +1,8 @@
 import 'calculation_settings.dart';
 
-enum LocationType {
-  gps,
-  manual;
-
-  String get displayName {
-    switch (this) {
-      case LocationType.gps:
-        return 'GPS Konumu';
-      case LocationType.manual:
-        return 'Manuel';
-    }
-  }
-}
+/// Konumun nasıl eklendiği. Görünen adı [AppLocalizations] tarafında
+/// (`locationTypeLabel`) yaşar; model çeviri taşımaz.
+enum LocationType { gps, manual }
 
 class Location {
   final String id;
