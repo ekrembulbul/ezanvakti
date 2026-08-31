@@ -3,6 +3,7 @@ import '../models/location.dart';
 import '../models/notification_setting.dart';
 import '../models/calculation_settings.dart';
 import '../models/appearance_settings.dart';
+import '../models/general_settings.dart';
 import '../models/abort_state.dart';
 import '../models/mission_session.dart';
 import '../models/alarm.dart';
@@ -40,6 +41,11 @@ abstract class LocalStorage {
 
   /// Uygulama genelindeki varsayılan hesaplama ayarını kaydeder.
   Future<void> saveCalculationSettings(CalculationSettings settings);
+
+  /// Genel tercihler (saat biçimi, otomatik konum); kayıt yoksa varsayılanlar.
+  Future<GeneralSettings> getGeneralSettings();
+
+  Future<void> saveGeneralSettings(GeneralSettings settings);
 
   /// Görünüm tercihlerini döner; kayıt yoksa [AppearanceSettings] varsayılanları.
   Future<AppearanceSettings> getAppearanceSettings();

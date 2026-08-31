@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ezanvakti/core/models/general_settings.dart';
 import 'package:ezanvakti/core/models/qr_code_entry.dart';
 import 'package:ezanvakti/core/models/skipped_occurrence.dart';
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
@@ -16,6 +17,15 @@ import 'package:ezanvakti/features/prayer_times/domain/prayer_times_repository.d
 import 'package:ezanvakti/features/prayer_times/domain/offline_state_manager.dart';
 
 class MockLocalStorage implements LocalStorage {
+
+  GeneralSettings _generalSettings = const GeneralSettings();
+
+  @override
+  Future<GeneralSettings> getGeneralSettings() async => _generalSettings;
+
+  @override
+  Future<void> saveGeneralSettings(GeneralSettings settings) async =>
+      _generalSettings = settings;
 
   final List<QrCodeEntry> _qrCodes = [];
 

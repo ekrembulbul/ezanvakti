@@ -1,4 +1,5 @@
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
+import 'package:ezanvakti/core/models/general_settings.dart';
 import 'package:ezanvakti/core/models/appearance_settings.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/core/theme/day_phase.dart';
@@ -8,6 +9,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _InMemoryStorage implements LocalStorage {
+
+  GeneralSettings _generalSettings = const GeneralSettings();
+
+  @override
+  Future<GeneralSettings> getGeneralSettings() async => _generalSettings;
+
+  @override
+  Future<void> saveGeneralSettings(GeneralSettings settings) async =>
+      _generalSettings = settings;
   AppearanceSettings stored = const AppearanceSettings();
   int saveCount = 0;
 

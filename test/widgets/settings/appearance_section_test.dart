@@ -1,4 +1,5 @@
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
+import 'package:ezanvakti/core/models/general_settings.dart';
 import 'package:ezanvakti/core/models/appearance_settings.dart';
 import 'package:ezanvakti/core/theme/day_phase.dart';
 import 'package:ezanvakti/core/theme/theme_controller.dart';
@@ -10,6 +11,15 @@ import 'package:provider/provider.dart';
 import '../theme_harness.dart';
 
 class _InMemoryStorage implements LocalStorage {
+
+  GeneralSettings _generalSettings = const GeneralSettings();
+
+  @override
+  Future<GeneralSettings> getGeneralSettings() async => _generalSettings;
+
+  @override
+  Future<void> saveGeneralSettings(GeneralSettings settings) async =>
+      _generalSettings = settings;
   AppearanceSettings stored = const AppearanceSettings();
 
   @override

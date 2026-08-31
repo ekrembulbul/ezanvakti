@@ -1,4 +1,5 @@
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
+import 'package:ezanvakti/core/models/general_settings.dart';
 import 'package:ezanvakti/core/models/appearance_settings.dart';
 import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/theme/theme_controller.dart';
@@ -10,6 +11,15 @@ import 'package:provider/provider.dart';
 import '../theme_harness.dart';
 
 class _InMemoryStorage implements LocalStorage {
+
+  GeneralSettings _generalSettings = const GeneralSettings();
+
+  @override
+  Future<GeneralSettings> getGeneralSettings() async => _generalSettings;
+
+  @override
+  Future<void> saveGeneralSettings(GeneralSettings settings) async =>
+      _generalSettings = settings;
   AppearanceSettings stored = const AppearanceSettings();
 
   @override
@@ -28,7 +38,9 @@ const _location = Location(id: '1', province: 'İstanbul', district: 'Kadıköy'
 
 void main() {
   Future<void> pumpSettings(WidgetTester tester, {VoidCallback? onCalc}) async {
-    tester.view.physicalSize = const Size(1206, 2622);
+    // Ekran Genel kartiyla uzadi; alt bolumler (Gorunum/Bilgi) icin uzun bir
+    // yuzey veriliyor ki testler kaydirmadan da hepsini gorebilsin.
+    tester.view.physicalSize = const Size(1206, 4200);
     tester.view.devicePixelRatio = 3.0;
     addTearDown(tester.view.reset);
 

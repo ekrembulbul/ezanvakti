@@ -1,4 +1,5 @@
 import '../../../core/models/mission_session.dart';
+import '../../utils/time_format_context.dart';
 import '../reminders/snooze_notice.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -155,8 +156,8 @@ class UpcomingCard extends StatelessWidget {
       ),
       subtitle: Text(
         skipped
-            ? 'Yalnızca bu sefer atlanacak · ${_clock(item.time)}'
-            : '$offset · ${_clock(item.time)} · '
+            ? 'Yalnızca bu sefer atlanacak · ${_clock(context, item.time)}'
+            : '$offset · ${_clock(context, item.time)} · '
                   '${formatRemaining(item.time.difference(now))}',
       ),
       trailing: _skipSwitch(occurrence, skipped),
@@ -166,7 +167,10 @@ class UpcomingCard extends StatelessWidget {
   Widget _alarmRow(BuildContext context) {
     final tokens = context.tokens;
     final item = alarm!;
-    final label = alarmTimeLabel(item.alarm);
+    final label = alarmTimeLabel(
+      item.alarm,
+      formatHourMinute: context.formatHourMinute,
+    );
     final title = item.alarm.label.isNotEmpty ? item.alarm.label : label;
 
     final occurrence = SkippedOccurrence(
@@ -196,8 +200,9 @@ class UpcomingCard extends StatelessWidget {
           (final DateTime until, _) => SnoozeNotice.label(until),
           (_, true) =>
             'Yalnızca bu sefer atlanacak · '
-                '${_relativeDay(item.time)} ${_clock(item.time)}',
-          _ => '$label · ${_relativeDay(item.time)} ${_clock(item.time)}',
+                '${_relativeDay(item.time)} ${_clock(context, item.time)}',
+          _ =>
+            '$label · ${_relativeDay(item.time)} ${_clock(context, item.time)}',
         },
       ),
       // Ertelenmis gorevli alarm atlanamaz: gorev borcu duruyor.
@@ -207,7 +212,8 @@ class UpcomingCard extends StatelessWidget {
     );
   }
 
-  String _clock(DateTime time) => DateFormat('HH:mm').format(time);
+  String _clock(BuildContext context, DateTime time) =>
+      context.formatTime(time);
 
   /// "bugün" / "yarın" / "Pazartesi".
   String _relativeDay(DateTime time) {

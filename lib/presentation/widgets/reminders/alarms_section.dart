@@ -1,4 +1,5 @@
 import '../../../core/models/skipped_occurrence.dart';
+import '../../utils/time_format_context.dart';
 import '../../../features/notifications/domain/skip_rules.dart';
 import '../../../core/models/mission_session.dart';
 import 'snooze_notice.dart';
@@ -133,7 +134,12 @@ class AlarmsSection extends StatelessWidget {
         onLongPress: () => _showRowMenu(context, alarm),
         child: GroupedRow(
           icon: Icons.alarm_rounded,
-          title: Text(alarmTimeLabel(alarm)),
+          title: Text(
+          alarmTimeLabel(
+            alarm,
+            formatHourMinute: context.formatHourMinute,
+          ),
+        ),
           subtitle: Text(_subtitle(alarm, snoozedUntil, skipped)),
           onTap: () => onEdit(alarm),
           dimmed: !isOn,

@@ -3,8 +3,17 @@ import '../../core/models/alarm_mission.dart';
 import 'prayer_name_helper.dart';
 
 /// "07:30" (sabit) veya "İmsak −30 dk" (çıpalı).
-String alarmTimeLabel(Alarm alarm) {
+///
+/// [formatHourMinute] verilirse sabit saat kullanıcının 12/24 tercihine göre
+/// basılır; verilmezse 24 saat (saf çağrılar ve testler için).
+String alarmTimeLabel(
+  Alarm alarm, {
+  String Function(int hour, int minute)? formatHourMinute,
+}) {
   if (alarm.kind == AlarmKind.fixed) {
+    if (formatHourMinute != null) {
+      return formatHourMinute(alarm.hour, alarm.minute);
+    }
     final h = alarm.hour.toString().padLeft(2, '0');
     final m = alarm.minute.toString().padLeft(2, '0');
     return '$h:$m';

@@ -65,6 +65,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     _initializeServices();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       logger.debug('PostFrameCallback executing');
+      _loadGeneralSettings();
       _loadPrayerData();
       _startLocationMonitoring();
       _scheduleMidnightRefresh();
@@ -174,8 +175,20 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
   }
 
+  /// Genel tercihleri depodan okuyup [AppState]'e taşır; saat biçimi ve
+  /// otomatik konum bu tek kaynaktan okunuyor.
+  Future<void> _loadGeneralSettings() async {
+    final settings = await ServiceLocator()
+        .get<LocalStorage>()
+        .getGeneralSettings();
+    if (!mounted) return;
+    context.read<AppState>().setGeneralSettings(settings);
+  }
+
   Future<void> _startLocationMonitoring() async {
     final appState = context.read<AppState>();
+    // Kullanıcı otomatik izlemeyi kapattıysa GPS hiç açılmaz.
+    if (!appState.generalSettings.autoLocation) return;
     _locationMonitorController = LocationMonitorController(
       monitorService: ServiceLocator().get<LocationMonitorService>(),
       locationService: ServiceLocator().get<LocationService>(),

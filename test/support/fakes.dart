@@ -1,4 +1,5 @@
 import 'package:ezanvakti/core/models/skipped_occurrence.dart';
+import 'package:ezanvakti/core/models/general_settings.dart';
 import 'package:ezanvakti/core/models/qr_code_entry.dart';
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
 import 'package:ezanvakti/core/models/abort_state.dart';
@@ -73,6 +74,15 @@ class FakeProvider implements PrayerTimeProvider {
 
 /// Bellekte tutan depo. Vakitler konum + gun anahtariyla saklanir.
 class FakeStorage implements LocalStorage {
+
+  GeneralSettings _generalSettings = const GeneralSettings();
+
+  @override
+  Future<GeneralSettings> getGeneralSettings() async => _generalSettings;
+
+  @override
+  Future<void> saveGeneralSettings(GeneralSettings settings) async =>
+      _generalSettings = settings;
 
   final List<QrCodeEntry> _qrCodes = [];
 

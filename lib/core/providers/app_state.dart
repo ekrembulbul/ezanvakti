@@ -1,4 +1,5 @@
 import '../models/mission_session.dart';
+import '../models/general_settings.dart';
 import 'package:flutter/foundation.dart';
 import '../models/alarm.dart';
 import '../models/location.dart';
@@ -18,6 +19,7 @@ class AppState extends ChangeNotifier {
   bool _isRefreshing = false;
   String? _errorMessage;
   bool _hasNotificationPermission = false;
+  GeneralSettings _generalSettings = const GeneralSettings();
 
   Location? get activeLocation => _activeLocation;
   PrayerTime? get todaysPrayerTime => _todaysPrayerTime;
@@ -39,6 +41,15 @@ class AppState extends ChangeNotifier {
 
   String? get errorMessage => _errorMessage;
   bool get hasNotificationPermission => _hasNotificationPermission;
+
+  /// Saat biçimi ve otomatik konum gibi genel tercihler.
+  GeneralSettings get generalSettings => _generalSettings;
+
+  void setGeneralSettings(GeneralSettings settings) {
+    if (_generalSettings == settings) return;
+    _generalSettings = settings;
+    notifyListeners();
+  }
   bool get hasActiveLocation => _activeLocation != null;
 
   void setActiveLocation(Location? location) {

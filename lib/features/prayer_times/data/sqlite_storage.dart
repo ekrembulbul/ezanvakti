@@ -10,6 +10,7 @@ import '../../../core/models/qr_code_entry.dart';
 import '../../../core/models/calculation_params.dart';
 import '../../../core/models/calculation_settings.dart';
 import '../../../core/models/appearance_settings.dart';
+import '../../../core/models/general_settings.dart';
 import '../../../core/models/abort_state.dart';
 import '../../../core/models/mission_session.dart';
 import '../../../core/models/skipped_occurrence.dart';
@@ -501,6 +502,35 @@ class SqliteStorage implements LocalStorage {
       'key': _notificationDefaultsKey,
       'value': 'true',
     }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  @override
+  Future<GeneralSettings> getGeneralSettings() async {
+    final db = await database;
+    final rows = await db.query(
+      'settings',
+      where: 'key IN (?, ?)',
+      whereArgs: [
+        GeneralSettings.timeFormatKey,
+        GeneralSettings.autoLocationKey,
+      ],
+    );
+    return GeneralSettings.fromMap({
+      for (final row in rows) row['key'] as String: row['value'] as String,
+    });
+  }
+
+  @override
+  Future<void> saveGeneralSettings(GeneralSettings settings) async {
+    final db = await database;
+    final batch = db.batch();
+    settings.toMap().forEach((key, value) {
+      batch.insert('settings', {
+        'key': key,
+        'value': value,
+      }, conflictAlgorithm: ConflictAlgorithm.replace);
+    });
+    await batch.commit(noResult: true);
   }
 
   @override

@@ -1,7 +1,7 @@
 import 'dart:async';
+import '../../utils/time_format_context.dart';
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
@@ -84,7 +84,7 @@ class _CountdownHeroState extends State<CountdownHero> {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
-    final time = DateFormat('HH:mm').format(widget.nextPrayerTime);
+    final time = context.formatTime(widget.nextPrayerTime);
 
     return Column(
       mainAxisSize: MainAxisSize.min,

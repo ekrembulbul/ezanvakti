@@ -10,6 +10,7 @@ import '../widgets/common/app_surface.dart';
 import '../widgets/common/grouped_list.dart';
 import '../widgets/common/section_label.dart';
 import '../widgets/settings/appearance_section.dart';
+import '../widgets/settings/general_section.dart';
 
 class SettingsScreen extends StatefulWidget {
   final Location currentLocation;
@@ -82,6 +83,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ],
             ),
+            const SizedBox(height: 12),
+            const GeneralSection(),
             const SizedBox(height: 26),
             const SectionLabel('Görünüm'),
             const SizedBox(height: 10),

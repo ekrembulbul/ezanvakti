@@ -59,7 +59,7 @@ class AlarmStopScreen extends StatelessWidget {
   /// kayar, kullanıcı bugünkü saati görmeli).
   String get _timeText => alarm.kind == AlarmKind.fixed
       ? alarmTimeLabel(alarm)
-      : DateFormat('HH:mm').format(firedAt);
+      : DateFormat('HH:mm').format(firedAt); // ekran icinde sabit 24 saat
 
   String get _detailText {
     final ago = now.difference(stoppedAt).inMinutes;

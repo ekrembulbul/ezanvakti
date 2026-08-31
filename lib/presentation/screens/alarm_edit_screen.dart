@@ -1,4 +1,5 @@
 import '../widgets/missions/qr_payload_field.dart';
+import '../utils/time_format_context.dart';
 import '../utils/alarm_labels.dart';
 import '../widgets/common/option_picker.dart';
 import '../../core/models/alarm_mission.dart';
@@ -263,7 +264,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '${_hour.toString().padLeft(2, '0')}:${_minute.toString().padLeft(2, '0')}',
+                context.formatHourMinute(_hour, _minute),
                 style: TextStyle(
                   color: tokens.textPrimary,
                   fontSize: 28,
