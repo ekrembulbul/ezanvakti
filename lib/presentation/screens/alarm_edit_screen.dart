@@ -17,6 +17,7 @@ import '../../features/alarms/domain/qr_library.dart';
 import '../../core/models/alarm.dart';
 import '../../core/models/notification_setting.dart' show PrayerType;
 import '../../core/theme/app_tokens.dart';
+import '../../core/theme/app_typography.dart';
 import '../../core/theme/tokens_context.dart';
 import '../utils/prayer_name_helper.dart';
 import '../widgets/common/app_bar_widgets.dart';
@@ -185,7 +186,18 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
             _section('Etiket', _labelField()),
             const SizedBox(height: 16),
             _soundSelector(),
-            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.only(top: 4, bottom: 4),
+              child: Text(
+                // AlarmKit seviye API'si vermiyor; ses her zaman sistemin
+                // "Zil Sesi ve Uyarılar" kaydırıcısıyla çalıyor.
+                'Alarm, Zil Sesi ve Uyarılar ses seviyesiyle çalar.',
+                style: AppTypography.hint.copyWith(
+                  color: tokens.textTertiary,
+                ),
+              ),
+            ),
+            const SizedBox(height: 4),
             _switchTile(
               'Titreşim',
               _vibrate,

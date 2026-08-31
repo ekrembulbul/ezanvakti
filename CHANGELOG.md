@@ -4,6 +4,19 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.6.0] - 2026-08-31
+
+### Düzeltildi
+- **Tekrarlı alarmlar artık uygulama açılmadan da her gün kurulu.** 31 Ağustos'ta alarmların hiç çalmaması bu tasarım açığındandı: sisteme yalnızca tek sonraki çalış yazılıyor, ertesi gün uygulamanın açılmasına kalıyordu. Sabit saatli tekrarlı alarmlar sistemin kendi haftalık tekrarıyla kuruluyor; vakte çıpalı alarmların önümüzdeki 7 çalışı önden diziliyor.
+- **Alarm çalmadan açılan bayat görev ekranı.** Dünden kalan görev oturumu artık 60 dakika sonra kendiliğinden kapanıyor; zincir güvenlik tavanına çarptığında da oturum kapatılıp alarmlar yeniden kuruluyor.
+- **Ses seçicideki hayalet "Özel ses".** Yeni alarm, 0.5.1'de kaldırılan bir ses kimliğiyle başladığı için seçici "Özel ses" gösteriyordu; gerçekte sistem varsayılanı çalıyordu. Varsayılan düzeltildi, eski kayıtlar veritabanında temizleniyor.
+- Kurulamayan alarm satırında artık "Kurulamadı" uyarısı görünüyor; sessiz kaybolmuyor.
+
+### Eklendi
+- **Alarm kopyalama:** satıra uzun basınca Kopyala/Sil menüsü; kopya "(kopya)" etiketiyle düzenleme ekranında açılıyor.
+- **QR kod kütüphanesi:** okutulan kod adlandırılıp kaydedilebiliyor; yeni alarm kurarken "Kayıtlı kodlardan seç" ile yeniden kullanılıyor. Silmede kodu kullanan alarmlar uyarıyla listeleniyor.
+- Ses satırının altında bilgilendirme: alarm, sistemin "Zil Sesi ve Uyarılar" seviyesiyle çalar (iOS üçüncü taraflara ses düzeyi denetimi vermiyor).
+
 ## [0.5.5] - 2026-08-30
 
 ### Düzeltildi
