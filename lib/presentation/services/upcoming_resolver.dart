@@ -80,9 +80,13 @@ Map<String, DateTime> resolveNextFirePerNotification({
   return result;
 }
 
-/// Bildirim ayarının kimliği: vakit + kaç dakika önce.
+/// Bildirim ayarının kimliği: vakit + kaç dakika önce + günler.
+///
+/// Günler kimliğin parçası: aynı vakit ve sapmada "her gün" ve "yalnızca
+/// Cuma" satırları yan yana durabiliyor.
 String notificationKey(NotificationSetting setting) =>
-    '${setting.prayerType.name}-${setting.minutesBefore}';
+    '${setting.prayerType.name}-${setting.minutesBefore}-'
+    '${setting.weekdaysCsv}';
 
 /// [now]'dan sonra çalacak ilk alarmı döner.
 ///

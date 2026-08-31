@@ -233,6 +233,7 @@ class MockLocalStorage implements LocalStorage {
   Future<void> deleteNotificationSetting({
     required PrayerType prayerType,
     required int minutesBefore,
+    String weekdays = '',
   }) async {
     _notificationSettings = _notificationSettings
         .where(

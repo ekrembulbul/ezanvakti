@@ -32,7 +32,7 @@ class SqliteStorage implements LocalStorage {
 
     return await openDatabase(
       path,
-      version: 9,
+      version: 10,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -61,15 +61,7 @@ class SqliteStorage implements LocalStorage {
       )
     ''');
 
-    await db.execute('''
-      CREATE TABLE notification_settings (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        prayer_type TEXT NOT NULL,
-        is_active INTEGER NOT NULL,
-        minutes_before INTEGER NOT NULL,
-        UNIQUE(prayer_type, minutes_before)
-      )
-    ''');
+    await _createNotificationSettingsTable(db);
 
     await db.execute('''
       CREATE TABLE locations (
@@ -94,6 +86,22 @@ class SqliteStorage implements LocalStorage {
 
     await _createAlarmsTable(db);
     await _createQrCodesTable(db);
+  }
+
+  /// v10 şeması: kimlik (vakit, sapma, günler) üçlüsü.
+  Future<void> _createNotificationSettingsTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE notification_settings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        prayer_type TEXT NOT NULL,
+        is_active INTEGER NOT NULL,
+        minutes_before INTEGER NOT NULL,
+        sound_id TEXT,
+        weekdays TEXT NOT NULL DEFAULT '',
+        label TEXT,
+        UNIQUE(prayer_type, minutes_before, weekdays)
+      )
+    ''');
   }
 
   Future<void> _createQrCodesTable(Database db) async {
@@ -215,6 +223,20 @@ class SqliteStorage implements LocalStorage {
     }
     if (oldVersion < 8) {
       await db.execute('ALTER TABLE alarms ADD COLUMN qr_payload TEXT');
+    }
+    if (oldVersion < 10) {
+      // Ses, gün filtresi ve etiket alanları. UNIQUE kısıtı üçlü kimliğe
+      // genişlediği için tablo yeniden oluşturuluyor (v5 kalıbı); mevcut
+      // satırlar "her gün" (boş günler) olarak korunuyor.
+      await db.execute('ALTER TABLE notification_settings RENAME TO ns_old');
+      await _createNotificationSettingsTable(db);
+      await db.execute('''
+        INSERT INTO notification_settings
+          (prayer_type, is_active, minutes_before, sound_id, weekdays, label)
+        SELECT prayer_type, is_active, minutes_before, NULL, '', NULL
+        FROM ns_old
+      ''');
+      await db.execute('DROP TABLE ns_old');
     }
     if (oldVersion < 9) {
       await _createQrCodesTable(db);
@@ -445,37 +467,43 @@ class SqliteStorage implements LocalStorage {
 
       final batch = txn.batch();
       for (final setting in settings) {
-        batch.insert('notification_settings', {
-          'prayer_type': setting.prayerType.name,
-          'is_active': setting.isActive ? 1 : 0,
-          'minutes_before': setting.minutesBefore,
-        });
+        batch.insert('notification_settings', _notificationRow(setting));
       }
 
       await batch.commit(noResult: true);
     });
   }
 
+  static Map<String, Object?> _notificationRow(NotificationSetting setting) => {
+    'prayer_type': setting.prayerType.name,
+    'is_active': setting.isActive ? 1 : 0,
+    'minutes_before': setting.minutesBefore,
+    'sound_id': setting.soundId,
+    'weekdays': setting.weekdaysCsv,
+    'label': setting.label,
+  };
+
   @override
   Future<void> addNotificationSetting(NotificationSetting setting) async {
     final db = await database;
-    await db.insert('notification_settings', {
-      'prayer_type': setting.prayerType.name,
-      'is_active': setting.isActive ? 1 : 0,
-      'minutes_before': setting.minutesBefore,
-    }, conflictAlgorithm: ConflictAlgorithm.replace);
+    await db.insert(
+      'notification_settings',
+      _notificationRow(setting),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   @override
   Future<void> deleteNotificationSetting({
     required PrayerType prayerType,
     required int minutesBefore,
+    String weekdays = '',
   }) async {
     final db = await database;
     await db.delete(
       'notification_settings',
-      where: 'prayer_type = ? AND minutes_before = ?',
-      whereArgs: [prayerType.name, minutesBefore],
+      where: 'prayer_type = ? AND minutes_before = ? AND weekdays = ?',
+      whereArgs: [prayerType.name, minutesBefore, weekdays],
     );
   }
 
@@ -698,9 +726,13 @@ class SqliteStorage implements LocalStorage {
     final db = await database;
     await db.update(
       'notification_settings',
-      {'is_active': setting.isActive ? 1 : 0},
-      where: 'prayer_type = ? AND minutes_before = ?',
-      whereArgs: [setting.prayerType.name, setting.minutesBefore],
+      _notificationRow(setting),
+      where: 'prayer_type = ? AND minutes_before = ? AND weekdays = ?',
+      whereArgs: [
+        setting.prayerType.name,
+        setting.minutesBefore,
+        setting.weekdaysCsv,
+      ],
     );
   }
 
@@ -719,6 +751,11 @@ class SqliteStorage implements LocalStorage {
           prayerType: matches.first,
           isActive: (row['is_active'] as int) == 1,
           minutesBefore: row['minutes_before'] as int,
+          soundId: row['sound_id'] as String?,
+          weekdays: NotificationSetting.parseWeekdays(
+            row['weekdays'] as String?,
+          ),
+          label: row['label'] as String?,
         ),
       );
     }

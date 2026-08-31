@@ -71,9 +71,12 @@ abstract class LocalStorage {
 
   Future<void> addNotificationSetting(NotificationSetting setting);
 
+  /// [weekdays] kimliğin parçası (CSV, boş = her gün); aynı vakit ve sapmada
+  /// birden fazla satır olabildiği için gerekli.
   Future<void> deleteNotificationSetting({
     required PrayerType prayerType,
     required int minutesBefore,
+    String weekdays = '',
   });
 
   /// Varsayılan bildirimlerin daha önce bir kez oluşturulup oluşturulmadığını
