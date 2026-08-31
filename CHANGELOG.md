@@ -4,6 +4,23 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.7.0] - 2026-08-31
+
+### Eklendi
+- **Sessiz pencereler.** Belirlediğin aralıklarda bildirimler sessiz gösterilir ya da hiç gösterilmez. Cuma namazı hazır şablon olarak geliyor (öğleden 15 dk önce – 60 dk sonra); istediğin vakit için kendi pencereni de ekleyebilirsin. Not: iPhone'da bir uygulama telefonu sessize alamaz — bu ayar yalnızca Ezan Vakti bildirimlerini etkiler, alarmlara dokunmaz.
+- **Bildirim başına ses:** sistem sesi, uygulamanın kısa uyarı tonu ya da sessiz. Yeni bildirimlerin varsayılan sesi Ayarlar'dan seçiliyor.
+- **Odak modunda göster.** Açıkken bildirimler Odak modunda özete düşmeden anında görünür. (Telefonun sessiz anahtarını delmez.)
+- **Bildirimlere gün filtresi ve etiket.** Bir hatırlatma yalnızca seçtiğin günlerde çalabiliyor; etiket verirsen bildirim başlığında o yazıyor. Bildirim listesinde tek dokunuşla **Cuma namazı hatırlatıcısı** ekleniyor.
+- **Vakit düzeltmeleri.** Her vakti −15…+15 dk kaydırabilirsin; bildirimler, alarmlar ve widget düzeltilmiş vakti kullanır.
+- **Saat biçimi** (sistem / 24 saat / 12 saat) ve **konumu otomatik izle** anahtarı.
+
+### Değişti
+- Ayarlar ekranı bölümlendi: Genel · Bildirim ve ses · Sessiz pencereler · Görünüm · Bilgi.
+- Vakit düzeltmesi değiştiğinde vakitler yeniden indirilmiyor; düzeltme cihazda uygulanıyor.
+
+### Bilinen değişiklik
+- Bildirimlerin kimliği gün bilgisini de kapsadığı için, bu sürüme geçerken bekleyen "yalnızca bu sefer atla" işaretleri sıfırlanır. Bildirimlerin kendisi korunur.
+
 ## [0.6.0] - 2026-08-31
 
 ### Düzeltildi

@@ -11,6 +11,7 @@ import '../widgets/common/grouped_list.dart';
 import '../widgets/common/section_label.dart';
 import '../widgets/settings/appearance_section.dart';
 import '../widgets/settings/general_section.dart';
+import '../widgets/settings/notification_prefs_section.dart';
 
 class SettingsScreen extends StatefulWidget {
   final Location currentLocation;
@@ -18,6 +19,9 @@ class SettingsScreen extends StatefulWidget {
   final VoidCallback? onChangeLocation;
   final VoidCallback? onCalculationSettings;
   final VoidCallback? onQuietWindows;
+
+  /// Bildirim tercihleri değişince planlamayı tazelemek için.
+  final Future<void> Function()? onNotificationPrefsChanged;
 
   /// Verilmezse ekran kendi özet diyaloğunu gösterir.
   final VoidCallback? onPrivacy;
@@ -29,6 +33,7 @@ class SettingsScreen extends StatefulWidget {
     this.onChangeLocation,
     this.onCalculationSettings,
     this.onQuietWindows,
+    this.onNotificationPrefsChanged,
     this.onPrivacy,
   });
 
@@ -90,6 +95,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 26),
             const SectionLabel('Bildirim ve ses'),
             const SizedBox(height: 10),
+            NotificationPrefsSection(
+              onChanged: widget.onNotificationPrefsChanged,
+            ),
+            const SizedBox(height: 12),
             GroupedList(
               children: [
                 _row(

@@ -359,26 +359,28 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           onChangeLocation: _navigateToLocationList,
           onCalculationSettings: _navigateToCalculationSettings,
           onQuietWindows: _navigateToQuietWindows,
+          onNotificationPrefsChanged: _rescheduleReminders,
         ),
       ),
+    );
+  }
+
+  /// Bildirim tercihleri değişti: planlama güncel ayarla yeniden kurulur.
+  Future<void> _rescheduleReminders() async {
+    final appState = context.read<AppState>();
+    await ServiceLocator().get<ReminderRescheduler>().reschedule(
+      location: appState.activeLocation,
+      prayerTimes: appState.prayerTimes,
+      skips: appState.skips,
     );
   }
 
   void _navigateToQuietWindows() {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => QuietWindowsScreen(
-          // Pencere değişince planlama hemen tazelenir; kullanıcı ayarı
-          // yaptıktan sonra uygulamayı yeniden açmak zorunda kalmasın.
-          onChanged: () async {
-            final appState = context.read<AppState>();
-            await ServiceLocator().get<ReminderRescheduler>().reschedule(
-              location: appState.activeLocation,
-              prayerTimes: appState.prayerTimes,
-              skips: appState.skips,
-            );
-          },
-        ),
+        // Pencere değişince planlama hemen tazelenir; kullanıcı ayarı
+        // yaptıktan sonra uygulamayı yeniden açmak zorunda kalmasın.
+        builder: (_) => QuietWindowsScreen(onChanged: _rescheduleReminders),
       ),
     );
   }
