@@ -44,3 +44,23 @@ final class MissionStopPolicyTests: XCTestCase {
         )
     }
 }
+
+/// ISO (1=Pazartesi..7=Pazar) -> Locale.Weekday cevirisi; sirayi korur,
+/// tanimsiz degerleri eler.
+final class WeekdayMappingTests: XCTestCase {
+    func testIsoWeekdayMapping() {
+        XCTAssertEqual(
+            AlarmKitHandler.localeWeekdays(fromIso: [1, 5, 7]),
+            [.monday, .friday, .sunday])
+    }
+
+    func testUnknownValuesDropped() {
+        XCTAssertEqual(AlarmKitHandler.localeWeekdays(fromIso: [0, 9]), [])
+    }
+
+    func testEveryDay() {
+        XCTAssertEqual(
+            AlarmKitHandler.localeWeekdays(fromIso: [1, 2, 3, 4, 5, 6, 7]),
+            [.monday, .tuesday, .wednesday, .thursday, .friday, .saturday, .sunday])
+    }
+}

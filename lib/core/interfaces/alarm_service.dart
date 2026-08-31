@@ -35,6 +35,11 @@ abstract class AlarmService {
     required AlarmMission mission,
     required int missionLevel,
     required Map<String, dynamic> chainConfig,
+
+    /// Dolu ise alarm native haftalık tekrarla kurulur (1=Pazartesi..7=Pazar);
+    /// [scheduledTime] yalnızca saat/dakika ve zincir hesabı için kullanılır.
+    /// Boş ise tek seferlik kurulur (bugünkü davranış).
+    List<int> repeatWeekdays = const [],
   });
 
   Future<void> cancelAlarm(String id);

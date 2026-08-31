@@ -67,6 +67,7 @@ class FakeAlarmService implements AlarmService {
     required AlarmMission mission,
     required int missionLevel,
     required Map<String, dynamic> chainConfig,
+    List<int> repeatWeekdays = const [],
   }) async => scheduled.add(id);
 
   @override

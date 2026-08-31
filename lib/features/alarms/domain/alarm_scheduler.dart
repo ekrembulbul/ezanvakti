@@ -65,6 +65,7 @@ class AlarmScheduler {
       // başarısızlık hata ayıklamayı imkânsız kılar.
       try {
         await alarmService.scheduleAlarm(
+          repeatWeekdays: _relativeWeekdaysFor(alarm, now: now, skips: skips),
           id: alarm.id,
           scheduledTime: fire,
           label: alarm.label,
@@ -116,6 +117,35 @@ class AlarmScheduler {
         now: fire,
       ),
     );
+  }
+
+  /// Sabit saatli tekrarlı alarm için native haftalık tekrar günleri
+  /// (1=Pazartesi..7=Pazar, sıralı). Çıpalı alarm relative olamaz (saat her
+  /// gün kayar) ve "yalnızca bu sefer atla" devredeyken native tekrar o
+  /// örneği atlayamayacağı için tek seferlik yola düşülür — atlanan gün
+  /// geçince bir sonraki planlamada tekrar native tekrara döner.
+  static List<int> _relativeWeekdaysFor(
+    Alarm alarm, {
+    required DateTime now,
+    required Set<SkippedOccurrence> skips,
+  }) {
+    if (alarm.kind != AlarmKind.fixed) return const [];
+    final withSkips = computeNextFire(
+      alarm: alarm,
+      now: now,
+      prayerTimesByDate: const {},
+      skips: skips,
+    );
+    final withoutSkips = computeNextFire(
+      alarm: alarm,
+      now: now,
+      prayerTimesByDate: const {},
+    );
+    if (withSkips == null || withSkips != withoutSkips) return const [];
+    final days = alarm.weekdays.isEmpty
+        ? const {1, 2, 3, 4, 5, 6, 7}
+        : alarm.weekdays;
+    return days.toList()..sort();
   }
 
   /// [now]'dan sonraki ilk geçerli tetiklenme anını döner; [searchDays] gün

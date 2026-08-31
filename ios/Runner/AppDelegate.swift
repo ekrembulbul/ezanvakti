@@ -269,9 +269,22 @@ class AlarmKitHandler {
     let presentation = AlarmPresentation(alert: alert, countdown: countdownPresentation)
     let attributes = AlarmAttributes<EzanAlarmMetadata>(
       presentation: presentation, metadata: EzanAlarmMetadata(), tintColor: tint)
+    // Tekrarli sabit alarm: sistem her hafta kendisi kurar; uygulama hic
+    // acilmasa da ertesi calis garanti (K1/F1a). Bos liste = tek seferlik.
+    let repeatWeekdays = args["repeatWeekdays"] as? [Int] ?? []
+    let schedule: AlarmKit.Alarm.Schedule
+    if repeatWeekdays.isEmpty {
+      schedule = .fixed(date)
+    } else {
+      let comps = Calendar.current.dateComponents([.hour, .minute], from: date)
+      schedule = .relative(
+        .init(
+          time: .init(hour: comps.hour ?? 0, minute: comps.minute ?? 0),
+          repeats: .weekly(Self.localeWeekdays(fromIso: repeatWeekdays))))
+    }
     let config = AlarmManager.AlarmConfiguration(
       countdownDuration: countdownDuration,
-      schedule: .fixed(date),
+      schedule: schedule,
       attributes: attributes,
       stopIntent: stopIntent,
       sound: sound)
@@ -394,6 +407,16 @@ class AlarmKitHandler {
         NSLog("mission|watchdog|failed|id=\(watchdogId)|\(error)")
       }
     }
+  }
+
+  /// ISO hafta günlerini (1=Pazartesi..7=Pazar) `Locale.Weekday`e çevirir;
+  /// tanınmayan değerler sessizce elenir (Dart tarafı 1..7 garanti eder).
+  static func localeWeekdays(fromIso days: [Int]) -> [Locale.Weekday] {
+    let map: [Int: Locale.Weekday] = [
+      1: .monday, 2: .tuesday, 3: .wednesday, 4: .thursday,
+      5: .friday, 6: .saturday, 7: .sunday,
+    ]
+    return days.compactMap { map[$0] }
   }
 
   /// Vakit verisi yokken kullanılan palet (ERGUVAN) vurgusu; Dart tarafındaki

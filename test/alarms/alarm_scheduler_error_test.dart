@@ -29,6 +29,7 @@ class _FlakyAlarmService implements AlarmService {
     required AlarmMission mission,
     required int missionLevel,
     required Map<String, dynamic> chainConfig,
+    List<int> repeatWeekdays = const [],
   }) async {
     if (id == 'patlayan') {
       throw PlatformException(code: 'schedule_failed', message: 'izin yok');
