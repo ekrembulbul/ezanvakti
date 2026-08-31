@@ -1,4 +1,5 @@
 import 'package:ezanvakti/core/models/skipped_occurrence.dart';
+import 'package:ezanvakti/core/models/qr_code_entry.dart';
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
 import 'package:ezanvakti/core/models/abort_state.dart';
 import 'package:ezanvakti/core/models/mission_session.dart';
@@ -72,6 +73,21 @@ class FakeProvider implements PrayerTimeProvider {
 
 /// Bellekte tutan depo. Vakitler konum + gun anahtariyla saklanir.
 class FakeStorage implements LocalStorage {
+
+  final List<QrCodeEntry> _qrCodes = [];
+
+  @override
+  Future<List<QrCodeEntry>> getQrCodes() async => List.of(_qrCodes);
+
+  @override
+  Future<void> saveQrCode(QrCodeEntry entry) async {
+    _qrCodes.removeWhere((e) => e.id == entry.id);
+    _qrCodes.insert(0, entry);
+  }
+
+  @override
+  Future<void> deleteQrCode(String id) async =>
+      _qrCodes.removeWhere((e) => e.id == id);
 
   Map<String, String> _alarmScheduleFailures = {};
 

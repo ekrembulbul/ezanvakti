@@ -35,6 +35,17 @@ String weekdaysLabel(Set<int> weekdays) {
   return sorted.map((d) => names[d - 1]).join(', ');
 }
 
+/// Ses seçiminin kullanıcıya görünen hali.
+///
+/// Yalnızca `custom:` önekli değerler özel sestir; geri kalan her şey
+/// (0.5.1 öncesinden kalan 'adhan'/'alarm' dahil) sistem varsayılanıyla
+/// çalıyor ve öyle etiketlenir — "Özel ses" diye görünen hayalet seçenek
+/// bir etiket hatasıydı.
+String soundLabelFor(String soundId, String? customName) {
+  if (soundId.startsWith('custom:')) return customName ?? 'Özel ses';
+  return 'Varsayılan';
+}
+
 /// Görev adının kullanıcıya görünen hali.
 String missionLabel(AlarmMission mission) => switch (mission) {
   AlarmMission.none => 'Görev yok',

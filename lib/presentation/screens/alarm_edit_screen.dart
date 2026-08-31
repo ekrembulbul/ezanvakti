@@ -1,4 +1,5 @@
 import '../widgets/missions/qr_payload_field.dart';
+import '../utils/alarm_labels.dart';
 import '../widgets/common/option_picker.dart';
 import '../../core/models/alarm_mission.dart';
 import '../../features/alarms/domain/snooze_options.dart';
@@ -66,7 +67,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
     // ki "Her gün" hızlı seçimi ve gün çipleri tutarlı/senkron olsun.
     final wd = a?.weekdays ?? const <int>{};
     _weekdays = wd.isEmpty ? {1, 2, 3, 4, 5, 6, 7} : {...wd};
-    _soundId = a?.soundId ?? 'adhan';
+    _soundId = a?.soundId ?? 'default';
     _vibrate = a?.vibrate ?? true;
     _snoozeEnabled = a?.snoozeEnabled ?? true;
     _snoozeMinutes = a?.snoozeMinutes ?? 5;
@@ -540,10 +541,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
     return OptionRow<String>(
       label: 'Ses',
       selected: _soundId,
-      valueLabel: (v) => switch (v) {
-        'default' => 'Varsayılan',
-        _ => _customSoundName ?? 'Özel ses',
-      },
+      valueLabel: (v) => soundLabelFor(v, _customSoundName),
       items: [
         const OptionItem(
           value: 'default',
@@ -553,7 +551,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
         if (isCustom)
           OptionItem(
             value: _soundId,
-            label: _customSoundName ?? 'Özel ses',
+            label: soundLabelFor(_soundId, _customSoundName),
             icon: Icons.audiotrack_rounded,
           ),
         const OptionItem(

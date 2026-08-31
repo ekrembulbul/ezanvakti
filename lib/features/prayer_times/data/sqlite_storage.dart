@@ -6,6 +6,7 @@ import '../../../core/models/prayer_time.dart';
 import '../../../core/models/location.dart';
 import '../../../core/models/notification_setting.dart';
 import '../../../core/models/alarm.dart';
+import '../../../core/models/qr_code_entry.dart';
 import '../../../core/models/calculation_params.dart';
 import '../../../core/models/calculation_settings.dart';
 import '../../../core/models/appearance_settings.dart';
@@ -30,7 +31,7 @@ class SqliteStorage implements LocalStorage {
 
     return await openDatabase(
       path,
-      version: 8,
+      version: 9,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -91,6 +92,18 @@ class SqliteStorage implements LocalStorage {
     ''');
 
     await _createAlarmsTable(db);
+    await _createQrCodesTable(db);
+  }
+
+  Future<void> _createQrCodesTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE qr_codes (
+        id TEXT PRIMARY KEY,
+        label TEXT NOT NULL,
+        payload TEXT NOT NULL,
+        created_at TEXT NOT NULL
+      )
+    ''');
   }
 
   Future<void> _createAlarmsTable(Database db) async {
@@ -105,7 +118,7 @@ class SqliteStorage implements LocalStorage {
         anchor TEXT NOT NULL DEFAULT 'fajr',
         offset_minutes INTEGER NOT NULL DEFAULT 0,
         weekdays TEXT NOT NULL DEFAULT '',
-        sound_id TEXT NOT NULL DEFAULT 'adhan',
+        sound_id TEXT NOT NULL DEFAULT 'default',
         vibrate INTEGER NOT NULL DEFAULT 1,
         snooze_enabled INTEGER NOT NULL DEFAULT 1,
         snooze_minutes INTEGER NOT NULL DEFAULT 5,
@@ -201,6 +214,15 @@ class SqliteStorage implements LocalStorage {
     }
     if (oldVersion < 8) {
       await db.execute('ALTER TABLE alarms ADD COLUMN qr_payload TEXT');
+    }
+    if (oldVersion < 9) {
+      await _createQrCodesTable(db);
+      // 0.5.1'de kaldırılan sesler: model okuma sırasında 'default'a
+      // çeviriyordu; kalıcı temizlik burada (bkz. _migrateSoundId).
+      await db.execute(
+        "UPDATE alarms SET sound_id='default' "
+        "WHERE sound_id IN ('adhan','alarm')",
+      );
     }
   }
 
@@ -793,5 +815,28 @@ class SqliteStorage implements LocalStorage {
   Future<void> deleteAlarm(String id) async {
     final db = await database;
     await db.delete('alarms', where: 'id = ?', whereArgs: [id]);
+  }
+
+  @override
+  Future<List<QrCodeEntry>> getQrCodes() async {
+    final db = await database;
+    final rows = await db.query('qr_codes', orderBy: 'created_at DESC');
+    return rows.map(QrCodeEntry.fromMap).toList();
+  }
+
+  @override
+  Future<void> saveQrCode(QrCodeEntry entry) async {
+    final db = await database;
+    await db.insert(
+      'qr_codes',
+      entry.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
+  }
+
+  @override
+  Future<void> deleteQrCode(String id) async {
+    final db = await database;
+    await db.delete('qr_codes', where: 'id = ?', whereArgs: [id]);
   }
 }

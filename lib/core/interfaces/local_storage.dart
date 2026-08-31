@@ -6,6 +6,7 @@ import '../models/appearance_settings.dart';
 import '../models/abort_state.dart';
 import '../models/mission_session.dart';
 import '../models/alarm.dart';
+import '../models/qr_code_entry.dart';
 import '../models/skipped_occurrence.dart';
 
 abstract class LocalStorage {
@@ -105,6 +106,14 @@ abstract class LocalStorage {
 
   /// Oturumu yazar; `null` verilirse kaydı siler.
   Future<void> saveMissionSession(MissionSession? session);
+
+  /// Kayıtlı QR kodları, en yeni önce.
+  Future<List<QrCodeEntry>> getQrCodes();
+
+  /// Ekler veya (aynı id ise) günceller.
+  Future<void> saveQrCode(QrCodeEntry entry);
+
+  Future<void> deleteQrCode(String id);
 
   /// Son planlamada kurulamayan alarmlar: alarmId → kısa hata mesajı.
   /// Arayüz satırda "Kurulamadı" uyarısını buradan gösterir.
