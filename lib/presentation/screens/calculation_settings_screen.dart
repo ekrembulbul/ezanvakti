@@ -6,7 +6,10 @@ import '../../core/theme/app_typography.dart';
 import '../../core/theme/tokens_context.dart';
 import '../widgets/common/app_bar_widgets.dart';
 import '../widgets/common/app_surface.dart';
+import '../widgets/common/section_label.dart';
 import '../widgets/location/calculation_params_selector.dart';
+import '../widgets/settings/prayer_tune_selector.dart';
+import '../../core/models/notification_setting.dart' show PrayerType;
 
 /// Uygulama genelindeki varsayılan hesaplama ayarını (yöntem, İkindi mezhebi,
 /// yüksek enlem düzeltmesi) düzenler. Kaydedilince yeni ayar geri döndürülür;
@@ -25,6 +28,7 @@ class _CalculationSettingsScreenState extends State<CalculationSettingsScreen> {
   late int _method;
   late AsrSchool _school;
   late LatitudeAdjustment _latitudeAdjustment;
+  late Map<PrayerType, int> _tune;
 
   @override
   void initState() {
@@ -34,6 +38,7 @@ class _CalculationSettingsScreenState extends State<CalculationSettingsScreen> {
     _latitudeAdjustment = LatitudeAdjustment.fromValue(
       widget.initial.latitudeAdjustmentMethod,
     );
+    _tune = Map<PrayerType, int>.from(widget.initial.tune);
   }
 
   void _save() {
@@ -41,6 +46,7 @@ class _CalculationSettingsScreenState extends State<CalculationSettingsScreen> {
       method: _method,
       school: _school.value,
       latitudeAdjustmentMethod: _latitudeAdjustment.value,
+      tune: _tune,
     );
     Navigator.of(context).pop(settings);
   }
@@ -85,6 +91,13 @@ class _CalculationSettingsScreenState extends State<CalculationSettingsScreen> {
                           setState(() => _school = value),
                       onLatitudeAdjustmentChanged: (value) =>
                           setState(() => _latitudeAdjustment = value),
+                    ),
+                    const SizedBox(height: 28),
+                    const SectionLabel('Vakit düzeltmeleri'),
+                    const SizedBox(height: 10),
+                    PrayerTuneSelector(
+                      tune: _tune,
+                      onChanged: (value) => setState(() => _tune = value),
                     ),
                   ],
                 ),

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -362,7 +363,23 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     if (result == null || result == current) return;
 
     await storage.saveCalculationSettings(result);
+
+    // Yalnızca vakit düzeltmesi değiştiyse önbellek hâlâ geçerli: düzeltme
+    // okurken uygulanıyor. Gereksiz yeniden fetch, rate limit riskidir.
+    final onlyTuneChanged =
+        result.copyWith(tune: current.tune) == current &&
+        !mapEquals(result.tune, current.tune);
+    if (onlyTuneChanged) {
+      await _reloadAfterTuneChange();
+      return;
+    }
     await _applyGlobalCalculationChange();
+  }
+
+  /// Düzeltme değişti: veri aynı, yalnızca okunuşu değişti. Ekran, bildirim,
+  /// alarm ve widget güncel değeri alsın diye yeniden yüklenir.
+  Future<void> _reloadAfterTuneChange() async {
+    await _loadPrayerData();
   }
 
   Future<void> _applyGlobalCalculationChange() async {
