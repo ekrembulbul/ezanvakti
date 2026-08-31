@@ -50,6 +50,9 @@ class AlarmsSection extends StatelessWidget {
   final ValueChanged<Alarm> onEdit;
   final Future<void> Function(Alarm) onDelete;
 
+  /// Uzun basma menüsünden "Kopyala"; null ise menü yalnızca silme sunar.
+  final ValueChanged<Alarm>? onDuplicate;
+
   const AlarmsSection({
     super.key,
     required this.alarms,
@@ -65,6 +68,7 @@ class AlarmsSection extends StatelessWidget {
     this.onSkipChanged,
     required this.onEdit,
     required this.onDelete,
+    this.onDuplicate,
   });
 
   @override
@@ -123,39 +127,76 @@ class AlarmsSection extends StatelessWidget {
       // Onay sorulmuyor: silme dogrudan uygulaniyor, geri alma altta
       // "Geri al" ile veriliyor.
       onDelete: () => onDelete(alarm),
-      child: GroupedRow(
-        icon: Icons.alarm_rounded,
-        title: Text(alarmTimeLabel(alarm)),
-        subtitle: Text(_subtitle(alarm, snoozedUntil, skipped)),
-        onTap: () => onEdit(alarm),
-        dimmed: !isOn,
-        trailing: Switch(
-          value: isOn,
-          onChanged: (value) {
-            if (!value) {
-              // Ertelenmis gorevli alarm kapatilamaz; gorev borcu duruyor.
-              if (!canDisable) {
-                onDisableBlocked?.call(alarm);
+      // GroupedRow'un kendi onTap'i InkWell'de; uzun basma dıştan yakalanıyor
+      // ki satır API'sine dokunulmasın.
+      child: GestureDetector(
+        onLongPress: () => _showRowMenu(context, alarm),
+        child: GroupedRow(
+          icon: Icons.alarm_rounded,
+          title: Text(alarmTimeLabel(alarm)),
+          subtitle: Text(_subtitle(alarm, snoozedUntil, skipped)),
+          onTap: () => onEdit(alarm),
+          dimmed: !isOn,
+          trailing: Switch(
+            value: isOn,
+            onChanged: (value) {
+              if (!value) {
+                // Ertelenmis gorevli alarm kapatilamaz; gorev borcu duruyor.
+                if (!canDisable) {
+                  onDisableBlocked?.call(alarm);
+                  return;
+                }
+                onToggle(alarm, false);
                 return;
               }
-              onToggle(alarm, false);
-              return;
-            }
-            // Aciliyor: bekleyen tek seferlik atlama varsa once o kalkar,
-            // yoksa alarm kalici olarak acilir.
-            if (skipped && onSkipChanged != null) {
-              onSkipChanged!(
-                SkippedOccurrence(
-                  kind: SkipKind.alarm,
-                  reference: alarm.id,
-                  fireAt: fireAt,
-                ),
-                false,
-              );
-              return;
-            }
-            onToggle(alarm, true);
-          },
+              // Aciliyor: bekleyen tek seferlik atlama varsa once o kalkar,
+              // yoksa alarm kalici olarak acilir.
+              if (skipped && onSkipChanged != null) {
+                onSkipChanged!(
+                  SkippedOccurrence(
+                    kind: SkipKind.alarm,
+                    reference: alarm.id,
+                    fireAt: fireAt,
+                  ),
+                  false,
+                );
+                return;
+              }
+              onToggle(alarm, true);
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Uzun basma menüsü: Kopyala / Sil. Silme swipe ile de yapılabiliyor;
+  /// burada kopyalamanın yanında ikinci bir keşfedilebilir yol olarak durur.
+  void _showRowMenu(BuildContext context, Alarm alarm) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (onDuplicate != null)
+              ListTile(
+                leading: const Icon(Icons.copy_rounded),
+                title: const Text('Kopyala'),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  onDuplicate!(alarm);
+                },
+              ),
+            ListTile(
+              leading: const Icon(Icons.delete_outline_rounded),
+              title: const Text('Sil'),
+              onTap: () {
+                Navigator.pop(sheetContext);
+                onDelete(alarm);
+              },
+            ),
+          ],
         ),
       ),
     );
@@ -170,10 +211,7 @@ class AlarmsSection extends StatelessWidget {
         SectionLabel('${alarms.length} alarm'),
         const SizedBox(height: 10),
         GroupedList(
-          children: [
-            for (final alarm in alarms)
-              _alarmRow(context, alarm),
-          ],
+          children: [for (final alarm in alarms) _alarmRow(context, alarm)],
         ),
         const SizedBox(height: 12),
         Padding(
