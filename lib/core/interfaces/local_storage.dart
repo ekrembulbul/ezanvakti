@@ -4,6 +4,7 @@ import '../models/notification_setting.dart';
 import '../models/calculation_settings.dart';
 import '../models/appearance_settings.dart';
 import '../models/general_settings.dart';
+import '../models/quiet_window.dart';
 import '../models/abort_state.dart';
 import '../models/mission_session.dart';
 import '../models/alarm.dart';
@@ -41,6 +42,12 @@ abstract class LocalStorage {
 
   /// Uygulama genelindeki varsayılan hesaplama ayarını kaydeder.
   Future<void> saveCalculationSettings(CalculationSettings settings);
+
+  /// Sessiz pencereler; kayıt yoksa boş liste.
+  Future<List<QuietWindow>> getQuietWindows();
+
+  /// Pencere listesinin tamamını değiştirir.
+  Future<void> saveQuietWindows(List<QuietWindow> windows);
 
   /// Genel tercihler (saat biçimi, otomatik konum); kayıt yoksa varsayılanlar.
   Future<GeneralSettings> getGeneralSettings();

@@ -17,6 +17,7 @@ class SettingsScreen extends StatefulWidget {
   final String dataSource;
   final VoidCallback? onChangeLocation;
   final VoidCallback? onCalculationSettings;
+  final VoidCallback? onQuietWindows;
 
   /// Verilmezse ekran kendi özet diyaloğunu gösterir.
   final VoidCallback? onPrivacy;
@@ -27,6 +28,7 @@ class SettingsScreen extends StatefulWidget {
     this.dataSource = 'Aladhan API',
     this.onChangeLocation,
     this.onCalculationSettings,
+    this.onQuietWindows,
     this.onPrivacy,
   });
 
@@ -85,6 +87,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: 12),
             const GeneralSection(),
+            const SizedBox(height: 26),
+            const SectionLabel('Bildirim ve ses'),
+            const SizedBox(height: 10),
+            GroupedList(
+              children: [
+                _row(
+                  icon: Icons.notifications_off_rounded,
+                  title: 'Sessiz pencereler',
+                  value: 'Cuma ve vakit bazlı',
+                  onTap: widget.onQuietWindows,
+                ),
+              ],
+            ),
             const SizedBox(height: 26),
             const SectionLabel('Görünüm'),
             const SizedBox(height: 10),

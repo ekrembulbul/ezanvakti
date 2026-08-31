@@ -1,4 +1,6 @@
 import '../../../core/constants/notification_sounds.dart';
+import '../../../core/models/quiet_window.dart';
+import 'quiet_window_rules.dart';
 import '../../../core/interfaces/notification_service.dart';
 import '../../../core/interfaces/local_storage.dart';
 import '../../../core/models/prayer_time.dart';
@@ -36,6 +38,7 @@ class NotificationScheduler {
 
     final settings = await storage.getNotificationSettings();
     final general = await storage.getGeneralSettings();
+    final quietWindows = await storage.getQuietWindows();
 
     // Mevcut tüm planlanmış bildirimleri önce iptal et — ayar listesi boş olsa
     // bile. Aksi halde kullanıcı tüm bildirimleri silince, daha önce OS'a
@@ -97,6 +100,17 @@ class NotificationScheduler {
           continue;
         }
 
+        // Sessiz pencere: karar tetiklenme anına göre verilir, vaktin
+        // kendisine göre değil — pencere dışına düşen erken hatırlatma
+        // sesli kalmalı.
+        final quietMode = QuietWindowRules.modeFor(
+          windows: quietWindows,
+          fireAt: notificationTime,
+          prayerType: setting.prayerType,
+          prayerAt: prayerDateTime,
+        );
+        if (quietMode == QuietMode.skip) continue;
+
         candidates.add(
           _NotificationCandidate(
             id: id,
@@ -104,7 +118,9 @@ class NotificationScheduler {
             title: _getNotificationTitle(setting),
             body: _getNotificationBody(setting, prayerDateTime),
             soundId: setting.soundId,
-            silent: NotificationSounds.isSilent(setting.soundId),
+            silent:
+                quietMode == QuietMode.silent ||
+                NotificationSounds.isSilent(setting.soundId),
           ),
         );
       }

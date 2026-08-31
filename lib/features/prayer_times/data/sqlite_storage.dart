@@ -11,6 +11,7 @@ import '../../../core/models/calculation_params.dart';
 import '../../../core/models/calculation_settings.dart';
 import '../../../core/models/appearance_settings.dart';
 import '../../../core/models/general_settings.dart';
+import '../../../core/models/quiet_window.dart';
 import '../../../core/models/abort_state.dart';
 import '../../../core/models/mission_session.dart';
 import '../../../core/models/skipped_occurrence.dart';
@@ -627,6 +628,34 @@ class SqliteStorage implements LocalStorage {
     await db.insert('settings', {
       'key': _skippedOccurrencesKey,
       'value': jsonEncode([for (final o in occurrences) o.toJson()]),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  static const String _quietWindowsKey = 'quiet_windows';
+
+  @override
+  Future<List<QuietWindow>> getQuietWindows() async {
+    final raw = await _readSetting(_quietWindowsKey);
+    if (raw == null) return const [];
+    // Bozuk kayıt tüm bildirimleri susturmasın; pencere yok kabul edilir.
+    try {
+      final decoded = jsonDecode(raw) as List;
+      return [
+        for (final item in decoded)
+          QuietWindow.fromJson(item as Map<String, dynamic>),
+      ];
+    } catch (e) {
+      AppLogger().warning('Sessiz pencereler okunamadi, bos kabul edildi', e);
+      return const [];
+    }
+  }
+
+  @override
+  Future<void> saveQuietWindows(List<QuietWindow> windows) async {
+    final db = await database;
+    await db.insert('settings', {
+      'key': _quietWindowsKey,
+      'value': jsonEncode([for (final window in windows) window.toJson()]),
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 

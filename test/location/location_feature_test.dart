@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ezanvakti/core/models/quiet_window.dart';
 import 'package:ezanvakti/core/models/general_settings.dart';
 import 'package:ezanvakti/core/models/qr_code_entry.dart';
 import 'package:ezanvakti/core/models/skipped_occurrence.dart';
@@ -29,6 +30,15 @@ PrayerTime _samplePrayerTime() => PrayerTime(
 );
 
 class MockLocalStorage implements LocalStorage {
+
+  List<QuietWindow> _quietWindows = [];
+
+  @override
+  Future<List<QuietWindow>> getQuietWindows() async => _quietWindows;
+
+  @override
+  Future<void> saveQuietWindows(List<QuietWindow> windows) async =>
+      _quietWindows = windows;
 
   GeneralSettings _generalSettings = const GeneralSettings();
 

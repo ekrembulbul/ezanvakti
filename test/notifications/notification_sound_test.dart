@@ -2,6 +2,7 @@ import 'package:ezanvakti/core/models/notification_setting.dart';
 import 'package:ezanvakti/core/models/general_settings.dart';
 import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
+import 'package:ezanvakti/core/models/quiet_window.dart';
 import 'package:ezanvakti/core/models/skipped_occurrence.dart';
 import 'package:ezanvakti/core/constants/notification_sounds.dart';
 import 'package:ezanvakti/features/notifications/domain/notification_scheduler.dart';
@@ -90,6 +91,44 @@ void main() {
     ];
     await schedule();
     expect(service.calls.first.timeSensitive, isTrue);
+  });
+
+  test('sessiz pencere bildirimi sessize cevirir, ses kimligi korunur', () async {
+    storage.quietWindows = [QuietWindow.fridayDefault()];
+    storage.settings = [
+      const NotificationSetting(
+        prayerType: PrayerType.dhuhr,
+        isActive: true,
+        soundId: NotificationSounds.beep,
+      ),
+    ];
+    await schedule();
+    // 4 Eylul Cuma ogle penceresi icinde; diger gunler sesli kalmali.
+    final friday = service.calls.firstWhere(
+      (call) => call.scheduledTime.weekday == DateTime.friday,
+    );
+    expect(friday.silent, isTrue);
+    final other = service.calls.firstWhere(
+      (call) => call.scheduledTime.weekday != DateTime.friday,
+    );
+    expect(other.silent, isFalse);
+  });
+
+  test('skip modundaki pencere bildirimi hic planlamaz', () async {
+    storage.quietWindows = [
+      QuietWindow.fridayDefault().copyWith(mode: QuietMode.skip),
+    ];
+    storage.settings = [
+      const NotificationSetting(prayerType: PrayerType.dhuhr, isActive: true),
+    ];
+    await schedule();
+    expect(
+      service.calls.where(
+        (call) => call.scheduledTime.weekday == DateTime.friday,
+      ),
+      isEmpty,
+    );
+    expect(service.calls, isNotEmpty);
   });
 
   test('ses secilmemisse sistem varsayilani gider', () async {

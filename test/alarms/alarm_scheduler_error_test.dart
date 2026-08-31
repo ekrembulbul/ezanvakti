@@ -1,4 +1,5 @@
 import 'package:ezanvakti/core/models/alarm_mission.dart';
+import 'package:ezanvakti/core/models/quiet_window.dart';
 import 'package:ezanvakti/core/models/mission_stop_event.dart';
 import 'package:ezanvakti/core/interfaces/alarm_service.dart';
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
@@ -61,6 +62,15 @@ class _FlakyAlarmService implements AlarmService {
 }
 
 class _StorageWithAlarms implements LocalStorage {
+
+  List<QuietWindow> _quietWindows = [];
+
+  @override
+  Future<List<QuietWindow>> getQuietWindows() async => _quietWindows;
+
+  @override
+  Future<void> saveQuietWindows(List<QuietWindow> windows) async =>
+      _quietWindows = windows;
   final List<Alarm> alarms;
 
   _StorageWithAlarms(this.alarms);

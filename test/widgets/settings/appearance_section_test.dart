@@ -1,4 +1,5 @@
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
+import 'package:ezanvakti/core/models/quiet_window.dart';
 import 'package:ezanvakti/core/models/general_settings.dart';
 import 'package:ezanvakti/core/models/appearance_settings.dart';
 import 'package:ezanvakti/core/theme/day_phase.dart';
@@ -11,6 +12,15 @@ import 'package:provider/provider.dart';
 import '../theme_harness.dart';
 
 class _InMemoryStorage implements LocalStorage {
+
+  List<QuietWindow> _quietWindows = [];
+
+  @override
+  Future<List<QuietWindow>> getQuietWindows() async => _quietWindows;
+
+  @override
+  Future<void> saveQuietWindows(List<QuietWindow> windows) async =>
+      _quietWindows = windows;
 
   GeneralSettings _generalSettings = const GeneralSettings();
 

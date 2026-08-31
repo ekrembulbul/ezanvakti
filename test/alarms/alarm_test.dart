@@ -1,4 +1,5 @@
 import 'package:ezanvakti/core/models/alarm_mission.dart';
+import 'package:ezanvakti/core/models/quiet_window.dart';
 import 'package:ezanvakti/core/models/mission_stop_event.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ezanvakti/core/models/alarm.dart';
@@ -266,6 +267,15 @@ void main() {
 }
 
 class _FakeStorage implements LocalStorage {
+
+  List<QuietWindow> _quietWindows = [];
+
+  @override
+  Future<List<QuietWindow>> getQuietWindows() async => _quietWindows;
+
+  @override
+  Future<void> saveQuietWindows(List<QuietWindow> windows) async =>
+      _quietWindows = windows;
   final List<Alarm> alarms;
   _FakeStorage(this.alarms);
 
