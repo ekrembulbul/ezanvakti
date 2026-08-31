@@ -1,6 +1,9 @@
 import '../../../core/constants/notification_sounds.dart';
-import '../../../core/models/derived_time.dart';
+import 'dart:ui';
+
 import '../../../core/data/religious_days.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../../l10n/l10n_extensions.dart';
 import '../../../core/models/quiet_window.dart';
 import '../../prayer_times/domain/derived_times.dart';
 import 'quiet_window_rules.dart';
@@ -17,6 +20,11 @@ class NotificationScheduler {
   final NotificationService notificationService;
   final LocalStorage storage;
 
+  /// Bildirim metinleri arka planda, `BuildContext` olmadan üretiliyor.
+  /// Çeviri örneği planlama anında bu sağlayıcıdan alınır — kullanıcı dili
+  /// değiştirdiğinde bir sonraki planlama yeni dilde kurulur.
+  final Future<AppLocalizations> Function() localizations;
+
   static const int scheduleDaysAhead = 7;
 
   /// iOS uygulama başına en fazla ~64 bekleyen yerel bildirim tutar; bu sayıyı
@@ -27,7 +35,23 @@ class NotificationScheduler {
   NotificationScheduler({
     required this.notificationService,
     required this.storage,
-  });
+    Future<AppLocalizations> Function()? localizations,
+  }) : localizations = localizations ?? defaultLocalizations;
+
+  /// Varsayılan: kullanıcının seçtiği dil, seçilmemişse cihaz dili.
+  static Future<AppLocalizations> defaultLocalizations() async {
+    return AppLocalizations.delegate.load(
+      _resolveLocale(PlatformDispatcher.instance.locale),
+    );
+  }
+
+  /// Desteklenmeyen cihaz dili kaynak dile (Türkçe) düşer.
+  static Locale _resolveLocale(Locale deviceLocale) {
+    for (final supported in AppLocalizations.supportedLocales) {
+      if (supported.languageCode == deviceLocale.languageCode) return supported;
+    }
+    return const Locale('tr');
+  }
 
   Future<void> scheduleNotifications({
     required Location location,
@@ -41,6 +65,7 @@ class NotificationScheduler {
 
     final settings = await storage.getNotificationSettings();
     final general = await storage.getGeneralSettings();
+    final l10n = await localizations();
     final quietWindows = await storage.getQuietWindows();
 
     // Mevcut tüm planlanmış bildirimleri önce iptal et — ayar listesi boş olsa
@@ -136,8 +161,8 @@ class NotificationScheduler {
           _NotificationCandidate(
             id: id,
             notificationTime: notificationTime,
-            title: _getNotificationTitle(setting),
-            body: _getNotificationBody(setting, prayerDateTime),
+            title: _getNotificationTitle(setting, l10n),
+            body: _getNotificationBody(setting, prayerDateTime, l10n),
             soundId: setting.soundId,
             silent:
                 quietMode == QuietMode.silent ||
@@ -156,6 +181,7 @@ class NotificationScheduler {
         cutoff: cutoff,
         eve: general.religiousDayEve,
         soundId: general.defaultSound,
+        l10n: l10n,
       );
     }
 
@@ -241,6 +267,7 @@ class NotificationScheduler {
     required DateTime cutoff,
     required bool eve,
     required String soundId,
+    required AppLocalizations l10n,
   }) {
     if (byDate.isEmpty) return;
     final days = byDate.keys.toList()..sort();
@@ -258,9 +285,8 @@ class NotificationScheduler {
         minutesBefore: 0,
         title: day.name,
         body: day.isEstimated
-            ? '${day.name} bugün. Tarih hesaplanmıştır; '
-                  'Diyanet takvimiyle bir gün farklı olabilir.'
-            : '${day.name} bugün.',
+            ? l10n.religiousDayTodayEstimated(day.name)
+            : l10n.religiousDayToday(day.name),
         soundId: soundId,
         now: now,
         cutoff: cutoff,
@@ -283,8 +309,8 @@ class NotificationScheduler {
         // Bir gün önceki hatırlatma da aynı noktaya ait; kimlik çakışmasın
         // diye sapma alanı 1 kullanılıyor.
         minutesBefore: 1,
-        title: '${day.name} yarın',
-        body: '${day.name} yarın idrak edilecek.',
+        title: l10n.religiousDayTomorrowTitle(day.name),
+        body: l10n.religiousDayTomorrowBody(day.name),
         soundId: soundId,
         now: now,
         cutoff: cutoff,
@@ -359,60 +385,49 @@ class NotificationScheduler {
     }
   }
 
-  String _getNotificationTitle(NotificationSetting setting) {
+  String _getNotificationTitle(
+    NotificationSetting setting,
+    AppLocalizations l10n,
+  ) {
     final label = setting.label;
     if (label != null && label.trim().isNotEmpty) return label.trim();
     final derived = setting.derivedKind;
     if (derived != null) {
+      final name = l10n.derivedName(derived);
       return setting.minutesBefore == 0
-          ? derived.label
-          : '${derived.label} yaklaşıyor';
+          ? name
+          : l10n.notificationDerivedSoon(name);
     }
-    if (setting.minutesBefore == 0) {
-      return _getPrayerName(setting.prayerType);
-    } else {
-      return '${_getPrayerName(setting.prayerType)} vakti yaklaşıyor';
-    }
+    final prayer = l10n.prayerName(setting.prayerType);
+    return setting.minutesBefore == 0
+        ? prayer
+        : l10n.notificationPrayerSoon(prayer);
   }
 
   String _getNotificationBody(
     NotificationSetting setting,
     DateTime prayerTime,
+    AppLocalizations l10n,
   ) {
     final timeStr =
         '${prayerTime.hour.toString().padLeft(2, '0')}:${prayerTime.minute.toString().padLeft(2, '0')}';
 
     final derived = setting.derivedKind;
     if (derived != null) {
+      final name = l10n.derivedName(derived);
       return setting.minutesBefore == 0
-          ? '$timeStr - ${derived.description}'
-          : '$timeStr - ${derived.label} vaktine '
-                '${setting.minutesBefore} dakika kaldı';
+          ? '$timeStr - ${l10n.derivedHint(derived)}'
+          : '$timeStr - '
+                '${l10n.notificationDerivedMinutesLeft(name, setting.minutesBefore)}';
     }
 
-    if (setting.minutesBefore == 0) {
-      return '$timeStr - ${_getPrayerName(setting.prayerType)} vakti girdi';
-    } else {
-      return '$timeStr - ${_getPrayerName(setting.prayerType)} vaktine ${setting.minutesBefore} dakika kaldı';
-    }
+    final prayer = l10n.prayerName(setting.prayerType);
+    return setting.minutesBefore == 0
+        ? '$timeStr - ${l10n.notificationPrayerNow(prayer)}'
+        : '$timeStr - '
+              '${l10n.notificationMinutesLeft(prayer, setting.minutesBefore)}';
   }
 
-  String _getPrayerName(PrayerType type) {
-    switch (type) {
-      case PrayerType.fajr:
-        return 'İmsak';
-      case PrayerType.sunrise:
-        return 'Güneş';
-      case PrayerType.dhuhr:
-        return 'Öğle';
-      case PrayerType.asr:
-        return 'İkindi';
-      case PrayerType.maghrib:
-        return 'Akşam';
-      case PrayerType.isha:
-        return 'Yatsı';
-    }
-  }
 
   Future<List<ScheduledNotification>> getPendingNotifications() async {
     return await notificationService.getPendingNotifications();

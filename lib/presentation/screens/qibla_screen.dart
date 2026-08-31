@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../l10n/l10n_extensions.dart';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -88,7 +89,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      appBar: const SimpleAppBar(title: 'Kıble'),
+      appBar: SimpleAppBar(title: context.l10n.qiblaTitle),
       body: AppSurface(child: _body()),
     );
   }
@@ -96,10 +97,10 @@ class _QiblaScreenState extends State<QiblaScreen> {
   Widget _body() {
     final qibla = _qibla;
     if (qibla == null) {
-      return const EmptyState(
+      return EmptyState(
         icon: Icons.location_off_rounded,
-        message: 'Konum gerekiyor',
-        subtitle: 'Kıble yönü için önce bir konum seç ya da GPS ile bul.',
+        message: context.l10n.qiblaNeedsLocation,
+        subtitle: context.l10n.qiblaNeedsLocationHint,
       );
     }
 
@@ -120,7 +121,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
             ),
           ),
           Text(
-            'Kuzeyden sağa doğru',
+            context.l10n.qiblaFromNorth,
             style: AppTypography.hint.copyWith(color: tokens.textTertiary),
           ),
           const SizedBox(height: 32),
@@ -128,7 +129,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
           const SizedBox(height: 32),
           if (reading == null)
             Text(
-              'Pusula bekleniyor…',
+              context.l10n.qiblaWaiting,
               style: AppTypography.rowSubtitle.copyWith(
                 color: tokens.textSecondary,
               ),
@@ -136,21 +137,28 @@ class _QiblaScreenState extends State<QiblaScreen> {
           else if (reading.needsCalibration)
             Text(
               key: kQiblaCalibrationKey,
-              'Pusula kalibrasyon istiyor. Telefonu havada sekiz çizerek '
-              'birkaç saniye hareket ettir.',
+              context.l10n.qiblaCalibrate,
               textAlign: TextAlign.center,
               style: AppTypography.rowSubtitle.copyWith(color: tokens.accent),
             )
           else
             Text(
-              delta != null && delta.abs() <= _kAlignedDegrees
-                  ? 'Kıbleye dönüksün'
-                  : '${delta!.abs().round()}° ${delta > 0 ? 'sağa' : 'sola'} dön',
+              _directionText(delta),
               style: AppTypography.rowTitle.copyWith(color: tokens.textPrimary),
             ),
         ],
       ),
     );
+  }
+
+  /// Hizalandıysa onay, değilse hangi yöne kaç derece dönüleceği.
+  String _directionText(double? delta) {
+    if (delta == null) return context.l10n.qiblaWaiting;
+    if (delta.abs() <= _kAlignedDegrees) return context.l10n.qiblaAligned;
+    final degrees = delta.abs().round();
+    return delta > 0
+        ? context.l10n.qiblaTurnRight(degrees)
+        : context.l10n.qiblaTurnLeft(degrees);
   }
 
   /// Ok, kıbleye olan **farkı** gösterir: cihaz döndükçe ok hedefe yaklaşır.

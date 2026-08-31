@@ -3,6 +3,7 @@ import 'package:ezanvakti/core/theme/app_tokens.dart';
 import 'package:ezanvakti/core/theme/day_phase.dart';
 import 'package:ezanvakti/core/theme/palettes.dart';
 import 'package:ezanvakti/core/providers/app_state.dart';
+import 'package:ezanvakti/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -18,12 +19,17 @@ Widget wrapWithTheme(
   DayPhase phase = DayPhase.evening,
   Brightness brightness = Brightness.dark,
   AppState? appState,
+  Locale locale = const Locale('tr'),
 }) {
   final tokens = paletteFor(phase, brightness);
   return ChangeNotifierProvider<AppState>.value(
     value: appState ?? AppState(),
     child: MaterialApp(
       theme: AppTheme.build(tokens, brightness),
+      // Ekranlar `context.l10n` okuyor; testler Turkce (kaynak dil) kosuyor.
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      locale: locale,
       // Testler 24 saat bekliyor; Turkiye'deki cihaz varsayilani da bu.
       // Bicim tercihinin kendisi `TimeFormatter` testlerinde sinaniyor.
       home: MediaQuery(

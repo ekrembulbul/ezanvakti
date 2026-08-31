@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/l10n_extensions.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/di/service_locator.dart';
@@ -77,16 +78,16 @@ class _DhikrScreenState extends State<DhikrScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Sayacı sıfırla'),
-        content: const Text('Bugünkü zikir sayısı silinecek.'),
+        title: Text(context.l10n.dhikrResetTitle),
+        content: Text(context.l10n.dhikrResetBody),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Vazgeç'),
+            child: Text(context.l10n.actionCancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Sıfırla'),
+            child: Text(context.l10n.actionReset),
           ),
         ],
       ),
@@ -105,19 +106,19 @@ class _DhikrScreenState extends State<DhikrScreen> {
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       appBar: SimpleAppBar(
-        title: 'Zikirmatik',
+        title: context.l10n.dhikrTitle,
         actions: [
           IconButton(
             onPressed: _loading ? null : _undo,
             icon: const Icon(Icons.undo_rounded),
             color: tokens.textSecondary,
-            tooltip: 'Geri al',
+            tooltip: context.l10n.actionUndo,
           ),
           IconButton(
             onPressed: _loading ? null : _reset,
             icon: const Icon(Icons.refresh_rounded),
             color: tokens.textSecondary,
-            tooltip: 'Sıfırla',
+            tooltip: context.l10n.actionReset,
           ),
         ],
       ),
@@ -132,7 +133,7 @@ class _DhikrScreenState extends State<DhikrScreen> {
                       vertical: 8,
                     ),
                     child: OptionRow<int>(
-                      label: 'Hedef',
+                      label: context.l10n.dhikrTarget,
                       selected: _state.target,
                       valueLabel: (value) => '$value',
                       items: [
@@ -174,19 +175,19 @@ class _DhikrScreenState extends State<DhikrScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Hedefe ${_state.remaining} · Tur ${_state.laps}',
+              context.l10n.dhikrProgress(_state.remaining, _state.laps),
               style: AppTypography.rowSubtitle.copyWith(
                 color: tokens.textSecondary,
               ),
             ),
             const SizedBox(height: 4),
             Text(
-              'Bugün toplam ${_state.count}',
+              context.l10n.dhikrTodayTotal(_state.count),
               style: AppTypography.hint.copyWith(color: tokens.textTertiary),
             ),
             const SizedBox(height: 40),
             Text(
-              'Saymak için ekrana dokun',
+              context.l10n.dhikrTapToCount,
               style: AppTypography.hint.copyWith(color: tokens.textTertiary),
             ),
           ],

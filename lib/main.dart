@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import 'l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -64,6 +66,11 @@ class MyApp extends StatelessWidget {
 
           return MaterialApp(
             title: AppConstants.appTitle,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            // Kullanıcı tercihi; null ise cihaz dili kullanılır. Arapça
+            // seçilince yön (RTL) MaterialApp tarafından uygulanır.
+            locale: context.watch<AppState>().generalSettings.language.locale,
             theme: AppTheme.build(controller.tokens, controller.brightness),
             // Palet gecisi: vakit siniri, tema degisimi ve sabit palet secimi
             // ayni sureyi kullanir.

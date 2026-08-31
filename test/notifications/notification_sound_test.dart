@@ -1,4 +1,7 @@
 import 'package:ezanvakti/core/models/notification_setting.dart';
+import 'dart:ui';
+
+import 'package:ezanvakti/l10n/app_localizations.dart';
 import 'package:ezanvakti/core/models/general_settings.dart';
 import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
@@ -40,6 +43,8 @@ void main() {
     scheduler = NotificationScheduler(
       notificationService: service,
       storage: storage,
+      // Testler kaynak dilde (Turkce) kosuyor; cihaz diline bagli olmasin.
+      localizations: () => AppLocalizations.delegate.load(const Locale('tr')),
     );
   });
 

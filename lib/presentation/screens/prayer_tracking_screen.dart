@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/l10n_extensions.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/di/service_locator.dart';
@@ -7,7 +8,6 @@ import '../../core/models/notification_setting.dart' show PrayerType;
 import '../../core/models/prayer_log.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/tokens_context.dart';
-import '../utils/prayer_name_helper.dart';
 import '../widgets/common/app_bar_widgets.dart';
 import '../widgets/common/app_surface.dart';
 import '../widgets/common/section_label.dart';
@@ -94,20 +94,20 @@ class _PrayerTrackingScreenState extends State<PrayerTrackingScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      appBar: const SimpleAppBar(title: 'Namaz takibi'),
+      appBar: SimpleAppBar(title: context.l10n.trackingTitle),
       body: AppSurface(
         child: _loading
             ? const Center(child: CircularProgressIndicator())
             : ListView(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
                 children: [
-                  const SectionLabel('Son 7 gün'),
+                  SectionLabel(context.l10n.trackingLastDays),
                   const SizedBox(height: 10),
                   _grid(),
                   const SizedBox(height: 12),
                   _legend(),
                   const SizedBox(height: 26),
-                  const SectionLabel('Kaza sayacı'),
+                  SectionLabel(context.l10n.trackingQadaCounter),
                   const SizedBox(height: 10),
                   for (final type in trackedPrayerTypes) _qadaRow(type),
                 ],
@@ -162,7 +162,7 @@ class _PrayerTrackingScreenState extends State<PrayerTrackingScreen> {
           SizedBox(
             width: 56,
             child: Text(
-              PrayerNameHelper.getName(type),
+              context.l10n.prayerName(type),
               style: AppTypography.hint.copyWith(color: tokens.textSecondary),
             ),
           ),
@@ -202,11 +202,14 @@ class _PrayerTrackingScreenState extends State<PrayerTrackingScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _legendItem('Kıldım', tokens.accent),
+        _legendItem(context.l10n.trackingDone, tokens.accent),
         const SizedBox(width: 16),
-        _legendItem('Kaza', tokens.accent.withValues(alpha: 0.35)),
+        _legendItem(
+          context.l10n.trackingQada,
+          tokens.accent.withValues(alpha: 0.35),
+        ),
         const SizedBox(width: 16),
-        _legendItem('Boş', Colors.transparent),
+        _legendItem(context.l10n.trackingEmpty, Colors.transparent),
       ],
     );
   }
@@ -245,7 +248,7 @@ class _PrayerTrackingScreenState extends State<PrayerTrackingScreen> {
         children: [
           Expanded(
             child: Text(
-              PrayerNameHelper.getName(type),
+              context.l10n.prayerName(type),
               style: AppTypography.rowTitle.copyWith(
                 color: tokens.textPrimary,
               ),

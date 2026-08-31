@@ -1,0 +1,441 @@
+{
+  "@@locale": "tr",
+  "prayerFajr": "İmsak",
+  "@prayerFajr": {
+    "description": "Namaz vakti adı"
+  },
+  "prayerSunrise": "Güneş",
+  "@prayerSunrise": {
+    "description": "Namaz vakti adı"
+  },
+  "prayerDhuhr": "Öğle",
+  "@prayerDhuhr": {
+    "description": "Namaz vakti adı"
+  },
+  "prayerAsr": "İkindi",
+  "@prayerAsr": {
+    "description": "Namaz vakti adı"
+  },
+  "prayerMaghrib": "Akşam",
+  "@prayerMaghrib": {
+    "description": "Namaz vakti adı"
+  },
+  "prayerIsha": "Yatsı",
+  "@prayerIsha": {
+    "description": "Namaz vakti adı"
+  },
+  "navPrayerTimes": "Vakitler",
+  "@navPrayerTimes": {
+    "description": "Alt gezinme"
+  },
+  "navCalendar": "Takvim",
+  "@navCalendar": {
+    "description": "Alt gezinme"
+  },
+  "navReminders": "Hatırlatıcılar",
+  "@navReminders": {
+    "description": "Alt gezinme"
+  },
+  "navTools": "Araçlar",
+  "@navTools": {
+    "description": "Alt gezinme"
+  },
+  "actionCancel": "Vazgeç",
+  "@actionCancel": {
+    "description": "Düğme"
+  },
+  "actionSave": "Kaydet",
+  "@actionSave": {
+    "description": "Düğme"
+  },
+  "actionDelete": "Sil",
+  "@actionDelete": {
+    "description": "Düğme"
+  },
+  "actionOk": "Tamam",
+  "@actionOk": {
+    "description": "Düğme"
+  },
+  "actionUndo": "Geri al",
+  "@actionUndo": {
+    "description": "Düğme"
+  },
+  "actionShare": "Paylaş",
+  "@actionShare": {
+    "description": "Düğme"
+  },
+  "actionCopy": "Kopyala",
+  "@actionCopy": {
+    "description": "Düğme"
+  },
+  "actionReset": "Sıfırla",
+  "@actionReset": {
+    "description": "Düğme"
+  },
+  "actionRetry": "Tekrar dene",
+  "@actionRetry": {
+    "description": "Düğme"
+  },
+  "settingsTitle": "Ayarlar",
+  "@settingsTitle": {
+    "description": "Ekran başlığı"
+  },
+  "settingsGeneral": "Genel",
+  "@settingsGeneral": {
+    "description": "Bölüm başlığı"
+  },
+  "settingsAppearance": "Görünüm",
+  "@settingsAppearance": {
+    "description": "Bölüm başlığı"
+  },
+  "settingsInfo": "Bilgi",
+  "@settingsInfo": {
+    "description": "Bölüm başlığı"
+  },
+  "settingsNotificationsAndSound": "Bildirim ve ses",
+  "@settingsNotificationsAndSound": {
+    "description": "Bölüm başlığı"
+  },
+  "settingsLocation": "Konum",
+  "@settingsLocation": {
+    "description": "Ayar satırı"
+  },
+  "settingsCalculation": "Hesaplama",
+  "@settingsCalculation": {
+    "description": "Ayar satırı"
+  },
+  "settingsDataSource": "Veri kaynağı",
+  "@settingsDataSource": {
+    "description": "Ayar satırı"
+  },
+  "settingsPrivacy": "Gizlilik",
+  "@settingsPrivacy": {
+    "description": "Ayar satırı"
+  },
+  "settingsLanguage": "Dil",
+  "@settingsLanguage": {
+    "description": "Ayar satırı"
+  },
+  "settingsTimeFormat": "Saat biçimi",
+  "@settingsTimeFormat": {
+    "description": "Ayar satırı"
+  },
+  "settingsQuietWindows": "Sessiz pencereler",
+  "@settingsQuietWindows": {
+    "description": "Ayar satırı"
+  },
+  "languageSystem": "Sistem",
+  "@languageSystem": {
+    "description": "Dil seçeneği"
+  },
+  "languageTurkish": "Türkçe",
+  "@languageTurkish": {
+    "description": "Dil seçeneği"
+  },
+  "languageEnglish": "İngilizce",
+  "@languageEnglish": {
+    "description": "Dil seçeneği"
+  },
+  "languageArabic": "Arapça",
+  "@languageArabic": {
+    "description": "Dil seçeneği"
+  },
+  "timeFormatSystem": "Sistem",
+  "@timeFormatSystem": {
+    "description": "Saat biçimi seçeneği"
+  },
+  "timeFormat24": "24 saat",
+  "@timeFormat24": {
+    "description": "Saat biçimi seçeneği"
+  },
+  "timeFormat12": "12 saat",
+  "@timeFormat12": {
+    "description": "Saat biçimi seçeneği"
+  },
+  "settingsAutoLocation": "Konumu otomatik izle",
+  "@settingsAutoLocation": {
+    "description": "Ayar satırı"
+  },
+  "settingsAutoLocationHint": "Şehir değişince vakitler kendiliğinden güncellenir.",
+  "@settingsAutoLocationHint": {
+    "description": "Ayar açıklaması"
+  },
+  "toolsTitle": "Araçlar",
+  "@toolsTitle": {
+    "description": "Ekran başlığı"
+  },
+  "toolsDirection": "Yön",
+  "@toolsDirection": {
+    "description": "Bölüm başlığı"
+  },
+  "toolsTracking": "Takip",
+  "@toolsTracking": {
+    "description": "Bölüm başlığı"
+  },
+  "toolsQibla": "Kıble",
+  "@toolsQibla": {
+    "description": "Araç adı"
+  },
+  "toolsQiblaHint": "Kâbe yönünü pusulayla bul",
+  "@toolsQiblaHint": {
+    "description": "Araç açıklaması"
+  },
+  "toolsPrayerTracking": "Namaz takibi",
+  "@toolsPrayerTracking": {
+    "description": "Araç adı"
+  },
+  "toolsPrayerTrackingHint": "Kıldıklarını işaretle, kazanı say",
+  "@toolsPrayerTrackingHint": {
+    "description": "Araç açıklaması"
+  },
+  "toolsDhikr": "Zikirmatik",
+  "@toolsDhikr": {
+    "description": "Araç adı"
+  },
+  "toolsDhikrHint": "Hedefli sayaç",
+  "@toolsDhikrHint": {
+    "description": "Araç açıklaması"
+  },
+  "toolsPrivacyNote": "Araçlar cihazında çalışır; hiçbir veri dışarı gönderilmez.",
+  "@toolsPrivacyNote": {
+    "description": "Alt bilgi"
+  },
+  "qiblaTitle": "Kıble",
+  "@qiblaTitle": {
+    "description": "Ekran başlığı"
+  },
+  "qiblaFromNorth": "Kuzeyden sağa doğru",
+  "@qiblaFromNorth": {
+    "description": "Açı açıklaması"
+  },
+  "qiblaNeedsLocation": "Konum gerekiyor",
+  "@qiblaNeedsLocation": {
+    "description": "Boş durum başlığı"
+  },
+  "qiblaNeedsLocationHint": "Kıble yönü için önce bir konum seç ya da GPS ile bul.",
+  "@qiblaNeedsLocationHint": {
+    "description": "Boş durum açıklaması"
+  },
+  "qiblaWaiting": "Pusula bekleniyor…",
+  "@qiblaWaiting": {
+    "description": "Durum metni"
+  },
+  "qiblaCalibrate": "Pusula kalibrasyon istiyor. Telefonu havada sekiz çizerek birkaç saniye hareket ettir.",
+  "@qiblaCalibrate": {
+    "description": "Kalibrasyon uyarısı"
+  },
+  "qiblaAligned": "Kıbleye dönüksün",
+  "@qiblaAligned": {
+    "description": "Hizalandı bildirimi"
+  },
+  "qiblaTurnRight": "{degrees}° sağa dön",
+  "@qiblaTurnRight": {
+    "description": "Yön talimatı",
+    "placeholders": {
+      "degrees": {
+        "type": "Object"
+      }
+    }
+  },
+  "qiblaTurnLeft": "{degrees}° sola dön",
+  "@qiblaTurnLeft": {
+    "description": "Yön talimatı",
+    "placeholders": {
+      "degrees": {
+        "type": "Object"
+      }
+    }
+  },
+  "trackingTitle": "Namaz takibi",
+  "@trackingTitle": {
+    "description": "Ekran başlığı"
+  },
+  "trackingLastDays": "Son 7 gün",
+  "@trackingLastDays": {
+    "description": "Bölüm başlığı"
+  },
+  "trackingQadaCounter": "Kaza sayacı",
+  "@trackingQadaCounter": {
+    "description": "Bölüm başlığı"
+  },
+  "trackingDone": "Kıldım",
+  "@trackingDone": {
+    "description": "Durum etiketi"
+  },
+  "trackingQada": "Kaza",
+  "@trackingQada": {
+    "description": "Durum etiketi"
+  },
+  "trackingEmpty": "Boş",
+  "@trackingEmpty": {
+    "description": "Durum etiketi"
+  },
+  "dhikrTitle": "Zikirmatik",
+  "@dhikrTitle": {
+    "description": "Ekran başlığı"
+  },
+  "dhikrTarget": "Hedef",
+  "@dhikrTarget": {
+    "description": "Ayar satırı"
+  },
+  "dhikrTapToCount": "Saymak için ekrana dokun",
+  "@dhikrTapToCount": {
+    "description": "Yönerge"
+  },
+  "dhikrProgress": "Hedefe {remaining} · Tur {laps}",
+  "@dhikrProgress": {
+    "description": "İlerleme metni",
+    "placeholders": {
+      "remaining": {
+        "type": "Object"
+      },
+      "laps": {
+        "type": "Object"
+      }
+    }
+  },
+  "dhikrTodayTotal": "Bugün toplam {count}",
+  "@dhikrTodayTotal": {
+    "description": "Günlük toplam",
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "dhikrResetTitle": "Sayacı sıfırla",
+  "@dhikrResetTitle": {
+    "description": "Diyalog başlığı"
+  },
+  "dhikrResetBody": "Bugünkü zikir sayısı silinecek.",
+  "@dhikrResetBody": {
+    "description": "Diyalog gövdesi"
+  },
+  "notificationPrayerNow": "{prayer} vakti girdi",
+  "@notificationPrayerNow": {
+    "description": "Bildirim gövdesi",
+    "placeholders": {
+      "prayer": {
+        "type": "Object"
+      }
+    }
+  },
+  "notificationPrayerSoon": "{prayer} vakti yaklaşıyor",
+  "@notificationPrayerSoon": {
+    "description": "Bildirim başlığı",
+    "placeholders": {
+      "prayer": {
+        "type": "Object"
+      }
+    }
+  },
+  "notificationMinutesLeft": "{prayer} vaktine {minutes} dakika kaldı",
+  "@notificationMinutesLeft": {
+    "description": "Bildirim gövdesi",
+    "placeholders": {
+      "prayer": {
+        "type": "Object"
+      },
+      "minutes": {
+        "type": "Object"
+      }
+    }
+  },
+  "notificationDerivedSoon": "{name} yaklaşıyor",
+  "@notificationDerivedSoon": {
+    "description": "Türetilmiş vakit bildirimi",
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "notificationDerivedMinutesLeft": "{name} vaktine {minutes} dakika kaldı",
+  "@notificationDerivedMinutesLeft": {
+    "description": "Türetilmiş vakit bildirimi",
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      },
+      "minutes": {
+        "type": "Object"
+      }
+    }
+  },
+  "religiousDayTodayEstimated": "{name} bugün. Tarih hesaplanmıştır; Diyanet takvimiyle bir gün farklı olabilir.",
+  "@religiousDayTodayEstimated": {
+    "description": "Dini gün bildirimi",
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "religiousDayToday": "{name} bugün.",
+  "@religiousDayToday": {
+    "description": "Dini gün bildirimi",
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "religiousDayTomorrowTitle": "{name} yarın",
+  "@religiousDayTomorrowTitle": {
+    "description": "Dini gün bildirimi",
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "religiousDayTomorrowBody": "{name} yarın idrak edilecek.",
+  "@religiousDayTomorrowBody": {
+    "description": "Dini gün bildirimi",
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
+  "derivedIshraq": "İşrak",
+  "@derivedIshraq": {
+    "description": "Türetilmiş vakit"
+  },
+  "derivedIstiwa": "Kerahat (zeval)",
+  "@derivedIstiwa": {
+    "description": "Türetilmiş vakit"
+  },
+  "derivedPreMaghrib": "Kerahat (akşam öncesi)",
+  "@derivedPreMaghrib": {
+    "description": "Türetilmiş vakit"
+  },
+  "derivedMidnight": "Gece yarısı",
+  "@derivedMidnight": {
+    "description": "Türetilmiş vakit"
+  },
+  "derivedLastThird": "Gecenin son üçte biri",
+  "@derivedLastThird": {
+    "description": "Türetilmiş vakit"
+  },
+  "derivedIshraqHint": "Güneşten sonra kerahat biter",
+  "@derivedIshraqHint": {
+    "description": "Türetilmiş vakit açıklaması"
+  },
+  "derivedIstiwaHint": "Öğleden önceki kerahat başlar",
+  "@derivedIstiwaHint": {
+    "description": "Türetilmiş vakit açıklaması"
+  },
+  "derivedPreMaghribHint": "Akşamdan önceki kerahat başlar",
+  "@derivedPreMaghribHint": {
+    "description": "Türetilmiş vakit açıklaması"
+  },
+  "derivedMidnightHint": "Şer'i gecenin ortası",
+  "@derivedMidnightHint": {
+    "description": "Türetilmiş vakit açıklaması"
+  },
+  "derivedLastThirdHint": "Teheccüd vakti başlar",
+  "@derivedLastThirdHint": {
+    "description": "Türetilmiş vakit açıklaması"
+  }
+}

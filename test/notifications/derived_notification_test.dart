@@ -1,4 +1,7 @@
 import 'package:ezanvakti/core/models/derived_time.dart';
+import 'dart:ui';
+
+import 'package:ezanvakti/l10n/app_localizations.dart';
 import 'package:ezanvakti/core/data/religious_days.dart';
 import 'package:ezanvakti/core/models/general_settings.dart';
 import 'package:ezanvakti/core/models/religious_day.dart';
@@ -39,6 +42,8 @@ void main() {
     scheduler = NotificationScheduler(
       notificationService: service,
       storage: storage,
+      // Testler kaynak dilde (Turkce) kosuyor; cihaz diline bagli olmasin.
+      localizations: () => AppLocalizations.delegate.load(const Locale('tr')),
     );
   });
 

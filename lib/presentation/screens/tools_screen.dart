@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/l10n_extensions.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/providers/app_state.dart';
@@ -24,20 +25,20 @@ class ToolsScreen extends StatelessWidget {
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       // Sekme olarak barindiriliyor; geri oku yok.
-      appBar: const SimpleAppBar(title: 'Araçlar', showBack: false),
+      appBar: SimpleAppBar(title: context.l10n.toolsTitle, showBack: false),
       body: AppSurface(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
           children: [
-            const SectionLabel('Yön'),
+            SectionLabel(context.l10n.toolsDirection),
             const SizedBox(height: 10),
             GroupedList(
               children: [
                 _row(
                   context,
                   icon: Icons.explore_rounded,
-                  title: 'Kıble',
-                  subtitle: 'Kâbe yönünü pusulayla bul',
+                  title: context.l10n.toolsQibla,
+                  subtitle: context.l10n.toolsQiblaHint,
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (_) => QiblaScreen(
@@ -49,15 +50,15 @@ class ToolsScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 26),
-            const SectionLabel('Takip'),
+            SectionLabel(context.l10n.toolsTracking),
             const SizedBox(height: 10),
             GroupedList(
               children: [
                 _row(
                   context,
                   icon: Icons.checklist_rounded,
-                  title: 'Namaz takibi',
-                  subtitle: 'Kıldıklarını işaretle, kazanı say',
+                  title: context.l10n.toolsPrayerTracking,
+                  subtitle: context.l10n.toolsPrayerTrackingHint,
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (_) => const PrayerTrackingScreen(),
@@ -67,8 +68,8 @@ class ToolsScreen extends StatelessWidget {
                 _row(
                   context,
                   icon: Icons.circle_outlined,
-                  title: 'Zikirmatik',
-                  subtitle: 'Hedefli sayaç',
+                  title: context.l10n.toolsDhikr,
+                  subtitle: context.l10n.toolsDhikrHint,
                   onTap: () => Navigator.of(context).push(
                     MaterialPageRoute(builder: (_) => const DhikrScreen()),
                   ),
@@ -77,7 +78,7 @@ class ToolsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             Text(
-              'Araçlar cihazında çalışır; hiçbir veri dışarı gönderilmez.',
+              context.l10n.toolsPrivacyNote,
               textAlign: TextAlign.center,
               style: AppTypography.hint.copyWith(
                 color: tokens.textTertiary,

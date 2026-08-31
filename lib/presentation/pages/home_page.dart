@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../l10n/l10n_extensions.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:flutter/material.dart';
@@ -542,11 +543,23 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           ),
         ),
         bottomNavigationBar: AppNavBar(
-          items: const [
-            NavItem(label: 'Vakitler', icon: Icons.schedule_rounded),
-            NavItem(label: 'Takvim', icon: Icons.calendar_month_rounded),
-            NavItem(label: 'Hatırlatıcılar', icon: Icons.notifications_rounded),
-            NavItem(label: 'Araçlar', icon: Icons.handyman_rounded),
+          items: [
+            NavItem(
+              label: context.l10n.navPrayerTimes,
+              icon: Icons.schedule_rounded,
+            ),
+            NavItem(
+              label: context.l10n.navCalendar,
+              icon: Icons.calendar_month_rounded,
+            ),
+            NavItem(
+              label: context.l10n.navReminders,
+              icon: Icons.notifications_rounded,
+            ),
+            NavItem(
+              label: context.l10n.navTools,
+              icon: Icons.handyman_rounded,
+            ),
           ],
           selected: _tabIndex,
           onChanged: (index) => setState(() => _tabIndex = index),

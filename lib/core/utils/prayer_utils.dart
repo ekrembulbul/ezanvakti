@@ -5,6 +5,9 @@ import '../models/notification_setting.dart';
 class PrayerUtils {
   const PrayerUtils._();
 
+  /// Vakit adı — **çevrilmemiş** Türkçe. Yeni kod `l10n.prayerName(type)`
+  /// kullanmalı; bu metot yalnızca çevirinin erişilemediği yerlerde (widget
+  /// snapshot'ı gibi cihaz-yerel çıktılar) kalıyor.
   static String getPrayerName(PrayerType type) {
     switch (type) {
       case PrayerType.fajr:

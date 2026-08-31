@@ -1,4 +1,5 @@
 import '../constants/notification_sounds.dart';
+import 'app_language.dart';
 import '../utils/time_formatter.dart';
 
 /// Uygulama geneli davranış tercihleri. `settings` tablosunda anahtar-değer
@@ -10,6 +11,7 @@ class GeneralSettings {
   static const String defaultSoundKey = 'general_default_sound';
   static const String religiousDaysKey = 'general_religious_days';
   static const String religiousDayEveKey = 'general_religious_day_eve';
+  static const String languageKey = 'general_language';
 
   /// Saatlerin 12/24 gösterimi.
   final TimeFormatPreference timeFormat;
@@ -30,6 +32,9 @@ class GeneralSettings {
   /// Açıkken dini günden bir gün önce de hatırlatılır.
   final bool religiousDayEve;
 
+  /// Arayüz dili; [AppLanguage.system] cihaz dilini izler.
+  final AppLanguage language;
+
   const GeneralSettings({
     this.timeFormat = TimeFormatPreference.system,
     this.autoLocation = true,
@@ -37,6 +42,7 @@ class GeneralSettings {
     this.defaultSound = NotificationSounds.system,
     this.religiousDayNotifications = false,
     this.religiousDayEve = true,
+    this.language = AppLanguage.system,
   });
 
   GeneralSettings copyWith({
@@ -46,6 +52,7 @@ class GeneralSettings {
     String? defaultSound,
     bool? religiousDayNotifications,
     bool? religiousDayEve,
+    AppLanguage? language,
   }) {
     return GeneralSettings(
       timeFormat: timeFormat ?? this.timeFormat,
@@ -55,6 +62,7 @@ class GeneralSettings {
       religiousDayNotifications:
           religiousDayNotifications ?? this.religiousDayNotifications,
       religiousDayEve: religiousDayEve ?? this.religiousDayEve,
+      language: language ?? this.language,
     );
   }
 
@@ -65,6 +73,7 @@ class GeneralSettings {
     defaultSoundKey: defaultSound,
     religiousDaysKey: religiousDayNotifications.toString(),
     religiousDayEveKey: religiousDayEve.toString(),
+    languageKey: language.storageValue,
   };
 
   /// Eksik ya da bozuk kayıtlar varsayılana düşer.
@@ -95,6 +104,7 @@ class GeneralSettings {
         'false' => false,
         _ => defaults.religiousDayEve,
       },
+      language: AppLanguage.fromStorage(map[languageKey]),
     );
   }
 
@@ -108,7 +118,8 @@ class GeneralSettings {
           showInFocusMode == other.showInFocusMode &&
           defaultSound == other.defaultSound &&
           religiousDayNotifications == other.religiousDayNotifications &&
-          religiousDayEve == other.religiousDayEve;
+          religiousDayEve == other.religiousDayEve &&
+          language == other.language;
 
   @override
   int get hashCode => Object.hash(
@@ -118,5 +129,6 @@ class GeneralSettings {
     defaultSound,
     religiousDayNotifications,
     religiousDayEve,
+    language,
   );
 }
