@@ -30,6 +30,7 @@ import '../screens/settings_screen.dart';
 import '../screens/quiet_windows_screen.dart';
 import '../screens/tools_screen.dart';
 import 'package:hijri/hijri_calendar.dart';
+import '../../features/home_widget/domain/widget_labels_factory.dart';
 import '../../features/ramadan/domain/ramadan_mode.dart';
 import '../screens/calculation_settings_screen.dart';
 import '../screens/location_list_screen.dart';
@@ -397,12 +398,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         skips: data.skips,
       );
 
+      // Widget kendi sürecinde `AppLocalizations`a erişemiyor; metinler
+      // uygulamanın diliyle birlikte gönderiliyor.
       await publishWidgetSnapshot(
         publisher: ServiceLocator().get<WidgetPublisher>(),
         logger: logger,
         location: location,
         prayerTimes: data.all,
         now: DateTime.now(),
+        labels: mounted ? widgetLabelsFrom(context.l10n) : null,
       );
     } catch (e) {
       logger.error('Failed to load prayer data', e);

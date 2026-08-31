@@ -4,6 +4,19 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.11.1] - 2026-08-31
+
+### Düzeltildi
+- **Desteklenmeyen cihaz dilinde artık İngilizce kullanılıyor.** Önce Arapça'ya düşüyordu (desteklenen diller listesi alfabetikti).
+- Uygulama içinde bir dil seçtiysen **bildirimler de o dilde** geliyor; önce cihaz dilini kullanıyordu.
+
+### Eklendi
+- **Widget ve Siri kısayolu artık uygulamanın dilinde.** Metinler widget'a uygulamayla birlikte gönderiliyor (snapshot v3), böylece uygulama içinde seçtiğin dil cihaz dilinden farklı olsa bile widget ona uyuyor.
+- **Konum ekranları çevrildi:** konum listesi, konum ekleme (arama ve GPS) ve konum düzenleme.
+
+### Teknik not
+- Widget'ta vakit eşleşmesi artık ada değil dile bağlı olmayan bir anahtara bakıyor; adlar çevrildiğinde gün dilimi paleti bozulmuyor.
+
 ## [0.11.0] - 2026-08-31
 
 ### Eklendi

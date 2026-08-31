@@ -25,6 +25,9 @@ struct PrayerEntry: TimelineEntry {
 
     /// Uygulamadaki 12/24 saat tercihi; provider App Group'tan okuyup yazar.
     var timeFormat: TimeFormatPreference = .system
+
+    /// Uygulamanın dilindeki etiketler; v3 öncesi payload'da nil.
+    var labels: SnapshotLabels?
 }
 
 enum PrayerTimeline {
@@ -59,7 +62,8 @@ enum PrayerTimeline {
         now: Date,
         calendar: Calendar
     ) -> [PrayerEntry] {
-        let slots = NextPrayer.slots(days: snapshot.days, calendar: calendar)
+        let slots = NextPrayer.slots(
+            days: snapshot.days, calendar: calendar, labels: snapshot.labels)
         guard !slots.isEmpty else {
             return [PrayerEntry(date: now, content: .noData)]
         }
@@ -78,7 +82,8 @@ enum PrayerTimeline {
                 date: moment,
                 content: content(
                     for: snapshot, slots: slots, at: moment, calendar: calendar
-                )
+                ),
+                labels: snapshot.labels
             )
         }
     }

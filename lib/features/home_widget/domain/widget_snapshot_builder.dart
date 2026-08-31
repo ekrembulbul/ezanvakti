@@ -18,6 +18,7 @@ class WidgetSnapshotBuilder {
     required Location location,
     required List<PrayerTime> prayerTimes,
     required DateTime now,
+    WidgetLabels? labels,
   }) {
     final today = DateTime(now.year, now.month, now.day);
 
@@ -29,6 +30,7 @@ class WidgetSnapshotBuilder {
       locationLabel: location.displayName,
       generatedAt: now,
       days: upcoming.take(maxDays).map(_toDay).toList(),
+      labels: labels,
     );
   }
 

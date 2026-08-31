@@ -35,7 +35,10 @@ struct SmallView: View {
                 if let hijri = day.hijri {
                     Text(hijri)
                 }
-                Text(isStale ? "Güncel değil" : locationLabel)
+                Text(
+                    isStale
+                        ? (entry.labels?.stale ?? "Güncel değil")
+                        : locationLabel)
             }
             .font(.system(size: 12))
             .foregroundStyle(palette.textSecondary)
@@ -47,7 +50,9 @@ struct SmallView: View {
             // Alt blok: widget'ın asıl işi.
             VStack(alignment: alignment.horizontal, spacing: 0) {
                 Text(
-                    (isTomorrow ? "YARIN · " : "")
+                    (isTomorrow
+                        ? "\((entry.labels?.tomorrow ?? "Yarın").uppercased()) · "
+                        : "")
                         + next.name.uppercased(with: Locale(identifier: "tr_TR"))
                 )
                 .font(.system(size: 11, weight: .semibold))

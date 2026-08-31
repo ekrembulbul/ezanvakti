@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../l10n/l10n_extensions.dart';
 
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
@@ -147,26 +148,28 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
       _locationError = null;
     });
 
+    // Hata metinleri asenkron adımlardan **önce** okunuyor: `await`ten sonra
+    // context'e dokunmak (widget o arada ölmüş olabilir) yanlış.
+    final l10n = context.l10n;
+
     try {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        throw Exception('Konum servisleri kapalı. Lütfen açın.');
+        throw Exception(l10n.locationServicesOff);
       }
 
       var permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         final shouldRequest = await _showLocationRationale();
-        if (!shouldRequest) throw Exception('Konum izni gerekli.');
+        if (!shouldRequest) throw Exception(l10n.locationPermissionDenied);
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          throw Exception('Konum izni reddedildi.');
+          throw Exception(l10n.locationPermissionDenied);
         }
       }
 
       if (permission == LocationPermission.deniedForever) {
-        throw Exception(
-          'Konum izni kalıcı olarak reddedildi. Ayarlardan izin verin.',
-        );
+        throw Exception(l10n.locationPermissionDenied);
       }
 
       final position = await Geolocator.getCurrentPosition(
@@ -231,7 +234,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
         backgroundColor: tokens.backgroundStops[1],
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
-          'Konum İzni',
+          context.l10n.locationPermissionTitle,
           style: AppTypography.rowTitle.copyWith(color: tokens.textPrimary),
         ),
         content: Text(
@@ -245,7 +248,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('İptal'),
+            child: Text(context.l10n.actionCancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
@@ -253,7 +256,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
               backgroundColor: tokens.accent,
               foregroundColor: tokens.backgroundStops.last,
             ),
-            child: const Text('İzin Ver'),
+            child: Text(context.l10n.locationPermissionAllow),
           ),
         ],
       ),
@@ -306,7 +309,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
   Future<void> _onManualSave() async {
     final place = _selectedPlace;
     if (place == null) {
-      _showSnackBar('Lütfen bir konum seçin', isError: true);
+      _showSnackBar(context.l10n.locationSelectFirst, isError: true);
       return;
     }
 
@@ -416,7 +419,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
         const SizedBox(height: 48),
         LocationChoiceButton(
           icon: Icons.my_location_rounded,
-          title: _isLoadingLocation ? 'Konum Alınıyor...' : 'GPS ile Bul',
+          title: _isLoadingLocation ? context.l10n.locationGettingPosition : 'GPS ile Bul',
           subtitle: 'Otomatik konum tespiti',
           isLoading: _isLoadingLocation,
           isHighlighted: true,
@@ -430,7 +433,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
         LocationChoiceButton(
           icon: Icons.search_rounded,
           title: 'Adres Ara',
-          subtitle: 'Şehir, ilçe veya yer adıyla ara',
+          subtitle: context.l10n.locationSearchHint,
           onTap: () => setState(() {
             _showManualSelection = true;
             _locationError = null;
@@ -475,7 +478,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
         style: TextStyle(color: tokens.textPrimary),
         onChanged: _onSearchChanged,
         decoration: InputDecoration(
-          hintText: 'Şehir, ilçe veya yer ara...',
+          hintText: context.l10n.locationSearchPlaceholder,
           hintStyle: TextStyle(color: tokens.textTertiary),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
@@ -518,8 +521,8 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
   Widget _buildResults() {
     if (_searchResults.isEmpty) {
       final message = _searchAttempted
-          ? 'Sonuç bulunamadı.\nFarklı bir arama deneyin veya bağlantınızı kontrol edin.'
-          : 'Aramak için yazmaya başlayın.';
+          ? context.l10n.locationSearchNoResult
+          : context.l10n.locationSearchStart;
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -628,9 +631,9 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
         controller: _customNameController,
         style: TextStyle(color: tokens.textPrimary),
         decoration: InputDecoration(
-          labelText: 'Özel İsim (Opsiyonel)',
+          labelText: context.l10n.locationCustomName,
           labelStyle: TextStyle(color: tokens.textTertiary),
-          hintText: 'Örn: Ev, İş, Anne Evi',
+          hintText: context.l10n.locationCustomNameHint,
           hintStyle: TextStyle(color: tokens.textTertiary),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.all(20),
@@ -645,7 +648,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
 
   Widget _buildAttribution() {
     return Text(
-      '© OpenStreetMap katkıcıları',
+      context.l10n.osmAttribution,
       textAlign: TextAlign.center,
       style: TextStyle(color: tokens.textTertiary, fontSize: 11),
     );

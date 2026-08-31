@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/l10n_extensions.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/tokens_context.dart';
 import '../../core/models/location.dart';
@@ -158,7 +159,7 @@ class _LocationListScreenState extends State<LocationListScreen> {
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       appBar: SimpleAppBar(
-        title: 'Konumlar',
+        title: context.l10n.locationsTitle,
         actions: [
           AppBarActionButton(
             icon: Icons.add_location_alt_rounded,
@@ -179,13 +180,13 @@ class _LocationListScreenState extends State<LocationListScreen> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const LoadingState(message: 'Konumlar yükleniyor...');
+      return LoadingState(message: context.l10n.locationsLoading);
     }
 
     if (_locations.isEmpty) {
       return EmptyState(
         icon: Icons.location_off_rounded,
-        message: 'Henüz konum eklenmedi',
+        message: context.l10n.locationsEmpty,
         subtitle:
             'GPS ile otomatik tespit edin veya\nmanuel olarak konum ekleyin.',
         action: ElevatedButton.icon(
@@ -206,7 +207,7 @@ class _LocationListScreenState extends State<LocationListScreen> {
         ),
         const SizedBox(height: 12),
         Text(
-          'Aktif olmayan konumu silmek için satırı sola kaydırın.',
+          context.l10n.locationsSwipeHint,
           style: AppTypography.hint.copyWith(
             color: context.tokens.textTertiary,
           ),
@@ -261,7 +262,7 @@ class _LocationListScreenState extends State<LocationListScreen> {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
-        'AKTİF',
+        context.l10n.locationActive,
         style: AppTypography.sectionLabel.copyWith(
           color: tokens.backgroundStops.last,
           letterSpacing: 0.5,

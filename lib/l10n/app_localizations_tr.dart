@@ -688,4 +688,134 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get ramadanRemindersAdded => 'Sahur ve iftar hatırlatmaları eklendi';
+
+  @override
+  String get locationsTitle => 'Konumlar';
+
+  @override
+  String get locationsLoading => 'Konumlar yükleniyor...';
+
+  @override
+  String locationsLoadFailed(Object error) {
+    return 'Konumlar yüklenemedi: $error';
+  }
+
+  @override
+  String get locationsEmpty => 'Henüz konum eklenmedi';
+
+  @override
+  String get locationsEmptyHint =>
+      'GPS ile otomatik tespit edin veya\nadres arayarak konum seçin';
+
+  @override
+  String get locationsSwipeHint =>
+      'Aktif olmayan konumu silmek için satırı sola kaydırın.';
+
+  @override
+  String get locationActive => 'AKTİF';
+
+  @override
+  String get locationAddTitle => 'Konum ekle';
+
+  @override
+  String get locationEditTitle => 'Konumu Düzenle';
+
+  @override
+  String get locationSearchHint => 'Şehir, ilçe veya yer adıyla ara';
+
+  @override
+  String get locationSearchPlaceholder => 'Şehir, ilçe veya yer ara...';
+
+  @override
+  String get locationSearchStart => 'Aramak için yazmaya başlayın.';
+
+  @override
+  String get locationSearchNoResult =>
+      'Sonuç bulunamadı.\nFarklı bir arama deneyin veya bağlantınızı kontrol edin.';
+
+  @override
+  String get locationGettingPosition => 'Konum Alınıyor...';
+
+  @override
+  String get locationPermissionTitle => 'Konum İzni';
+
+  @override
+  String get locationPermissionBody =>
+      'Namaz vakitlerini bulunduğunuz konuma göre gösterebilmek için konum iznine ihtiyaç var. İzni vererek bulunduğunuz il/ilçe otomatik seçilecektir.';
+
+  @override
+  String get locationPermissionAllow => 'İzin Ver';
+
+  @override
+  String get locationServicesOff => 'Konum servisleri kapalı. Lütfen açın.';
+
+  @override
+  String get locationPermissionDenied =>
+      'Konum izni kalıcı olarak reddedildi. Ayarlardan izin verin.';
+
+  @override
+  String get locationUpdated => 'Konum güncellendi';
+
+  @override
+  String get locationSelectFirst => 'Lütfen bir konum seçin';
+
+  @override
+  String get locationCustomName => 'Özel İsim (Opsiyonel)';
+
+  @override
+  String get locationCustomNameHint => 'Örn: Ev, İş, Anne Evi';
+
+  @override
+  String get locationUseGlobalCalculation => 'Genel hesaplama ayarını kullan';
+
+  @override
+  String get locationUseGlobalCalculationHint =>
+      'Kapatırsan bu konuma özel yöntem/mezhep seçebilirsin';
+
+  @override
+  String get locationCalculationFromGlobal =>
+      'Hesaplama yöntemi genel ayardan alınır. Bu konuma özel değiştirmek için kaydettikten sonra düzenleyin.';
+
+  @override
+  String get locationChange => 'Değiştir';
+
+  @override
+  String locationUndoFailed(Object error) {
+    return 'Geri alınamadı: $error';
+  }
+
+  @override
+  String get osmAttribution => '© OpenStreetMap katkıcıları';
+
+  @override
+  String get widgetTomorrow => 'Yarın';
+
+  @override
+  String get widgetStale => 'Güncel değil';
+
+  @override
+  String get widgetOpenApp => 'Vakitler için uygulamayı aç';
+
+  @override
+  String get widgetUpdateApp => 'Uygulamayı güncelleyin';
+
+  @override
+  String siriAnswer(Object prayer, Object time, Object remaining) {
+    return '$prayer $time, $remaining kaldı.';
+  }
+
+  @override
+  String durationHourMinute(Object hours, Object minutes) {
+    return '$hours saat $minutes dakika';
+  }
+
+  @override
+  String durationHour(Object hours) {
+    return '$hours saat';
+  }
+
+  @override
+  String durationMinute(Object minutes) {
+    return '$minutes dakika';
+  }
 }

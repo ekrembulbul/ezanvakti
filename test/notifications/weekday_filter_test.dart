@@ -42,7 +42,8 @@ void main() {
       notificationService: service,
       storage: storage,
       // Testler kaynak dilde (Turkce) kosuyor; cihaz diline bagli olmasin.
-      localizations: () => AppLocalizations.delegate.load(const Locale('tr')),
+      localizations: (_) =>
+          AppLocalizations.delegate.load(const Locale('tr')),
     );
   });
 

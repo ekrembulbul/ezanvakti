@@ -15,11 +15,13 @@ enum DayPhase: Equatable {
         now: Date,
         calendar: Calendar = .current
     ) -> DayPhase {
+        // Ada değil **anahtara** bakılıyor: vakit adları kullanıcının diline
+        // göre değişiyor, palet hesabı değişmemeli.
         guard
-            let fajr = time(of: "İmsak", in: slots, on: now, calendar: calendar),
-            let dhuhr = time(of: "Öğle", in: slots, on: now, calendar: calendar),
-            let asr = time(of: "İkindi", in: slots, on: now, calendar: calendar),
-            let isha = time(of: "Yatsı", in: slots, on: now, calendar: calendar)
+            let fajr = time(of: .fajr, in: slots, on: now, calendar: calendar),
+            let dhuhr = time(of: .dhuhr, in: slots, on: now, calendar: calendar),
+            let asr = time(of: .asr, in: slots, on: now, calendar: calendar),
+            let isha = time(of: .isha, in: slots, on: now, calendar: calendar)
         else { return fallback }
 
         if now < fajr { return .night }
@@ -31,13 +33,13 @@ enum DayPhase: Equatable {
 
     /// `now` ile aynı takvim günündeki vakti bulur.
     private static func time(
-        of name: String,
+        of key: PrayerKey,
         in slots: [PrayerSlot],
         on now: Date,
         calendar: Calendar
     ) -> Date? {
         slots.first {
-            $0.name == name && calendar.isDate($0.date, inSameDayAs: now)
+            $0.key == key && calendar.isDate($0.date, inSameDayAs: now)
         }?.date
     }
 }

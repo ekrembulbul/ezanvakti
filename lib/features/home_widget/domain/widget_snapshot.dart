@@ -56,11 +56,69 @@ class WidgetSnapshotDay {
   };
 }
 
+/// Widget'ın kullanacağı, uygulamanın dilindeki metinler.
+///
+/// Widget'ta ayrı bir çeviri dosyası tutmak yerine etiketler buradan
+/// gönderiliyor: kullanıcı uygulama içinde dil seçtiğinde widget da o dile
+/// geçer, cihaz dili farklı olsa bile.
+class WidgetLabels {
+  final String fajr;
+  final String sunrise;
+  final String dhuhr;
+  final String asr;
+  final String maghrib;
+  final String isha;
+  final String tomorrow;
+  final String stale;
+  final String openApp;
+  final String updateApp;
+  final String siriAnswer;
+  final String durationHourMinute;
+  final String durationHour;
+  final String durationMinute;
+
+  const WidgetLabels({
+    required this.fajr,
+    required this.sunrise,
+    required this.dhuhr,
+    required this.asr,
+    required this.maghrib,
+    required this.isha,
+    required this.tomorrow,
+    required this.stale,
+    required this.openApp,
+    required this.updateApp,
+    required this.siriAnswer,
+    required this.durationHourMinute,
+    required this.durationHour,
+    required this.durationMinute,
+  });
+
+  Map<String, String> toJson() => {
+    'fajr': fajr,
+    'sunrise': sunrise,
+    'dhuhr': dhuhr,
+    'asr': asr,
+    'maghrib': maghrib,
+    'isha': isha,
+    'tomorrow': tomorrow,
+    'stale': stale,
+    'openApp': openApp,
+    'updateApp': updateApp,
+    'siriAnswer': siriAnswer,
+    'durationHourMinute': durationHourMinute,
+    'durationHour': durationHour,
+    'durationMinute': durationMinute,
+  };
+}
+
 class WidgetSnapshot {
-  /// 2: günlere `hijri` alanı eklendi. Widget 1'i de kabul eder; o payload'da
-  /// hicri satırı çizilmez. Bilinmeyen sürümde widget "uygulamayı güncelleyin"
-  /// durumuna düşer.
-  static const int schemaVersion = 2;
+  /// 2: günlere `hijri` alanı eklendi.
+  /// 3: `labels` eklendi — widget metinleri uygulamanın dilinden geliyor.
+  ///
+  /// Widget 1 ve 2'yi de kabul eder; etiket yoksa Türkçe varsayılana düşer.
+  /// Bilinmeyen sürümde widget "uygulamayı güncelleyin" durumuna geçer.
+  static const int schemaVersion = 3;
 
   final String locationLabel;
 
@@ -71,10 +129,14 @@ class WidgetSnapshot {
 
   final List<WidgetSnapshotDay> days;
 
+  /// Widget metinleri; `null` ise payload v2 gibi yazılır.
+  final WidgetLabels? labels;
+
   const WidgetSnapshot({
     required this.locationLabel,
     required this.generatedAt,
     required this.days,
+    this.labels,
   });
 
   Map<String, dynamic> toJson() => {
@@ -84,6 +146,7 @@ class WidgetSnapshot {
         '${_yyyyMMdd(generatedAt)}T${_hhmm(generatedAt)}:'
         '${_two(generatedAt.second)}',
     'days': days.map((day) => day.toJson()).toList(),
+    if (labels != null) 'labels': labels!.toJson(),
   };
 }
 

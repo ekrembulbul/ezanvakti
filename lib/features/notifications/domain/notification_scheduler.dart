@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import '../../../core/data/religious_days.dart';
 import '../../../l10n/app_localizations.dart';
+import '../../../l10n/locale_resolver.dart';
 import '../../../l10n/l10n_extensions.dart';
 import '../../../core/models/quiet_window.dart';
 import '../../prayer_times/domain/derived_times.dart';
@@ -23,7 +24,10 @@ class NotificationScheduler {
   /// Bildirim metinleri arka planda, `BuildContext` olmadan üretiliyor.
   /// Çeviri örneği planlama anında bu sağlayıcıdan alınır — kullanıcı dili
   /// değiştirdiğinde bir sonraki planlama yeni dilde kurulur.
-  final Future<AppLocalizations> Function() localizations;
+  ///
+  /// Parametre, kullanıcının uygulama içi dil tercihidir; `null` ise cihaz
+  /// dili kullanılır.
+  final Future<AppLocalizations> Function(Locale? preferred) localizations;
 
   static const int scheduleDaysAhead = 7;
 
@@ -35,22 +39,18 @@ class NotificationScheduler {
   NotificationScheduler({
     required this.notificationService,
     required this.storage,
-    Future<AppLocalizations> Function()? localizations,
+    Future<AppLocalizations> Function(Locale? preferred)? localizations,
   }) : localizations = localizations ?? defaultLocalizations;
 
-  /// Varsayılan: kullanıcının seçtiği dil, seçilmemişse cihaz dili.
-  static Future<AppLocalizations> defaultLocalizations() async {
+  /// Varsayılan: cihaz dili; desteklenmiyorsa İngilizce (bkz.
+  /// [LocaleResolver]). Kullanıcı uygulama içinde dil seçtiyse çağıran taraf
+  /// kendi sağlayıcısını verir.
+  static Future<AppLocalizations> defaultLocalizations(
+    Locale? preferred,
+  ) async {
     return AppLocalizations.delegate.load(
-      _resolveLocale(PlatformDispatcher.instance.locale),
+      LocaleResolver.resolve(preferred ?? PlatformDispatcher.instance.locale),
     );
-  }
-
-  /// Desteklenmeyen cihaz dili kaynak dile (Türkçe) düşer.
-  static Locale _resolveLocale(Locale deviceLocale) {
-    for (final supported in AppLocalizations.supportedLocales) {
-      if (supported.languageCode == deviceLocale.languageCode) return supported;
-    }
-    return const Locale('tr');
   }
 
   Future<void> scheduleNotifications({
@@ -65,7 +65,9 @@ class NotificationScheduler {
 
     final settings = await storage.getNotificationSettings();
     final general = await storage.getGeneralSettings();
-    final l10n = await localizations();
+    // Kullanıcı uygulama içinde bir dil seçtiyse bildirimler de o dilde
+    // gelmeli; seçmediyse cihaz dili kullanılır.
+    final l10n = await localizations(general.language.locale);
     final quietWindows = await storage.getQuietWindows();
 
     // Mevcut tüm planlanmış bildirimleri önce iptal et — ayar listesi boş olsa

@@ -956,5 +956,192 @@
   "ramadanRemindersAdded": "Sahur ve iftar hatırlatmaları eklendi",
   "@ramadanRemindersAdded": {
     "description": "Bildirim mesajı"
+  },
+  "locationsTitle": "Konumlar",
+  "@locationsTitle": {
+    "description": "Ekran başlığı"
+  },
+  "locationsLoading": "Konumlar yükleniyor...",
+  "@locationsLoading": {
+    "description": "Yükleme"
+  },
+  "locationsLoadFailed": "Konumlar yüklenemedi: {error}",
+  "@locationsLoadFailed": {
+    "description": "Hata",
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "locationsEmpty": "Henüz konum eklenmedi",
+  "@locationsEmpty": {
+    "description": "Boş durum"
+  },
+  "locationsEmptyHint": "GPS ile otomatik tespit edin veya\nadres arayarak konum seçin",
+  "@locationsEmptyHint": {
+    "description": "Boş durum"
+  },
+  "locationsSwipeHint": "Aktif olmayan konumu silmek için satırı sola kaydırın.",
+  "@locationsSwipeHint": {
+    "description": "İpucu"
+  },
+  "locationActive": "AKTİF",
+  "@locationActive": {
+    "description": "Rozet"
+  },
+  "locationAddTitle": "Konum ekle",
+  "@locationAddTitle": {
+    "description": "Ekran başlığı"
+  },
+  "locationEditTitle": "Konumu Düzenle",
+  "@locationEditTitle": {
+    "description": "Ekran başlığı"
+  },
+  "locationSearchHint": "Şehir, ilçe veya yer adıyla ara",
+  "@locationSearchHint": {
+    "description": "Alan ipucu"
+  },
+  "locationSearchPlaceholder": "Şehir, ilçe veya yer ara...",
+  "@locationSearchPlaceholder": {
+    "description": "Alan ipucu"
+  },
+  "locationSearchStart": "Aramak için yazmaya başlayın.",
+  "@locationSearchStart": {
+    "description": "Boş durum"
+  },
+  "locationSearchNoResult": "Sonuç bulunamadı.\nFarklı bir arama deneyin veya bağlantınızı kontrol edin.",
+  "@locationSearchNoResult": {
+    "description": "Boş durum"
+  },
+  "locationGettingPosition": "Konum Alınıyor...",
+  "@locationGettingPosition": {
+    "description": "Durum"
+  },
+  "locationPermissionTitle": "Konum İzni",
+  "@locationPermissionTitle": {
+    "description": "Diyalog başlığı"
+  },
+  "locationPermissionBody": "Namaz vakitlerini bulunduğunuz konuma göre gösterebilmek için konum iznine ihtiyaç var. İzni vererek bulunduğunuz il/ilçe otomatik seçilecektir.",
+  "@locationPermissionBody": {
+    "description": "Diyalog gövdesi"
+  },
+  "locationPermissionAllow": "İzin Ver",
+  "@locationPermissionAllow": {
+    "description": "Düğme"
+  },
+  "locationServicesOff": "Konum servisleri kapalı. Lütfen açın.",
+  "@locationServicesOff": {
+    "description": "Hata"
+  },
+  "locationPermissionDenied": "Konum izni kalıcı olarak reddedildi. Ayarlardan izin verin.",
+  "@locationPermissionDenied": {
+    "description": "Hata"
+  },
+  "locationUpdated": "Konum güncellendi",
+  "@locationUpdated": {
+    "description": "Bildirim mesajı"
+  },
+  "locationSelectFirst": "Lütfen bir konum seçin",
+  "@locationSelectFirst": {
+    "description": "Hata"
+  },
+  "locationCustomName": "Özel İsim (Opsiyonel)",
+  "@locationCustomName": {
+    "description": "Alan başlığı"
+  },
+  "locationCustomNameHint": "Örn: Ev, İş, Anne Evi",
+  "@locationCustomNameHint": {
+    "description": "Alan ipucu"
+  },
+  "locationUseGlobalCalculation": "Genel hesaplama ayarını kullan",
+  "@locationUseGlobalCalculation": {
+    "description": "Ayar"
+  },
+  "locationUseGlobalCalculationHint": "Kapatırsan bu konuma özel yöntem/mezhep seçebilirsin",
+  "@locationUseGlobalCalculationHint": {
+    "description": "Ayar açıklaması"
+  },
+  "locationCalculationFromGlobal": "Hesaplama yöntemi genel ayardan alınır. Bu konuma özel değiştirmek için kaydettikten sonra düzenleyin.",
+  "@locationCalculationFromGlobal": {
+    "description": "Bilgi notu"
+  },
+  "locationChange": "Değiştir",
+  "@locationChange": {
+    "description": "Düğme"
+  },
+  "locationUndoFailed": "Geri alınamadı: {error}",
+  "@locationUndoFailed": {
+    "description": "Hata",
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "osmAttribution": "© OpenStreetMap katkıcıları",
+  "@osmAttribution": {
+    "description": "Atıf"
+  },
+  "widgetTomorrow": "Yarın",
+  "@widgetTomorrow": {
+    "description": "Widget etiketi"
+  },
+  "widgetStale": "Güncel değil",
+  "@widgetStale": {
+    "description": "Widget etiketi"
+  },
+  "widgetOpenApp": "Vakitler için uygulamayı aç",
+  "@widgetOpenApp": {
+    "description": "Widget etiketi"
+  },
+  "widgetUpdateApp": "Uygulamayı güncelleyin",
+  "@widgetUpdateApp": {
+    "description": "Widget etiketi"
+  },
+  "siriAnswer": "{prayer} {time}, {remaining} kaldı.",
+  "@siriAnswer": {
+    "description": "Siri cevabı",
+    "placeholders": {
+      "prayer": {
+        "type": "Object"
+      },
+      "time": {
+        "type": "Object"
+      },
+      "remaining": {
+        "type": "Object"
+      }
+    }
+  },
+  "durationHourMinute": "{hours} saat {minutes} dakika",
+  "@durationHourMinute": {
+    "description": "Süre biçimi",
+    "placeholders": {
+      "hours": {
+        "type": "Object"
+      },
+      "minutes": {
+        "type": "Object"
+      }
+    }
+  },
+  "durationHour": "{hours} saat",
+  "@durationHour": {
+    "description": "Süre biçimi",
+    "placeholders": {
+      "hours": {
+        "type": "Object"
+      }
+    }
+  },
+  "durationMinute": "{minutes} dakika",
+  "@durationMinute": {
+    "description": "Süre biçimi",
+    "placeholders": {
+      "minutes": {
+        "type": "Object"
+      }
+    }
   }
 }

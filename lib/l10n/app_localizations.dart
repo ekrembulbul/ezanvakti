@@ -1347,6 +1347,228 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Sahur ve iftar hatırlatmaları eklendi'**
   String get ramadanRemindersAdded;
+
+  /// Ekran başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Konumlar'**
+  String get locationsTitle;
+
+  /// Yükleme
+  ///
+  /// In tr, this message translates to:
+  /// **'Konumlar yükleniyor...'**
+  String get locationsLoading;
+
+  /// Hata
+  ///
+  /// In tr, this message translates to:
+  /// **'Konumlar yüklenemedi: {error}'**
+  String locationsLoadFailed(Object error);
+
+  /// Boş durum
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz konum eklenmedi'**
+  String get locationsEmpty;
+
+  /// Boş durum
+  ///
+  /// In tr, this message translates to:
+  /// **'GPS ile otomatik tespit edin veya\nadres arayarak konum seçin'**
+  String get locationsEmptyHint;
+
+  /// İpucu
+  ///
+  /// In tr, this message translates to:
+  /// **'Aktif olmayan konumu silmek için satırı sola kaydırın.'**
+  String get locationsSwipeHint;
+
+  /// Rozet
+  ///
+  /// In tr, this message translates to:
+  /// **'AKTİF'**
+  String get locationActive;
+
+  /// Ekran başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Konum ekle'**
+  String get locationAddTitle;
+
+  /// Ekran başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Konumu Düzenle'**
+  String get locationEditTitle;
+
+  /// Alan ipucu
+  ///
+  /// In tr, this message translates to:
+  /// **'Şehir, ilçe veya yer adıyla ara'**
+  String get locationSearchHint;
+
+  /// Alan ipucu
+  ///
+  /// In tr, this message translates to:
+  /// **'Şehir, ilçe veya yer ara...'**
+  String get locationSearchPlaceholder;
+
+  /// Boş durum
+  ///
+  /// In tr, this message translates to:
+  /// **'Aramak için yazmaya başlayın.'**
+  String get locationSearchStart;
+
+  /// Boş durum
+  ///
+  /// In tr, this message translates to:
+  /// **'Sonuç bulunamadı.\nFarklı bir arama deneyin veya bağlantınızı kontrol edin.'**
+  String get locationSearchNoResult;
+
+  /// Durum
+  ///
+  /// In tr, this message translates to:
+  /// **'Konum Alınıyor...'**
+  String get locationGettingPosition;
+
+  /// Diyalog başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Konum İzni'**
+  String get locationPermissionTitle;
+
+  /// Diyalog gövdesi
+  ///
+  /// In tr, this message translates to:
+  /// **'Namaz vakitlerini bulunduğunuz konuma göre gösterebilmek için konum iznine ihtiyaç var. İzni vererek bulunduğunuz il/ilçe otomatik seçilecektir.'**
+  String get locationPermissionBody;
+
+  /// Düğme
+  ///
+  /// In tr, this message translates to:
+  /// **'İzin Ver'**
+  String get locationPermissionAllow;
+
+  /// Hata
+  ///
+  /// In tr, this message translates to:
+  /// **'Konum servisleri kapalı. Lütfen açın.'**
+  String get locationServicesOff;
+
+  /// Hata
+  ///
+  /// In tr, this message translates to:
+  /// **'Konum izni kalıcı olarak reddedildi. Ayarlardan izin verin.'**
+  String get locationPermissionDenied;
+
+  /// Bildirim mesajı
+  ///
+  /// In tr, this message translates to:
+  /// **'Konum güncellendi'**
+  String get locationUpdated;
+
+  /// Hata
+  ///
+  /// In tr, this message translates to:
+  /// **'Lütfen bir konum seçin'**
+  String get locationSelectFirst;
+
+  /// Alan başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Özel İsim (Opsiyonel)'**
+  String get locationCustomName;
+
+  /// Alan ipucu
+  ///
+  /// In tr, this message translates to:
+  /// **'Örn: Ev, İş, Anne Evi'**
+  String get locationCustomNameHint;
+
+  /// Ayar
+  ///
+  /// In tr, this message translates to:
+  /// **'Genel hesaplama ayarını kullan'**
+  String get locationUseGlobalCalculation;
+
+  /// Ayar açıklaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Kapatırsan bu konuma özel yöntem/mezhep seçebilirsin'**
+  String get locationUseGlobalCalculationHint;
+
+  /// Bilgi notu
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesaplama yöntemi genel ayardan alınır. Bu konuma özel değiştirmek için kaydettikten sonra düzenleyin.'**
+  String get locationCalculationFromGlobal;
+
+  /// Düğme
+  ///
+  /// In tr, this message translates to:
+  /// **'Değiştir'**
+  String get locationChange;
+
+  /// Hata
+  ///
+  /// In tr, this message translates to:
+  /// **'Geri alınamadı: {error}'**
+  String locationUndoFailed(Object error);
+
+  /// Atıf
+  ///
+  /// In tr, this message translates to:
+  /// **'© OpenStreetMap katkıcıları'**
+  String get osmAttribution;
+
+  /// Widget etiketi
+  ///
+  /// In tr, this message translates to:
+  /// **'Yarın'**
+  String get widgetTomorrow;
+
+  /// Widget etiketi
+  ///
+  /// In tr, this message translates to:
+  /// **'Güncel değil'**
+  String get widgetStale;
+
+  /// Widget etiketi
+  ///
+  /// In tr, this message translates to:
+  /// **'Vakitler için uygulamayı aç'**
+  String get widgetOpenApp;
+
+  /// Widget etiketi
+  ///
+  /// In tr, this message translates to:
+  /// **'Uygulamayı güncelleyin'**
+  String get widgetUpdateApp;
+
+  /// Siri cevabı
+  ///
+  /// In tr, this message translates to:
+  /// **'{prayer} {time}, {remaining} kaldı.'**
+  String siriAnswer(Object prayer, Object time, Object remaining);
+
+  /// Süre biçimi
+  ///
+  /// In tr, this message translates to:
+  /// **'{hours} saat {minutes} dakika'**
+  String durationHourMinute(Object hours, Object minutes);
+
+  /// Süre biçimi
+  ///
+  /// In tr, this message translates to:
+  /// **'{hours} saat'**
+  String durationHour(Object hours);
+
+  /// Süre biçimi
+  ///
+  /// In tr, this message translates to:
+  /// **'{minutes} dakika'**
+  String durationMinute(Object minutes);
 }
 
 class _AppLocalizationsDelegate

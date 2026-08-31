@@ -687,4 +687,132 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get ramadanRemindersAdded => 'تمت إضافة تنبيهي السحور والإفطار';
+
+  @override
+  String get locationsTitle => 'المواقع';
+
+  @override
+  String get locationsLoading => 'جارٍ تحميل المواقع…';
+
+  @override
+  String locationsLoadFailed(Object error) {
+    return 'تعذّر تحميل المواقع: $error';
+  }
+
+  @override
+  String get locationsEmpty => 'لم تتم إضافة مواقع بعد';
+
+  @override
+  String get locationsEmptyHint => 'حدّد تلقائيًا عبر GPS أو\nابحث عن عنوان';
+
+  @override
+  String get locationsSwipeHint => 'اسحب الصف لحذف موقع غير نشط.';
+
+  @override
+  String get locationActive => 'نشط';
+
+  @override
+  String get locationAddTitle => 'إضافة موقع';
+
+  @override
+  String get locationEditTitle => 'تعديل الموقع';
+
+  @override
+  String get locationSearchHint => 'ابحث بالمدينة أو المنطقة أو المكان';
+
+  @override
+  String get locationSearchPlaceholder => 'ابحث عن مدينة أو منطقة أو مكان…';
+
+  @override
+  String get locationSearchStart => 'ابدأ الكتابة للبحث.';
+
+  @override
+  String get locationSearchNoResult =>
+      'لا توجد نتائج.\nجرّب بحثًا آخر أو تحقق من اتصالك.';
+
+  @override
+  String get locationGettingPosition => 'جارٍ تحديد الموقع…';
+
+  @override
+  String get locationPermissionTitle => 'إذن الموقع';
+
+  @override
+  String get locationPermissionBody =>
+      'نحتاج إذن الموقع لعرض أوقات الصلاة حسب مكانك. بالسماح سيتم اختيار مدينتك تلقائيًا.';
+
+  @override
+  String get locationPermissionAllow => 'اسمح';
+
+  @override
+  String get locationServicesOff => 'خدمات الموقع مغلقة. يرجى تشغيلها.';
+
+  @override
+  String get locationPermissionDenied =>
+      'تم رفض إذن الموقع نهائيًا. امنحه من الإعدادات.';
+
+  @override
+  String get locationUpdated => 'تم تحديث الموقع';
+
+  @override
+  String get locationSelectFirst => 'يرجى اختيار موقع';
+
+  @override
+  String get locationCustomName => 'اسم مخصص (اختياري)';
+
+  @override
+  String get locationCustomNameHint => 'مثال: المنزل، العمل';
+
+  @override
+  String get locationUseGlobalCalculation => 'استخدم إعداد الحساب العام';
+
+  @override
+  String get locationUseGlobalCalculationHint =>
+      'أوقفه لاختيار طريقة خاصة بهذا الموقع';
+
+  @override
+  String get locationCalculationFromGlobal =>
+      'تُؤخذ طريقة الحساب من الإعداد العام. لتغييرها لهذا الموقع، عدّل بعد الحفظ.';
+
+  @override
+  String get locationChange => 'تغيير';
+
+  @override
+  String locationUndoFailed(Object error) {
+    return 'تعذّر التراجع: $error';
+  }
+
+  @override
+  String get osmAttribution => '© مساهمو OpenStreetMap';
+
+  @override
+  String get widgetTomorrow => 'غدًا';
+
+  @override
+  String get widgetStale => 'غير محدّث';
+
+  @override
+  String get widgetOpenApp => 'افتح التطبيق لمعرفة الأوقات';
+
+  @override
+  String get widgetUpdateApp => 'يرجى تحديث التطبيق';
+
+  @override
+  String siriAnswer(Object prayer, Object time, Object remaining) {
+    return '$prayer في $time، بقي $remaining.';
+  }
+
+  @override
+  String durationHourMinute(Object hours, Object minutes) {
+    return '$hours ساعة و$minutes دقيقة';
+  }
+
+  @override
+  String durationHour(Object hours) {
+    return '$hours ساعة';
+  }
+
+  @override
+  String durationMinute(Object minutes) {
+    return '$minutes دقيقة';
+  }
 }

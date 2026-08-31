@@ -689,4 +689,136 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get ramadanRemindersAdded => 'Suhoor and iftar reminders added';
+
+  @override
+  String get locationsTitle => 'Locations';
+
+  @override
+  String get locationsLoading => 'Loading locations…';
+
+  @override
+  String locationsLoadFailed(Object error) {
+    return 'Could not load locations: $error';
+  }
+
+  @override
+  String get locationsEmpty => 'No locations added yet';
+
+  @override
+  String get locationsEmptyHint =>
+      'Detect automatically with GPS or\nsearch for an address';
+
+  @override
+  String get locationsSwipeHint =>
+      'Swipe a row to delete a location that is not active.';
+
+  @override
+  String get locationActive => 'ACTIVE';
+
+  @override
+  String get locationAddTitle => 'Add location';
+
+  @override
+  String get locationEditTitle => 'Edit location';
+
+  @override
+  String get locationSearchHint => 'Search by city, district or place';
+
+  @override
+  String get locationSearchPlaceholder => 'Search city, district or place…';
+
+  @override
+  String get locationSearchStart => 'Start typing to search.';
+
+  @override
+  String get locationSearchNoResult =>
+      'No results.\nTry a different search or check your connection.';
+
+  @override
+  String get locationGettingPosition => 'Getting location…';
+
+  @override
+  String get locationPermissionTitle => 'Location permission';
+
+  @override
+  String get locationPermissionBody =>
+      'Location access is needed to show prayer times for where you are. Granting it selects your city automatically.';
+
+  @override
+  String get locationPermissionAllow => 'Allow';
+
+  @override
+  String get locationServicesOff =>
+      'Location services are off. Please turn them on.';
+
+  @override
+  String get locationPermissionDenied =>
+      'Location permission is permanently denied. Grant it from Settings.';
+
+  @override
+  String get locationUpdated => 'Location updated';
+
+  @override
+  String get locationSelectFirst => 'Please pick a location';
+
+  @override
+  String get locationCustomName => 'Custom name (optional)';
+
+  @override
+  String get locationCustomNameHint => 'e.g. Home, Work';
+
+  @override
+  String get locationUseGlobalCalculation =>
+      'Use the global calculation setting';
+
+  @override
+  String get locationUseGlobalCalculationHint =>
+      'Turn off to pick a method for this location only';
+
+  @override
+  String get locationCalculationFromGlobal =>
+      'The calculation method comes from the global setting. To change it for this location, edit after saving.';
+
+  @override
+  String get locationChange => 'Change';
+
+  @override
+  String locationUndoFailed(Object error) {
+    return 'Could not undo: $error';
+  }
+
+  @override
+  String get osmAttribution => '© OpenStreetMap contributors';
+
+  @override
+  String get widgetTomorrow => 'Tomorrow';
+
+  @override
+  String get widgetStale => 'Out of date';
+
+  @override
+  String get widgetOpenApp => 'Open the app for prayer times';
+
+  @override
+  String get widgetUpdateApp => 'Please update the app';
+
+  @override
+  String siriAnswer(Object prayer, Object time, Object remaining) {
+    return '$prayer at $time, $remaining left.';
+  }
+
+  @override
+  String durationHourMinute(Object hours, Object minutes) {
+    return '$hours h $minutes min';
+  }
+
+  @override
+  String durationHour(Object hours) {
+    return '$hours h';
+  }
+
+  @override
+  String durationMinute(Object minutes) {
+    return '$minutes min';
+  }
 }

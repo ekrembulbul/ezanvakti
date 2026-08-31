@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'l10n/app_localizations.dart';
+import 'l10n/locale_resolver.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -71,6 +72,10 @@ class MyApp extends StatelessWidget {
             // Kullanıcı tercihi; null ise cihaz dili kullanılır. Arapça
             // seçilince yön (RTL) MaterialApp tarafından uygulanır.
             locale: context.watch<AppState>().generalSettings.language.locale,
+            // Desteklenmeyen cihaz dilinde Flutter listenin ilkine (alfabetik
+            // olarak Arapça) düşüyordu; İngilizce daha geniş anlaşılıyor.
+            localeResolutionCallback: (deviceLocale, _) =>
+                LocaleResolver.resolve(deviceLocale),
             theme: AppTheme.build(controller.tokens, controller.brightness),
             // Palet gecisi: vakit siniri, tema degisimi ve sabit palet secimi
             // ayni sureyi kullanir.

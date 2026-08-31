@@ -9,9 +9,11 @@ struct RectangularView: View {
     var body: some View {
         switch entry.content {
         case .noData:
-            Text("Vakitler için uygulamayı aç").font(.system(size: 12))
+            Text(entry.labels?.openApp ?? "Vakitler için uygulamayı aç")
+                .font(.system(size: 12))
         case .needsUpdate:
-            Text("Uygulamayı güncelleyin").font(.system(size: 12))
+            Text(entry.labels?.updateApp ?? "Uygulamayı güncelleyin")
+                .font(.system(size: 12))
         case let .ready(next, _, _, _, isStale, isTomorrow):
             ready(next: next, isStale: isStale, isTomorrow: isTomorrow)
         }
@@ -20,13 +22,16 @@ struct RectangularView: View {
     private func ready(next: PrayerSlot, isStale: Bool, isTomorrow: Bool) -> some View {
         VStack(alignment: alignment.horizontal, spacing: 1) {
             if isStale {
-                Text("GÜNCEL DEĞİL")
+                Text((entry.labels?.stale ?? "Güncel değil").uppercased())
                     .font(.system(size: 10, weight: .semibold))
                     .widgetAccentable()
             }
 
             HStack(spacing: 4) {
-                Text(isTomorrow ? "Yarın \(next.name)" : next.name)
+                Text(
+                    isTomorrow
+                        ? "\(entry.labels?.tomorrow ?? "Yarın") \(next.name)"
+                        : next.name)
                 Text(TimeFormatting.clock(next.date, preference: entry.timeFormat))
                     .monospacedDigit()
             }

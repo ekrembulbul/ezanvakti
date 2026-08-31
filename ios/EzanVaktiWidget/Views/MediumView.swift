@@ -36,7 +36,12 @@ struct MediumView: View {
                         Text(gregorian)
                     }
                     Text(
-                        [day.hijri, isStale ? "Güncel değil" : locationLabel]
+                        [
+                            day.hijri,
+                            isStale
+                                ? (entry.labels?.stale ?? "Güncel değil")
+                                : locationLabel,
+                        ]
                             .compactMap { $0 }
                             .joined(separator: " · ")
                     )
@@ -49,7 +54,9 @@ struct MediumView: View {
                 Spacer(minLength: 4)
 
                 Text(
-                    (isTomorrow ? "YARIN · " : "")
+                    (isTomorrow
+                        ? "\((entry.labels?.tomorrow ?? "Yarın").uppercased()) · "
+                        : "")
                         + next.name.uppercased(with: Locale(identifier: "tr_TR"))
                 )
                 .font(.system(size: 11, weight: .semibold))

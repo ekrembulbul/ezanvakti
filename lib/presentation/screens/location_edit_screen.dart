@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/l10n_extensions.dart';
 
 import '../../core/models/calculation_params.dart';
 import '../../core/models/calculation_settings.dart';
@@ -147,7 +148,7 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      appBar: const SimpleAppBar(title: 'Konumu Düzenle'),
+      appBar: SimpleAppBar(title: context.l10n.locationEditTitle),
       body: AppSurface(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -235,9 +236,9 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
         controller: _customNameController,
         style: AppTypography.rowTitle.copyWith(color: tokens.textPrimary),
         decoration: InputDecoration(
-          labelText: 'Özel İsim (Opsiyonel)',
+          labelText: context.l10n.locationCustomName,
           labelStyle: TextStyle(color: tokens.textTertiary),
-          hintText: 'Örn: Ev, İş, Anne Evi',
+          hintText: context.l10n.locationCustomNameHint,
           hintStyle: TextStyle(color: tokens.textTertiary),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.all(20),
@@ -255,10 +256,8 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
       children: [
         GroupedRow(
           icon: Icons.public_rounded,
-          title: const Text('Genel hesaplama ayarını kullan'),
-          subtitle: const Text(
-            'Kapatırsan bu konuma özel yöntem/mezhep seçebilirsin',
-          ),
+          title: Text(context.l10n.locationUseGlobalCalculation),
+          subtitle: Text(context.l10n.locationUseGlobalCalculationHint),
           trailing: Switch(
             value: _useGlobal,
             onChanged: (value) => setState(() => _useGlobal = value),
