@@ -1,5 +1,6 @@
 import '../../../core/constants/notification_sounds.dart';
 import '../../../core/models/derived_time.dart';
+import '../../../core/data/religious_days.dart';
 import '../../../core/models/quiet_window.dart';
 import '../../prayer_times/domain/derived_times.dart';
 import 'quiet_window_rules.dart';
@@ -146,6 +147,18 @@ class NotificationScheduler {
       }
     }
 
+    if (general.religiousDayNotifications) {
+      _addReligiousDayCandidates(
+        candidates: candidates,
+        seenIds: seenIds,
+        byDate: byDate,
+        now: now,
+        cutoff: cutoff,
+        eve: general.religiousDayEve,
+        soundId: general.defaultSound,
+      );
+    }
+
     // En yakın bildirimlerden iOS sınırı kadarını planla.
     candidates.sort((a, b) => a.notificationTime.compareTo(b.notificationTime));
     final toSchedule = candidates.take(maxScheduledNotifications).toList();
@@ -214,6 +227,101 @@ class NotificationScheduler {
 
   /// Dini gün bildirimlerinin ayrılmış nokta indeksi.
   static const int religiousDayPointIndex = 11;
+
+  /// Dini gün adaylarını havuza katar.
+  ///
+  /// Gün akşam vaktinde hatırlatılır: kandil ve bayram geceleri akşam
+  /// namazıyla başlar. İsteğe bağlı olarak bir gün önce öğle vaktinde de
+  /// hatırlatılır — hazırlık için (oruç, program).
+  void _addReligiousDayCandidates({
+    required List<_NotificationCandidate> candidates,
+    required Set<String> seenIds,
+    required Map<DateTime, PrayerTime> byDate,
+    required DateTime now,
+    required DateTime cutoff,
+    required bool eve,
+    required String soundId,
+  }) {
+    if (byDate.isEmpty) return;
+    final days = byDate.keys.toList()..sort();
+    final religiousDays = ReligiousDays.forRange(days.first, days.last);
+
+    for (final day in religiousDays) {
+      final prayerTime = byDate[day.date];
+      if (prayerTime == null) continue;
+
+      _addReligiousCandidate(
+        candidates: candidates,
+        seenIds: seenIds,
+        date: day.date,
+        fireAt: prayerTime.maghrib,
+        minutesBefore: 0,
+        title: day.name,
+        body: day.isEstimated
+            ? '${day.name} bugün. Tarih hesaplanmıştır; '
+                  'Diyanet takvimiyle bir gün farklı olabilir.'
+            : '${day.name} bugün.',
+        soundId: soundId,
+        now: now,
+        cutoff: cutoff,
+      );
+
+      if (!eve) continue;
+      final eveDate = DateTime(
+        day.date.year,
+        day.date.month,
+        day.date.day - 1,
+      );
+      final evePrayerTime = byDate[eveDate];
+      if (evePrayerTime == null) continue;
+
+      _addReligiousCandidate(
+        candidates: candidates,
+        seenIds: seenIds,
+        date: eveDate,
+        fireAt: evePrayerTime.dhuhr,
+        // Bir gün önceki hatırlatma da aynı noktaya ait; kimlik çakışmasın
+        // diye sapma alanı 1 kullanılıyor.
+        minutesBefore: 1,
+        title: '${day.name} yarın',
+        body: '${day.name} yarın idrak edilecek.',
+        soundId: soundId,
+        now: now,
+        cutoff: cutoff,
+      );
+    }
+  }
+
+  void _addReligiousCandidate({
+    required List<_NotificationCandidate> candidates,
+    required Set<String> seenIds,
+    required DateTime date,
+    required DateTime fireAt,
+    required int minutesBefore,
+    required String title,
+    required String body,
+    required String soundId,
+    required DateTime now,
+    required DateTime cutoff,
+  }) {
+    if (fireAt.isBefore(now) || fireAt.isAfter(cutoff)) return;
+    final id = notificationIdFor(
+      date: date,
+      pointIndex: religiousDayPointIndex,
+      minutesBefore: minutesBefore,
+    );
+    if (!seenIds.add(id)) return;
+    candidates.add(
+      _NotificationCandidate(
+        id: id,
+        notificationTime: fireAt,
+        title: title,
+        body: body,
+        soundId: soundId,
+        silent: NotificationSounds.isSilent(soundId),
+      ),
+    );
+  }
 
   /// Satırın o gün için tetikleneceği an: vakit bildiriminde vaktin kendisi,
   /// türetilmiş noktada hesaplanan an.

@@ -1,4 +1,7 @@
 import 'package:ezanvakti/core/models/derived_time.dart';
+import 'package:ezanvakti/core/data/religious_days.dart';
+import 'package:ezanvakti/core/models/general_settings.dart';
+import 'package:ezanvakti/core/models/religious_day.dart';
 import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
@@ -127,6 +130,73 @@ void main() {
       isTrue,
     );
     expect(service.calls.any((call) => call.title == 'Öğle'), isTrue);
+  });
+
+  group('dini gunler', () {
+    /// Planlama penceresi 7 gun oldugu icin sabit bir tarih kullanilamaz:
+    /// bugunden sonraki ilk dini gunu bulup onu iceren pencereyi kuruyoruz.
+    late ReligiousDay target;
+
+    setUp(() {
+      final today = DateTime.now();
+      final upcoming = ReligiousDays.forRange(
+        DateTime(today.year, today.month, today.day + 1),
+        DateTime(today.year, today.month, today.day + 300),
+      );
+      target = upcoming.first;
+    });
+
+    /// Hedef gunu ve bir oncesini kapsayan, **bugunden baslayan** pencere.
+    List<PrayerTime> window() {
+      final today = DateTime.now();
+      final start = DateTime(today.year, today.month, today.day);
+      final dayCount = target.date.difference(start).inDays + 2;
+      return [
+        for (var i = 0; i < dayCount; i++)
+          dayAt(DateTime(start.year, start.month, start.day + i)),
+      ];
+    }
+
+    Future<void> scheduleWindow() => scheduler.scheduleNotifications(
+      location: location,
+      prayerTimes: window(),
+    );
+
+    test('ayar kapaliyken dini gun bildirimi planlanmaz', () async {
+      await scheduleWindow();
+      expect(service.calls, isEmpty);
+    });
+
+    test('ayar acikken gun aksam vaktinde planlanir', () async {
+      storage.general = const GeneralSettings(
+        religiousDayNotifications: true,
+        religiousDayEve: false,
+      );
+      await scheduleWindow();
+
+      // Hedef gun 7 gunluk planlama penceresine giriyorsa bildirim olmali.
+      final withinWindow = target.date.difference(DateTime.now()).inDays <
+          NotificationScheduler.scheduleDaysAhead;
+      if (!withinWindow) return;
+
+      final matches = service.calls.where(
+        (call) => call.title == target.name,
+      );
+      expect(matches, isNotEmpty, reason: target.name);
+      expect(matches.first.scheduledTime.hour, 19, reason: 'aksam vakti');
+      expect(matches.first.body, contains('hesaplanmıştır'));
+    });
+
+    test('bir gun once hatirlatma ayri kimlik kullanir', () async {
+      storage.general = const GeneralSettings(
+        religiousDayNotifications: true,
+        religiousDayEve: true,
+      );
+      await scheduleWindow();
+
+      final ids = service.calls.map((call) => call.id).toSet();
+      expect(ids.length, service.calls.length, reason: 'kimlikler cakismamali');
+    });
   });
 
   test('etiket verilirse turetilmis noktanin adinin yerine gecer', () async {

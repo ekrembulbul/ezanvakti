@@ -48,9 +48,10 @@ const _location = Location(id: '1', province: 'İstanbul', district: 'Kadıköy'
 
 void main() {
   Future<void> pumpSettings(WidgetTester tester, {VoidCallback? onCalc}) async {
-    // Ekran Genel kartiyla uzadi; alt bolumler (Gorunum/Bilgi) icin uzun bir
-    // yuzey veriliyor ki testler kaydirmadan da hepsini gorebilsin.
-    tester.view.physicalSize = const Size(1206, 4200);
+    // Ekran bolum bolum uzuyor; alt bolumlerin (Gorunum/Bilgi) testte
+    // gorunur kalmasi icin yuzey uzun tutuluyor. Boyut yetmezse
+    // `scrollToSettingsRow` ile kaydirilir.
+    tester.view.physicalSize = const Size(1206, 6000);
     tester.view.devicePixelRatio = 3.0;
     addTearDown(tester.view.reset);
 
