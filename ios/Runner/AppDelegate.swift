@@ -93,9 +93,13 @@ enum MissionChainStore {
       AlarmKitHandler.notifyDart(alarmId: alarmId)
       return
     case .stopChain:
-      // Cift ust sinir: bir hata sonsuz alarma donusmesin.
+      // Cift ust sinir: bir hata sonsuz alarma donusmesin. Dart tarafi
+      // olayla haberdar edilir ki oturumu kapatip alarmlari yeniden kursun
+      // (K3); aksi halde bayat gorev ekrani aciliyordu.
       s["pending"] = false
       save(s)
+      enqueueEvent(alarmId: alarmId, chainStopped: true)
+      AlarmKitHandler.notifyDart(alarmId: alarmId)
       NSLog("mission|chain|stopped|bounds|id=\(alarmId)")
       return
     case .rearm:
@@ -118,12 +122,18 @@ enum MissionChainStore {
   }
 
   static func enqueueStopEvent(alarmId: String) {
+    enqueueEvent(alarmId: alarmId, chainStopped: false)
+  }
+
+  static func enqueueEvent(alarmId: String, chainStopped: Bool) {
     var queue =
       UserDefaults.standard.array(forKey: eventsKey) as? [[String: Any]] ?? []
-    queue.append([
+    var event: [String: Any] = [
       "alarmId": alarmId,
       "stoppedAt": Date().timeIntervalSince1970 * 1000,
-    ])
+    ]
+    if chainStopped { event["chainStopped"] = true }
+    queue.append(event)
     UserDefaults.standard.set(queue, forKey: eventsKey)
   }
 

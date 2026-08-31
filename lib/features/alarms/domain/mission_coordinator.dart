@@ -5,6 +5,19 @@ import '../../../core/config/mission_tuning.dart';
 import '../../../core/models/alarm_mission.dart';
 import '../../../core/models/mission_session.dart';
 import 'abort_gate.dart';
+import '../../../core/models/mission_stop_event.dart';
+
+/// [MissionCoordinator.resume] sonucu: güncel oturum ve varsa "zincir tavana
+/// çarptı" bilgisi.
+class ResumeResult {
+  final MissionSession? session;
+
+  /// Dolu ise: native zincir sert tavana çarptı. Görev ekranı açılmamalı;
+  /// çağıran `complete` ile zinciri temizleyip alarmları yeniden kurmalı.
+  final String? chainStoppedAlarmId;
+
+  const ResumeResult({required this.session, this.chainStoppedAlarmId});
+}
 
 /// Görev oturumunun yaşam döngüsünü yürütür: native olayları tüketir,
 /// oturumu saklar, erteleme sayacını tutar, tamamlama ve acil çıkışta
@@ -16,10 +29,27 @@ class MissionCoordinator {
   MissionCoordinator({required this.alarmService, required this.storage});
 
   /// Uygulama öne geldiğinde çağrılır. Native kuyruğunda durdurma olayı varsa
-  /// oturumu açar/yeniler, yoksa kayıtlı oturumu döner.
-  Future<MissionSession?> resume() async {
+  /// oturumu açar/yeniler, yoksa kayıtlı oturumu döner. Kuyrukta "zincir
+  /// tavana çarptı" olayı varsa oturum kapatılır ve olay sonuçta işaretlenir;
+  /// çağıran ekran açmaz, alarmları yeniden kurar.
+  Future<ResumeResult> resume() async {
     final events = await alarmService.consumeMissionEvents();
-    if (events.isEmpty) return storage.getMissionSession();
+
+    MissionStopEvent? chainStopped;
+    for (final event in events) {
+      if (event.chainStopped) chainStopped = event;
+    }
+    if (chainStopped != null) {
+      await storage.saveMissionSession(null);
+      return ResumeResult(
+        session: null,
+        chainStoppedAlarmId: chainStopped.alarmId,
+      );
+    }
+
+    if (events.isEmpty) {
+      return ResumeResult(session: await storage.getMissionSession());
+    }
 
     final latest = events.last;
     final existing = await storage.getMissionSession();
@@ -35,7 +65,7 @@ class MissionCoordinator {
           )
         : MissionSession(alarmId: latest.alarmId, firedAt: latest.stoppedAt);
     await storage.saveMissionSession(session);
-    return session;
+    return ResumeResult(session: session);
   }
 
   /// Görev ekranı açıldı. Son tarih **yalnızca ilk açılışta** konur; ekran

@@ -46,7 +46,18 @@ enum StopScreenResult { done, mission }
 Future<void> openMissionIfPending(BuildContext context) async {
   if (_missionScreenOpen) return;
   final coordinator = ServiceLocator().get<MissionCoordinator>();
-  final session = await coordinator.resume();
+  final result = await coordinator.resume();
+  if (result.chainStoppedAlarmId != null) {
+    // Zincir tavana carpti (K3): gorev borcu dustu, ekran acilmaz;
+    // native zincir temizlenir ve yarinki calislar kurulur.
+    await coordinator.complete(result.chainStoppedAlarmId!);
+    if (context.mounted) {
+      context.read<AppState>().setMissionSession(null);
+      await rearmAlarms(context);
+    }
+    return;
+  }
+  final session = result.session;
   if (context.mounted) context.read<AppState>().setMissionSession(session);
   if (session == null || !session.isPending) return;
 
@@ -158,7 +169,7 @@ class _StopHostState extends State<_StopHost> {
   }
 
   Future<void> _refresh() async {
-    final session = await _coordinator.resume();
+    final session = (await _coordinator.resume()).session;
     if (!mounted || session == null) return;
     setState(() => _session = session);
   }

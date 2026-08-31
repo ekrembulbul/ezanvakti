@@ -49,7 +49,9 @@ void main() {
     maxSnoozes: 2,
   );
 
-  final stoppedAt = DateTime(2026, 8, 21, 6, 30);
+  // Sabit gecmis tarih kullanilamaz: StopGate artik 60 dk sonra oturumu
+  // bayat sayip ekran acmiyor (Task 1). Testler "az once durdu" varsayar.
+  final stoppedAt = DateTime.now();
 
   setUp(() async {
     storage = FakeStorage();
