@@ -310,4 +310,335 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get derivedLastThirdHint => 'Tahajjud time begins';
+
+  @override
+  String get remindersTitle => 'Reminders';
+
+  @override
+  String get remindersNotifications => 'Notifications';
+
+  @override
+  String get remindersAlarms => 'Alarms';
+
+  @override
+  String get remindersNoNotifications => 'No notifications yet';
+
+  @override
+  String get remindersNoNotificationsHint =>
+      'Add a notification to be reminded\nat prayer times.';
+
+  @override
+  String get remindersNoAlarms => 'No alarms yet';
+
+  @override
+  String get remindersNoAlarmsHint =>
+      'Add a fixed-time or prayer-anchored alarm';
+
+  @override
+  String remindersCount(Object count) {
+    return '$count reminders';
+  }
+
+  @override
+  String remindersAlarmCount(Object count) {
+    return '$count alarms';
+  }
+
+  @override
+  String get remindersAddFriday => 'Add Friday prayer reminder';
+
+  @override
+  String get reminderFridayLabel => 'Friday prayer';
+
+  @override
+  String get reminderOnTime => 'On time';
+
+  @override
+  String reminderMinutesBefore(Object minutes) {
+    return '$minutes min before';
+  }
+
+  @override
+  String get reminderSkippedOnce => 'Skipped just this once';
+
+  @override
+  String get reminderOff => 'Off';
+
+  @override
+  String get reminderScheduleFailed =>
+      'Could not be scheduled — edit and save to retry';
+
+  @override
+  String get quietTitle => 'Quiet windows';
+
+  @override
+  String get quietIntro =>
+      'During these windows Ezan Vakti notifications are shown silently or not at all. An app cannot silence your iPhone; this setting affects only this app\'s notifications and leaves alarms untouched.';
+
+  @override
+  String get quietFridaySection => 'Friday prayer';
+
+  @override
+  String get quietFridayTitle => 'Silent at Friday prayer';
+
+  @override
+  String get quietFridayHint =>
+      'Notifications go quiet around Friday noon. You can change the durations or turn it off.';
+
+  @override
+  String get quietCustomSection => 'Custom windows';
+
+  @override
+  String get quietNoCustom => 'No custom windows yet.';
+
+  @override
+  String get quietAddWindow => 'Add window';
+
+  @override
+  String get quietMinutesBefore => 'Minutes before';
+
+  @override
+  String get quietMinutesAfter => 'Minutes after';
+
+  @override
+  String get quietModeLabel => 'During this window';
+
+  @override
+  String get quietModeSilent => 'Show silently';
+
+  @override
+  String get quietModeSilentHint => 'Notification appears without sound';
+
+  @override
+  String get quietModeSkip => 'Do not show';
+
+  @override
+  String get quietModeSkipHint => 'The notification is not scheduled at all';
+
+  @override
+  String quietWindowSummary(Object before, Object after) {
+    return '$before min before – $after min after';
+  }
+
+  @override
+  String get quietPrayerLabel => 'Prayer';
+
+  @override
+  String get prefsNewSound => 'New notification sound';
+
+  @override
+  String get soundSystem => 'System sound';
+
+  @override
+  String get soundSystemHint => 'Your device\'s default notification sound';
+
+  @override
+  String get soundBeep => 'Short chime';
+
+  @override
+  String get soundBeepHint => 'The app\'s own short tone';
+
+  @override
+  String get soundSilent => 'Silent';
+
+  @override
+  String get soundSilentHint => 'Notification appears without sound';
+
+  @override
+  String get prefsShowInFocus => 'Show during Focus';
+
+  @override
+  String get prefsShowInFocusHint =>
+      'Notifications are not held back by Focus. This does not bypass the silent switch.';
+
+  @override
+  String get prefsReligiousDays => 'Religious days';
+
+  @override
+  String get prefsReligiousDaysHint =>
+      'Reminds you at sunset on holy nights and festivals. Dates are computed from the Hijri calendar and may differ by a day from the official one.';
+
+  @override
+  String get prefsReligiousDayEve => 'Also remind the day before';
+
+  @override
+  String get prefsReligiousDayEveHint =>
+      'Sends a \"tomorrow\" notification at noon.';
+
+  @override
+  String get alarmAdd => 'Add alarm';
+
+  @override
+  String get alarmEdit => 'Edit alarm';
+
+  @override
+  String get alarmFixedTime => 'Fixed time';
+
+  @override
+  String get alarmAnchored => 'By prayer';
+
+  @override
+  String get alarmRepeat => 'Repeat';
+
+  @override
+  String get alarmLabel => 'Label';
+
+  @override
+  String get alarmLabelHint => 'e.g. Suhoor';
+
+  @override
+  String get alarmSound => 'Sound';
+
+  @override
+  String get alarmSoundDefault => 'Default';
+
+  @override
+  String get alarmSoundCustom => 'Custom sound';
+
+  @override
+  String get alarmSoundPick => 'Pick a sound from device…';
+
+  @override
+  String get alarmSoundVolumeNote =>
+      'Alarms play at the Ringer & Alerts volume.';
+
+  @override
+  String get alarmVibrate => 'Vibration';
+
+  @override
+  String get alarmSnooze => 'Snooze';
+
+  @override
+  String get alarmSnoozeCount => 'Snooze limit';
+
+  @override
+  String get alarmSnoozeUnlimited => 'Unlimited';
+
+  @override
+  String alarmSnoozeTimes(Object count) {
+    return '$count times';
+  }
+
+  @override
+  String get alarmMission => 'Dismiss task';
+
+  @override
+  String get alarmMissionQuestion => 'How will you dismiss the alarm?';
+
+  @override
+  String get missionNone => 'No task';
+
+  @override
+  String get missionNoneHint => 'Dismissed by swiping';
+
+  @override
+  String get missionMath => 'Math';
+
+  @override
+  String get missionMathHint => 'Solve problems to dismiss';
+
+  @override
+  String get missionShake => 'Shake';
+
+  @override
+  String get missionShakeHint => 'Dismissed by shaking the phone';
+
+  @override
+  String get missionQr => 'Scan QR';
+
+  @override
+  String get missionQrHint => 'Scan the saved code to dismiss';
+
+  @override
+  String get alarmEveryDay => 'Every day';
+
+  @override
+  String get alarmWeekdays => 'Weekdays';
+
+  @override
+  String get alarmWeekend => 'Weekend';
+
+  @override
+  String get alarmCopySuffix => '(copy)';
+
+  @override
+  String get alarmDuplicate => 'Duplicate';
+
+  @override
+  String get errorGeneric => 'Something went wrong';
+
+  @override
+  String get calendarTitle => 'Prayer Calendar';
+
+  @override
+  String get calendarShare => 'Share calendar';
+
+  @override
+  String get calendarEmpty => 'No calendar data';
+
+  @override
+  String get calendarLoading => 'Loading calendar…';
+
+  @override
+  String get calendarShareFailed => 'Could not create the calendar image';
+
+  @override
+  String calendarDayCount(Object count) {
+    return '$count days';
+  }
+
+  @override
+  String get upcomingNext => 'NEXT';
+
+  @override
+  String upcomingNotification(Object prayer) {
+    return '$prayer notification';
+  }
+
+  @override
+  String get upcomingTomorrow => 'tomorrow';
+
+  @override
+  String get upcomingToday => 'today';
+
+  @override
+  String get snackNotificationAdded => 'Notification added';
+
+  @override
+  String get snackNotificationUpdated => 'Notification updated';
+
+  @override
+  String get snackNotificationDeleted => 'Notification deleted';
+
+  @override
+  String get snackNotificationExists => 'This notification already exists';
+
+  @override
+  String get snackAlarmDeleted => 'Alarm deleted';
+
+  @override
+  String get snackSkipOnce => 'Just this once';
+
+  @override
+  String get snackUndo => 'Undo';
+
+  @override
+  String get locationTitle => 'Locations';
+
+  @override
+  String get locationAdd => 'Add location';
+
+  @override
+  String get locationSearch => 'Search a city';
+
+  @override
+  String get locationUseGps => 'Use my location';
+
+  @override
+  String get locationEmpty => 'No saved locations';
+
+  @override
+  String shareCaption(Object location, Object period) {
+    return '$location · prayer times for $period';
+  }
 }

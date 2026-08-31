@@ -25,9 +25,17 @@ class CalendarShareService {
     return 'ezan-vakti-$label-${date.year}-$month.png';
   }
 
-  /// Paylaşım metni.
-  static String captionFor(Location location, DateTime date) =>
-      '${location.displayName} · ${date.year}/${date.month.toString().padLeft(2, '0')} namaz vakitleri';
+  /// Paylaşım metni. Çeviri çağırandan gelir; servis `BuildContext` tutmaz.
+  static String captionFor(
+    Location location,
+    DateTime date, {
+    String Function(String location, String period)? format,
+  }) {
+    final period =
+        '${date.year}/${date.month.toString().padLeft(2, '0')}';
+    return format?.call(location.displayName, period) ??
+        '${location.displayName} · $period namaz vakitleri';
+  }
 
   /// Türkçe karakterleri ve boşlukları dosya adına uygun hale getirir.
   static String _slug(String value) {
@@ -55,6 +63,7 @@ class CalendarShareService {
     required Location location,
     required DateTime date,
     Rect? originRect,
+    String Function(String location, String period)? captionFormat,
   }) async {
     if (boundary == null) {
       _logger.warning('Takvim paylasimi: cizim alani bulunamadi');
@@ -76,7 +85,7 @@ class CalendarShareService {
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(file.path)],
-          text: captionFor(location, date),
+          text: captionFor(location, date, format: captionFormat),
           sharePositionOrigin: originRect,
         ),
       );

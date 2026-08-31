@@ -310,4 +310,333 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get derivedLastThirdHint => 'يبدأ وقت التهجد';
+
+  @override
+  String get remindersTitle => 'التنبيهات';
+
+  @override
+  String get remindersNotifications => 'التنبيهات';
+
+  @override
+  String get remindersAlarms => 'المنبهات';
+
+  @override
+  String get remindersNoNotifications => 'لا توجد تنبيهات بعد';
+
+  @override
+  String get remindersNoNotificationsHint =>
+      'أضف تنبيهًا ليصلك تذكير\nفي أوقات الصلاة.';
+
+  @override
+  String get remindersNoAlarms => 'لا توجد منبهات بعد';
+
+  @override
+  String get remindersNoAlarmsHint => 'أضف منبهًا بوقت ثابت أو مرتبطًا بالصلاة';
+
+  @override
+  String remindersCount(Object count) {
+    return '$count تنبيهات';
+  }
+
+  @override
+  String remindersAlarmCount(Object count) {
+    return '$count منبهات';
+  }
+
+  @override
+  String get remindersAddFriday => 'أضف تنبيه صلاة الجمعة';
+
+  @override
+  String get reminderFridayLabel => 'صلاة الجمعة';
+
+  @override
+  String get reminderOnTime => 'في الوقت';
+
+  @override
+  String reminderMinutesBefore(Object minutes) {
+    return 'قبل $minutes دقيقة';
+  }
+
+  @override
+  String get reminderSkippedOnce => 'سيُتخطى هذه المرة فقط';
+
+  @override
+  String get reminderOff => 'مغلق';
+
+  @override
+  String get reminderScheduleFailed =>
+      'تعذّر الجدولة — عدّل واحفظ لإعادة المحاولة';
+
+  @override
+  String get quietTitle => 'فترات الصمت';
+
+  @override
+  String get quietIntro =>
+      'خلال هذه الفترات تظهر تنبيهات التطبيق بصمت أو لا تظهر. لا يستطيع أي تطبيق كتم الآيفون؛ هذا الإعداد يؤثر على تنبيهات التطبيق فقط ولا يمس المنبهات.';
+
+  @override
+  String get quietFridaySection => 'صلاة الجمعة';
+
+  @override
+  String get quietFridayTitle => 'صامت في وقت الجمعة';
+
+  @override
+  String get quietFridayHint =>
+      'تصمت التنبيهات حول ظهر الجمعة. يمكنك تغيير المدد أو إيقافها.';
+
+  @override
+  String get quietCustomSection => 'فترات مخصصة';
+
+  @override
+  String get quietNoCustom => 'لا توجد فترات مخصصة بعد.';
+
+  @override
+  String get quietAddWindow => 'أضف فترة';
+
+  @override
+  String get quietMinutesBefore => 'كم دقيقة قبل';
+
+  @override
+  String get quietMinutesAfter => 'كم دقيقة بعد';
+
+  @override
+  String get quietModeLabel => 'خلال هذه الفترة';
+
+  @override
+  String get quietModeSilent => 'إظهار صامت';
+
+  @override
+  String get quietModeSilentHint => 'يظهر التنبيه دون صوت';
+
+  @override
+  String get quietModeSkip => 'عدم الإظهار';
+
+  @override
+  String get quietModeSkipHint => 'لا تتم جدولة التنبيه إطلاقًا';
+
+  @override
+  String quietWindowSummary(Object before, Object after) {
+    return 'قبل $before دقيقة – بعد $after دقيقة';
+  }
+
+  @override
+  String get quietPrayerLabel => 'الصلاة';
+
+  @override
+  String get prefsNewSound => 'صوت التنبيه الجديد';
+
+  @override
+  String get soundSystem => 'صوت النظام';
+
+  @override
+  String get soundSystemHint => 'صوت التنبيه الافتراضي لجهازك';
+
+  @override
+  String get soundBeep => 'تنبيه قصير';
+
+  @override
+  String get soundBeepHint => 'نغمة التطبيق القصيرة';
+
+  @override
+  String get soundSilent => 'صامت';
+
+  @override
+  String get soundSilentHint => 'يظهر التنبيه دون صوت';
+
+  @override
+  String get prefsShowInFocus => 'الإظهار في وضع التركيز';
+
+  @override
+  String get prefsShowInFocusHint =>
+      'لا يؤجل وضع التركيز التنبيهات. هذا لا يتجاوز مفتاح الصامت.';
+
+  @override
+  String get prefsReligiousDays => 'الأيام الدينية';
+
+  @override
+  String get prefsReligiousDaysHint =>
+      'يذكّرك عند المغرب في الليالي المباركة والأعياد. تُحسب التواريخ من التقويم الهجري وقد تختلف بيوم عن الرسمي.';
+
+  @override
+  String get prefsReligiousDayEve => 'ذكّرني قبل يوم أيضًا';
+
+  @override
+  String get prefsReligiousDayEveHint => 'يرسل تنبيه \"غدًا\" وقت الظهر.';
+
+  @override
+  String get alarmAdd => 'إضافة منبه';
+
+  @override
+  String get alarmEdit => 'تعديل المنبه';
+
+  @override
+  String get alarmFixedTime => 'وقت ثابت';
+
+  @override
+  String get alarmAnchored => 'حسب الصلاة';
+
+  @override
+  String get alarmRepeat => 'التكرار';
+
+  @override
+  String get alarmLabel => 'التسمية';
+
+  @override
+  String get alarmLabelHint => 'مثال: السحور';
+
+  @override
+  String get alarmSound => 'الصوت';
+
+  @override
+  String get alarmSoundDefault => 'افتراضي';
+
+  @override
+  String get alarmSoundCustom => 'صوت مخصص';
+
+  @override
+  String get alarmSoundPick => 'اختر صوتًا من الجهاز…';
+
+  @override
+  String get alarmSoundVolumeNote =>
+      'يعمل المنبه بمستوى صوت الرنين والتنبيهات.';
+
+  @override
+  String get alarmVibrate => 'الاهتزاز';
+
+  @override
+  String get alarmSnooze => 'التأجيل';
+
+  @override
+  String get alarmSnoozeCount => 'عدد مرات التأجيل';
+
+  @override
+  String get alarmSnoozeUnlimited => 'غير محدود';
+
+  @override
+  String alarmSnoozeTimes(Object count) {
+    return '$count مرات';
+  }
+
+  @override
+  String get alarmMission => 'مهمة الإيقاف';
+
+  @override
+  String get alarmMissionQuestion => 'كيف ستوقف المنبه؟';
+
+  @override
+  String get missionNone => 'بدون مهمة';
+
+  @override
+  String get missionNoneHint => 'يُوقف بالسحب مباشرة';
+
+  @override
+  String get missionMath => 'الرياضيات';
+
+  @override
+  String get missionMathHint => 'لا يتوقف قبل حل المسائل';
+
+  @override
+  String get missionShake => 'الهز';
+
+  @override
+  String get missionShakeHint => 'يُوقف بهز الهاتف';
+
+  @override
+  String get missionQr => 'مسح رمز QR';
+
+  @override
+  String get missionQrHint => 'لا يتوقف قبل مسح الرمز المحفوظ';
+
+  @override
+  String get alarmEveryDay => 'كل يوم';
+
+  @override
+  String get alarmWeekdays => 'أيام الأسبوع';
+
+  @override
+  String get alarmWeekend => 'عطلة نهاية الأسبوع';
+
+  @override
+  String get alarmCopySuffix => '(نسخة)';
+
+  @override
+  String get alarmDuplicate => 'نسخ';
+
+  @override
+  String get errorGeneric => 'حدث خطأ ما';
+
+  @override
+  String get calendarTitle => 'تقويم الأوقات';
+
+  @override
+  String get calendarShare => 'مشاركة التقويم';
+
+  @override
+  String get calendarEmpty => 'لا توجد بيانات التقويم';
+
+  @override
+  String get calendarLoading => 'جارٍ تحميل التقويم…';
+
+  @override
+  String get calendarShareFailed => 'تعذّر إنشاء صورة التقويم';
+
+  @override
+  String calendarDayCount(Object count) {
+    return '$count أيام';
+  }
+
+  @override
+  String get upcomingNext => 'التالي';
+
+  @override
+  String upcomingNotification(Object prayer) {
+    return 'تنبيه $prayer';
+  }
+
+  @override
+  String get upcomingTomorrow => 'غدًا';
+
+  @override
+  String get upcomingToday => 'اليوم';
+
+  @override
+  String get snackNotificationAdded => 'تمت إضافة التنبيه';
+
+  @override
+  String get snackNotificationUpdated => 'تم تحديث التنبيه';
+
+  @override
+  String get snackNotificationDeleted => 'تم حذف التنبيه';
+
+  @override
+  String get snackNotificationExists => 'هذا التنبيه موجود بالفعل';
+
+  @override
+  String get snackAlarmDeleted => 'تم حذف المنبه';
+
+  @override
+  String get snackSkipOnce => 'هذه المرة فقط';
+
+  @override
+  String get snackUndo => 'تراجع';
+
+  @override
+  String get locationTitle => 'المواقع';
+
+  @override
+  String get locationAdd => 'إضافة موقع';
+
+  @override
+  String get locationSearch => 'ابحث عن مدينة';
+
+  @override
+  String get locationUseGps => 'استخدم موقعي';
+
+  @override
+  String get locationEmpty => 'لا توجد مواقع محفوظة';
+
+  @override
+  String shareCaption(Object location, Object period) {
+    return '$location · أوقات الصلاة لـ$period';
+  }
 }

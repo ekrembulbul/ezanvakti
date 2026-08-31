@@ -307,7 +307,7 @@ class _AddNotificationBottomSheetState
         final selected = _weekdays.contains(day);
         return Expanded(
           child: Padding(
-            padding: EdgeInsets.only(right: index < 6 ? 6 : 0),
+            padding: EdgeInsetsDirectional.only(end: index < 6 ? 6 : 0),
             child: GestureDetector(
               onTap: () => _toggleDay(day),
               child: Container(

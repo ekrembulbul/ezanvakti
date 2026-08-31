@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/directional_icons.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 
@@ -34,7 +35,7 @@ class SimpleAppBar extends StatelessWidget implements PreferredSizeWidget {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
-                  Icons.arrow_back_ios_new_rounded,
+                  context.backArrow,
                   size: 18,
                   color: tokens.textPrimary,
                 ),

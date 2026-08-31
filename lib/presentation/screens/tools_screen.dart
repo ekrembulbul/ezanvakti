@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/directional_icons.dart';
 import '../../l10n/l10n_extensions.dart';
 import 'package:provider/provider.dart';
 
@@ -107,7 +108,7 @@ class ToolsScreen extends StatelessWidget {
       onTap: onTap,
       dimmed: onTap == null,
       trailing: Icon(
-        Icons.chevron_right_rounded,
+        context.forwardChevron,
         size: 20,
         color: tokens.textTertiary,
       ),

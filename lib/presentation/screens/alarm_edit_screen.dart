@@ -1,6 +1,6 @@
 import '../widgets/missions/qr_payload_field.dart';
+import '../../l10n/l10n_extensions.dart';
 import '../utils/time_format_context.dart';
-import '../utils/alarm_labels.dart';
 import '../widgets/common/option_picker.dart';
 import '../../core/models/alarm_mission.dart';
 import '../../features/alarms/domain/snooze_options.dart';
@@ -160,12 +160,14 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       appBar: SimpleAppBar(
-        title: widget.alarm == null ? 'Alarm ekle' : 'Alarmı düzenle',
+        title: widget.alarm == null
+            ? context.l10n.alarmAdd
+            : context.l10n.alarmEdit,
         actions: [
           TextButton(
             onPressed: _save,
             child: Text(
-              'Kaydet',
+              context.l10n.actionSave,
               style: TextStyle(color: context.tokens.accent),
             ),
           ),
@@ -182,9 +184,9 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
             else
               _anchoredSection(),
             const SizedBox(height: 16),
-            _section('Tekrar', _weekdaysSelector()),
+            _section(context.l10n.alarmRepeat, _weekdaysSelector()),
             const SizedBox(height: 16),
-            _section('Etiket', _labelField()),
+            _section(context.l10n.alarmLabel, _labelField()),
             const SizedBox(height: 16),
             _soundSelector(),
             Padding(
@@ -192,7 +194,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
               child: Text(
                 // AlarmKit seviye API'si vermiyor; ses her zaman sistemin
                 // "Zil Sesi ve Uyarılar" kaydırıcısıyla çalıyor.
-                'Alarm, Zil Sesi ve Uyarılar ses seviyesiyle çalar.',
+                context.l10n.alarmSoundVolumeNote,
                 style: AppTypography.hint.copyWith(
                   color: tokens.textTertiary,
                 ),
@@ -200,11 +202,11 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
             ),
             const SizedBox(height: 4),
             _switchTile(
-              'Titreşim',
+              context.l10n.alarmVibrate,
               _vibrate,
               (v) => setState(() => _vibrate = v),
             ),
-            _switchTile('Ertele (snooze)', _snoozeEnabled, (v) {
+            _switchTile(context.l10n.alarmSnooze, _snoozeEnabled, (v) {
               setState(() => _snoozeEnabled = v);
             }),
             if (_snoozeEnabled)
@@ -223,7 +225,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                 ),
               ),
               Align(
-                alignment: Alignment.centerLeft,
+                alignment: AlignmentDirectional.centerStart,
                 child: TextButton.icon(
                   onPressed: _openSavedCodes,
                   icon: const Icon(Icons.bookmarks_outlined, size: 18),
@@ -239,9 +241,15 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
 
   Widget _kindToggle() {
     return SlidingSegment<AlarmKind>(
-      items: const [
-        SegmentItem(value: AlarmKind.fixed, label: 'Sabit saat'),
-        SegmentItem(value: AlarmKind.anchored, label: 'Vakte göre'),
+      items: [
+        SegmentItem(
+          value: AlarmKind.fixed,
+          label: context.l10n.alarmFixedTime,
+        ),
+        SegmentItem(
+          value: AlarmKind.anchored,
+          label: context.l10n.alarmAnchored,
+        ),
       ],
       selected: _kind,
       onChanged: (kind) => setState(() => _kind = kind),
@@ -463,13 +471,13 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            _quickChip('Her gün', _isEveryDay, () {
+            _quickChip(context.l10n.alarmEveryDay, _isEveryDay, () {
               setState(() => _weekdays = {1, 2, 3, 4, 5, 6, 7});
             }),
-            _quickChip('Hafta içi', _isWeekdaysOnly, () {
+            _quickChip(context.l10n.alarmWeekdays, _isWeekdaysOnly, () {
               setState(() => _weekdays = {1, 2, 3, 4, 5});
             }),
-            _quickChip('Hafta sonu', _isWeekendOnly, () {
+            _quickChip(context.l10n.alarmWeekend, _isWeekendOnly, () {
               setState(() => _weekdays = {6, 7});
             }),
           ],
@@ -480,7 +488,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
             final day = i + 1;
             return Expanded(
               child: Padding(
-                padding: EdgeInsets.only(right: i < 6 ? 6 : 0),
+                padding: EdgeInsetsDirectional.only(end: i < 6 ? 6 : 0),
                 child: _dayCell(day),
               ),
             );
@@ -554,8 +562,14 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
     return TextField(
       controller: _label,
       style: TextStyle(color: tokens.textPrimary),
-      decoration: _fieldDecoration('Örn. Sahur'),
+      decoration: _fieldDecoration(context.l10n.alarmLabelHint),
     );
+  }
+
+  /// Ses etiketi: özel seste dosya adı, diğerlerinde "Varsayılan".
+  String _soundLabel(String soundId) {
+    if (!soundId.startsWith('custom:')) return context.l10n.alarmSoundDefault;
+    return _customSoundName ?? context.l10n.alarmSoundCustom;
   }
 
   /// Seçicide yalnızca gerçekten farklı ses üreten seçenekler durur.
@@ -567,24 +581,24 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   Widget _soundSelector() {
     final isCustom = _soundId.startsWith('custom:');
     return OptionRow<String>(
-      label: 'Ses',
+      label: context.l10n.alarmSound,
       selected: _soundId,
-      valueLabel: (v) => soundLabelFor(v, _customSoundName),
+      valueLabel: (v) => _soundLabel(v),
       items: [
-        const OptionItem(
+        OptionItem(
           value: 'default',
-          label: 'Varsayılan',
+          label: context.l10n.alarmSoundDefault,
           icon: Icons.volume_up_rounded,
         ),
         if (isCustom)
           OptionItem(
             value: _soundId,
-            label: soundLabelFor(_soundId, _customSoundName),
+            label: _soundLabel(_soundId),
             icon: Icons.audiotrack_rounded,
           ),
-        const OptionItem(
+        OptionItem(
           value: _pickSoundValue,
-          label: 'Cihazdan ses seç…',
+          label: context.l10n.alarmSoundPick,
           icon: Icons.library_music_outlined,
         ),
       ],
@@ -665,9 +679,9 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   /// kendi başlarına değil "Ertele" açıkken anlamlı olduğunu söylüyor.
   Widget _dependentGroup(List<Widget> children) {
     return Padding(
-      padding: const EdgeInsets.only(left: 12),
+      padding: const EdgeInsetsDirectional.only(start: 12),
       child: Container(
-        padding: const EdgeInsets.only(left: 16),
+        padding: const EdgeInsetsDirectional.only(start: 16),
         decoration: BoxDecoration(
           border: Border(left: BorderSide(color: tokens.divider, width: 2)),
         ),
@@ -700,32 +714,32 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   /// bırakacağı için limit en büyük sonlu seçeneğe çekilir.
   Widget _missionSelector() {
     return OptionRow<AlarmMission>(
-      label: 'Kapatma görevi',
-      sheetTitle: 'Alarmı nasıl kapatacaksın?',
+      label: context.l10n.alarmMission,
+      sheetTitle: context.l10n.alarmMissionQuestion,
       selected: _mission,
-      items: const [
+      items: [
         OptionItem(
           value: AlarmMission.none,
-          label: 'Görev yok',
-          description: 'Kaydırarak doğrudan kapanır',
+          label: context.l10n.missionNone,
+          description: context.l10n.missionNoneHint,
           icon: Icons.block_rounded,
         ),
         OptionItem(
           value: AlarmMission.math,
-          label: 'Matematik',
-          description: 'Soruları çözmeden kapanmaz',
+          label: context.l10n.missionMath,
+          description: context.l10n.missionMathHint,
           icon: Icons.calculate_rounded,
         ),
         OptionItem(
           value: AlarmMission.shake,
-          label: 'Sallama',
-          description: 'Telefonu sallayarak kapatılır',
+          label: context.l10n.missionShake,
+          description: context.l10n.missionShakeHint,
           icon: Icons.vibration_rounded,
         ),
         OptionItem(
           value: AlarmMission.qr,
-          label: 'QR okutma',
-          description: 'Kayıtlı kodu okutmadan kapanmaz',
+          label: context.l10n.missionQr,
+          description: context.l10n.missionQrHint,
           icon: Icons.qr_code_scanner_rounded,
         ),
       ],
@@ -926,11 +940,16 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
         : kMaxSnoozeOptions.last;
 
     return OptionRow<int?>(
-      label: 'Erteleme sayısı',
+      label: context.l10n.alarmSnoozeCount,
       selected: current,
       items: [
         for (final v in values)
-          OptionItem(value: v, label: v == null ? 'Sınırsız' : '$v kez'),
+          OptionItem(
+            value: v,
+            label: v == null
+                ? context.l10n.alarmSnoozeUnlimited
+                : context.l10n.alarmSnoozeTimes(v),
+          ),
       ],
       onChanged: (v) => setState(() => _maxSnoozes = v),
     );

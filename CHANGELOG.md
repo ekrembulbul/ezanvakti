@@ -4,6 +4,18 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.10.0] - 2026-08-31
+
+### Eklendi
+- **Üç dil: Türkçe, İngilizce, Arapça.** Ayarlar > Genel > Dil'den seçiliyor; "Sistem" seçilirse cihaz dili kullanılır, desteklenmeyen bir dilde Türkçe'ye düşer.
+- **Arapça'da sağdan sola yerleşim (RTL).** Oklar, kenar boşlukları ve hizalamalar yöne göre dönüyor.
+- Bildirim metinleri de çevrildi: uygulamayı açmadan gelen bildirimler seçili dilde geliyor.
+
+### Bilinen sınır
+- Çeviriler tarafımızdan yapıldı; Arapça metinler için anadili Arapça olan bir gözden geçirme faydalı olur.
+- Widget ve Siri kısayolu metinleri henüz Türkçe (iOS tarafında ayrı bir çeviri dosyası gerekiyor).
+- Konum ekranları ve bazı hata mesajları henüz Türkçe.
+
 ## [0.9.0] - 2026-08-31
 
 ### Eklendi

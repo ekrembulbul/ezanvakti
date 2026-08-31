@@ -437,5 +437,459 @@
   "derivedLastThirdHint": "Teheccüd vakti başlar",
   "@derivedLastThirdHint": {
     "description": "Türetilmiş vakit açıklaması"
+  },
+  "remindersTitle": "Hatırlatıcılar",
+  "@remindersTitle": {
+    "description": "Ekran başlığı"
+  },
+  "remindersNotifications": "Bildirimler",
+  "@remindersNotifications": {
+    "description": "Segment"
+  },
+  "remindersAlarms": "Alarmlar",
+  "@remindersAlarms": {
+    "description": "Segment"
+  },
+  "remindersNoNotifications": "Henüz bildirim yok",
+  "@remindersNoNotifications": {
+    "description": "Boş durum"
+  },
+  "remindersNoNotificationsHint": "Namaz vakitlerinde hatırlatma almak için\nbildirim ekleyin.",
+  "@remindersNoNotificationsHint": {
+    "description": "Boş durum"
+  },
+  "remindersNoAlarms": "Henüz alarm yok",
+  "@remindersNoAlarms": {
+    "description": "Boş durum"
+  },
+  "remindersNoAlarmsHint": "Sabit saatli veya vakte göre alarm ekle",
+  "@remindersNoAlarmsHint": {
+    "description": "Boş durum"
+  },
+  "remindersCount": "{count} hatırlatma",
+  "@remindersCount": {
+    "description": "Bölüm başlığı",
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "remindersAlarmCount": "{count} alarm",
+  "@remindersAlarmCount": {
+    "description": "Bölüm başlığı",
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "remindersAddFriday": "Cuma namazı hatırlatıcısı ekle",
+  "@remindersAddFriday": {
+    "description": "Düğme"
+  },
+  "reminderFridayLabel": "Cuma namazı",
+  "@reminderFridayLabel": {
+    "description": "Hazır şablon etiketi"
+  },
+  "reminderOnTime": "Tam vaktinde",
+  "@reminderOnTime": {
+    "description": "Bildirim satırı"
+  },
+  "reminderMinutesBefore": "{minutes} dk önce",
+  "@reminderMinutesBefore": {
+    "description": "Bildirim satırı",
+    "placeholders": {
+      "minutes": {
+        "type": "Object"
+      }
+    }
+  },
+  "reminderSkippedOnce": "Yalnızca bu sefer atlanacak",
+  "@reminderSkippedOnce": {
+    "description": "Durum"
+  },
+  "reminderOff": "Kapalı",
+  "@reminderOff": {
+    "description": "Durum"
+  },
+  "reminderScheduleFailed": "Kurulamadı — düzenleyip kaydederek yeniden dene",
+  "@reminderScheduleFailed": {
+    "description": "Hata durumu"
+  },
+  "quietTitle": "Sessiz pencereler",
+  "@quietTitle": {
+    "description": "Ekran başlığı"
+  },
+  "quietIntro": "Bu aralıklarda Ezan Vakti bildirimleri sessiz gösterilir ya da hiç gösterilmez. iPhone'da bir uygulama telefonu sessize alamaz; bu ayar yalnızca uygulamanın kendi bildirimlerini etkiler, alarmlara dokunmaz.",
+  "@quietIntro": {
+    "description": "Açıklama"
+  },
+  "quietFridaySection": "Cuma namazı",
+  "@quietFridaySection": {
+    "description": "Bölüm başlığı"
+  },
+  "quietFridayTitle": "Cuma vaktinde sessiz",
+  "@quietFridayTitle": {
+    "description": "Ayar"
+  },
+  "quietFridayHint": "Cuma öğle vaktinin çevresinde bildirimler susar. Süreleri değiştirebilir ya da tamamen kapatabilirsin.",
+  "@quietFridayHint": {
+    "description": "Ayar açıklaması"
+  },
+  "quietCustomSection": "Özel pencereler",
+  "@quietCustomSection": {
+    "description": "Bölüm başlığı"
+  },
+  "quietNoCustom": "Henüz özel pencere yok.",
+  "@quietNoCustom": {
+    "description": "Boş durum"
+  },
+  "quietAddWindow": "Pencere ekle",
+  "@quietAddWindow": {
+    "description": "Düğme"
+  },
+  "quietMinutesBefore": "Kaç dakika önce",
+  "@quietMinutesBefore": {
+    "description": "Ayar"
+  },
+  "quietMinutesAfter": "Kaç dakika sonra",
+  "@quietMinutesAfter": {
+    "description": "Ayar"
+  },
+  "quietModeLabel": "Bu aralıkta",
+  "@quietModeLabel": {
+    "description": "Ayar"
+  },
+  "quietModeSilent": "Sessiz göster",
+  "@quietModeSilent": {
+    "description": "Seçenek"
+  },
+  "quietModeSilentHint": "Bildirim görünür, ses çalmaz",
+  "@quietModeSilentHint": {
+    "description": "Seçenek açıklaması"
+  },
+  "quietModeSkip": "Hiç gösterme",
+  "@quietModeSkip": {
+    "description": "Seçenek"
+  },
+  "quietModeSkipHint": "Bildirim hiç planlanmaz",
+  "@quietModeSkipHint": {
+    "description": "Seçenek açıklaması"
+  },
+  "quietWindowSummary": "{before} dk önce – {after} dk sonra",
+  "@quietWindowSummary": {
+    "description": "Özet",
+    "placeholders": {
+      "before": {
+        "type": "Object"
+      },
+      "after": {
+        "type": "Object"
+      }
+    }
+  },
+  "quietPrayerLabel": "Vakit",
+  "@quietPrayerLabel": {
+    "description": "Ayar"
+  },
+  "prefsNewSound": "Yeni bildirim sesi",
+  "@prefsNewSound": {
+    "description": "Ayar"
+  },
+  "soundSystem": "Sistem sesi",
+  "@soundSystem": {
+    "description": "Ses seçeneği"
+  },
+  "soundSystemHint": "Cihazın varsayılan bildirim sesi",
+  "@soundSystemHint": {
+    "description": "Ses açıklaması"
+  },
+  "soundBeep": "Kısa uyarı",
+  "@soundBeep": {
+    "description": "Ses seçeneği"
+  },
+  "soundBeepHint": "Uygulamanın kendi kısa tonu",
+  "@soundBeepHint": {
+    "description": "Ses açıklaması"
+  },
+  "soundSilent": "Sessiz",
+  "@soundSilent": {
+    "description": "Ses seçeneği"
+  },
+  "soundSilentHint": "Bildirim görünür, ses çalmaz",
+  "@soundSilentHint": {
+    "description": "Ses açıklaması"
+  },
+  "prefsShowInFocus": "Odak modunda göster",
+  "@prefsShowInFocus": {
+    "description": "Ayar"
+  },
+  "prefsShowInFocusHint": "Bildirimler Odak açıkken özete düşmez. Telefonun sessiz anahtarını delmez.",
+  "@prefsShowInFocusHint": {
+    "description": "Ayar açıklaması"
+  },
+  "prefsReligiousDays": "Dini günler",
+  "@prefsReligiousDays": {
+    "description": "Ayar"
+  },
+  "prefsReligiousDaysHint": "Kandil, bayram ve mübarek günlerde akşam vakti hatırlatır. Tarihler hicri takvimden hesaplanır; Diyanet takvimiyle bir gün farklı olabilir.",
+  "@prefsReligiousDaysHint": {
+    "description": "Ayar açıklaması"
+  },
+  "prefsReligiousDayEve": "Bir gün önce de hatırlat",
+  "@prefsReligiousDayEve": {
+    "description": "Ayar"
+  },
+  "prefsReligiousDayEveHint": "Öğle vaktinde \"yarın\" bildirimi gönderir.",
+  "@prefsReligiousDayEveHint": {
+    "description": "Ayar açıklaması"
+  },
+  "alarmAdd": "Alarm ekle",
+  "@alarmAdd": {
+    "description": "Ekran başlığı"
+  },
+  "alarmEdit": "Alarmı düzenle",
+  "@alarmEdit": {
+    "description": "Ekran başlığı"
+  },
+  "alarmFixedTime": "Sabit saat",
+  "@alarmFixedTime": {
+    "description": "Alarm türü"
+  },
+  "alarmAnchored": "Vakte göre",
+  "@alarmAnchored": {
+    "description": "Alarm türü"
+  },
+  "alarmRepeat": "Tekrar",
+  "@alarmRepeat": {
+    "description": "Bölüm"
+  },
+  "alarmLabel": "Etiket",
+  "@alarmLabel": {
+    "description": "Bölüm"
+  },
+  "alarmLabelHint": "Örn. Sahur",
+  "@alarmLabelHint": {
+    "description": "Alan ipucu"
+  },
+  "alarmSound": "Ses",
+  "@alarmSound": {
+    "description": "Ayar"
+  },
+  "alarmSoundDefault": "Varsayılan",
+  "@alarmSoundDefault": {
+    "description": "Ses seçeneği"
+  },
+  "alarmSoundCustom": "Özel ses",
+  "@alarmSoundCustom": {
+    "description": "Ses seçeneği"
+  },
+  "alarmSoundPick": "Cihazdan ses seç…",
+  "@alarmSoundPick": {
+    "description": "Ses seçeneği"
+  },
+  "alarmSoundVolumeNote": "Alarm, Zil Sesi ve Uyarılar ses seviyesiyle çalar.",
+  "@alarmSoundVolumeNote": {
+    "description": "Bilgi notu"
+  },
+  "alarmVibrate": "Titreşim",
+  "@alarmVibrate": {
+    "description": "Ayar"
+  },
+  "alarmSnooze": "Ertele (snooze)",
+  "@alarmSnooze": {
+    "description": "Ayar"
+  },
+  "alarmSnoozeCount": "Erteleme sayısı",
+  "@alarmSnoozeCount": {
+    "description": "Ayar"
+  },
+  "alarmSnoozeUnlimited": "Sınırsız",
+  "@alarmSnoozeUnlimited": {
+    "description": "Seçenek"
+  },
+  "alarmSnoozeTimes": "{count} kez",
+  "@alarmSnoozeTimes": {
+    "description": "Seçenek",
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "alarmMission": "Kapatma görevi",
+  "@alarmMission": {
+    "description": "Ayar"
+  },
+  "alarmMissionQuestion": "Alarmı nasıl kapatacaksın?",
+  "@alarmMissionQuestion": {
+    "description": "Alt sayfa başlığı"
+  },
+  "missionNone": "Görev yok",
+  "@missionNone": {
+    "description": "Görev"
+  },
+  "missionNoneHint": "Kaydırarak doğrudan kapanır",
+  "@missionNoneHint": {
+    "description": "Görev açıklaması"
+  },
+  "missionMath": "Matematik",
+  "@missionMath": {
+    "description": "Görev"
+  },
+  "missionMathHint": "Soruları çözmeden kapanmaz",
+  "@missionMathHint": {
+    "description": "Görev açıklaması"
+  },
+  "missionShake": "Sallama",
+  "@missionShake": {
+    "description": "Görev"
+  },
+  "missionShakeHint": "Telefonu sallayarak kapatılır",
+  "@missionShakeHint": {
+    "description": "Görev açıklaması"
+  },
+  "missionQr": "QR okutma",
+  "@missionQr": {
+    "description": "Görev"
+  },
+  "missionQrHint": "Kayıtlı kodu okutmadan kapanmaz",
+  "@missionQrHint": {
+    "description": "Görev açıklaması"
+  },
+  "alarmEveryDay": "Her gün",
+  "@alarmEveryDay": {
+    "description": "Tekrar"
+  },
+  "alarmWeekdays": "Hafta içi",
+  "@alarmWeekdays": {
+    "description": "Tekrar"
+  },
+  "alarmWeekend": "Hafta sonu",
+  "@alarmWeekend": {
+    "description": "Tekrar"
+  },
+  "alarmCopySuffix": "(kopya)",
+  "@alarmCopySuffix": {
+    "description": "Kopya etiketi"
+  },
+  "alarmDuplicate": "Kopyala",
+  "@alarmDuplicate": {
+    "description": "Menü"
+  },
+  "errorGeneric": "Bir şeyler ters gitti",
+  "@errorGeneric": {
+    "description": "Hata"
+  },
+  "calendarTitle": "Vakit Takvimi",
+  "@calendarTitle": {
+    "description": "Ekran başlığı"
+  },
+  "calendarShare": "Takvimi paylaş",
+  "@calendarShare": {
+    "description": "Düğme"
+  },
+  "calendarEmpty": "Takvim verisi bulunamadı",
+  "@calendarEmpty": {
+    "description": "Boş durum"
+  },
+  "calendarLoading": "Takvim yükleniyor...",
+  "@calendarLoading": {
+    "description": "Yükleme"
+  },
+  "calendarShareFailed": "Takvim görüntüsü oluşturulamadı",
+  "@calendarShareFailed": {
+    "description": "Hata"
+  },
+  "calendarDayCount": "{count} gün",
+  "@calendarDayCount": {
+    "description": "Alt başlık",
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "upcomingNext": "SIRADAKİ",
+  "@upcomingNext": {
+    "description": "Kart başlığı"
+  },
+  "upcomingNotification": "{prayer} bildirimi",
+  "@upcomingNotification": {
+    "description": "Satır başlığı",
+    "placeholders": {
+      "prayer": {
+        "type": "Object"
+      }
+    }
+  },
+  "upcomingTomorrow": "yarın",
+  "@upcomingTomorrow": {
+    "description": "Gün etiketi; cümle içinde geçtiği için küçük harf"
+  },
+  "upcomingToday": "bugün",
+  "@upcomingToday": {
+    "description": "Gün etiketi; cümle içinde geçtiği için küçük harf"
+  },
+  "snackNotificationAdded": "Bildirim eklendi",
+  "@snackNotificationAdded": {
+    "description": "Bildirim mesajı"
+  },
+  "snackNotificationUpdated": "Bildirim güncellendi",
+  "@snackNotificationUpdated": {
+    "description": "Bildirim mesajı"
+  },
+  "snackNotificationDeleted": "Bildirim silindi",
+  "@snackNotificationDeleted": {
+    "description": "Bildirim mesajı"
+  },
+  "snackNotificationExists": "Bu bildirim zaten mevcut",
+  "@snackNotificationExists": {
+    "description": "Hata mesajı"
+  },
+  "snackAlarmDeleted": "Alarm silindi",
+  "@snackAlarmDeleted": {
+    "description": "Bildirim mesajı"
+  },
+  "snackSkipOnce": "Yalnızca bu sefer",
+  "@snackSkipOnce": {
+    "description": "Eylem"
+  },
+  "snackUndo": "Geri al",
+  "@snackUndo": {
+    "description": "Eylem"
+  },
+  "locationTitle": "Konumlar",
+  "@locationTitle": {
+    "description": "Ekran başlığı"
+  },
+  "locationAdd": "Konum ekle",
+  "@locationAdd": {
+    "description": "Ekran başlığı"
+  },
+  "locationSearch": "Şehir ara",
+  "@locationSearch": {
+    "description": "Alan ipucu"
+  },
+  "locationUseGps": "Konumumu kullan",
+  "@locationUseGps": {
+    "description": "Düğme"
+  },
+  "locationEmpty": "Kayıtlı konum yok",
+  "@locationEmpty": {
+    "description": "Boş durum"
+  },
+  "shareCaption": "{location} · {period} namaz vakitleri",
+  "@shareCaption": {
+    "description": "Paylaşım metni",
+    "placeholders": {
+      "location": {
+        "type": "Object"
+      },
+      "period": {
+        "type": "Object"
+      }
+    }
   }
 }

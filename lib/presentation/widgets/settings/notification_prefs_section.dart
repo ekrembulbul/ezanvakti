@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/l10n_extensions.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/notification_sounds.dart';
@@ -84,26 +85,30 @@ class NotificationPrefsSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           OptionRow<String>(
-            label: 'Yeni bildirim sesi',
+            label: context.l10n.prefsNewSound,
             selected: settings.defaultSound,
-            valueLabel: NotificationSounds.labelFor,
-            items: const [
+            valueLabel: (value) => switch (value) {
+              NotificationSounds.beep => context.l10n.soundBeep,
+              NotificationSounds.silent => context.l10n.soundSilent,
+              _ => context.l10n.soundSystem,
+            },
+            items: [
               OptionItem(
                 value: NotificationSounds.system,
-                label: 'Sistem sesi',
-                description: 'Cihazın varsayılan bildirim sesi',
+                label: context.l10n.soundSystem,
+                description: context.l10n.soundSystemHint,
                 icon: Icons.volume_up_rounded,
               ),
               OptionItem(
                 value: NotificationSounds.beep,
-                label: 'Kısa uyarı',
-                description: 'Uygulamanın kendi kısa tonu',
+                label: context.l10n.soundBeep,
+                description: context.l10n.soundBeepHint,
                 icon: Icons.notifications_active_rounded,
               ),
               OptionItem(
                 value: NotificationSounds.silent,
-                label: 'Sessiz',
-                description: 'Bildirim görünür, ses çalmaz',
+                label: context.l10n.soundSilent,
+                description: context.l10n.soundSilentHint,
                 icon: Icons.notifications_off_rounded,
               ),
             ],
@@ -114,11 +119,8 @@ class NotificationPrefsSection extends StatelessWidget {
           const SizedBox(height: 8),
           _switchRow(
             context,
-            title: 'Dini günler',
-            description:
-                'Kandil, bayram ve mübarek günlerde akşam vakti hatırlatır. '
-                'Tarihler hicri takvimden hesaplanır; Diyanet takvimiyle bir '
-                'gün farklı olabilir.',
+            title: context.l10n.prefsReligiousDays,
+            description: context.l10n.prefsReligiousDaysHint,
             value: settings.religiousDayNotifications,
             onChanged: (value) => _update(
               context,
@@ -128,8 +130,8 @@ class NotificationPrefsSection extends StatelessWidget {
           if (settings.religiousDayNotifications)
             _switchRow(
               context,
-              title: 'Bir gün önce de hatırlat',
-              description: 'Öğle vaktinde "yarın" bildirimi gönderir.',
+              title: context.l10n.prefsReligiousDayEve,
+              description: context.l10n.prefsReligiousDayEveHint,
               value: settings.religiousDayEve,
               onChanged: (value) =>
                   _update(context, settings.copyWith(religiousDayEve: value)),
@@ -143,15 +145,14 @@ class NotificationPrefsSection extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Odak modunda göster',
+                      context.l10n.prefsShowInFocus,
                       style: AppTypography.rowTitle.copyWith(
                         color: tokens.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Bildirimler Odak açıkken özete düşmez. Telefonun '
-                      'sessiz anahtarını delmez.',
+                      context.l10n.prefsShowInFocusHint,
                       style: AppTypography.hint.copyWith(
                         color: tokens.textTertiary,
                         height: 1.4,

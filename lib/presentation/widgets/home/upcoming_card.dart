@@ -1,4 +1,5 @@
 import '../../../core/models/mission_session.dart';
+import '../../../l10n/l10n_extensions.dart';
 import '../../utils/time_format_context.dart';
 import '../reminders/snooze_notice.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +9,6 @@ import '../../../core/models/skipped_occurrence.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
-import '../../../core/utils/prayer_utils.dart';
 import '../../../features/notifications/domain/notification_scheduler.dart';
 import '../../../features/notifications/domain/skip_rules.dart';
 import '../../utils/alarm_labels.dart' show alarmTimeLabel;
@@ -124,7 +124,7 @@ class UpcomingCard extends StatelessWidget {
 
   Widget _notificationRow(BuildContext context) {
     final item = notification!;
-    final prayerName = PrayerUtils.getPrayerName(item.setting.prayerType);
+    final prayerName = context.l10n.prayerName(item.setting.prayerType);
     final offset = item.setting.minutesBefore == 0
         ? 'Tam vaktinde'
         : '${item.setting.minutesBefore} dk önce';
@@ -151,7 +151,7 @@ class UpcomingCard extends StatelessWidget {
       height: _kRowHeight,
       icon: Icons.notifications_rounded,
       title: Text(
-        '$prayerName bildirimi',
+        context.l10n.upcomingNotification(prayerName),
         style: AppTypography.upcomingRowTitle,
       ),
       subtitle: Text(
@@ -200,9 +200,10 @@ class UpcomingCard extends StatelessWidget {
           (final DateTime until, _) => SnoozeNotice.label(until),
           (_, true) =>
             'Yalnızca bu sefer atlanacak · '
-                '${_relativeDay(item.time)} ${_clock(context, item.time)}',
+                '${_relativeDay(context, item.time)} ${_clock(context, item.time)}',
           _ =>
-            '$label · ${_relativeDay(item.time)} ${_clock(context, item.time)}',
+            '$label · ${_relativeDay(context, item.time)} '
+                '${_clock(context, item.time)}',
         },
       ),
       // Ertelenmis gorevli alarm atlanamaz: gorev borcu duruyor.
@@ -215,15 +216,18 @@ class UpcomingCard extends StatelessWidget {
   String _clock(BuildContext context, DateTime time) =>
       context.formatTime(time);
 
-  /// "bugün" / "yarın" / "Pazartesi".
-  String _relativeDay(DateTime time) {
+  /// "bugün" / "yarın" / gün adı. Gün adı cihaz diline göre biçimlenir.
+  String _relativeDay(BuildContext context, DateTime time) {
     final today = DateTime(now.year, now.month, now.day);
     final target = DateTime(time.year, time.month, time.day);
     final days = target.difference(today).inDays;
 
-    if (days == 0) return 'bugün';
-    if (days == 1) return 'yarın';
-    return DateFormat('EEEE', 'tr_TR').format(time);
+    if (days == 0) return context.l10n.upcomingToday;
+    if (days == 1) return context.l10n.upcomingTomorrow;
+    return DateFormat(
+      'EEEE',
+      Localizations.localeOf(context).toLanguageTag(),
+    ).format(time);
   }
 }
 

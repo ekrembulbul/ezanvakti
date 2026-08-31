@@ -310,4 +310,334 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get derivedLastThirdHint => 'Teheccüd vakti başlar';
+
+  @override
+  String get remindersTitle => 'Hatırlatıcılar';
+
+  @override
+  String get remindersNotifications => 'Bildirimler';
+
+  @override
+  String get remindersAlarms => 'Alarmlar';
+
+  @override
+  String get remindersNoNotifications => 'Henüz bildirim yok';
+
+  @override
+  String get remindersNoNotificationsHint =>
+      'Namaz vakitlerinde hatırlatma almak için\nbildirim ekleyin.';
+
+  @override
+  String get remindersNoAlarms => 'Henüz alarm yok';
+
+  @override
+  String get remindersNoAlarmsHint => 'Sabit saatli veya vakte göre alarm ekle';
+
+  @override
+  String remindersCount(Object count) {
+    return '$count hatırlatma';
+  }
+
+  @override
+  String remindersAlarmCount(Object count) {
+    return '$count alarm';
+  }
+
+  @override
+  String get remindersAddFriday => 'Cuma namazı hatırlatıcısı ekle';
+
+  @override
+  String get reminderFridayLabel => 'Cuma namazı';
+
+  @override
+  String get reminderOnTime => 'Tam vaktinde';
+
+  @override
+  String reminderMinutesBefore(Object minutes) {
+    return '$minutes dk önce';
+  }
+
+  @override
+  String get reminderSkippedOnce => 'Yalnızca bu sefer atlanacak';
+
+  @override
+  String get reminderOff => 'Kapalı';
+
+  @override
+  String get reminderScheduleFailed =>
+      'Kurulamadı — düzenleyip kaydederek yeniden dene';
+
+  @override
+  String get quietTitle => 'Sessiz pencereler';
+
+  @override
+  String get quietIntro =>
+      'Bu aralıklarda Ezan Vakti bildirimleri sessiz gösterilir ya da hiç gösterilmez. iPhone\'da bir uygulama telefonu sessize alamaz; bu ayar yalnızca uygulamanın kendi bildirimlerini etkiler, alarmlara dokunmaz.';
+
+  @override
+  String get quietFridaySection => 'Cuma namazı';
+
+  @override
+  String get quietFridayTitle => 'Cuma vaktinde sessiz';
+
+  @override
+  String get quietFridayHint =>
+      'Cuma öğle vaktinin çevresinde bildirimler susar. Süreleri değiştirebilir ya da tamamen kapatabilirsin.';
+
+  @override
+  String get quietCustomSection => 'Özel pencereler';
+
+  @override
+  String get quietNoCustom => 'Henüz özel pencere yok.';
+
+  @override
+  String get quietAddWindow => 'Pencere ekle';
+
+  @override
+  String get quietMinutesBefore => 'Kaç dakika önce';
+
+  @override
+  String get quietMinutesAfter => 'Kaç dakika sonra';
+
+  @override
+  String get quietModeLabel => 'Bu aralıkta';
+
+  @override
+  String get quietModeSilent => 'Sessiz göster';
+
+  @override
+  String get quietModeSilentHint => 'Bildirim görünür, ses çalmaz';
+
+  @override
+  String get quietModeSkip => 'Hiç gösterme';
+
+  @override
+  String get quietModeSkipHint => 'Bildirim hiç planlanmaz';
+
+  @override
+  String quietWindowSummary(Object before, Object after) {
+    return '$before dk önce – $after dk sonra';
+  }
+
+  @override
+  String get quietPrayerLabel => 'Vakit';
+
+  @override
+  String get prefsNewSound => 'Yeni bildirim sesi';
+
+  @override
+  String get soundSystem => 'Sistem sesi';
+
+  @override
+  String get soundSystemHint => 'Cihazın varsayılan bildirim sesi';
+
+  @override
+  String get soundBeep => 'Kısa uyarı';
+
+  @override
+  String get soundBeepHint => 'Uygulamanın kendi kısa tonu';
+
+  @override
+  String get soundSilent => 'Sessiz';
+
+  @override
+  String get soundSilentHint => 'Bildirim görünür, ses çalmaz';
+
+  @override
+  String get prefsShowInFocus => 'Odak modunda göster';
+
+  @override
+  String get prefsShowInFocusHint =>
+      'Bildirimler Odak açıkken özete düşmez. Telefonun sessiz anahtarını delmez.';
+
+  @override
+  String get prefsReligiousDays => 'Dini günler';
+
+  @override
+  String get prefsReligiousDaysHint =>
+      'Kandil, bayram ve mübarek günlerde akşam vakti hatırlatır. Tarihler hicri takvimden hesaplanır; Diyanet takvimiyle bir gün farklı olabilir.';
+
+  @override
+  String get prefsReligiousDayEve => 'Bir gün önce de hatırlat';
+
+  @override
+  String get prefsReligiousDayEveHint =>
+      'Öğle vaktinde \"yarın\" bildirimi gönderir.';
+
+  @override
+  String get alarmAdd => 'Alarm ekle';
+
+  @override
+  String get alarmEdit => 'Alarmı düzenle';
+
+  @override
+  String get alarmFixedTime => 'Sabit saat';
+
+  @override
+  String get alarmAnchored => 'Vakte göre';
+
+  @override
+  String get alarmRepeat => 'Tekrar';
+
+  @override
+  String get alarmLabel => 'Etiket';
+
+  @override
+  String get alarmLabelHint => 'Örn. Sahur';
+
+  @override
+  String get alarmSound => 'Ses';
+
+  @override
+  String get alarmSoundDefault => 'Varsayılan';
+
+  @override
+  String get alarmSoundCustom => 'Özel ses';
+
+  @override
+  String get alarmSoundPick => 'Cihazdan ses seç…';
+
+  @override
+  String get alarmSoundVolumeNote =>
+      'Alarm, Zil Sesi ve Uyarılar ses seviyesiyle çalar.';
+
+  @override
+  String get alarmVibrate => 'Titreşim';
+
+  @override
+  String get alarmSnooze => 'Ertele (snooze)';
+
+  @override
+  String get alarmSnoozeCount => 'Erteleme sayısı';
+
+  @override
+  String get alarmSnoozeUnlimited => 'Sınırsız';
+
+  @override
+  String alarmSnoozeTimes(Object count) {
+    return '$count kez';
+  }
+
+  @override
+  String get alarmMission => 'Kapatma görevi';
+
+  @override
+  String get alarmMissionQuestion => 'Alarmı nasıl kapatacaksın?';
+
+  @override
+  String get missionNone => 'Görev yok';
+
+  @override
+  String get missionNoneHint => 'Kaydırarak doğrudan kapanır';
+
+  @override
+  String get missionMath => 'Matematik';
+
+  @override
+  String get missionMathHint => 'Soruları çözmeden kapanmaz';
+
+  @override
+  String get missionShake => 'Sallama';
+
+  @override
+  String get missionShakeHint => 'Telefonu sallayarak kapatılır';
+
+  @override
+  String get missionQr => 'QR okutma';
+
+  @override
+  String get missionQrHint => 'Kayıtlı kodu okutmadan kapanmaz';
+
+  @override
+  String get alarmEveryDay => 'Her gün';
+
+  @override
+  String get alarmWeekdays => 'Hafta içi';
+
+  @override
+  String get alarmWeekend => 'Hafta sonu';
+
+  @override
+  String get alarmCopySuffix => '(kopya)';
+
+  @override
+  String get alarmDuplicate => 'Kopyala';
+
+  @override
+  String get errorGeneric => 'Bir şeyler ters gitti';
+
+  @override
+  String get calendarTitle => 'Vakit Takvimi';
+
+  @override
+  String get calendarShare => 'Takvimi paylaş';
+
+  @override
+  String get calendarEmpty => 'Takvim verisi bulunamadı';
+
+  @override
+  String get calendarLoading => 'Takvim yükleniyor...';
+
+  @override
+  String get calendarShareFailed => 'Takvim görüntüsü oluşturulamadı';
+
+  @override
+  String calendarDayCount(Object count) {
+    return '$count gün';
+  }
+
+  @override
+  String get upcomingNext => 'SIRADAKİ';
+
+  @override
+  String upcomingNotification(Object prayer) {
+    return '$prayer bildirimi';
+  }
+
+  @override
+  String get upcomingTomorrow => 'yarın';
+
+  @override
+  String get upcomingToday => 'bugün';
+
+  @override
+  String get snackNotificationAdded => 'Bildirim eklendi';
+
+  @override
+  String get snackNotificationUpdated => 'Bildirim güncellendi';
+
+  @override
+  String get snackNotificationDeleted => 'Bildirim silindi';
+
+  @override
+  String get snackNotificationExists => 'Bu bildirim zaten mevcut';
+
+  @override
+  String get snackAlarmDeleted => 'Alarm silindi';
+
+  @override
+  String get snackSkipOnce => 'Yalnızca bu sefer';
+
+  @override
+  String get snackUndo => 'Geri al';
+
+  @override
+  String get locationTitle => 'Konumlar';
+
+  @override
+  String get locationAdd => 'Konum ekle';
+
+  @override
+  String get locationSearch => 'Şehir ara';
+
+  @override
+  String get locationUseGps => 'Konumumu kullan';
+
+  @override
+  String get locationEmpty => 'Kayıtlı konum yok';
+
+  @override
+  String shareCaption(Object location, Object period) {
+    return '$location · $period namaz vakitleri';
+  }
 }

@@ -1,4 +1,5 @@
 import '../../../core/models/skipped_occurrence.dart';
+import '../../../l10n/l10n_extensions.dart';
 import '../../utils/time_format_context.dart';
 import '../../../features/notifications/domain/skip_rules.dart';
 import '../../../core/models/mission_session.dart';
@@ -78,16 +79,16 @@ class AlarmsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         ?_permissionBanner(),
-        Expanded(child: alarms.isEmpty ? _empty() : _list(context)),
+        Expanded(child: alarms.isEmpty ? _empty(context) : _list(context)),
         _footer(context),
       ],
     );
   }
 
-  Widget _empty() => const EmptyState(
+  Widget _empty(BuildContext context) => EmptyState(
     icon: Icons.alarm_off_rounded,
-    message: 'Henüz alarm yok',
-    subtitle: 'Sabit saatli veya vakte göre alarm ekle',
+    message: context.l10n.remindersNoAlarms,
+    subtitle: context.l10n.remindersNoAlarmsHint,
   );
 
   /// Satırın alt metni.
@@ -188,7 +189,7 @@ class AlarmsSection extends StatelessWidget {
             if (onDuplicate != null)
               ListTile(
                 leading: const Icon(Icons.copy_rounded),
-                title: const Text('Kopyala'),
+                title: Text(context.l10n.alarmDuplicate),
                 onTap: () {
                   Navigator.pop(sheetContext);
                   onDuplicate!(alarm);
@@ -196,7 +197,7 @@ class AlarmsSection extends StatelessWidget {
               ),
             ListTile(
               leading: const Icon(Icons.delete_outline_rounded),
-              title: const Text('Sil'),
+              title: Text(context.l10n.actionDelete),
               onTap: () {
                 Navigator.pop(sheetContext);
                 onDelete(alarm);
@@ -214,7 +215,7 @@ class AlarmsSection extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.only(top: 12, bottom: 24),
       children: [
-        SectionLabel('${alarms.length} alarm'),
+        SectionLabel(context.l10n.remindersAlarmCount(alarms.length)),
         const SizedBox(height: 10),
         GroupedList(
           children: [for (final alarm in alarms) _alarmRow(context, alarm)],

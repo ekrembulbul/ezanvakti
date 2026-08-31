@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/directional_icons.dart';
 
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
@@ -112,7 +113,7 @@ class OptionRow<T> extends StatelessWidget {
             ),
             const SizedBox(width: 6),
             Icon(
-              Icons.chevron_right_rounded,
+              context.forwardChevron,
               size: 20,
               color: tokens.textTertiary,
             ),

@@ -645,6 +645,618 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Teheccüd vakti başlar'**
   String get derivedLastThirdHint;
+
+  /// Ekran başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Hatırlatıcılar'**
+  String get remindersTitle;
+
+  /// Segment
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirimler'**
+  String get remindersNotifications;
+
+  /// Segment
+  ///
+  /// In tr, this message translates to:
+  /// **'Alarmlar'**
+  String get remindersAlarms;
+
+  /// Boş durum
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz bildirim yok'**
+  String get remindersNoNotifications;
+
+  /// Boş durum
+  ///
+  /// In tr, this message translates to:
+  /// **'Namaz vakitlerinde hatırlatma almak için\nbildirim ekleyin.'**
+  String get remindersNoNotificationsHint;
+
+  /// Boş durum
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz alarm yok'**
+  String get remindersNoAlarms;
+
+  /// Boş durum
+  ///
+  /// In tr, this message translates to:
+  /// **'Sabit saatli veya vakte göre alarm ekle'**
+  String get remindersNoAlarmsHint;
+
+  /// Bölüm başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} hatırlatma'**
+  String remindersCount(Object count);
+
+  /// Bölüm başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} alarm'**
+  String remindersAlarmCount(Object count);
+
+  /// Düğme
+  ///
+  /// In tr, this message translates to:
+  /// **'Cuma namazı hatırlatıcısı ekle'**
+  String get remindersAddFriday;
+
+  /// Hazır şablon etiketi
+  ///
+  /// In tr, this message translates to:
+  /// **'Cuma namazı'**
+  String get reminderFridayLabel;
+
+  /// Bildirim satırı
+  ///
+  /// In tr, this message translates to:
+  /// **'Tam vaktinde'**
+  String get reminderOnTime;
+
+  /// Bildirim satırı
+  ///
+  /// In tr, this message translates to:
+  /// **'{minutes} dk önce'**
+  String reminderMinutesBefore(Object minutes);
+
+  /// Durum
+  ///
+  /// In tr, this message translates to:
+  /// **'Yalnızca bu sefer atlanacak'**
+  String get reminderSkippedOnce;
+
+  /// Durum
+  ///
+  /// In tr, this message translates to:
+  /// **'Kapalı'**
+  String get reminderOff;
+
+  /// Hata durumu
+  ///
+  /// In tr, this message translates to:
+  /// **'Kurulamadı — düzenleyip kaydederek yeniden dene'**
+  String get reminderScheduleFailed;
+
+  /// Ekran başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Sessiz pencereler'**
+  String get quietTitle;
+
+  /// Açıklama
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu aralıklarda Ezan Vakti bildirimleri sessiz gösterilir ya da hiç gösterilmez. iPhone\'da bir uygulama telefonu sessize alamaz; bu ayar yalnızca uygulamanın kendi bildirimlerini etkiler, alarmlara dokunmaz.'**
+  String get quietIntro;
+
+  /// Bölüm başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Cuma namazı'**
+  String get quietFridaySection;
+
+  /// Ayar
+  ///
+  /// In tr, this message translates to:
+  /// **'Cuma vaktinde sessiz'**
+  String get quietFridayTitle;
+
+  /// Ayar açıklaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Cuma öğle vaktinin çevresinde bildirimler susar. Süreleri değiştirebilir ya da tamamen kapatabilirsin.'**
+  String get quietFridayHint;
+
+  /// Bölüm başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Özel pencereler'**
+  String get quietCustomSection;
+
+  /// Boş durum
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz özel pencere yok.'**
+  String get quietNoCustom;
+
+  /// Düğme
+  ///
+  /// In tr, this message translates to:
+  /// **'Pencere ekle'**
+  String get quietAddWindow;
+
+  /// Ayar
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaç dakika önce'**
+  String get quietMinutesBefore;
+
+  /// Ayar
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaç dakika sonra'**
+  String get quietMinutesAfter;
+
+  /// Ayar
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu aralıkta'**
+  String get quietModeLabel;
+
+  /// Seçenek
+  ///
+  /// In tr, this message translates to:
+  /// **'Sessiz göster'**
+  String get quietModeSilent;
+
+  /// Seçenek açıklaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirim görünür, ses çalmaz'**
+  String get quietModeSilentHint;
+
+  /// Seçenek
+  ///
+  /// In tr, this message translates to:
+  /// **'Hiç gösterme'**
+  String get quietModeSkip;
+
+  /// Seçenek açıklaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirim hiç planlanmaz'**
+  String get quietModeSkipHint;
+
+  /// Özet
+  ///
+  /// In tr, this message translates to:
+  /// **'{before} dk önce – {after} dk sonra'**
+  String quietWindowSummary(Object before, Object after);
+
+  /// Ayar
+  ///
+  /// In tr, this message translates to:
+  /// **'Vakit'**
+  String get quietPrayerLabel;
+
+  /// Ayar
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni bildirim sesi'**
+  String get prefsNewSound;
+
+  /// Ses seçeneği
+  ///
+  /// In tr, this message translates to:
+  /// **'Sistem sesi'**
+  String get soundSystem;
+
+  /// Ses açıklaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Cihazın varsayılan bildirim sesi'**
+  String get soundSystemHint;
+
+  /// Ses seçeneği
+  ///
+  /// In tr, this message translates to:
+  /// **'Kısa uyarı'**
+  String get soundBeep;
+
+  /// Ses açıklaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Uygulamanın kendi kısa tonu'**
+  String get soundBeepHint;
+
+  /// Ses seçeneği
+  ///
+  /// In tr, this message translates to:
+  /// **'Sessiz'**
+  String get soundSilent;
+
+  /// Ses açıklaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirim görünür, ses çalmaz'**
+  String get soundSilentHint;
+
+  /// Ayar
+  ///
+  /// In tr, this message translates to:
+  /// **'Odak modunda göster'**
+  String get prefsShowInFocus;
+
+  /// Ayar açıklaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirimler Odak açıkken özete düşmez. Telefonun sessiz anahtarını delmez.'**
+  String get prefsShowInFocusHint;
+
+  /// Ayar
+  ///
+  /// In tr, this message translates to:
+  /// **'Dini günler'**
+  String get prefsReligiousDays;
+
+  /// Ayar açıklaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Kandil, bayram ve mübarek günlerde akşam vakti hatırlatır. Tarihler hicri takvimden hesaplanır; Diyanet takvimiyle bir gün farklı olabilir.'**
+  String get prefsReligiousDaysHint;
+
+  /// Ayar
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir gün önce de hatırlat'**
+  String get prefsReligiousDayEve;
+
+  /// Ayar açıklaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Öğle vaktinde \"yarın\" bildirimi gönderir.'**
+  String get prefsReligiousDayEveHint;
+
+  /// Ekran başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Alarm ekle'**
+  String get alarmAdd;
+
+  /// Ekran başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Alarmı düzenle'**
+  String get alarmEdit;
+
+  /// Alarm türü
+  ///
+  /// In tr, this message translates to:
+  /// **'Sabit saat'**
+  String get alarmFixedTime;
+
+  /// Alarm türü
+  ///
+  /// In tr, this message translates to:
+  /// **'Vakte göre'**
+  String get alarmAnchored;
+
+  /// Bölüm
+  ///
+  /// In tr, this message translates to:
+  /// **'Tekrar'**
+  String get alarmRepeat;
+
+  /// Bölüm
+  ///
+  /// In tr, this message translates to:
+  /// **'Etiket'**
+  String get alarmLabel;
+
+  /// Alan ipucu
+  ///
+  /// In tr, this message translates to:
+  /// **'Örn. Sahur'**
+  String get alarmLabelHint;
+
+  /// Ayar
+  ///
+  /// In tr, this message translates to:
+  /// **'Ses'**
+  String get alarmSound;
+
+  /// Ses seçeneği
+  ///
+  /// In tr, this message translates to:
+  /// **'Varsayılan'**
+  String get alarmSoundDefault;
+
+  /// Ses seçeneği
+  ///
+  /// In tr, this message translates to:
+  /// **'Özel ses'**
+  String get alarmSoundCustom;
+
+  /// Ses seçeneği
+  ///
+  /// In tr, this message translates to:
+  /// **'Cihazdan ses seç…'**
+  String get alarmSoundPick;
+
+  /// Bilgi notu
+  ///
+  /// In tr, this message translates to:
+  /// **'Alarm, Zil Sesi ve Uyarılar ses seviyesiyle çalar.'**
+  String get alarmSoundVolumeNote;
+
+  /// Ayar
+  ///
+  /// In tr, this message translates to:
+  /// **'Titreşim'**
+  String get alarmVibrate;
+
+  /// Ayar
+  ///
+  /// In tr, this message translates to:
+  /// **'Ertele (snooze)'**
+  String get alarmSnooze;
+
+  /// Ayar
+  ///
+  /// In tr, this message translates to:
+  /// **'Erteleme sayısı'**
+  String get alarmSnoozeCount;
+
+  /// Seçenek
+  ///
+  /// In tr, this message translates to:
+  /// **'Sınırsız'**
+  String get alarmSnoozeUnlimited;
+
+  /// Seçenek
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} kez'**
+  String alarmSnoozeTimes(Object count);
+
+  /// Ayar
+  ///
+  /// In tr, this message translates to:
+  /// **'Kapatma görevi'**
+  String get alarmMission;
+
+  /// Alt sayfa başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Alarmı nasıl kapatacaksın?'**
+  String get alarmMissionQuestion;
+
+  /// Görev
+  ///
+  /// In tr, this message translates to:
+  /// **'Görev yok'**
+  String get missionNone;
+
+  /// Görev açıklaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydırarak doğrudan kapanır'**
+  String get missionNoneHint;
+
+  /// Görev
+  ///
+  /// In tr, this message translates to:
+  /// **'Matematik'**
+  String get missionMath;
+
+  /// Görev açıklaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Soruları çözmeden kapanmaz'**
+  String get missionMathHint;
+
+  /// Görev
+  ///
+  /// In tr, this message translates to:
+  /// **'Sallama'**
+  String get missionShake;
+
+  /// Görev açıklaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Telefonu sallayarak kapatılır'**
+  String get missionShakeHint;
+
+  /// Görev
+  ///
+  /// In tr, this message translates to:
+  /// **'QR okutma'**
+  String get missionQr;
+
+  /// Görev açıklaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Kayıtlı kodu okutmadan kapanmaz'**
+  String get missionQrHint;
+
+  /// Tekrar
+  ///
+  /// In tr, this message translates to:
+  /// **'Her gün'**
+  String get alarmEveryDay;
+
+  /// Tekrar
+  ///
+  /// In tr, this message translates to:
+  /// **'Hafta içi'**
+  String get alarmWeekdays;
+
+  /// Tekrar
+  ///
+  /// In tr, this message translates to:
+  /// **'Hafta sonu'**
+  String get alarmWeekend;
+
+  /// Kopya etiketi
+  ///
+  /// In tr, this message translates to:
+  /// **'(kopya)'**
+  String get alarmCopySuffix;
+
+  /// Menü
+  ///
+  /// In tr, this message translates to:
+  /// **'Kopyala'**
+  String get alarmDuplicate;
+
+  /// Hata
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir şeyler ters gitti'**
+  String get errorGeneric;
+
+  /// Ekran başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Vakit Takvimi'**
+  String get calendarTitle;
+
+  /// Düğme
+  ///
+  /// In tr, this message translates to:
+  /// **'Takvimi paylaş'**
+  String get calendarShare;
+
+  /// Boş durum
+  ///
+  /// In tr, this message translates to:
+  /// **'Takvim verisi bulunamadı'**
+  String get calendarEmpty;
+
+  /// Yükleme
+  ///
+  /// In tr, this message translates to:
+  /// **'Takvim yükleniyor...'**
+  String get calendarLoading;
+
+  /// Hata
+  ///
+  /// In tr, this message translates to:
+  /// **'Takvim görüntüsü oluşturulamadı'**
+  String get calendarShareFailed;
+
+  /// Alt başlık
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} gün'**
+  String calendarDayCount(Object count);
+
+  /// Kart başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'SIRADAKİ'**
+  String get upcomingNext;
+
+  /// Satır başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'{prayer} bildirimi'**
+  String upcomingNotification(Object prayer);
+
+  /// Gün etiketi; cümle içinde geçtiği için küçük harf
+  ///
+  /// In tr, this message translates to:
+  /// **'yarın'**
+  String get upcomingTomorrow;
+
+  /// Gün etiketi; cümle içinde geçtiği için küçük harf
+  ///
+  /// In tr, this message translates to:
+  /// **'bugün'**
+  String get upcomingToday;
+
+  /// Bildirim mesajı
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirim eklendi'**
+  String get snackNotificationAdded;
+
+  /// Bildirim mesajı
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirim güncellendi'**
+  String get snackNotificationUpdated;
+
+  /// Bildirim mesajı
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirim silindi'**
+  String get snackNotificationDeleted;
+
+  /// Hata mesajı
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu bildirim zaten mevcut'**
+  String get snackNotificationExists;
+
+  /// Bildirim mesajı
+  ///
+  /// In tr, this message translates to:
+  /// **'Alarm silindi'**
+  String get snackAlarmDeleted;
+
+  /// Eylem
+  ///
+  /// In tr, this message translates to:
+  /// **'Yalnızca bu sefer'**
+  String get snackSkipOnce;
+
+  /// Eylem
+  ///
+  /// In tr, this message translates to:
+  /// **'Geri al'**
+  String get snackUndo;
+
+  /// Ekran başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Konumlar'**
+  String get locationTitle;
+
+  /// Ekran başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Konum ekle'**
+  String get locationAdd;
+
+  /// Alan ipucu
+  ///
+  /// In tr, this message translates to:
+  /// **'Şehir ara'**
+  String get locationSearch;
+
+  /// Düğme
+  ///
+  /// In tr, this message translates to:
+  /// **'Konumumu kullan'**
+  String get locationUseGps;
+
+  /// Boş durum
+  ///
+  /// In tr, this message translates to:
+  /// **'Kayıtlı konum yok'**
+  String get locationEmpty;
+
+  /// Paylaşım metni
+  ///
+  /// In tr, this message translates to:
+  /// **'{location} · {period} namaz vakitleri'**
+  String shareCaption(Object location, Object period);
 }
 
 class _AppLocalizationsDelegate

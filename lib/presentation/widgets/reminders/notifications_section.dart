@@ -1,4 +1,5 @@
 import '../../../core/models/skipped_occurrence.dart';
+import '../../../l10n/l10n_extensions.dart';
 import '../../../features/notifications/domain/skip_rules.dart';
 import '../../services/upcoming_resolver.dart';
 import 'package:flutter/material.dart';
@@ -104,15 +105,17 @@ class NotificationsSection extends StatelessWidget {
           ),
           const SizedBox(height: 16),
         ],
-        Expanded(child: settings.isEmpty ? _empty() : _list(context)),
+        Expanded(
+          child: settings.isEmpty ? _empty(context) : _list(context),
+        ),
       ],
     );
   }
 
-  Widget _empty() => const EmptyState(
+  Widget _empty(BuildContext context) => EmptyState(
     icon: Icons.notifications_none_rounded,
-    message: 'Henüz bildirim yok',
-    subtitle: 'Namaz vakitlerinde hatırlatma almak için\nbildirim ekleyin.',
+    message: context.l10n.remindersNoNotifications,
+    subtitle: context.l10n.remindersNoNotificationsHint,
   );
 
   Widget _list(BuildContext context) {
@@ -133,11 +136,11 @@ class NotificationsSection extends StatelessWidget {
         if (onAddFridayReminder != null && !_hasFridayReminder) ...[
           const SizedBox(height: 12),
           Align(
-            alignment: Alignment.centerLeft,
+            alignment: AlignmentDirectional.centerStart,
             child: OutlinedButton.icon(
               onPressed: onAddFridayReminder,
               icon: const Icon(Icons.mosque_rounded, size: 18),
-              label: const Text('Cuma namazı hatırlatıcısı ekle'),
+              label: Text(context.l10n.remindersAddFriday),
               style: OutlinedButton.styleFrom(
                 foregroundColor: tokens.accent,
                 side: BorderSide(color: tokens.accent),
@@ -149,7 +152,7 @@ class NotificationsSection extends StatelessWidget {
           ),
         ],
         const SizedBox(height: 20),
-        SectionLabel('${sorted.length} hatırlatma'),
+        SectionLabel(context.l10n.remindersCount(sorted.length)),
         const SizedBox(height: 10),
         GroupedList(
           children: [

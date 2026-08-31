@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/l10n_extensions.dart';
 import 'package:flutter/rendering.dart';
 
 import '../services/calendar_share_service.dart';
@@ -38,18 +39,20 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final boundary =
         _tableBoundaryKey.currentContext?.findRenderObject()
             as RenderRepaintBoundary?;
+    final l10n = context.l10n;
     final ok = await CalendarShareService().shareTable(
       boundary: boundary,
       location: widget.location,
       date: widget.prayerTimes.isEmpty
           ? DateTime.now()
           : widget.prayerTimes.first.date,
+      captionFormat: l10n.shareCaption,
     );
     if (!ok && mounted) {
       ScaffoldMessenger.of(context)
         ..clearSnackBars()
         ..showSnackBar(
-          const SnackBar(content: Text('Takvim görüntüsü oluşturulamadı')),
+          SnackBar(content: Text(context.l10n.calendarShareFailed)),
         );
     }
   }
@@ -77,7 +80,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   Widget _buildBody() {
     if (widget.isLoading) {
-      return const LoadingState(message: 'Takvim yükleniyor...');
+      return LoadingState(message: context.l10n.calendarLoading);
     }
 
     if (widget.errorMessage != null) {
@@ -88,9 +91,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
     }
 
     if (widget.prayerTimes.isEmpty) {
-      return const EmptyState(
+      return EmptyState(
         icon: Icons.calendar_month_outlined,
-        message: 'Takvim verisi bulunamadı',
+        message: context.l10n.calendarEmpty,
       );
     }
 
@@ -134,13 +137,13 @@ class _CalendarAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Column(
         children: [
           Text(
-            'Vakit Takvimi',
+            context.l10n.calendarTitle,
             style: AppTypography.screenTitle.copyWith(
               color: tokens.textPrimary,
             ),
           ),
           Text(
-            '${location.displayName} · $dayCount gün',
+            '${location.displayName} · ${context.l10n.calendarDayCount(dayCount)}',
             style: AppTypography.hint.copyWith(color: tokens.textTertiary),
           ),
         ],
@@ -152,7 +155,7 @@ class _CalendarAppBar extends StatelessWidget implements PreferredSizeWidget {
             onPressed: onShare,
             icon: const Icon(Icons.ios_share_rounded),
             color: tokens.textSecondary,
-            tooltip: 'Takvimi paylaş',
+            tooltip: context.l10n.calendarShare,
           ),
       ],
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/l10n_extensions.dart';
 
 import '../../core/di/service_locator.dart';
 import '../../core/interfaces/local_storage.dart';
@@ -6,7 +7,6 @@ import '../../core/models/notification_setting.dart' show PrayerType;
 import '../../core/models/quiet_window.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/tokens_context.dart';
-import '../utils/prayer_name_helper.dart';
 import '../widgets/common/app_bar_widgets.dart';
 import '../widgets/common/app_surface.dart';
 import '../widgets/common/grouped_list.dart';
@@ -104,12 +104,12 @@ class _QuietWindowsScreenState extends State<QuietWindowsScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      appBar: const SimpleAppBar(title: 'Sessiz pencereler'),
+      appBar: SimpleAppBar(title: context.l10n.quietTitle),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _addCustom,
         backgroundColor: tokens.accent,
         icon: const Icon(Icons.add_rounded),
-        label: const Text('Pencere ekle'),
+        label: Text(context.l10n.quietAddWindow),
       ),
       body: AppSurface(
         child: _loading
@@ -118,25 +118,22 @@ class _QuietWindowsScreenState extends State<QuietWindowsScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
                 children: [
                   Text(
-                    'Bu aralıklarda Ezan Vakti bildirimleri sessiz gösterilir '
-                    'ya da hiç gösterilmez. iPhone\'da bir uygulama telefonu '
-                    'sessize alamaz; bu ayar yalnızca uygulamanın kendi '
-                    'bildirimlerini etkiler, alarmlara dokunmaz.',
+                    context.l10n.quietIntro,
                     style: AppTypography.hint.copyWith(
                       color: tokens.textTertiary,
                       height: 1.5,
                     ),
                   ),
                   const SizedBox(height: 20),
-                  const SectionLabel('Cuma namazı'),
+                  SectionLabel(context.l10n.quietFridaySection),
                   const SizedBox(height: 10),
                   _fridayCard(),
                   const SizedBox(height: 26),
-                  const SectionLabel('Özel pencereler'),
+                  SectionLabel(context.l10n.quietCustomSection),
                   const SizedBox(height: 10),
                   if (_custom.isEmpty)
                     Text(
-                      'Henüz özel pencere yok.',
+                      context.l10n.quietNoCustom,
                       style: AppTypography.rowSubtitle.copyWith(
                         color: tokens.textTertiary,
                       ),
@@ -175,15 +172,14 @@ class _QuietWindowsScreenState extends State<QuietWindowsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Cuma vaktinde sessiz',
+                      context.l10n.quietFridayTitle,
                       style: AppTypography.rowTitle.copyWith(
                         color: tokens.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Cuma öğle vaktinin çevresinde bildirimler susar. '
-                      'Süreleri değiştirebilir ya da tamamen kapatabilirsin.',
+                      context.l10n.quietFridayHint,
                       style: AppTypography.hint.copyWith(
                         color: tokens.textTertiary,
                         height: 1.4,
@@ -213,7 +209,9 @@ class _QuietWindowsScreenState extends State<QuietWindowsScreen> {
 
   Widget _customRow(QuietWindow window) {
     final tokens = context.tokens;
-    final name = PrayerNameHelper.getName(window.prayerType ?? PrayerType.dhuhr);
+    final name = context.l10n.prayerName(
+      window.prayerType ?? PrayerType.dhuhr,
+    );
 
     return SwipeToDelete(
       itemKey: ValueKey(window.id),
@@ -222,8 +220,8 @@ class _QuietWindowsScreenState extends State<QuietWindowsScreen> {
         icon: Icons.notifications_off_rounded,
         title: Text(name),
         subtitle: Text(
-          '${window.minutesBefore} dk önce – ${window.minutesAfter} dk sonra · '
-          '${window.mode == QuietMode.skip ? 'Hiç gösterme' : 'Sessiz göster'}',
+          '${context.l10n.quietWindowSummary(window.minutesBefore, window.minutesAfter)} · '
+          '${window.mode == QuietMode.skip ? context.l10n.quietModeSkip : context.l10n.quietModeSilent}',
         ),
         dimmed: !window.isActive,
         onTap: () => _editCustom(window),
@@ -257,14 +255,14 @@ class _QuietWindowsScreenState extends State<QuietWindowsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   OptionRow<PrayerType>(
-                    label: 'Vakit',
+                    label: context.l10n.quietPrayerLabel,
                     selected: current.prayerType ?? PrayerType.dhuhr,
-                    valueLabel: PrayerNameHelper.getName,
+                    valueLabel: context.l10n.prayerName,
                     items: [
                       for (final type in PrayerType.values)
                         OptionItem(
                           value: type,
-                          label: PrayerNameHelper.getName(type),
+                          label: context.l10n.prayerName(type),
                         ),
                     ],
                     onChanged: (value) async {
@@ -290,7 +288,7 @@ class _QuietWindowsScreenState extends State<QuietWindowsScreen> {
     return Column(
       children: [
         _stepperRow(
-          'Kaç dakika önce',
+          context.l10n.quietMinutesBefore,
           window.minutesBefore,
           (value) async {
             await _updateWindow(window, window.copyWith(minutesBefore: value));
@@ -298,7 +296,7 @@ class _QuietWindowsScreenState extends State<QuietWindowsScreen> {
           },
         ),
         _stepperRow(
-          'Kaç dakika sonra',
+          context.l10n.quietMinutesAfter,
           window.minutesAfter,
           (value) async {
             await _updateWindow(window, window.copyWith(minutesAfter: value));
@@ -359,21 +357,22 @@ class _QuietWindowsScreenState extends State<QuietWindowsScreen> {
 
   Widget _modeRow(QuietWindow window, {VoidCallback? onChanged}) {
     return OptionRow<QuietMode>(
-      label: 'Bu aralıkta',
+      label: context.l10n.quietModeLabel,
       selected: window.mode,
-      valueLabel: (mode) =>
-          mode == QuietMode.skip ? 'Hiç gösterme' : 'Sessiz göster',
-      items: const [
+      valueLabel: (mode) => mode == QuietMode.skip
+          ? context.l10n.quietModeSkip
+          : context.l10n.quietModeSilent,
+      items: [
         OptionItem(
           value: QuietMode.silent,
-          label: 'Sessiz göster',
-          description: 'Bildirim görünür, ses çalmaz',
+          label: context.l10n.quietModeSilent,
+          description: context.l10n.quietModeSilentHint,
           icon: Icons.notifications_paused_rounded,
         ),
         OptionItem(
           value: QuietMode.skip,
-          label: 'Hiç gösterme',
-          description: 'Bildirim hiç planlanmaz',
+          label: context.l10n.quietModeSkip,
+          description: context.l10n.quietModeSkipHint,
           icon: Icons.notifications_off_rounded,
         ),
       ],
