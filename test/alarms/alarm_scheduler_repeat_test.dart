@@ -8,6 +8,7 @@ import 'package:ezanvakti/core/models/notification_setting.dart' show PrayerType
 import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/core/models/skipped_occurrence.dart';
 import 'package:ezanvakti/features/alarms/domain/alarm_scheduler.dart';
+import 'package:ezanvakti/features/notifications/domain/skip_rules.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// scheduleAlarm cagrilarini butun argumanlariyla kaydeden servis.
@@ -119,6 +120,58 @@ void main() {
       },
     );
     expect(service.calls.single.repeatWeekdays, isEmpty);
+  });
+
+  test('cipali tekrarli alarm 7 gunluk dizi olarak kurulur', () async {
+    final service = _RecordingAlarmService();
+    const alarm = Alarm(
+      id: 'a1',
+      kind: AlarmKind.anchored,
+      anchor: PrayerType.fajr,
+      offsetMinutes: -30,
+      mission: AlarmMission.math,
+    );
+    await schedulerWith(service, [alarm]).scheduleAlarms(prayerTimes: week);
+    // Birincil calis eksiz: gorev oturumu ve skip kayitlari alarm.id ile
+    // eslesiyor; ek tasisaydi gorev ekrani alarmi bulamazdi.
+    expect(
+      service.calls.map((c) => c.id).toList(),
+      ['a1', 'a1#d1', 'a1#d2', 'a1#d3', 'a1#d4', 'a1#d5', 'a1#d6'],
+    );
+    // Gorev zinciri yalnizca en yakin calisa kurulur; sonraki gunler her
+    // yeniden planlamada birincillesir.
+    expect(service.calls.first.missionEnabled, isTrue);
+    expect(service.calls.skip(1).every((c) => !c.missionEnabled), isTrue);
+    final times = service.calls.map((c) => c.time).toList();
+    expect(times, orderedEquals([...times]..sort()));
+  });
+
+  test('computeNextFires atlanan gunu diziden cikarir', () {
+    const alarm = Alarm(
+      id: 'a1',
+      kind: AlarmKind.anchored,
+      anchor: PrayerType.fajr,
+      offsetMinutes: 0,
+    );
+    final byDate = {
+      for (final pt in week) DateTime(pt.date.year, pt.date.month, pt.date.day): pt,
+    };
+    final all = AlarmScheduler.computeNextFires(
+      alarm: alarm,
+      now: now,
+      prayerTimesByDate: byDate,
+    );
+    expect(all.length, 7);
+    final skipped = AlarmScheduler.computeNextFires(
+      alarm: alarm,
+      now: now,
+      prayerTimesByDate: byDate,
+      skips: {
+        SkippedOccurrence(kind: SkipKind.alarm, reference: 'a1', fireAt: all[1]),
+      },
+    );
+    expect(skipped, isNot(contains(all[1])));
+    expect(skipped.first, all.first);
   });
 
   test('cipali alarm relative olamaz, tek seferlik kalir', () async {

@@ -2,6 +2,7 @@ import '../../../core/config/mission_tuning.dart';
 import '../../../core/interfaces/alarm_service.dart';
 import '../../../core/interfaces/local_storage.dart';
 import '../../../core/models/alarm.dart';
+import '../../../core/models/alarm_mission.dart';
 import '../../../core/models/alarm_theme.dart';
 import '../../../core/models/notification_setting.dart' show PrayerType;
 import '../../../core/models/prayer_time.dart';
@@ -53,6 +54,16 @@ class AlarmScheduler {
     final currentAppearance = appearance();
     for (final alarm in alarms) {
       if (!alarm.isActive) continue;
+      if (alarm.kind == AlarmKind.anchored) {
+        await _scheduleAnchoredSeries(
+          alarm: alarm,
+          now: now,
+          byDate: byDate,
+          skips: skips,
+          currentAppearance: currentAppearance,
+        );
+        continue;
+      }
       final fire = computeNextFire(
         alarm: alarm,
         now: now,
@@ -92,6 +103,62 @@ class AlarmScheduler {
         );
       } catch (e) {
         _logger.warning('Alarm planlanamadı (id: ${alarm.id})', e);
+      }
+    }
+  }
+
+  /// Çıpalı alarmın önümüzdeki çalışlarını önden dizer (K1/F1b): saat her
+  /// gün kaydığı için native tekrar kurulamaz; bunun yerine 7 güne kadar ayrı
+  /// kayıt kurulur. Birincil çalış `alarm.id` ile (görev oturumu ve skip
+  /// kayıtları bu id ile eşleşiyor), ileri günler `<id>#d<N>` ile ve görevsiz/
+  /// ertelemesiz kurulur — degrade: uygulama günlerce açılmazsa alarm yine
+  /// çalar ama durdurulduğunda görev ekranı açılmaz; ilk açılış diziyi tazeler.
+  Future<void> _scheduleAnchoredSeries({
+    required Alarm alarm,
+    required DateTime now,
+    required Map<DateTime, PrayerTime> byDate,
+    required Set<SkippedOccurrence> skips,
+    required AlarmAppearance currentAppearance,
+  }) async {
+    final fires = computeNextFires(
+      alarm: alarm,
+      now: now,
+      prayerTimesByDate: byDate,
+      skips: skips,
+    );
+    for (var i = 0; i < fires.length; i++) {
+      final fire = fires[i];
+      final primary = i == 0;
+      try {
+        await alarmService.scheduleAlarm(
+          id: primary ? alarm.id : '${alarm.id}#d$i',
+          scheduledTime: fire,
+          label: alarm.label,
+          soundId: alarm.soundId,
+          vibrate: alarm.vibrate,
+          snoozeEnabled: primary && alarm.snoozeEnabled,
+          snoozeMinutes: alarm.snoozeMinutes,
+          theme: themeForFire(fire, byDate, currentAppearance),
+          mission: primary ? alarm.mission : AlarmMission.none,
+          missionLevel: alarm.missionLevel,
+          chainConfig: primary
+              ? {
+                  'graceSeconds': MissionTuning.graceSeconds,
+                  'maxRearms': MissionTuning.maxRearms,
+                  'chainDeadlineMillis':
+                      MissionChain.chainDeadline(fire).millisecondsSinceEpoch,
+                  'missionTimeoutSeconds': MissionTuning.timeoutSecondsFor(
+                    alarm.mission,
+                  ),
+                  'ladderMillis': [
+                    for (final t in MissionChain.ladder(fire))
+                      t.millisecondsSinceEpoch,
+                  ],
+                }
+              : const <String, dynamic>{},
+        );
+      } catch (e) {
+        _logger.warning('Alarm planlanamadı (id: ${alarm.id}, gün $i)', e);
       }
     }
   }
@@ -158,8 +225,30 @@ class AlarmScheduler {
     int searchDays = 8,
     Set<SkippedOccurrence> skips = const {},
   }) {
+    final fires = computeNextFires(
+      alarm: alarm,
+      now: now,
+      prayerTimesByDate: prayerTimesByDate,
+      searchDays: searchDays,
+      limit: 1,
+      skips: skips,
+    );
+    return fires.isEmpty ? null : fires.first;
+  }
+
+  /// [computeNextFire]'ın dizi hali: sıradaki en fazla [limit] geçerli
+  /// tetiklenme anı. Çıpalı ön dizim (F1b) bunun üzerine kurulu.
+  static List<DateTime> computeNextFires({
+    required Alarm alarm,
+    required DateTime now,
+    required Map<DateTime, PrayerTime> prayerTimesByDate,
+    int searchDays = 8,
+    int limit = 7,
+    Set<SkippedOccurrence> skips = const {},
+  }) {
+    final fires = <DateTime>[];
     final today = _dateKey(now);
-    for (var i = 0; i < searchDays; i++) {
+    for (var i = 0; i < searchDays && fires.length < limit; i++) {
       final day = today.add(Duration(days: i));
       if (!alarm.firesOnWeekday(day.weekday)) continue;
 
@@ -193,9 +282,9 @@ class AlarmScheduler {
       );
       if (skipped) continue;
 
-      return candidate;
+      fires.add(candidate);
     }
-    return null;
+    return fires;
   }
 
   static DateTime _anchorTime(PrayerTime pt, PrayerType anchor) {

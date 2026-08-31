@@ -16,7 +16,7 @@ Kullanıcının kurduğu alarmlar sabah çalmadı; uygulama açılınca görev e
 
 ### ALM.1 — Güvenilirlik düzeltmeleri
 - **F1a:** Tekrarlı **sabit saatli** alarmlar AlarmKit `.relative(time:, repeats: .weekly([...]))` ile native tekrara geçer; uygulama açılmasa da her hafta çalar. O çalış için "yalnızca bu sefer atla" varsa o alarm geçici olarak eski tek-seferlik yönteme düşer (atlanan gün geçince relative'e döner).
-- **F1b:** **Vakte çıpalı** alarmlar (saat her gün kayar, relative olamaz) önümüzdeki 7 günün çalışları ayrı `.fixed` kayıtlar olarak önden dizilir: `<id>#d0..#d6`. Görev zinciri (session + ladder) yalnızca en yakın çalışa (`#d0`) kurulur; sonraki günler her yeniden planlamada birincilleşir. Degrade: uygulama günlerce hiç açılmazsa 2.–7. gün alarmları çalar ama durdurulduklarında görev ekranı açılmaz (stopIntent uygulamayı açar, açılış genel yeniden planlamayı koşturur) — kabul edilen davranış.
+- **F1b:** **Vakte çıpalı** alarmlar (saat her gün kayar, relative olamaz) önümüzdeki 7 günün çalışları önden dizilir: en yakın çalış `<id>` (eksiz — görev oturumu ve skip kayıtları bu id ile eşleşir), ileri günler `<id>#d1..#d6`. Görev zinciri (session + ladder) yalnızca en yakın çalışa kurulur; sonraki günler her yeniden planlamada birincilleşir. Degrade: uygulama günlerce hiç açılmazsa 2.–7. gün alarmları çalar ama durdurulduklarında görev ekranı açılmaz (stopIntent uygulamayı açar, açılış genel yeniden planlamayı koşturur) — kabul edilen davranış.
 - **F2:** StopGate görevli yolda da bayatlık uygular: `stoppedAt + chainDeadlineMinutes (60 dk)` geçtiyse `closeAndRearm`.
 - **F3:** Native `stopChain` kuyruğa `chainStopped: true` işaretli olay yazar; Dart tarafı bu olayı görünce oturumu kapatır (`complete`) ve alarmları yeniden kurar; ekran açılmaz.
 - **F4:** `scheduleAlarm` hatası görünür olur: başarısız alarmlar `settings` anahtarına yazılır, alarm satırının alt metninde "Kurulamadı — düzenleyip kaydederek yeniden dene" gösterilir; başarılı planlama kaydı temizler.
@@ -41,7 +41,7 @@ AlarmKit sesi "Zil Sesi ve Uyarılar" seviyesiyle çalar; üçüncü taraflara s
 
 ## Sözleşmeler / sabitler
 - Bayatlık eşiği görevli yolda: `MissionTuning.chainDeadlineMinutes` (60) yeniden kullanılır; yeni sabit eklenmez.
-- Çıpalı ön dizim: 7 gün; kimlik eki `#d<N>`; `MissionChainKeys.select` bu ekleri de alarmın zinciri saymalı.
+- Çıpalı ön dizim: 7 gün; birincil `<id>` eksiz, ileri günler `<id>#d1..#d6`; `MissionChainKeys.select` `#d` kayıtlarını zincir SAYMAZ (görev bitince silinmezler; her yeniden planlama diziyi zaten tazeler).
 - Olay şeması: `{alarmId, stoppedAt, chainStopped?: bool}` — `chainStopped` yoksa `false`.
 - Hata kaydı anahtarı: `alarm_schedule_failures` = JSON `{ "<alarmId>": {"at": iso8601, "message": string} }`.
 - Dart hafta günü 1=Pazartesi..7=Pazar ↔ Swift `Locale.Weekday` eşlemesi: 1→.monday … 7→.sunday.
