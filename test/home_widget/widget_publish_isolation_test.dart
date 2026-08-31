@@ -11,6 +11,9 @@ class _ThrowingPublisher implements WidgetPublisher {
   Future<void> publish(WidgetSnapshot snapshot) async {
     throw StateError('App Group yazilamadi');
   }
+
+  @override
+  Future<void> publishTimeFormat(String storageValue) async {}
 }
 
 class _RecordingPublisher implements WidgetPublisher {
@@ -20,6 +23,9 @@ class _RecordingPublisher implements WidgetPublisher {
   Future<void> publish(WidgetSnapshot snapshot) async {
     published = snapshot;
   }
+
+  @override
+  Future<void> publishTimeFormat(String storageValue) async {}
 }
 
 const _location = Location(

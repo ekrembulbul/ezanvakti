@@ -13,6 +13,7 @@ struct Provider: AppIntentTimelineProvider {
             for: SnapshotStore.load(), now: Date(), calendar: .current
         ).first ?? placeholder(in: context)
         entry.alignment = configuration.alignment
+        entry.timeFormat = SnapshotStore.timeFormat()
         return entry
     }
 
@@ -20,11 +21,13 @@ struct Provider: AppIntentTimelineProvider {
         for configuration: EzanVaktiWidgetIntent, in context: Context
     ) async -> Timeline<PrayerEntry> {
         let now = Date()
+        let timeFormat = SnapshotStore.timeFormat()
         let entries = PrayerTimeline.entries(
             for: SnapshotStore.load(), now: now, calendar: .current
         ).map { entry -> PrayerEntry in
             var copy = entry
             copy.alignment = configuration.alignment
+            copy.timeFormat = timeFormat
             return copy
         }
 
@@ -72,6 +75,7 @@ struct EzanVaktiWidgetEntryView: View {
         case .systemSmall: SmallView(entry: entry, alignment: entry.alignment)
         case .systemMedium: MediumView(entry: entry, alignment: entry.alignment)
         case .accessoryRectangular: RectangularView(entry: entry, alignment: entry.alignment)
+        case .accessoryCircular: CircularView(entry: entry)
         default: SmallView(entry: entry, alignment: entry.alignment)
         }
     }
@@ -92,6 +96,8 @@ struct EzanVaktiWidget: Widget {
         }
         .configurationDisplayName("Ezan Vakti")
         .description("Sıradaki vakit ve geri sayım.")
-        .supportedFamilies([.systemSmall, .systemMedium, .accessoryRectangular])
+        .supportedFamilies([
+            .systemSmall, .systemMedium, .accessoryRectangular, .accessoryCircular,
+        ])
     }
 }

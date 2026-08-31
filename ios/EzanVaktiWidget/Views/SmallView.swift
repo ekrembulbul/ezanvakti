@@ -55,7 +55,7 @@ struct SmallView: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
 
-                Text(next.date, format: .dateTime.hour().minute())
+                Text(TimeFormatting.clock(next.date, preference: entry.timeFormat))
                     .font(.system(size: 20, weight: .semibold))
                     .foregroundStyle(palette.textPrimary)
 

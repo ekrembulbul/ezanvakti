@@ -27,7 +27,7 @@ struct RectangularView: View {
 
             HStack(spacing: 4) {
                 Text(isTomorrow ? "Yarın \(next.name)" : next.name)
-                Text(next.date, format: .dateTime.hour().minute())
+                Text(TimeFormatting.clock(next.date, preference: entry.timeFormat))
                     .monospacedDigit()
             }
             .font(.system(size: 15, weight: .semibold))

@@ -22,6 +22,9 @@ struct PrayerEntry: TimelineEntry {
     /// Kullanıcının "Widget'ı Düzenle" ekranından seçtiği hiza. Timeline saf
     /// kalsın diye burada varsayılanı var; gerçek değeri provider yazıyor.
     var alignment: WidgetAlignment = .default
+
+    /// Uygulamadaki 12/24 saat tercihi; provider App Group'tan okuyup yazar.
+    var timeFormat: TimeFormatPreference = .system
 }
 
 enum PrayerTimeline {

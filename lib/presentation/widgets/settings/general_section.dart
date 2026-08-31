@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../core/di/service_locator.dart';
 import '../../../core/interfaces/local_storage.dart';
+import '../../../core/interfaces/widget_publisher.dart';
 import '../../../core/models/general_settings.dart';
 import '../../../core/providers/app_state.dart';
 import '../../../core/theme/app_typography.dart';
@@ -19,6 +20,10 @@ class GeneralSection extends StatelessWidget {
   Future<void> _update(BuildContext context, GeneralSettings next) async {
     context.read<AppState>().setGeneralSettings(next);
     await ServiceLocator().get<LocalStorage>().saveGeneralSettings(next);
+    // Widget kendi sürecinde çalışıyor; tercihi App Group üzerinden taşıyoruz.
+    await ServiceLocator().get<WidgetPublisher>().publishTimeFormat(
+      next.timeFormat.storageValue,
+    );
   }
 
   @override

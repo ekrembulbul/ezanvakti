@@ -57,7 +57,7 @@ struct MediumView: View {
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
 
-                Text(next.date, format: .dateTime.hour().minute())
+                Text(TimeFormatting.clock(next.date, preference: entry.timeFormat))
                     .font(.system(size: 20, weight: .semibold))
                     .foregroundStyle(palette.textPrimary)
 
@@ -97,7 +97,7 @@ struct MediumView: View {
             Text(slot.name)
                 .font(.system(size: 12, weight: weight))
             Spacer(minLength: 12)
-            Text(slot.date, format: .dateTime.hour().minute())
+            Text(TimeFormatting.clock(slot.date, preference: entry.timeFormat))
                 .font(.system(size: 12, weight: weight).monospacedDigit())
         }
         .lineLimit(1)
