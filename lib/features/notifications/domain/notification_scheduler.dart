@@ -1,5 +1,7 @@
 import '../../../core/constants/notification_sounds.dart';
+import '../../../core/models/derived_time.dart';
 import '../../../core/models/quiet_window.dart';
+import '../../prayer_times/domain/derived_times.dart';
 import 'quiet_window_rules.dart';
 import '../../../core/interfaces/notification_service.dart';
 import '../../../core/interfaces/local_storage.dart';
@@ -58,6 +60,13 @@ class NotificationScheduler {
     final now = DateTime.now();
     final cutoff = now.add(const Duration(days: scheduleDaysAhead));
 
+    // Gece vakitleri (gece yarısı, son üçte bir) ertesi günün imsakını
+    // gerektiriyor; günleri tarihe göre indeksliyoruz.
+    final byDate = <DateTime, PrayerTime>{
+      for (final time in prayerTimes)
+        DateTime(time.date.year, time.date.month, time.date.day): time,
+    };
+
     // Pencere içindeki (şimdi .. +scheduleDaysAhead) aktif bildirimleri topla.
     final candidates = <_NotificationCandidate>[];
     final seenIds = <String>{};
@@ -74,10 +83,9 @@ class NotificationScheduler {
       for (final setting in orderedSettings) {
         if (!setting.isActive) continue;
 
-        final prayerDateTime = _getPrayerDateTime(
-          prayerTime,
-          setting.prayerType,
-        );
+        final prayerDateTime = _pointTime(setting, prayerTime, byDate);
+        // Türetilmiş nokta hesaplanamadıysa (ertesi günün verisi yok) o gün
+        // sessizce atlanır; bir sonraki yenilemede veri geldiğinde kurulur.
         if (prayerDateTime == null) continue;
 
         // Gün filtresi vaktin gününe bakar; sapmalı bildirim bir önceki güne
@@ -207,6 +215,25 @@ class NotificationScheduler {
   /// Dini gün bildirimlerinin ayrılmış nokta indeksi.
   static const int religiousDayPointIndex = 11;
 
+  /// Satırın o gün için tetikleneceği an: vakit bildiriminde vaktin kendisi,
+  /// türetilmiş noktada hesaplanan an.
+  DateTime? _pointTime(
+    NotificationSetting setting,
+    PrayerTime day,
+    Map<DateTime, PrayerTime> byDate,
+  ) {
+    final derived = setting.derivedKind;
+    if (derived == null) {
+      return _getPrayerDateTime(day, setting.prayerType);
+    }
+    final nextDay = byDate[DateTime(
+      day.date.year,
+      day.date.month,
+      day.date.day + 1,
+    )];
+    return DerivedTimes.resolve(kind: derived, day: day, nextDay: nextDay);
+  }
+
   DateTime? _getPrayerDateTime(PrayerTime prayerTime, PrayerType prayerType) {
     switch (prayerType) {
       case PrayerType.fajr:
@@ -227,6 +254,12 @@ class NotificationScheduler {
   String _getNotificationTitle(NotificationSetting setting) {
     final label = setting.label;
     if (label != null && label.trim().isNotEmpty) return label.trim();
+    final derived = setting.derivedKind;
+    if (derived != null) {
+      return setting.minutesBefore == 0
+          ? derived.label
+          : '${derived.label} yaklaşıyor';
+    }
     if (setting.minutesBefore == 0) {
       return _getPrayerName(setting.prayerType);
     } else {
@@ -240,6 +273,14 @@ class NotificationScheduler {
   ) {
     final timeStr =
         '${prayerTime.hour.toString().padLeft(2, '0')}:${prayerTime.minute.toString().padLeft(2, '0')}';
+
+    final derived = setting.derivedKind;
+    if (derived != null) {
+      return setting.minutesBefore == 0
+          ? '$timeStr - ${derived.description}'
+          : '$timeStr - ${derived.label} vaktine '
+                '${setting.minutesBefore} dakika kaldı';
+    }
 
     if (setting.minutesBefore == 0) {
       return '$timeStr - ${_getPrayerName(setting.prayerType)} vakti girdi';
