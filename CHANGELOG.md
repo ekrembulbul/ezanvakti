@@ -4,6 +4,17 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.8.0] - 2026-08-31
+
+### Eklendi
+- **Türetilmiş vakit hatırlatmaları.** Altı vaktin yanına beş yeni nokta: İşrak (kerahat bitişi), zeval ve akşam öncesi kerahat, şer'i gece yarısı ve gecenin son üçte biri (teheccüd). Hepsi mevcut vakitlerden cihazda hesaplanıyor — ek veri indirilmiyor. Hatırlatıcı eklerken "Türetilmiş Vakitler" bölümünden seçiliyor.
+- **Dini günler.** Kandiller, Ramazan başlangıcı, bayramlar, Aşure, Arefe ve Regaib için akşam vaktinde bildirim; istersen bir gün önce öğle vaktinde de hatırlatır. Ayarlar > Bildirim ve ses'ten açılıyor.
+- **Takvimi paylaş.** Vakit Takvimi sekmesindeki paylaş düğmesi aylık tabloyu görsel olarak paylaşıyor.
+
+### Bilinen sınır
+- Dini gün tarihleri **hicri takvimden hesaplanır**, ilan edilmiş tarihler değildir. Diyanet astronomik gözleme dayandığı için bir gün farklı olabilir; bildirim metni ve ayar açıklaması bunu belirtir.
+- Bildirim kimliği türetilmiş noktayı da kapsadığı için bu sürüme geçerken bekleyen "yalnızca bu sefer atla" işaretleri sıfırlanır. Bildirimlerin kendisi korunur.
+
 ## [0.7.0] - 2026-08-31
 
 ### Eklendi

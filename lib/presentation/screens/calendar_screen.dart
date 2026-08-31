@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+
+import '../services/calendar_share_service.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/tokens_context.dart';
 import '../../core/models/prayer_time.dart';
@@ -28,6 +31,29 @@ class CalendarScreen extends StatefulWidget {
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
+  /// Paylaşılacak alanı işaretler: tablo bu sınırın içinde çizilir.
+  final GlobalKey _tableBoundaryKey = GlobalKey();
+
+  Future<void> _share() async {
+    final boundary =
+        _tableBoundaryKey.currentContext?.findRenderObject()
+            as RenderRepaintBoundary?;
+    final ok = await CalendarShareService().shareTable(
+      boundary: boundary,
+      location: widget.location,
+      date: widget.prayerTimes.isEmpty
+          ? DateTime.now()
+          : widget.prayerTimes.first.date,
+    );
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(
+          const SnackBar(content: Text('Takvim görüntüsü oluşturulamadı')),
+        );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,6 +62,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
       appBar: _CalendarAppBar(
         location: widget.location,
         dayCount: widget.prayerTimes.length,
+        onShare: widget.prayerTimes.isEmpty ? null : _share,
       ),
       body: AppSurface(
         child: Padding(
@@ -70,7 +97,12 @@ class _CalendarScreenState extends State<CalendarScreen> {
     // Liste en bastan gosterilir; bugune otomatik kaydirma yok. Veri zaten
     // bugunden basliyor ve kaydirma, acilista icerigin altindan kaymasi gibi
     // duruyordu.
-    return CalendarTable(days: widget.prayerTimes, now: DateTime.now());
+    // Paylaşılan görüntü uygulamadaki tabloyla birebir aynı olsun diye
+    // ekrandaki widget'ın kendisi yakalanıyor, ayrı bir çizim yapılmıyor.
+    return RepaintBoundary(
+      key: _tableBoundaryKey,
+      child: CalendarTable(days: widget.prayerTimes, now: DateTime.now()),
+    );
   }
 }
 
@@ -78,7 +110,14 @@ class _CalendarAppBar extends StatelessWidget implements PreferredSizeWidget {
   final Location location;
   final int dayCount;
 
-  const _CalendarAppBar({required this.location, required this.dayCount});
+  /// Veri yokken null; düğme o zaman çizilmez.
+  final VoidCallback? onShare;
+
+  const _CalendarAppBar({
+    required this.location,
+    required this.dayCount,
+    this.onShare,
+  });
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -107,6 +146,15 @@ class _CalendarAppBar extends StatelessWidget implements PreferredSizeWidget {
         ],
       ),
       centerTitle: true,
+      actions: [
+        if (onShare != null)
+          IconButton(
+            onPressed: onShare,
+            icon: const Icon(Icons.ios_share_rounded),
+            color: tokens.textSecondary,
+            tooltip: 'Takvimi paylaş',
+          ),
+      ],
     );
   }
 }
