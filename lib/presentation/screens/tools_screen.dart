@@ -8,6 +8,8 @@ import '../widgets/common/app_bar_widgets.dart';
 import '../widgets/common/app_surface.dart';
 import '../widgets/common/grouped_list.dart';
 import '../widgets/common/section_label.dart';
+import 'dhikr_screen.dart';
+import 'prayer_tracking_screen.dart';
 import 'qibla_screen.dart';
 
 /// Araçlar sekmesi: kıble, namaz takibi ve zikirmatik.
@@ -56,14 +58,20 @@ class ToolsScreen extends StatelessWidget {
                   icon: Icons.checklist_rounded,
                   title: 'Namaz takibi',
                   subtitle: 'Kıldıklarını işaretle, kazanı say',
-                  onTap: null,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const PrayerTrackingScreen(),
+                    ),
+                  ),
                 ),
                 _row(
                   context,
                   icon: Icons.circle_outlined,
                   title: 'Zikirmatik',
                   subtitle: 'Hedefli sayaç',
-                  onTap: null,
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const DhikrScreen()),
+                  ),
                 ),
               ],
             ),

@@ -1,4 +1,6 @@
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
+import 'package:ezanvakti/core/models/notification_setting.dart' show PrayerType;
+import 'package:ezanvakti/core/models/prayer_log.dart';
 import 'package:ezanvakti/core/models/quiet_window.dart';
 import 'package:ezanvakti/core/models/general_settings.dart';
 import 'package:ezanvakti/core/models/appearance_settings.dart';
@@ -10,6 +12,45 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _InMemoryStorage implements LocalStorage {
+
+  final Map<String, PrayerStatus> _prayerLog = {};
+  final Map<PrayerType, int> _qadaCounts = {};
+  final Map<String, int> _dhikrLog = {};
+
+  @override
+  Future<Map<String, PrayerStatus>> getPrayerLog(
+    DateTime from,
+    DateTime to,
+  ) async => Map.of(_prayerLog);
+
+  @override
+  Future<void> setPrayerLog(
+    DateTime date,
+    PrayerType prayerType,
+    PrayerStatus? status,
+  ) async {
+    final key = prayerLogKey(date, prayerType);
+    if (status == null) {
+      _prayerLog.remove(key);
+    } else {
+      _prayerLog[key] = status;
+    }
+  }
+
+  @override
+  Future<Map<PrayerType, int>> getQadaCounts() async => Map.of(_qadaCounts);
+
+  @override
+  Future<void> setQadaCount(PrayerType prayerType, int count) async =>
+      _qadaCounts[prayerType] = clampQadaCount(count);
+
+  @override
+  Future<int> getDhikrCount(DateTime date) async =>
+      _dhikrLog['${date.year}-${date.month}-${date.day}'] ?? 0;
+
+  @override
+  Future<void> setDhikrCount(DateTime date, int count) async =>
+      _dhikrLog['${date.year}-${date.month}-${date.day}'] = count;
 
   List<QuietWindow> _quietWindows = [];
 

@@ -4,6 +4,7 @@ import '../models/notification_setting.dart';
 import '../models/calculation_settings.dart';
 import '../models/appearance_settings.dart';
 import '../models/general_settings.dart';
+import '../models/prayer_log.dart';
 import '../models/quiet_window.dart';
 import '../models/abort_state.dart';
 import '../models/mission_session.dart';
@@ -42,6 +43,26 @@ abstract class LocalStorage {
 
   /// Uygulama genelindeki varsayılan hesaplama ayarını kaydeder.
   Future<void> saveCalculationSettings(CalculationSettings settings);
+
+  /// [from]–[to] arasındaki namaz kayıtları; anahtar `prayerLogKey` biçiminde.
+  Future<Map<String, PrayerStatus>> getPrayerLog(DateTime from, DateTime to);
+
+  /// Tek bir kaydı yazar; [status] null ise kaydı siler.
+  Future<void> setPrayerLog(
+    DateTime date,
+    PrayerType prayerType,
+    PrayerStatus? status,
+  );
+
+  /// Vakit başına kaza sayıları; kayıt yoksa boş map.
+  Future<Map<PrayerType, int>> getQadaCounts();
+
+  Future<void> setQadaCount(PrayerType prayerType, int count);
+
+  /// O günün zikir sayacı; kayıt yoksa 0.
+  Future<int> getDhikrCount(DateTime date);
+
+  Future<void> setDhikrCount(DateTime date, int count);
 
   /// Sessiz pencereler; kayıt yoksa boş liste.
   Future<List<QuietWindow>> getQuietWindows();

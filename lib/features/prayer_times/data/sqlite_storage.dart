@@ -12,6 +12,7 @@ import '../../../core/models/calculation_settings.dart';
 import '../../../core/models/appearance_settings.dart';
 import '../../../core/models/derived_time.dart';
 import '../../../core/models/general_settings.dart';
+import '../../../core/models/prayer_log.dart';
 import '../../../core/models/quiet_window.dart';
 import '../../../core/models/abort_state.dart';
 import '../../../core/models/mission_session.dart';
@@ -34,7 +35,7 @@ class SqliteStorage implements LocalStorage {
 
     return await openDatabase(
       path,
-      version: 11,
+      version: 12,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -88,6 +89,31 @@ class SqliteStorage implements LocalStorage {
 
     await _createAlarmsTable(db);
     await _createQrCodesTable(db);
+    await _createTrackingTables(db);
+  }
+
+  /// v12: namaz takibi, kaza sayaçları ve zikir sayacı.
+  Future<void> _createTrackingTables(Database db) async {
+    await db.execute('''
+      CREATE TABLE prayer_log (
+        date TEXT NOT NULL,
+        prayer_type TEXT NOT NULL,
+        status TEXT NOT NULL,
+        PRIMARY KEY (date, prayer_type)
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE qada_counts (
+        prayer_type TEXT PRIMARY KEY,
+        count INTEGER NOT NULL
+      )
+    ''');
+    await db.execute('''
+      CREATE TABLE dhikr_log (
+        date TEXT PRIMARY KEY,
+        count INTEGER NOT NULL
+      )
+    ''');
   }
 
   /// v11 şeması: kimlik (vakit, türetilmiş nokta, sapma, günler) dörtlüsü.
@@ -226,6 +252,9 @@ class SqliteStorage implements LocalStorage {
     }
     if (oldVersion < 8) {
       await db.execute('ALTER TABLE alarms ADD COLUMN qr_payload TEXT');
+    }
+    if (oldVersion < 12) {
+      await _createTrackingTables(db);
     }
     if (oldVersion < 11) {
       // Türetilmiş nokta alanı; UNIQUE kısıtı dörtlü kimliğe genişledi.
@@ -657,6 +686,101 @@ class SqliteStorage implements LocalStorage {
   }
 
   static const String _quietWindowsKey = 'quiet_windows';
+
+  /// Tarihi `yyyy-MM-dd` olarak saklıyoruz: sıralama ve aralık sorgusu
+  /// dize karşılaştırmasıyla doğru çalışır.
+  static String _dayKey(DateTime date) {
+    final month = date.month.toString().padLeft(2, '0');
+    final day = date.day.toString().padLeft(2, '0');
+    return '${date.year}-$month-$day';
+  }
+
+  @override
+  Future<Map<String, PrayerStatus>> getPrayerLog(
+    DateTime from,
+    DateTime to,
+  ) async {
+    final db = await database;
+    final rows = await db.query(
+      'prayer_log',
+      where: 'date >= ? AND date <= ?',
+      whereArgs: [_dayKey(from), _dayKey(to)],
+    );
+    final result = <String, PrayerStatus>{};
+    for (final row in rows) {
+      final status = PrayerStatusX.fromStorage(row['status'] as String?);
+      if (status == null) continue;
+      result['${row['date']}|${row['prayer_type']}'] = status;
+    }
+    return result;
+  }
+
+  @override
+  Future<void> setPrayerLog(
+    DateTime date,
+    PrayerType prayerType,
+    PrayerStatus? status,
+  ) async {
+    final db = await database;
+    if (status == null) {
+      await db.delete(
+        'prayer_log',
+        where: 'date = ? AND prayer_type = ?',
+        whereArgs: [_dayKey(date), prayerType.name],
+      );
+      return;
+    }
+    await db.insert('prayer_log', {
+      'date': _dayKey(date),
+      'prayer_type': prayerType.name,
+      'status': status.storageValue,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  @override
+  Future<Map<PrayerType, int>> getQadaCounts() async {
+    final db = await database;
+    final rows = await db.query('qada_counts');
+    final result = <PrayerType, int>{};
+    for (final row in rows) {
+      final name = row['prayer_type'] as String;
+      for (final type in PrayerType.values) {
+        if (type.name == name) result[type] = row['count'] as int;
+      }
+    }
+    return result;
+  }
+
+  @override
+  Future<void> setQadaCount(PrayerType prayerType, int count) async {
+    final db = await database;
+    await db.insert('qada_counts', {
+      'prayer_type': prayerType.name,
+      'count': clampQadaCount(count),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  @override
+  Future<int> getDhikrCount(DateTime date) async {
+    final db = await database;
+    final rows = await db.query(
+      'dhikr_log',
+      where: 'date = ?',
+      whereArgs: [_dayKey(date)],
+      limit: 1,
+    );
+    if (rows.isEmpty) return 0;
+    return rows.first['count'] as int;
+  }
+
+  @override
+  Future<void> setDhikrCount(DateTime date, int count) async {
+    final db = await database;
+    await db.insert('dhikr_log', {
+      'date': _dayKey(date),
+      'count': count < 0 ? 0 : count,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
 
   @override
   Future<List<QuietWindow>> getQuietWindows() async {
