@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../../l10n/l10n_extensions.dart';
 
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
@@ -75,8 +76,8 @@ class _QrMissionState extends State<QrMission> {
     if (widget.expected.trim().isEmpty) {
       return _message(
         tokens,
-        'Bu alarma kayıtlı bir QR kod yok.',
-        'Alarmı düzenleyip kod ekleyebilir ya da acil çıkışı kullanabilirsin.',
+        context.l10n.qrMissionNoCode,
+        context.l10n.qrMissionNoCodeHint,
       );
     }
 
@@ -86,7 +87,9 @@ class _QrMissionState extends State<QrMission> {
         Expanded(child: _viewfinder(tokens)),
         const SizedBox(height: 20),
         Text(
-          _mismatch ? 'Farklı bir kod okundu' : 'Kaydettiğin kodu okut',
+          _mismatch
+          ? context.l10n.qrMissionMismatch
+          : context.l10n.qrMissionScanSaved,
           key: kQrHintKey,
           textAlign: TextAlign.center,
           style: AppTypography.rowTitle.copyWith(
@@ -97,8 +100,8 @@ class _QrMissionState extends State<QrMission> {
         const SizedBox(height: 6),
         Text(
           _mismatch
-              ? 'Alarmı kurarken kaydettiğin kodu bul ve onu okut.'
-              : 'Kamerayı koda doğru tut.',
+              ? context.l10n.qrMissionFindCode
+              : context.l10n.qrMissionAimCamera,
           textAlign: TextAlign.center,
           style: AppTypography.rowSubtitle.copyWith(
             fontSize: kMissionSupportFontSize,

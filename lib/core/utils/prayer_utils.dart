@@ -5,26 +5,6 @@ import '../models/notification_setting.dart';
 class PrayerUtils {
   const PrayerUtils._();
 
-  /// Vakit adı — **çevrilmemiş** Türkçe. Yeni kod `l10n.prayerName(type)`
-  /// kullanmalı; bu metot yalnızca çevirinin erişilemediği yerlerde (widget
-  /// snapshot'ı gibi cihaz-yerel çıktılar) kalıyor.
-  static String getPrayerName(PrayerType type) {
-    switch (type) {
-      case PrayerType.fajr:
-        return 'İmsak';
-      case PrayerType.sunrise:
-        return 'Güneş';
-      case PrayerType.dhuhr:
-        return 'Öğle';
-      case PrayerType.asr:
-        return 'İkindi';
-      case PrayerType.maghrib:
-        return 'Akşam';
-      case PrayerType.isha:
-        return 'Yatsı';
-    }
-  }
-
   static IconData getPrayerIcon(PrayerType type) {
     switch (type) {
       case PrayerType.fajr:
@@ -39,25 +19,6 @@ class PrayerUtils {
         return Icons.nightlight_round;
       case PrayerType.isha:
         return Icons.bedtime_rounded;
-    }
-  }
-
-  static IconData getPrayerIconByName(String name) {
-    switch (name) {
-      case 'İmsak':
-        return Icons.nights_stay_rounded;
-      case 'Güneş':
-        return Icons.wb_sunny_rounded;
-      case 'Öğle':
-        return Icons.light_mode_rounded;
-      case 'İkindi':
-        return Icons.wb_twilight_rounded;
-      case 'Akşam':
-        return Icons.nightlight_round;
-      case 'Yatsı':
-        return Icons.bedtime_rounded;
-      default:
-        return Icons.access_time_rounded;
     }
   }
 
@@ -107,17 +68,21 @@ class PrayerUtils {
     return tomorrowsPrayerTime?.fajr;
   }
 
-  static String? getNextPrayerName(PrayerTime? todaysPrayerTime) {
+  /// Sıradaki vaktin **tipi**; adı çağıran taraf çeviriden alır.
+  ///
+  /// Eskiden Türkçe ad dönüyordu ve çağıranlar o ada göre ikon seçiyordu;
+  /// çeviri gelince bu kalıp sessizce bozulurdu.
+  static PrayerType? getNextPrayerType(PrayerTime? todaysPrayerTime) {
     if (todaysPrayerTime == null) return null;
     final now = DateTime.now();
     final pt = todaysPrayerTime;
 
-    if (now.isBefore(pt.fajr)) return 'İmsak';
-    if (now.isBefore(pt.sunrise)) return 'Güneş';
-    if (now.isBefore(pt.dhuhr)) return 'Öğle';
-    if (now.isBefore(pt.asr)) return 'İkindi';
-    if (now.isBefore(pt.maghrib)) return 'Akşam';
-    if (now.isBefore(pt.isha)) return 'Yatsı';
-    return 'İmsak';
+    if (now.isBefore(pt.fajr)) return PrayerType.fajr;
+    if (now.isBefore(pt.sunrise)) return PrayerType.sunrise;
+    if (now.isBefore(pt.dhuhr)) return PrayerType.dhuhr;
+    if (now.isBefore(pt.asr)) return PrayerType.asr;
+    if (now.isBefore(pt.maghrib)) return PrayerType.maghrib;
+    if (now.isBefore(pt.isha)) return PrayerType.isha;
+    return PrayerType.fajr;
   }
 }

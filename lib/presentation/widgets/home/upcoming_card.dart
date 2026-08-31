@@ -78,12 +78,12 @@ class UpcomingCard extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         SectionLabel(
-          'Sıradaki',
+          context.l10n.upcomingTitle,
           trailing: GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: onSeeAll,
             child: Text(
-              'Tümü',
+              context.l10n.upcomingAll,
               style: AppTypography.hint.copyWith(
                 color: tokens.accent,
                 fontWeight: FontWeight.w700,
@@ -94,7 +94,7 @@ class UpcomingCard extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         if (notification == null && alarm == null)
-          _emptyState(tokens)
+          _emptyState(context, tokens)
         else
           GroupedList(
             children: [
@@ -106,7 +106,7 @@ class UpcomingCard extends StatelessWidget {
     );
   }
 
-  Widget _emptyState(AppTokens tokens) {
+  Widget _emptyState(BuildContext context, AppTokens tokens) {
     return Container(
       height: _kRowHeight,
       alignment: Alignment.center,
@@ -116,7 +116,7 @@ class UpcomingCard extends StatelessWidget {
         border: Border.all(color: tokens.border),
       ),
       child: Text(
-        'Yaklaşan bildirim veya alarm yok',
+        context.l10n.upcomingEmpty,
         style: AppTypography.rowSubtitle.copyWith(color: tokens.textTertiary),
       ),
     );
@@ -126,8 +126,8 @@ class UpcomingCard extends StatelessWidget {
     final item = notification!;
     final prayerName = context.l10n.prayerName(item.setting.prayerType);
     final offset = item.setting.minutesBefore == 0
-        ? 'Tam vaktinde'
-        : '${item.setting.minutesBefore} dk önce';
+        ? context.l10n.reminderOnTime
+        : context.l10n.reminderMinutesBefore(item.setting.minutesBefore);
 
     final occurrence = SkippedOccurrence(
       kind: SkipKind.notification,
@@ -156,7 +156,7 @@ class UpcomingCard extends StatelessWidget {
       ),
       subtitle: Text(
         skipped
-            ? 'Yalnızca bu sefer atlanacak · ${_clock(context, item.time)}'
+            ? '${context.l10n.reminderSkippedOnce} · ${_clock(context, item.time)}'
             : '$offset · ${_clock(context, item.time)} · '
                   '${formatRemaining(item.time.difference(now))}',
       ),
@@ -169,6 +169,7 @@ class UpcomingCard extends StatelessWidget {
     final item = alarm!;
     final label = alarmTimeLabel(
       item.alarm,
+      l10n: context.l10n,
       formatHourMinute: context.formatHourMinute,
     );
     final title = item.alarm.label.isNotEmpty ? item.alarm.label : label;
@@ -197,9 +198,9 @@ class UpcomingCard extends StatelessWidget {
       title: Text(title, style: AppTypography.upcomingRowTitle),
       subtitle: Text(
         switch ((snoozedUntil, skipped)) {
-          (final DateTime until, _) => SnoozeNotice.label(until),
+          (final DateTime until, _) => SnoozeNotice.label(until, context.l10n),
           (_, true) =>
-            'Yalnızca bu sefer atlanacak · '
+            '${context.l10n.reminderSkippedOnce} · '
                 '${_relativeDay(context, item.time)} ${_clock(context, item.time)}',
           _ =>
             '$label · ${_relativeDay(context, item.time)} '

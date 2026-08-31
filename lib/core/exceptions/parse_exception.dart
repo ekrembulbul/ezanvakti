@@ -24,6 +24,8 @@ class ParseException implements Exception {
   }
 
   String getUserMessage() {
-    return 'Veri formatı değişmiş olabilir. Lütfen uygulamayı güncellemeyi deneyin.';
+    // Kullanıcıya gösterilecek metin çağıran katmanda çevriliyor
+    // (`l10n.errorParseFormat`); burada teşhis için sabit bir anahtar döner.
+    return 'parse_format_changed';
   }
 }

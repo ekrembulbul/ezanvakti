@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import '../../../l10n/app_localizations.dart';
 
 import '../../../core/models/alarm.dart';
 import '../../../core/models/alarm_mission.dart';
@@ -17,8 +18,8 @@ class SnoozeNotice {
   }
 
   /// Satır alt metninde gösterilecek erteleme cümlesi.
-  static String label(DateTime until) =>
-      'Ertelendi · ${DateFormat('HH:mm').format(until)}\'te çalacak';
+  static String label(DateTime until, AppLocalizations l10n) =>
+      l10n.snoozedLabel(DateFormat('HH:mm').format(until));
 
   /// Alarm kapatılabilir mi?
   ///

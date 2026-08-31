@@ -1,4 +1,5 @@
 import 'timezone_service.dart';
+import '../../l10n/app_localizations.dart';
 
 class DSTChangeInfo {
   final DateTime changeDate;
@@ -88,15 +89,13 @@ class DSTChangeDetector {
     return timezoneService.getTimezoneOffset(DateTime.now());
   }
 
-  String getDSTStatusMessage(DateTime dateTime) {
+  /// Yaz/kış saati durumunu **çevrilmiş** olarak döner.
+  ///
+  /// Metin çağırandan gelir: bu sınıf arayüz katmanına bağlı değil.
+  String getDSTStatusMessage(DateTime dateTime, AppLocalizations l10n) {
     final isDst = timezoneService.isDST(dateTime);
-    final offset = timezoneService.getTimezoneOffset(dateTime);
-
-    if (isDst) {
-      return 'Yaz saati uygulanıyor (${_formatOffset(offset)})';
-    } else {
-      return 'Kış saati uygulanıyor (${_formatOffset(offset)})';
-    }
+    final offset = _formatOffset(timezoneService.getTimezoneOffset(dateTime));
+    return isDst ? l10n.dstSummer(offset) : l10n.dstWinter(offset);
   }
 
   String _formatOffset(Duration offset) {

@@ -104,7 +104,8 @@ class AlarmScheduler {
           },
         );
       } catch (e) {
-        _logger.warning('Alarm planlanamadı (id: ${alarm.id})', e);
+        // Log; kullanıcıya gösterilmiyor, çevrilmiyor.
+        _logger.warning('Alarm scheduling failed (id: ${alarm.id})', e);
         failures[alarm.id] = _shortMessage(e);
       }
     }
@@ -176,7 +177,10 @@ class AlarmScheduler {
               : const <String, dynamic>{},
         );
       } catch (e) {
-        _logger.warning('Alarm planlanamadı (id: ${alarm.id}, gün $i)', e);
+        _logger.warning(
+          'Alarm scheduling failed (id: ${alarm.id}, day $i)',
+          e,
+        );
         failures[alarm.id] = _shortMessage(e);
       }
     }

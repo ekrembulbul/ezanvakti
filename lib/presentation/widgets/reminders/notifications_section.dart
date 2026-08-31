@@ -97,10 +97,10 @@ class NotificationsSection extends StatelessWidget {
         if (hasPermission && !exactAlarmAllowed) ...[
           InfoBanner(
             icon: Icons.alarm_off_rounded,
-            text: 'Tam zamanlı alarm kapalı. Bildirimler gecikebilir.',
+            text: context.l10n.exactAlarmOff,
             action: TextButton(
               onPressed: onOpenExactAlarmSettings,
-              child: const Text('Aç'),
+              child: Text(context.l10n.actionOpen),
             ),
           ),
           const SizedBox(height: 16),
@@ -126,8 +126,7 @@ class NotificationsSection extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 24),
       children: [
         Text(
-          'Her vakit için tam vaktinde veya X dakika önce hatırlatma '
-          'alabilirsiniz.',
+          context.l10n.remindersIntro,
           style: AppTypography.hint.copyWith(
             color: tokens.textTertiary,
             height: 1.5,
@@ -179,7 +178,7 @@ class NotificationsSection extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          'Silmek için satırı sola kaydırın.',
+          context.l10n.remindersSwipeToDelete,
           style: AppTypography.hint.copyWith(color: tokens.textTertiary),
         ),
       ],

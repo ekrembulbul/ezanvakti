@@ -41,10 +41,6 @@ class NotificationSetting {
 
   bool get isDerived => derivedKind != null;
 
-  /// Kullanıcıya görünen ad: türetilmiş noktalarda noktanın adı, aksi halde
-  /// vaktin adı (çağıran taraf vakit adını kendi sözlüğünden verir).
-  String? get derivedLabel => derivedKind?.label;
-
   /// Boş gün kümesi "her gün" demek.
   bool firesOnWeekday(int weekday) =>
       weekdays.isEmpty || weekdays.contains(weekday);

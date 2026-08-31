@@ -1143,5 +1143,769 @@
         "type": "Object"
       }
     }
+  },
+  "hijriMuharram": "Muharrem",
+  "@hijriMuharram": {
+    "description": "Hicri ay"
+  },
+  "hijriSafar": "Safer",
+  "@hijriSafar": {
+    "description": "Hicri ay"
+  },
+  "hijriRabiAwwal": "Rebiülevvel",
+  "@hijriRabiAwwal": {
+    "description": "Hicri ay"
+  },
+  "hijriRabiThani": "Rebiülahir",
+  "@hijriRabiThani": {
+    "description": "Hicri ay"
+  },
+  "hijriJumadaAwwal": "Cemaziyülevvel",
+  "@hijriJumadaAwwal": {
+    "description": "Hicri ay"
+  },
+  "hijriJumadaThani": "Cemaziyülahir",
+  "@hijriJumadaThani": {
+    "description": "Hicri ay"
+  },
+  "hijriRajab": "Recep",
+  "@hijriRajab": {
+    "description": "Hicri ay"
+  },
+  "hijriShaban": "Şaban",
+  "@hijriShaban": {
+    "description": "Hicri ay"
+  },
+  "hijriRamadan": "Ramazan",
+  "@hijriRamadan": {
+    "description": "Hicri ay"
+  },
+  "hijriShawwal": "Şevval",
+  "@hijriShawwal": {
+    "description": "Hicri ay"
+  },
+  "hijriDhulQadah": "Zilkade",
+  "@hijriDhulQadah": {
+    "description": "Hicri ay"
+  },
+  "hijriDhulHijjah": "Zilhicce",
+  "@hijriDhulHijjah": {
+    "description": "Hicri ay"
+  },
+  "religiousNewYear": "Hicri Yılbaşı",
+  "@religiousNewYear": {
+    "description": "Dini gün"
+  },
+  "religiousAshura": "Aşure Günü",
+  "@religiousAshura": {
+    "description": "Dini gün"
+  },
+  "religiousMawlid": "Mevlid Kandili",
+  "@religiousMawlid": {
+    "description": "Dini gün"
+  },
+  "religiousRegaib": "Regaib Kandili",
+  "@religiousRegaib": {
+    "description": "Dini gün"
+  },
+  "religiousMiraj": "Miraç Kandili",
+  "@religiousMiraj": {
+    "description": "Dini gün"
+  },
+  "religiousBaraat": "Berat Kandili",
+  "@religiousBaraat": {
+    "description": "Dini gün"
+  },
+  "religiousRamadanStart": "Ramazan Başlangıcı",
+  "@religiousRamadanStart": {
+    "description": "Dini gün"
+  },
+  "religiousQadr": "Kadir Gecesi",
+  "@religiousQadr": {
+    "description": "Dini gün"
+  },
+  "religiousEidFitr": "Ramazan Bayramı",
+  "@religiousEidFitr": {
+    "description": "Dini gün"
+  },
+  "religiousArafah": "Arefe Günü",
+  "@religiousArafah": {
+    "description": "Dini gün"
+  },
+  "religiousEidAdha": "Kurban Bayramı",
+  "@religiousEidAdha": {
+    "description": "Dini gün"
+  },
+  "asrShafi": "Şafi (Standart)",
+  "@asrShafi": {
+    "description": "İkindi mezhebi"
+  },
+  "asrHanafi": "Hanefi",
+  "@asrHanafi": {
+    "description": "İkindi mezhebi"
+  },
+  "latAuto": "Otomatik",
+  "@latAuto": {
+    "description": "Enlem düzeltmesi"
+  },
+  "latMidnight": "Gece ortası",
+  "@latMidnight": {
+    "description": "Enlem düzeltmesi"
+  },
+  "latOneSeventh": "Gecenin yedide biri",
+  "@latOneSeventh": {
+    "description": "Enlem düzeltmesi"
+  },
+  "latAngle": "Açı tabanlı",
+  "@latAngle": {
+    "description": "Enlem düzeltmesi"
+  },
+  "calcMethodLabel": "Hesaplama Yöntemi",
+  "@calcMethodLabel": {
+    "description": "Ayar"
+  },
+  "calcAsrLabel": "İkindi (Mezhep)",
+  "@calcAsrLabel": {
+    "description": "Ayar"
+  },
+  "calcAdvanced": "Gelişmiş",
+  "@calcAdvanced": {
+    "description": "Bölüm"
+  },
+  "calcLatitudeLabel": "Yüksek Enlem Düzeltmesi",
+  "@calcLatitudeLabel": {
+    "description": "Ayar"
+  },
+  "calcGlobalNote": "Tüm konumlar için varsayılan ayar. Bir konum kendi ayarını seçmediği sürece bu kullanılır.",
+  "@calcGlobalNote": {
+    "description": "Bilgi notu"
+  },
+  "calcTuneSection": "Vakit düzeltmeleri",
+  "@calcTuneSection": {
+    "description": "Bölüm"
+  },
+  "calcTuneHint": "Vakitleri elindeki takvime göre birkaç dakika kaydırabilirsin. Bildirimler, alarmlar ve widget da kaydırılmış vakti kullanır.",
+  "@calcTuneHint": {
+    "description": "Bilgi notu"
+  },
+  "minutesShort": "{minutes} dk",
+  "@minutesShort": {
+    "description": "Kısa dakika",
+    "placeholders": {
+      "minutes": {
+        "type": "Object"
+      }
+    }
+  },
+  "offlineFresh": "Veriler güncel",
+  "@offlineFresh": {
+    "description": "Durum"
+  },
+  "offlineShouldUpdate": "Veriler güncellenmeli",
+  "@offlineShouldUpdate": {
+    "description": "Durum"
+  },
+  "offlineTooOld": "Veriler çok eski, güncelleme gerekli",
+  "@offlineTooOld": {
+    "description": "Durum"
+  },
+  "offlineNoData": "Veri bulunamadı",
+  "@offlineNoData": {
+    "description": "Durum"
+  },
+  "offlineNoConnection": "İnternet bağlantısı yok. Kaydedilmiş veriler gösteriliyor.",
+  "@offlineNoConnection": {
+    "description": "Durum"
+  },
+  "offlineFetchFailed": "Veri alınamadı. Lütfen internet bağlantınızı kontrol edin.",
+  "@offlineFetchFailed": {
+    "description": "Hata"
+  },
+  "offlineUpdateFailed": "Güncelleme başarısız. Kaydedilmiş veriler gösteriliyor.",
+  "@offlineUpdateFailed": {
+    "description": "Hata"
+  },
+  "errorDataLoad": "Veri yüklenirken hata oluştu: {error}",
+  "@errorDataLoad": {
+    "description": "Hata",
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "errorLocationChange": "Konum değiştirilemedi: {error}",
+  "@errorLocationChange": {
+    "description": "Hata",
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "errorGpsRefresh": "GPS yenileme hatası: {error}",
+  "@errorGpsRefresh": {
+    "description": "Hata",
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "gpsUpdated": "GPS konumu güncellendi: {location}",
+  "@gpsUpdated": {
+    "description": "Bildirim mesajı",
+    "placeholders": {
+      "location": {
+        "type": "Object"
+      }
+    }
+  },
+  "errorParseFormat": "Veri formatı değişmiş olabilir. Lütfen uygulamayı güncellemeyi deneyin.",
+  "@errorParseFormat": {
+    "description": "Hata"
+  },
+  "loading": "Yükleniyor...",
+  "@loading": {
+    "description": "Yükleme"
+  },
+  "today": "BUGÜN",
+  "@today": {
+    "description": "Takvim rozeti"
+  },
+  "nextLabel": "SONRAKİ",
+  "@nextLabel": {
+    "description": "Sayaç etiketi"
+  },
+  "adhanAt": "{prayer} ezanı {time}'de",
+  "@adhanAt": {
+    "description": "Sayaç alt bilgisi",
+    "placeholders": {
+      "prayer": {
+        "type": "Object"
+      },
+      "time": {
+        "type": "Object"
+      }
+    }
+  },
+  "upcomingTitle": "Sıradaki",
+  "@upcomingTitle": {
+    "description": "Kart başlığı"
+  },
+  "upcomingAll": "Tümü",
+  "@upcomingAll": {
+    "description": "Düğme"
+  },
+  "upcomingEmpty": "Yaklaşan bildirim veya alarm yok",
+  "@upcomingEmpty": {
+    "description": "Boş durum"
+  },
+  "alarmQrRequired": "QR görevi için bir kod okut ya da yaz",
+  "@alarmQrRequired": {
+    "description": "Hata"
+  },
+  "alarmPickSavedCode": "Kayıtlı kodlardan seç",
+  "@alarmPickSavedCode": {
+    "description": "Düğme"
+  },
+  "alarmAnchorQuestion": "Hangi vakte göre?",
+  "@alarmAnchorQuestion": {
+    "description": "Ayar"
+  },
+  "alarmBefore": "Önce",
+  "@alarmBefore": {
+    "description": "Yön"
+  },
+  "alarmAfter": "Sonra",
+  "@alarmAfter": {
+    "description": "Yön"
+  },
+  "alarmBeforePrayer": "Vakitten önce",
+  "@alarmBeforePrayer": {
+    "description": "Yön"
+  },
+  "alarmAfterPrayer": "Vakitten sonra",
+  "@alarmAfterPrayer": {
+    "description": "Yön"
+  },
+  "alarmSoundImportFailed": "Ses dosyası alınamadı",
+  "@alarmSoundImportFailed": {
+    "description": "Hata"
+  },
+  "alarmSnoozeMinutes": "Erteleme süresi",
+  "@alarmSnoozeMinutes": {
+    "description": "Ayar"
+  },
+  "qrSaveTitle": "Kodu kütüphaneye kaydet",
+  "@qrSaveTitle": {
+    "description": "Diyalog"
+  },
+  "qrSaveHint": "Örn. Banyo aynası",
+  "@qrSaveHint": {
+    "description": "Alan ipucu"
+  },
+  "qrLibraryEmpty": "Henüz kayıtlı kod yok — okuttuğun kodu kaydederek başla",
+  "@qrLibraryEmpty": {
+    "description": "Boş durum"
+  },
+  "qrRenameTitle": "Kodu yeniden adlandır",
+  "@qrRenameTitle": {
+    "description": "Diyalog"
+  },
+  "qrInUseTitle": "Kod kullanımda",
+  "@qrInUseTitle": {
+    "description": "Diyalog"
+  },
+  "qrInUseBody": "Bu kodu şu alarmlar görev olarak kullanıyor: {alarms}. Kütüphaneden silmek alarmı bozmaz ama kodu yeniden seçemezsin.",
+  "@qrInUseBody": {
+    "description": "Diyalog gövdesi",
+    "placeholders": {
+      "alarms": {
+        "type": "Object"
+      }
+    }
+  },
+  "qrDeleteAnyway": "Yine de sil",
+  "@qrDeleteAnyway": {
+    "description": "Düğme"
+  },
+  "qrDefaultName": "QR kod",
+  "@qrDefaultName": {
+    "description": "Varsayılan ad"
+  },
+  "qrFieldHint": "Kodu okut ya da yaz",
+  "@qrFieldHint": {
+    "description": "Alan ipucu"
+  },
+  "qrScanTooltip": "Kodu okut",
+  "@qrScanTooltip": {
+    "description": "İpucu"
+  },
+  "qrFieldNote": "Kodu yatağından uzak bir yere yapıştır: banyo kapısı, mutfak. Alarm ancak bu kod okutulunca kapanır.",
+  "@qrFieldNote": {
+    "description": "Bilgi notu"
+  },
+  "stopJustNow": "az önce",
+  "@stopJustNow": {
+    "description": "Zaman"
+  },
+  "stopMinutesAgo": "{minutes} dk önce",
+  "@stopMinutesAgo": {
+    "description": "Zaman",
+    "placeholders": {
+      "minutes": {
+        "type": "Object"
+      }
+    }
+  },
+  "stopSnoozeLeft": "{count} hak kaldı",
+  "@stopSnoozeLeft": {
+    "description": "Kalan hak",
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "stopDoMission": "Görevi yap",
+  "@stopDoMission": {
+    "description": "Düğme"
+  },
+  "stopReturnsIn": "Seçim yapmazsan alarm {countdown} sonra döner",
+  "@stopReturnsIn": {
+    "description": "Bilgi",
+    "placeholders": {
+      "countdown": {
+        "type": "Object"
+      }
+    }
+  },
+  "stopClosesIn": "Dokunmazsan {countdown} sonra kapanır",
+  "@stopClosesIn": {
+    "description": "Bilgi",
+    "placeholders": {
+      "countdown": {
+        "type": "Object"
+      }
+    }
+  },
+  "missionTimeUp": "Süre doldu, alarm geri dönüyor",
+  "@missionTimeUp": {
+    "description": "Bilgi"
+  },
+  "missionCountdownNote": "süre bitince alarm geri döner",
+  "@missionCountdownNote": {
+    "description": "Bilgi"
+  },
+  "missionCloseCompletely": "Alarmı tamamen kapat",
+  "@missionCloseCompletely": {
+    "description": "Düğme"
+  },
+  "missionWrongAnswer": "Yanlış, tekrar dene.",
+  "@missionWrongAnswer": {
+    "description": "Hata"
+  },
+  "missionShakeDone": "tamamlandı",
+  "@missionShakeDone": {
+    "description": "Durum"
+  },
+  "qrMissionNoCode": "Bu alarma kayıtlı bir QR kod yok.",
+  "@qrMissionNoCode": {
+    "description": "Hata"
+  },
+  "qrMissionNoCodeHint": "Alarmı düzenleyip kod ekleyebilir ya da acil çıkışı kullanabilirsin.",
+  "@qrMissionNoCodeHint": {
+    "description": "Bilgi"
+  },
+  "qrMissionMismatch": "Farklı bir kod okundu",
+  "@qrMissionMismatch": {
+    "description": "Hata"
+  },
+  "qrMissionScanSaved": "Kaydettiğin kodu okut",
+  "@qrMissionScanSaved": {
+    "description": "Yönerge"
+  },
+  "qrMissionFindCode": "Alarmı kurarken kaydettiğin kodu bul ve onu okut.",
+  "@qrMissionFindCode": {
+    "description": "Yönerge"
+  },
+  "qrMissionAimCamera": "Kamerayı koda doğru tut.",
+  "@qrMissionAimCamera": {
+    "description": "Yönerge"
+  },
+  "abortDismissing": "alarmı kapatıyorum",
+  "@abortDismissing": {
+    "description": "Acil çıkış cümlesi"
+  },
+  "abortDismissingHard": "görevi yapmadan alarmı kapatıyorum",
+  "@abortDismissingHard": {
+    "description": "Acil çıkış cümlesi"
+  },
+  "abortTitle": "Alarmı görevi yapmadan kapatıyorsun.",
+  "@abortTitle": {
+    "description": "Diyalog"
+  },
+  "abortMaxLevel": "Çıkış artık en zor kademede; daha da zorlaşmayacak.",
+  "@abortMaxLevel": {
+    "description": "Bilgi"
+  },
+  "abortHarderNext": "Bir dahaki sefere çıkış daha zor olacak.",
+  "@abortHarderNext": {
+    "description": "Bilgi"
+  },
+  "abortTypePhrase": "Şunu birebir yaz: “{phrase}”",
+  "@abortTypePhrase": {
+    "description": "Yönerge",
+    "placeholders": {
+      "phrase": {
+        "type": "Object"
+      }
+    }
+  },
+  "abortPhraseHint": "Cümleyi yaz",
+  "@abortPhraseHint": {
+    "description": "Alan ipucu"
+  },
+  "abortHoldToClose": "Kapatmak için 3 saniye basılı tut",
+  "@abortHoldToClose": {
+    "description": "Yönerge"
+  },
+  "remindersUpdate": "Güncelle",
+  "@remindersUpdate": {
+    "description": "Düğme"
+  },
+  "remindersUpdateTitle": "Bildirimi Güncelle",
+  "@remindersUpdateTitle": {
+    "description": "Sheet başlığı"
+  },
+  "remindersAddTitle": "Yeni Bildirim Ekle",
+  "@remindersAddTitle": {
+    "description": "Sheet başlığı"
+  },
+  "remindersAddButton": "Bildirim Ekle",
+  "@remindersAddButton": {
+    "description": "Düğme"
+  },
+  "remindersWhichPrayer": "Hangi vakitte bildirim almak istiyorsunuz?",
+  "@remindersWhichPrayer": {
+    "description": "Yönerge"
+  },
+  "remindersPrayerSection": "Namaz Vakti",
+  "@remindersPrayerSection": {
+    "description": "Bölüm"
+  },
+  "remindersDerivedSection": "Türetilmiş Vakitler",
+  "@remindersDerivedSection": {
+    "description": "Bölüm"
+  },
+  "remindersDerivedHint": "Kerahat ve nafile pencereleri, seçtiğin vakitten hesaplanır.",
+  "@remindersDerivedHint": {
+    "description": "Bilgi"
+  },
+  "remindersTimeSection": "Bildirim Zamanı",
+  "@remindersTimeSection": {
+    "description": "Bölüm"
+  },
+  "remindersDaysSection": "Günler",
+  "@remindersDaysSection": {
+    "description": "Bölüm"
+  },
+  "remindersLabelSection": "Etiket (isteğe bağlı)",
+  "@remindersLabelSection": {
+    "description": "Bölüm"
+  },
+  "remindersOnTimeOption": "Tam vaktinde",
+  "@remindersOnTimeOption": {
+    "description": "Seçenek"
+  },
+  "remindersBeforeOption": "Öncesinde",
+  "@remindersBeforeOption": {
+    "description": "Seçenek"
+  },
+  "remindersPickMinutes": "Dakika seçin",
+  "@remindersPickMinutes": {
+    "description": "Yönerge"
+  },
+  "remindersMinOffsetError": "En az 1 dk önce olabilir",
+  "@remindersMinOffsetError": {
+    "description": "Hata"
+  },
+  "remindersMaxOffsetError": "Bu vakitten en fazla {max} dk önce bildirim ekleyebilirsin.",
+  "@remindersMaxOffsetError": {
+    "description": "Hata",
+    "placeholders": {
+      "max": {
+        "type": "Object"
+      }
+    }
+  },
+  "remindersSwipeToDelete": "Silmek için satırı sola kaydırın.",
+  "@remindersSwipeToDelete": {
+    "description": "İpucu"
+  },
+  "remindersIntro": "Her vakit için tam vaktinde veya X dakika önce hatırlatma alabilirsiniz.",
+  "@remindersIntro": {
+    "description": "Bilgi"
+  },
+  "alarmsSwipeHint": "Silmek için satırı sola kaydırın; yanlışlıkla silersen alttaki \"Geri al\" ile dönersin. Alarmlar vakit güncellendiğinde otomatik yeniden planlanır.",
+  "@alarmsSwipeHint": {
+    "description": "İpucu"
+  },
+  "alarmsRescheduleNote": "Alarmlar vakit verisi güncellendikçe yeniden planlanır.",
+  "@alarmsRescheduleNote": {
+    "description": "Bilgi"
+  },
+  "alarmsUnsupported": "Sesli alarm bu cihazda desteklenmiyor (iOS 26 ve üzeri gerekir). Alarmlar kaydedilir ancak çalmaz.",
+  "@alarmsUnsupported": {
+    "description": "Uyarı"
+  },
+  "alarmsNeedPermission": "Alarmların çalması için izin gerekiyor.",
+  "@alarmsNeedPermission": {
+    "description": "Uyarı"
+  },
+  "permissionGrant": "İzin ver",
+  "@permissionGrant": {
+    "description": "Düğme"
+  },
+  "notificationsNeedPermission": "Bildirim almak için izin vermeniz gerekiyor.",
+  "@notificationsNeedPermission": {
+    "description": "Uyarı"
+  },
+  "exactAlarmOff": "Tam zamanlı alarm kapalı. Bildirimler gecikebilir.",
+  "@exactAlarmOff": {
+    "description": "Uyarı"
+  },
+  "actionOpen": "Aç",
+  "@actionOpen": {
+    "description": "Düğme"
+  },
+  "alarmDeleted": "{label} alarmı silindi",
+  "@alarmDeleted": {
+    "description": "Bildirim mesajı",
+    "placeholders": {
+      "label": {
+        "type": "Object"
+      }
+    }
+  },
+  "alarmBlockedSnoozed": "Bu alarm ertelendi ve görevi bekliyor; görevi yapmadan kapatılamaz.",
+  "@alarmBlockedSnoozed": {
+    "description": "Uyarı"
+  },
+  "alarmTurnedOff": "Alarm kapatıldı",
+  "@alarmTurnedOff": {
+    "description": "Bildirim mesajı"
+  },
+  "snoozeUntil": "{time}'te çalacak",
+  "@snoozeUntil": {
+    "description": "Erteleme bilgisi",
+    "placeholders": {
+      "time": {
+        "type": "Object"
+      }
+    }
+  },
+  "themeDark": "Koyu",
+  "@themeDark": {
+    "description": "Tema"
+  },
+  "themeLight": "Açık",
+  "@themeLight": {
+    "description": "Tema"
+  },
+  "themeSystem": "Sistem",
+  "@themeSystem": {
+    "description": "Tema"
+  },
+  "themeLabel": "Tema",
+  "@themeLabel": {
+    "description": "Bölüm"
+  },
+  "appearanceTimeColor": "Vakte göre renk",
+  "@appearanceTimeColor": {
+    "description": "Ayar"
+  },
+  "appearanceTimeColorOn": "Zemin gün içinde ilerler",
+  "@appearanceTimeColorOn": {
+    "description": "Ayar açıklaması"
+  },
+  "appearanceTimeColorOff": "Sabit bir palet seçin",
+  "@appearanceTimeColorOff": {
+    "description": "Ayar açıklaması"
+  },
+  "settingsVersionLoading": "Sürüm yükleniyor...",
+  "@settingsVersionLoading": {
+    "description": "Alt bilgi"
+  },
+  "settingsVersion": "Sürüm {version}",
+  "@settingsVersion": {
+    "description": "Alt bilgi",
+    "placeholders": {
+      "version": {
+        "type": "Object"
+      }
+    }
+  },
+  "settingsFooter": "Vakitler cihazınızda saklanır, dışarı gönderilmez.",
+  "@settingsFooter": {
+    "description": "Alt bilgi"
+  },
+  "privacyBody": "Konumunuz yalnızca namaz vakitlerini hesaplamak için kullanılır ve cihazınızda saklanır. Vakit verisi Aladhan API üzerinden koordinatla sorgulanır; kişisel bilgi gönderilmez.",
+  "@privacyBody": {
+    "description": "Gizlilik metni"
+  },
+  "dstSummer": "Yaz saati uygulanıyor ({offset})",
+  "@dstSummer": {
+    "description": "Saat dilimi",
+    "placeholders": {
+      "offset": {
+        "type": "Object"
+      }
+    }
+  },
+  "dstWinter": "Kış saati uygulanıyor ({offset})",
+  "@dstWinter": {
+    "description": "Saat dilimi",
+    "placeholders": {
+      "offset": {
+        "type": "Object"
+      }
+    }
+  },
+  "weekdayShortMon": "Pzt",
+  "@weekdayShortMon": {
+    "description": "Gün kısaltması"
+  },
+  "weekdayShortTue": "Sal",
+  "@weekdayShortTue": {
+    "description": "Gün kısaltması"
+  },
+  "weekdayShortWed": "Çar",
+  "@weekdayShortWed": {
+    "description": "Gün kısaltması"
+  },
+  "weekdayShortThu": "Per",
+  "@weekdayShortThu": {
+    "description": "Gün kısaltması"
+  },
+  "weekdayShortFri": "Cum",
+  "@weekdayShortFri": {
+    "description": "Gün kısaltması"
+  },
+  "weekdayShortSat": "Cmt",
+  "@weekdayShortSat": {
+    "description": "Gün kısaltması"
+  },
+  "weekdayShortSun": "Paz",
+  "@weekdayShortSun": {
+    "description": "Gün kısaltması"
+  },
+  "weekdayLetterMon": "Pt",
+  "@weekdayLetterMon": {
+    "description": "Gün harfi"
+  },
+  "weekdayLetterTue": "Sa",
+  "@weekdayLetterTue": {
+    "description": "Gün harfi"
+  },
+  "weekdayLetterWed": "Ça",
+  "@weekdayLetterWed": {
+    "description": "Gün harfi"
+  },
+  "weekdayLetterThu": "Pe",
+  "@weekdayLetterThu": {
+    "description": "Gün harfi"
+  },
+  "weekdayLetterFri": "Cu",
+  "@weekdayLetterFri": {
+    "description": "Gün harfi"
+  },
+  "weekdayLetterSat": "Ct",
+  "@weekdayLetterSat": {
+    "description": "Gün harfi"
+  },
+  "weekdayLetterSun": "Pa",
+  "@weekdayLetterSun": {
+    "description": "Gün harfi"
+  },
+  "offsetMinutes": "{sign}{minutes} dk",
+  "@offsetMinutes": {
+    "description": "Sapma etiketi",
+    "placeholders": {
+      "sign": {
+        "type": "Object"
+      },
+      "minutes": {
+        "type": "Object"
+      }
+    }
+  },
+  "snoozedLabel": "Ertelendi · {time}'te çalacak",
+  "@snoozedLabel": {
+    "description": "Erteleme bilgisi",
+    "placeholders": {
+      "time": {
+        "type": "Object"
+      }
+    }
+  },
+  "errorGenericWith": "Hata: {error}",
+  "@errorGenericWith": {
+    "description": "Hata",
+    "placeholders": {
+      "error": {
+        "type": "Object"
+      }
+    }
+  },
+  "locationDeleted": "{location} silindi",
+  "@locationDeleted": {
+    "description": "Bildirim mesajı",
+    "placeholders": {
+      "location": {
+        "type": "Object"
+      }
+    }
   }
 }

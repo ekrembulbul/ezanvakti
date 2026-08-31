@@ -1,43 +1,16 @@
-import '../../core/models/notification_setting.dart';
+import '../../core/models/notification_setting.dart' show PrayerType;
 
+/// Vakitlerin sıralama yardımcıları.
+///
+/// **Ad döndüren metotlar kaldırıldı**: vakit adları artık
+/// `context.l10n.prayerName(type)` ile çeviriden geliyor. Türkçe ad döndüren
+/// eski API, çeviri gelince adın kimlik gibi kullanıldığı yerlerde
+/// (ikon seçimi, palet hesabı) sessiz hatalara yol açıyordu.
 class PrayerNameHelper {
-  static String getName(PrayerType type) {
-    switch (type) {
-      case PrayerType.fajr:
-        return 'İmsak';
-      case PrayerType.sunrise:
-        return 'Güneş';
-      case PrayerType.dhuhr:
-        return 'Öğle';
-      case PrayerType.asr:
-        return 'İkindi';
-      case PrayerType.maghrib:
-        return 'Akşam';
-      case PrayerType.isha:
-        return 'Yatsı';
-    }
-  }
+  const PrayerNameHelper._();
 
-  static List<PrayerType> getAllPrayerTypes() {
-    return [
-      PrayerType.fajr,
-      PrayerType.sunrise,
-      PrayerType.dhuhr,
-      PrayerType.asr,
-      PrayerType.maghrib,
-      PrayerType.isha,
-    ];
-  }
+  static List<PrayerType> getAllPrayerTypes() => PrayerType.values;
 
-  static int getPrayerOrder(PrayerType type) {
-    const order = {
-      PrayerType.fajr: 0,
-      PrayerType.sunrise: 1,
-      PrayerType.dhuhr: 2,
-      PrayerType.asr: 3,
-      PrayerType.maghrib: 4,
-      PrayerType.isha: 5,
-    };
-    return order[type]!;
-  }
+  /// Gün içindeki sıra; enum zaten bu sırada tanımlı.
+  static int getPrayerOrder(PrayerType type) => type.index;
 }

@@ -269,7 +269,9 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
 
   Widget _buildGlobalSummary() {
     final methodName = CalculationMethods.byId(_globalSettings.method).name;
-    final schoolLabel = AsrSchool.fromValue(_globalSettings.school).label;
+    final schoolLabel = context.l10n.asrSchoolLabel(
+      AsrSchool.fromValue(_globalSettings.school),
+    );
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
+import '../../l10n/l10n_extensions.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/config/mission_tuning.dart';
@@ -57,22 +59,23 @@ class AlarmStopScreen extends StatelessWidget {
 
   /// Sabit alarmda kurulu saat; çıpalıda gerçek çalış anı (vakit her gün
   /// kayar, kullanıcı bugünkü saati görmeli).
-  String get _timeText => alarm.kind == AlarmKind.fixed
-      ? alarmTimeLabel(alarm)
+  String _timeText(AppLocalizations l10n) => alarm.kind == AlarmKind.fixed
+      ? alarmTimeLabel(alarm, l10n: l10n)
       : DateFormat('HH:mm').format(firedAt); // ekran icinde sabit 24 saat
 
-  String get _detailText {
+  String _detailText(AppLocalizations l10n) {
     final ago = now.difference(stoppedAt).inMinutes;
-    final agoText = ago < 1 ? 'az önce' : '$ago dk önce';
+    final agoText = ago < 1 ? l10n.stopJustNow : l10n.stopMinutesAgo(ago);
     final first = alarm.kind == AlarmKind.fixed
-        ? weekdaysLabel(alarm.weekdays)
-        : alarmTimeLabel(alarm);
+        ? weekdaysLabel(alarm.weekdays, l10n)
+        : alarmTimeLabel(alarm, l10n: l10n);
     return '$first · $agoText';
   }
 
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
+    final l10n = context.l10n;
 
     return Scaffold(
       backgroundColor: tokens.backgroundStops.last,
@@ -91,17 +94,17 @@ class AlarmStopScreen extends StatelessWidget {
                 ),
               ),
               const Spacer(),
-              _header(tokens),
-              if (gated) ...[const SizedBox(height: 24), _missionCard(tokens)],
+              _header(tokens, l10n),
+              if (gated) ...[const SizedBox(height: 24), _missionCard(tokens, l10n)],
               const Spacer(),
-              _primaryButton(tokens),
+              _primaryButton(tokens, l10n),
               if (onSnooze != null) ...[
                 const SizedBox(height: 12),
-                _snoozeButton(tokens),
+                _snoozeButton(tokens, l10n),
                 if (snoozeRemaining != null) ...[
                   const SizedBox(height: 8),
                   Text(
-                    '$snoozeRemaining hak kaldı',
+                    l10n.stopSnoozeLeft(snoozeRemaining ?? 0),
                     textAlign: TextAlign.center,
                     style: AppTypography.hint.copyWith(
                       fontSize: 14,
@@ -111,7 +114,7 @@ class AlarmStopScreen extends StatelessWidget {
                 ],
               ],
               const SizedBox(height: 20),
-              _footer(tokens),
+              _footer(tokens, l10n),
             ],
           ),
         ),
@@ -119,7 +122,7 @@ class AlarmStopScreen extends StatelessWidget {
     );
   }
 
-  Widget _header(AppTokens tokens) {
+  Widget _header(AppTokens tokens, AppLocalizations l10n) {
     final title = alarm.label.isEmpty ? 'Alarm' : alarm.label;
     return Column(
       children: [
@@ -136,13 +139,13 @@ class AlarmStopScreen extends StatelessWidget {
         const SizedBox(height: 6),
         FittedBox(
           child: Text(
-            _timeText,
+            _timeText(l10n),
             style: AppTypography.counter.copyWith(color: tokens.textPrimary),
           ),
         ),
         const SizedBox(height: 6),
         Text(
-          _detailText,
+          _detailText(l10n),
           textAlign: TextAlign.center,
           style: AppTypography.hint.copyWith(
             fontSize: 15,
@@ -153,7 +156,7 @@ class AlarmStopScreen extends StatelessWidget {
     );
   }
 
-  Widget _missionCard(AppTokens tokens) {
+  Widget _missionCard(AppTokens tokens, AppLocalizations l10n) {
     final seconds = MissionTuning.timeoutSecondsFor(alarm.mission);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -168,7 +171,8 @@ class AlarmStopScreen extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              '${missionLabel(alarm.mission)} · seviye ${alarm.missionLevel} · $seconds sn',
+              '${missionLabel(alarm.mission, l10n)} · '
+              '${alarm.missionLevel} · $seconds sn',
               style: AppTypography.rowTitle.copyWith(
                 fontSize: kMissionSupportFontSize,
                 color: tokens.textPrimary,
@@ -180,7 +184,7 @@ class AlarmStopScreen extends StatelessWidget {
     );
   }
 
-  Widget _primaryButton(AppTokens tokens) {
+  Widget _primaryButton(AppTokens tokens, AppLocalizations l10n) {
     return SizedBox(
       height: kMissionButtonHeight,
       child: FilledButton(
@@ -194,7 +198,7 @@ class AlarmStopScreen extends StatelessWidget {
           ),
         ),
         child: Text(
-          gated ? 'Görevi yap' : 'Tamam',
+          gated ? l10n.stopDoMission : 'Tamam',
           style: AppTypography.rowTitle.copyWith(
             fontSize: kMissionButtonFontSize,
           ),
@@ -203,7 +207,7 @@ class AlarmStopScreen extends StatelessWidget {
     );
   }
 
-  Widget _snoozeButton(AppTokens tokens) {
+  Widget _snoozeButton(AppTokens tokens, AppLocalizations l10n) {
     return SizedBox(
       height: kMissionButtonHeight,
       child: OutlinedButton(
@@ -230,10 +234,10 @@ class AlarmStopScreen extends StatelessWidget {
   }
 
   /// Görevlide uyarı (alarm döner), görevsizde bilgi (kapanır).
-  Widget _footer(AppTokens tokens) {
+  Widget _footer(AppTokens tokens, AppLocalizations l10n) {
     final text = gated
-        ? 'Seçim yapmazsan alarm $_countdown sonra döner'
-        : 'Dokunmazsan $_countdown sonra kapanır';
+        ? l10n.stopReturnsIn(_countdown)
+        : l10n.stopClosesIn(_countdown);
     return Text(
       text,
       key: kStopCountdownKey,

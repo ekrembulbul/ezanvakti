@@ -1,4 +1,5 @@
 import 'dart:math';
+import '../../../l10n/l10n_extensions.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -177,7 +178,7 @@ class _MathMissionState extends State<MathMission> {
       duration: _kAnimation,
       opacity: _wrong ? 1 : 0,
       child: Text(
-        'Yanlış, tekrar dene.',
+        context.l10n.missionWrongAnswer,
         style: AppTypography.rowSubtitle.copyWith(
           fontSize: kMissionSupportFontSize,
           color: tokens.textSecondary,

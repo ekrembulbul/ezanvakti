@@ -4,6 +4,21 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.11.2] - 2026-08-31
+
+### Değişti
+- **Uygulamada tek bir sabit Türkçe metin kalmadı.** Görev ekranları (matematik, sallama, QR), acil çıkış, alarm durdurma, hatırlatıcı ekleme, hesaplama ayarları, konum ekranları, hata ve bilgi mesajları — hepsi üç dilde.
+- **Hicri ay adları ve dini gün adları çevrildi.** Arapça'da ay adları kendi yazımıyla (رمضان, شعبان), İngilizce'de yerleşik karşılıklarıyla (Ramadan, Sha'ban) görünüyor.
+- **Acil çıkışta yazılacak cümle artık kendi dilinde.** Önce sabit Türkçe cümle isteniyordu; İngilizce ya da Arapça arayüzde bu anlamsızdı.
+- Hesaplama yöntemi adları uluslararası yazımlarına çevrildi ("Karaçi" → "Karachi", "Körfez Bölgesi" → "Gulf Region"). Diyanet İşleri Başkanlığı kurum adı olduğu için olduğu gibi kalıyor.
+
+### Düzeltildi
+- Vakit adları, ikon seçimi ve gün dilimi paleti artık **ada değil kimliğe** bakıyor. Çeviri gelince bu eşleşmeler sessizce bozulacaktı.
+
+### Teknik not
+- Bir test artık `lib/` altında sabit Türkçe metin kalmadığını sürekli doğruluyor; yeni ekranlarda çeviri unutulursa test kırılıyor.
+- Kullanılmayan çevrimdışı durum mesajları ve ölü etiket metotları kaldırıldı.
+
 ## [0.11.1] - 2026-08-31
 
 ### Düzeltildi

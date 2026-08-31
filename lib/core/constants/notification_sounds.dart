@@ -22,10 +22,4 @@ class NotificationSounds {
 
   static bool isSilent(String? soundId) => soundId == silent;
 
-  /// Kullanıcıya görünen ad; tanınmayan değer varsayılana düşer.
-  static String labelFor(String? soundId) => switch (soundId) {
-    beep => 'Kısa uyarı',
-    silent => 'Sessiz',
-    _ => 'Sistem sesi',
-  };
 }

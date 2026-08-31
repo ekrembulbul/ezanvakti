@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../../l10n/l10n_extensions.dart';
 
 import 'package:flutter/material.dart';
 
@@ -56,7 +57,10 @@ class _AbortDialogState extends State<AbortDialog> {
 
   bool get _phraseOk =>
       !_req.requiresPhrase ||
-      AbortGate.phraseMatches(expected: _req.phrase, typed: _controller.text);
+      AbortGate.phraseMatches(
+        expected: context.l10n.abortPhrase(_req.phrase!),
+        typed: _controller.text,
+      );
 
   bool get _countdownOk => _remaining <= 0;
 
@@ -83,20 +87,20 @@ class _AbortDialogState extends State<AbortDialog> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Alarmı görevi yapmadan kapatıyorsun.',
+            context.l10n.abortTitle,
             style: AppTypography.tabLabel.copyWith(color: tokens.textPrimary),
           ),
           const SizedBox(height: 8),
           Text(
             atCeiling
-                ? 'Çıkış artık en zor kademede; daha da zorlaşmayacak.'
-                : 'Bir dahaki sefere çıkış daha zor olacak.',
+                ? context.l10n.abortMaxLevel
+                : context.l10n.abortHarderNext,
             style: AppTypography.tabLabel.copyWith(color: tokens.textSecondary),
           ),
           if (_req.requiresPhrase) ...[
             const SizedBox(height: 16),
             Text(
-              'Şunu birebir yaz: “${_req.phrase}”',
+              context.l10n.abortTypePhrase(context.l10n.abortPhrase(_req.phrase!)),
               style: AppTypography.tabLabel.copyWith(
                 color: tokens.textSecondary,
               ),
@@ -108,7 +112,7 @@ class _AbortDialogState extends State<AbortDialog> {
               // Kopyala-yapistir kapali: cumleyi gercekten yazmasi gerekiyor.
               enableInteractiveSelection: false,
               onChanged: (_) => setState(() {}),
-              decoration: const InputDecoration(hintText: 'Cümleyi yaz'),
+              decoration: InputDecoration(hintText: context.l10n.abortPhraseHint),
             ),
           ],
           if (_remaining > 0) ...[
@@ -134,7 +138,7 @@ class _AbortDialogState extends State<AbortDialog> {
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Text(
-                'Kapatmak için 3 saniye basılı tut',
+                context.l10n.abortHoldToClose,
                 style: AppTypography.tabLabel.copyWith(
                   color: tokens.textPrimary,
                 ),

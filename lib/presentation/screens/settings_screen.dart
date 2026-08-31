@@ -194,7 +194,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
         const SizedBox(height: 4),
         Text(
-          _version.isEmpty ? 'Sürüm yükleniyor...' : 'Sürüm $_version',
+          _version.isEmpty
+              ? context.l10n.settingsVersionLoading
+              : context.l10n.settingsVersion(_version),
           style: AppTypography.rowSubtitle.copyWith(color: tokens.textTertiary),
         ),
       ],
@@ -205,7 +207,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final tokens = context.tokens;
 
     return Text(
-      'Vakitler cihazınızda saklanır, dışarı gönderilmez.',
+      context.l10n.settingsFooter,
       textAlign: TextAlign.center,
       style: AppTypography.hint.copyWith(
         color: tokens.textTertiary,
@@ -225,13 +227,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         backgroundColor: tokens.backgroundStops[1],
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
-          'Gizlilik',
+          context.l10n.settingsPrivacy,
           style: AppTypography.rowTitle.copyWith(color: tokens.textPrimary),
         ),
         content: Text(
-          'Konumunuz yalnızca namaz vakitlerini hesaplamak için kullanılır ve '
-          'cihazınızda saklanır. Vakit verisi Aladhan API üzerinden koordinatla '
-          'sorgulanır; kişisel bilgi gönderilmez.',
+          context.l10n.privacyBody,
           style: AppTypography.rowSubtitle.copyWith(
             color: tokens.textSecondary,
             height: 1.5,

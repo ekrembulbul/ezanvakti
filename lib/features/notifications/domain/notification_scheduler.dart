@@ -279,16 +279,17 @@ class NotificationScheduler {
       final prayerTime = byDate[day.date];
       if (prayerTime == null) continue;
 
+      final name = l10n.religiousDayName(day.id);
       _addReligiousCandidate(
         candidates: candidates,
         seenIds: seenIds,
         date: day.date,
         fireAt: prayerTime.maghrib,
         minutesBefore: 0,
-        title: day.name,
+        title: name,
         body: day.isEstimated
-            ? l10n.religiousDayTodayEstimated(day.name)
-            : l10n.religiousDayToday(day.name),
+            ? l10n.religiousDayTodayEstimated(name)
+            : l10n.religiousDayToday(name),
         soundId: soundId,
         now: now,
         cutoff: cutoff,
@@ -311,8 +312,8 @@ class NotificationScheduler {
         // Bir gün önceki hatırlatma da aynı noktaya ait; kimlik çakışmasın
         // diye sapma alanı 1 kullanılıyor.
         minutesBefore: 1,
-        title: l10n.religiousDayTomorrowTitle(day.name),
-        body: l10n.religiousDayTomorrowBody(day.name),
+        title: l10n.religiousDayTomorrowTitle(name),
+        body: l10n.religiousDayTomorrowBody(name),
         soundId: soundId,
         now: now,
         cutoff: cutoff,

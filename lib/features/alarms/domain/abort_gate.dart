@@ -1,12 +1,16 @@
 import '../../../core/config/mission_tuning.dart';
 import '../../../core/models/abort_state.dart';
 
+/// Acil çıkışta yazılması istenen cümlenin kimliği; metin çeviriden gelir.
+enum AbortPhrase { short, long }
+
 /// Belirli bir kademede acil çıkış için istenenler.
 class AbortRequirement {
   final bool requiresPhrase;
 
-  /// Birebir yazılması istenen cümle. [requiresPhrase] false ise boş.
-  final String phrase;
+  /// Yazılması istenen cümlenin **kimliği**; metin çeviriden alınır
+  /// (bkz. `AbortPhrase`). [requiresPhrase] false ise null.
+  final AbortPhrase? phrase;
 
   /// Atlanamayan bekleme. 0 = yok.
   final int countdownSeconds;
@@ -36,9 +40,9 @@ class AbortGate {
   const AbortGate._();
 
   /// Cümleler kalibrasyona açık: uykulu birini uğraştıracak kadar uzun,
-  /// uyanık birini bunaltmayacak kadar kısa olmalı.
-  static const String _phraseShort = 'alarmı kapatıyorum';
-  static const String _phraseLong = 'görevi yapmadan alarmı kapatıyorum';
+  /// uyanık birini bunaltmayacak kadar kısa olmalı. Metinleri çeviride.
+  static const AbortPhrase _phraseShort = AbortPhrase.short;
+  static const AbortPhrase _phraseLong = AbortPhrase.long;
   static const int _ceilingCountdownSeconds = 15;
 
   static int _clamp(int level) => level.clamp(0, MissionTuning.abortMaxLevel);
@@ -73,7 +77,7 @@ class AbortGate {
       case 0:
         return const AbortRequirement(
           requiresPhrase: false,
-          phrase: '',
+          phrase: null,
           countdownSeconds: 0,
         );
       case 1:

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/l10n_extensions.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_typography.dart';
@@ -136,7 +137,7 @@ class HomeDateLine extends StatelessWidget {
           ),
           const SizedBox(width: 9),
           Text(
-            HijriFormatter.format(date),
+            HijriFormatter.format(date, context.l10n),
             style: AppTypography.dateLine.copyWith(color: tokens.accent),
           ),
         ],

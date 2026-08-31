@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/app_localizations.dart';
+import '../../../l10n/l10n_extensions.dart';
 
 import '../../../core/models/notification_setting.dart';
-import '../../../core/models/derived_time.dart';
 import '../../../core/utils/prayer_utils.dart';
 import '../../utils/alarm_labels.dart' show weekdaysLabel;
 import '../common/grouped_list.dart';
@@ -40,17 +41,18 @@ class NotificationTile extends StatelessWidget {
     this.onTap,
   });
 
-  String get _offsetText => setting.minutesBefore == 0
-      ? 'Tam vaktinde'
-      : '${setting.minutesBefore} dk önce';
+  String _offsetText(AppLocalizations l10n) => setting.minutesBefore == 0
+      ? l10n.reminderOnTime
+      : l10n.reminderMinutesBefore(setting.minutesBefore);
 
   /// Başlık: türetilmiş noktalarda noktanın adı, aksi halde vaktin adı.
   /// Kullanıcı etiket verdiyse etiket kazanır — bildirimde de o görünüyor.
-  String get _title {
+  String _titleFor(AppLocalizations l10n) {
     final label = setting.label;
     if (label != null && label.trim().isNotEmpty) return label.trim();
-    return setting.derivedKind?.label ??
-        PrayerUtils.getPrayerName(setting.prayerType);
+    final derived = setting.derivedKind;
+    if (derived != null) return l10n.derivedName(derived);
+    return l10n.prayerName(setting.prayerType);
   }
 
   /// Atlanan bildirim de kapalı görünür: kullanıcı için ikisi de "bu sefer
@@ -61,13 +63,13 @@ class NotificationTile extends StatelessWidget {
 
   /// Satırın alt metni. Tek seferlik atlama ayrı bir eylem değil: anahtar
   /// kapatılınca altta çıkan çubuktan seçiliyor.
-  String get _subtitle {
-    if (_skipping) return 'Yalnızca bu sefer atlanacak';
-    if (!setting.isActive) return 'Kapalı';
+  String _subtitleFor(AppLocalizations l10n) {
+    if (_skipping) return l10n.reminderSkippedOnce;
+    if (!setting.isActive) return l10n.reminderOff;
     final parts = [
-      _offsetText,
-      if (setting.isDayScoped) weekdaysLabel(setting.weekdays),
-      if (setting.isDerived) setting.derivedKind!.description,
+      _offsetText(l10n),
+      if (setting.isDayScoped) weekdaysLabel(setting.weekdays, l10n),
+      if (setting.isDerived) l10n.derivedHint(setting.derivedKind!),
     ];
     return parts.join(' · ');
   }
@@ -92,8 +94,8 @@ class NotificationTile extends StatelessWidget {
       icon: setting.isDerived
           ? Icons.hourglass_bottom_rounded
           : PrayerUtils.getPrayerIcon(setting.prayerType),
-      title: Text(_title),
-      subtitle: Text(_subtitle),
+      title: Text(_titleFor(AppLocalizations.of(context))),
+      subtitle: Text(_subtitleFor(AppLocalizations.of(context))),
       onTap: onTap,
       dimmed: !_isOn || !hasPermission,
       trailing: Switch(

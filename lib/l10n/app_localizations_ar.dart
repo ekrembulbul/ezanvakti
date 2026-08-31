@@ -815,4 +815,548 @@ class AppLocalizationsAr extends AppLocalizations {
   String durationMinute(Object minutes) {
     return '$minutes دقيقة';
   }
+
+  @override
+  String get hijriMuharram => 'محرم';
+
+  @override
+  String get hijriSafar => 'صفر';
+
+  @override
+  String get hijriRabiAwwal => 'ربيع الأول';
+
+  @override
+  String get hijriRabiThani => 'ربيع الآخر';
+
+  @override
+  String get hijriJumadaAwwal => 'جمادى الأولى';
+
+  @override
+  String get hijriJumadaThani => 'جمادى الآخرة';
+
+  @override
+  String get hijriRajab => 'رجب';
+
+  @override
+  String get hijriShaban => 'شعبان';
+
+  @override
+  String get hijriRamadan => 'رمضان';
+
+  @override
+  String get hijriShawwal => 'شوال';
+
+  @override
+  String get hijriDhulQadah => 'ذو القعدة';
+
+  @override
+  String get hijriDhulHijjah => 'ذو الحجة';
+
+  @override
+  String get religiousNewYear => 'رأس السنة الهجرية';
+
+  @override
+  String get religiousAshura => 'عاشوراء';
+
+  @override
+  String get religiousMawlid => 'المولد النبوي';
+
+  @override
+  String get religiousRegaib => 'ليلة الرغائب';
+
+  @override
+  String get religiousMiraj => 'ليلة الإسراء والمعراج';
+
+  @override
+  String get religiousBaraat => 'ليلة البراءة';
+
+  @override
+  String get religiousRamadanStart => 'بداية رمضان';
+
+  @override
+  String get religiousQadr => 'ليلة القدر';
+
+  @override
+  String get religiousEidFitr => 'عيد الفطر';
+
+  @override
+  String get religiousArafah => 'يوم عرفة';
+
+  @override
+  String get religiousEidAdha => 'عيد الأضحى';
+
+  @override
+  String get asrShafi => 'الشافعي (قياسي)';
+
+  @override
+  String get asrHanafi => 'الحنفي';
+
+  @override
+  String get latAuto => 'تلقائي';
+
+  @override
+  String get latMidnight => 'منتصف الليل';
+
+  @override
+  String get latOneSeventh => 'سُبع الليل';
+
+  @override
+  String get latAngle => 'حسب الزاوية';
+
+  @override
+  String get calcMethodLabel => 'طريقة الحساب';
+
+  @override
+  String get calcAsrLabel => 'العصر (المذهب)';
+
+  @override
+  String get calcAdvanced => 'متقدم';
+
+  @override
+  String get calcLatitudeLabel => 'تعديل خطوط العرض العالية';
+
+  @override
+  String get calcGlobalNote =>
+      'الإعداد الافتراضي لكل المواقع. يُستخدم ما لم يكن للموقع إعداد خاص.';
+
+  @override
+  String get calcTuneSection => 'تعديلات الأوقات';
+
+  @override
+  String get calcTuneHint =>
+      'حرّك الأوقات بضع دقائق لتطابق تقويمك. تستخدم التنبيهات والمنبهات والأداة الأوقات المعدّلة.';
+
+  @override
+  String minutesShort(Object minutes) {
+    return '$minutes د';
+  }
+
+  @override
+  String get offlineFresh => 'البيانات محدّثة';
+
+  @override
+  String get offlineShouldUpdate => 'ينبغي تحديث البيانات';
+
+  @override
+  String get offlineTooOld => 'البيانات قديمة جدًا، يلزم التحديث';
+
+  @override
+  String get offlineNoData => 'لا توجد بيانات';
+
+  @override
+  String get offlineNoConnection =>
+      'لا يوجد اتصال بالإنترنت. يتم عرض البيانات المحفوظة.';
+
+  @override
+  String get offlineFetchFailed => 'تعذّر جلب البيانات. يرجى التحقق من اتصالك.';
+
+  @override
+  String get offlineUpdateFailed => 'فشل التحديث. يتم عرض البيانات المحفوظة.';
+
+  @override
+  String errorDataLoad(Object error) {
+    return 'خطأ أثناء تحميل البيانات: $error';
+  }
+
+  @override
+  String errorLocationChange(Object error) {
+    return 'تعذّر تغيير الموقع: $error';
+  }
+
+  @override
+  String errorGpsRefresh(Object error) {
+    return 'فشل تحديث GPS: $error';
+  }
+
+  @override
+  String gpsUpdated(Object location) {
+    return 'تم تحديث موقع GPS: $location';
+  }
+
+  @override
+  String get errorParseFormat =>
+      'قد تكون صيغة البيانات تغيّرت. يرجى تحديث التطبيق.';
+
+  @override
+  String get loading => 'جارٍ التحميل…';
+
+  @override
+  String get today => 'اليوم';
+
+  @override
+  String get nextLabel => 'التالي';
+
+  @override
+  String adhanAt(Object prayer, Object time) {
+    return 'أذان $prayer في $time';
+  }
+
+  @override
+  String get upcomingTitle => 'التالي';
+
+  @override
+  String get upcomingAll => 'الكل';
+
+  @override
+  String get upcomingEmpty => 'لا توجد تنبيهات أو منبهات قادمة';
+
+  @override
+  String get alarmQrRequired => 'امسح أو اكتب رمزًا لمهمة QR';
+
+  @override
+  String get alarmPickSavedCode => 'اختر من الرموز المحفوظة';
+
+  @override
+  String get alarmAnchorQuestion => 'مرتبط بأي صلاة؟';
+
+  @override
+  String get alarmBefore => 'قبل';
+
+  @override
+  String get alarmAfter => 'بعد';
+
+  @override
+  String get alarmBeforePrayer => 'قبل الصلاة';
+
+  @override
+  String get alarmAfterPrayer => 'بعد الصلاة';
+
+  @override
+  String get alarmSoundImportFailed => 'تعذّر استيراد ملف الصوت';
+
+  @override
+  String get alarmSnoozeMinutes => 'مدة التأجيل';
+
+  @override
+  String get qrSaveTitle => 'حفظ الرمز في المكتبة';
+
+  @override
+  String get qrSaveHint => 'مثال: مرآة الحمام';
+
+  @override
+  String get qrLibraryEmpty => 'لا توجد رموز محفوظة — احفظ رمزًا بعد مسحه';
+
+  @override
+  String get qrRenameTitle => 'إعادة تسمية الرمز';
+
+  @override
+  String get qrInUseTitle => 'الرمز قيد الاستخدام';
+
+  @override
+  String qrInUseBody(Object alarms) {
+    return 'تستخدم هذه المنبهات الرمز كمهمة: $alarms. حذفه من المكتبة لا يعطّل المنبه لكن لن تتمكن من اختياره مجددًا.';
+  }
+
+  @override
+  String get qrDeleteAnyway => 'احذف على أي حال';
+
+  @override
+  String get qrDefaultName => 'رمز QR';
+
+  @override
+  String get qrFieldHint => 'امسح أو اكتب الرمز';
+
+  @override
+  String get qrScanTooltip => 'امسح الرمز';
+
+  @override
+  String get qrFieldNote =>
+      'الصق الرمز بعيدًا عن سريرك: باب الحمام، المطبخ. لا يتوقف المنبه إلا بمسح هذا الرمز.';
+
+  @override
+  String get stopJustNow => 'قبل قليل';
+
+  @override
+  String stopMinutesAgo(Object minutes) {
+    return 'قبل $minutes د';
+  }
+
+  @override
+  String stopSnoozeLeft(Object count) {
+    return 'بقي $count';
+  }
+
+  @override
+  String get stopDoMission => 'نفّذ المهمة';
+
+  @override
+  String stopReturnsIn(Object countdown) {
+    return 'سيعود المنبه بعد $countdown إن لم تختر';
+  }
+
+  @override
+  String stopClosesIn(Object countdown) {
+    return 'سيُغلق بعد $countdown إن لم تلمس';
+  }
+
+  @override
+  String get missionTimeUp => 'انتهى الوقت، سيعود المنبه';
+
+  @override
+  String get missionCountdownNote => 'يعود المنبه عند انتهاء الوقت';
+
+  @override
+  String get missionCloseCompletely => 'أوقف المنبه تمامًا';
+
+  @override
+  String get missionWrongAnswer => 'خطأ، حاول مرة أخرى.';
+
+  @override
+  String get missionShakeDone => 'اكتمل';
+
+  @override
+  String get qrMissionNoCode => 'لا يوجد رمز QR محفوظ لهذا المنبه.';
+
+  @override
+  String get qrMissionNoCodeHint =>
+      'عدّل المنبه لإضافة رمز، أو استخدم مخرج الطوارئ.';
+
+  @override
+  String get qrMissionMismatch => 'تم مسح رمز مختلف';
+
+  @override
+  String get qrMissionScanSaved => 'امسح الرمز الذي حفظته';
+
+  @override
+  String get qrMissionFindCode =>
+      'اعثر على الرمز الذي حفظته عند ضبط المنبه وامسحه.';
+
+  @override
+  String get qrMissionAimCamera => 'وجّه الكاميرا نحو الرمز.';
+
+  @override
+  String get abortDismissing => 'أنا أوقف المنبه';
+
+  @override
+  String get abortDismissingHard => 'أوقف المنبه دون تنفيذ المهمة';
+
+  @override
+  String get abortTitle => 'أنت توقف المنبه دون تنفيذ المهمة.';
+
+  @override
+  String get abortMaxLevel => 'المخرج في أصعب مستوى؛ لن يزداد صعوبة.';
+
+  @override
+  String get abortHarderNext => 'في المرة القادمة سيكون المخرج أصعب.';
+
+  @override
+  String abortTypePhrase(Object phrase) {
+    return 'اكتب هذا حرفيًا: ”$phrase“';
+  }
+
+  @override
+  String get abortPhraseHint => 'اكتب الجملة';
+
+  @override
+  String get abortHoldToClose => 'اضغط مطولًا ٣ ثوانٍ للإيقاف';
+
+  @override
+  String get remindersUpdate => 'تحديث';
+
+  @override
+  String get remindersUpdateTitle => 'تحديث التنبيه';
+
+  @override
+  String get remindersAddTitle => 'إضافة تنبيه';
+
+  @override
+  String get remindersAddButton => 'أضف تنبيهًا';
+
+  @override
+  String get remindersWhichPrayer => 'لأي صلاة تريد تنبيهًا؟';
+
+  @override
+  String get remindersPrayerSection => 'الصلاة';
+
+  @override
+  String get remindersDerivedSection => 'الأوقات المشتقة';
+
+  @override
+  String get remindersDerivedHint =>
+      'تُحسب أوقات الكراهة والنوافل من الصلاة المختارة.';
+
+  @override
+  String get remindersTimeSection => 'وقت التنبيه';
+
+  @override
+  String get remindersDaysSection => 'الأيام';
+
+  @override
+  String get remindersLabelSection => 'التسمية (اختياري)';
+
+  @override
+  String get remindersOnTimeOption => 'في الوقت';
+
+  @override
+  String get remindersBeforeOption => 'قبله';
+
+  @override
+  String get remindersPickMinutes => 'اختر الدقائق';
+
+  @override
+  String get remindersMinOffsetError => 'يجب أن يكون قبل دقيقة على الأقل';
+
+  @override
+  String remindersMaxOffsetError(Object max) {
+    return 'يمكنك إضافة تنبيه قبل هذه الصلاة بحد أقصى $max دقيقة.';
+  }
+
+  @override
+  String get remindersSwipeToDelete => 'اسحب الصف لحذفه.';
+
+  @override
+  String get remindersIntro =>
+      'لكل صلاة يمكنك التذكير في وقتها أو قبلها بدقائق.';
+
+  @override
+  String get alarmsSwipeHint =>
+      'اسحب الصف للحذف؛ إن كان بالخطأ استخدم \"تراجع\" بالأسفل. تُعاد جدولة المنبهات تلقائيًا عند تحديث الأوقات.';
+
+  @override
+  String get alarmsRescheduleNote =>
+      'تُعاد جدولة المنبهات مع تحديث بيانات الأوقات.';
+
+  @override
+  String get alarmsUnsupported =>
+      'المنبهات الصوتية غير مدعومة على هذا الجهاز (يتطلب iOS 26 أو أحدث). تُحفظ المنبهات لكنها لن ترن.';
+
+  @override
+  String get alarmsNeedPermission => 'يلزم الإذن حتى ترن المنبهات.';
+
+  @override
+  String get permissionGrant => 'امنح الإذن';
+
+  @override
+  String get notificationsNeedPermission => 'يلزم منح الإذن لتلقي التنبيهات.';
+
+  @override
+  String get exactAlarmOff => 'المنبهات الدقيقة معطلة. قد تتأخر التنبيهات.';
+
+  @override
+  String get actionOpen => 'افتح';
+
+  @override
+  String alarmDeleted(Object label) {
+    return 'تم حذف المنبه $label';
+  }
+
+  @override
+  String get alarmBlockedSnoozed =>
+      'هذا المنبه مؤجل ولا تزال مهمته معلّقة؛ لا يمكن إيقافه بعد.';
+
+  @override
+  String get alarmTurnedOff => 'تم إيقاف المنبه';
+
+  @override
+  String snoozeUntil(Object time) {
+    return 'سيرن في $time';
+  }
+
+  @override
+  String get themeDark => 'داكن';
+
+  @override
+  String get themeLight => 'فاتح';
+
+  @override
+  String get themeSystem => 'النظام';
+
+  @override
+  String get themeLabel => 'السمة';
+
+  @override
+  String get appearanceTimeColor => 'اللون حسب الوقت';
+
+  @override
+  String get appearanceTimeColorOn => 'تتغير الخلفية خلال اليوم';
+
+  @override
+  String get appearanceTimeColorOff => 'اختر لوحة ثابتة';
+
+  @override
+  String get settingsVersionLoading => 'جارٍ تحميل الإصدار…';
+
+  @override
+  String settingsVersion(Object version) {
+    return 'الإصدار $version';
+  }
+
+  @override
+  String get settingsFooter => 'تُحفظ الأوقات على جهازك ولا تُرسل لأي جهة.';
+
+  @override
+  String get privacyBody =>
+      'يُستخدم موقعك فقط لحساب أوقات الصلاة ويبقى على جهازك. تُطلب الأوقات من Aladhan API بالإحداثيات؛ ولا تُرسل بيانات شخصية.';
+
+  @override
+  String dstSummer(Object offset) {
+    return 'التوقيت الصيفي مفعّل ($offset)';
+  }
+
+  @override
+  String dstWinter(Object offset) {
+    return 'التوقيت الشتوي مفعّل ($offset)';
+  }
+
+  @override
+  String get weekdayShortMon => 'إث';
+
+  @override
+  String get weekdayShortTue => 'ثل';
+
+  @override
+  String get weekdayShortWed => 'أر';
+
+  @override
+  String get weekdayShortThu => 'خم';
+
+  @override
+  String get weekdayShortFri => 'جم';
+
+  @override
+  String get weekdayShortSat => 'سب';
+
+  @override
+  String get weekdayShortSun => 'أح';
+
+  @override
+  String get weekdayLetterMon => 'إث';
+
+  @override
+  String get weekdayLetterTue => 'ثل';
+
+  @override
+  String get weekdayLetterWed => 'أر';
+
+  @override
+  String get weekdayLetterThu => 'خم';
+
+  @override
+  String get weekdayLetterFri => 'جم';
+
+  @override
+  String get weekdayLetterSat => 'سب';
+
+  @override
+  String get weekdayLetterSun => 'أح';
+
+  @override
+  String offsetMinutes(Object sign, Object minutes) {
+    return '$sign$minutes د';
+  }
+
+  @override
+  String snoozedLabel(Object time) {
+    return 'مؤجل · سيرن في $time';
+  }
+
+  @override
+  String errorGenericWith(Object error) {
+    return 'خطأ: $error';
+  }
+
+  @override
+  String locationDeleted(Object location) {
+    return 'تم حذف $location';
+  }
 }

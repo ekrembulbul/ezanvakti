@@ -1,4 +1,5 @@
 import '../../../core/models/skipped_occurrence.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../l10n/l10n_extensions.dart';
 import '../../utils/time_format_context.dart';
 import '../../../features/notifications/domain/skip_rules.dart';
@@ -78,7 +79,7 @@ class AlarmsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        ?_permissionBanner(),
+        ?_permissionBanner(context),
         Expanded(child: alarms.isEmpty ? _empty(context) : _list(context)),
         _footer(context),
       ],
@@ -96,14 +97,19 @@ class AlarmsSection extends StatelessWidget {
   /// Tek seferlik atlama artık ayrı bir eylem değil: anahtar kapatılınca
   /// altta çıkan çubuktan seçiliyor. Burada yalnızca **hangi durumda**
   /// olduğu yazıyor.
-  String _subtitle(Alarm alarm, DateTime? snoozedUntil, bool skipped) {
+  String _subtitle(
+    Alarm alarm,
+    DateTime? snoozedUntil,
+    bool skipped,
+    AppLocalizations l10n,
+  ) {
     if (alarm.isActive && scheduleFailures.containsKey(alarm.id)) {
-      return 'Kurulamadı — düzenleyip kaydederek yeniden dene';
+      return l10n.reminderScheduleFailed;
     }
-    if (snoozedUntil != null) return SnoozeNotice.label(snoozedUntil);
-    if (skipped) return 'Yalnızca bu sefer atlanacak';
-    if (!alarm.isActive) return 'Kapalı';
-    return alarmSubtitle(alarm);
+    if (snoozedUntil != null) return SnoozeNotice.label(snoozedUntil, l10n);
+    if (skipped) return l10n.reminderSkippedOnce;
+    if (!alarm.isActive) return l10n.reminderOff;
+    return alarmSubtitle(alarm, l10n);
   }
 
   Widget _alarmRow(BuildContext context, Alarm alarm) {
@@ -138,10 +144,13 @@ class AlarmsSection extends StatelessWidget {
           title: Text(
           alarmTimeLabel(
             alarm,
+            l10n: context.l10n,
             formatHourMinute: context.formatHourMinute,
           ),
         ),
-          subtitle: Text(_subtitle(alarm, snoozedUntil, skipped)),
+          subtitle: Text(
+            _subtitle(alarm, snoozedUntil, skipped, context.l10n),
+          ),
           onTap: () => onEdit(alarm),
           dimmed: !isOn,
           trailing: Switch(
@@ -224,9 +233,7 @@ class AlarmsSection extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 2),
           child: Text(
-            'Silmek için satırı sola kaydırın; yanlışlıkla silersen alttaki '
-            '"Geri al" ile dönersin. Alarmlar vakit güncellendiğinde otomatik '
-            'yeniden planlanır.',
+            context.l10n.alarmsSwipeHint,
             style: AppTypography.hint.copyWith(
               color: tokens.textTertiary,
               height: 1.5,
@@ -248,7 +255,7 @@ class AlarmsSection extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Alarmlar vakit verisi güncellendikçe yeniden planlanır.',
+              context.l10n.alarmsRescheduleNote,
               style: AppTypography.hint.copyWith(color: tokens.textTertiary),
             ),
           ),
@@ -259,15 +266,13 @@ class AlarmsSection extends StatelessWidget {
 
   /// iOS < 26'da destek yok; izin verilmemişse uyarı + "İzin ver". Her şey
   /// yolundaysa null döner.
-  Widget? _permissionBanner() {
+  Widget? _permissionBanner(BuildContext context) {
     if (!isSupported) {
-      return const Padding(
-        padding: EdgeInsets.only(top: 12),
+      return Padding(
+        padding: const EdgeInsets.only(top: 12),
         child: InfoBanner(
           icon: Icons.info_outline_rounded,
-          text:
-              'Sesli alarm bu cihazda desteklenmiyor (iOS 26 ve üzeri gerekir). '
-              'Alarmlar kaydedilir ancak çalmaz.',
+          text: context.l10n.alarmsUnsupported,
         ),
       );
     }
@@ -276,10 +281,10 @@ class AlarmsSection extends StatelessWidget {
         padding: const EdgeInsets.only(top: 12),
         child: InfoBanner(
           icon: Icons.notifications_off_rounded,
-          text: 'Alarmların çalması için izin gerekiyor.',
+          text: context.l10n.alarmsNeedPermission,
           action: TextButton(
             onPressed: onRequestPermission,
-            child: const Text('İzin ver'),
+            child: Text(context.l10n.permissionGrant),
           ),
         ),
       );

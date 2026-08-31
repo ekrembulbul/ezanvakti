@@ -1569,6 +1569,978 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{minutes} dakika'**
   String durationMinute(Object minutes);
+
+  /// Hicri ay
+  ///
+  /// In tr, this message translates to:
+  /// **'Muharrem'**
+  String get hijriMuharram;
+
+  /// Hicri ay
+  ///
+  /// In tr, this message translates to:
+  /// **'Safer'**
+  String get hijriSafar;
+
+  /// Hicri ay
+  ///
+  /// In tr, this message translates to:
+  /// **'Rebiülevvel'**
+  String get hijriRabiAwwal;
+
+  /// Hicri ay
+  ///
+  /// In tr, this message translates to:
+  /// **'Rebiülahir'**
+  String get hijriRabiThani;
+
+  /// Hicri ay
+  ///
+  /// In tr, this message translates to:
+  /// **'Cemaziyülevvel'**
+  String get hijriJumadaAwwal;
+
+  /// Hicri ay
+  ///
+  /// In tr, this message translates to:
+  /// **'Cemaziyülahir'**
+  String get hijriJumadaThani;
+
+  /// Hicri ay
+  ///
+  /// In tr, this message translates to:
+  /// **'Recep'**
+  String get hijriRajab;
+
+  /// Hicri ay
+  ///
+  /// In tr, this message translates to:
+  /// **'Şaban'**
+  String get hijriShaban;
+
+  /// Hicri ay
+  ///
+  /// In tr, this message translates to:
+  /// **'Ramazan'**
+  String get hijriRamadan;
+
+  /// Hicri ay
+  ///
+  /// In tr, this message translates to:
+  /// **'Şevval'**
+  String get hijriShawwal;
+
+  /// Hicri ay
+  ///
+  /// In tr, this message translates to:
+  /// **'Zilkade'**
+  String get hijriDhulQadah;
+
+  /// Hicri ay
+  ///
+  /// In tr, this message translates to:
+  /// **'Zilhicce'**
+  String get hijriDhulHijjah;
+
+  /// Dini gün
+  ///
+  /// In tr, this message translates to:
+  /// **'Hicri Yılbaşı'**
+  String get religiousNewYear;
+
+  /// Dini gün
+  ///
+  /// In tr, this message translates to:
+  /// **'Aşure Günü'**
+  String get religiousAshura;
+
+  /// Dini gün
+  ///
+  /// In tr, this message translates to:
+  /// **'Mevlid Kandili'**
+  String get religiousMawlid;
+
+  /// Dini gün
+  ///
+  /// In tr, this message translates to:
+  /// **'Regaib Kandili'**
+  String get religiousRegaib;
+
+  /// Dini gün
+  ///
+  /// In tr, this message translates to:
+  /// **'Miraç Kandili'**
+  String get religiousMiraj;
+
+  /// Dini gün
+  ///
+  /// In tr, this message translates to:
+  /// **'Berat Kandili'**
+  String get religiousBaraat;
+
+  /// Dini gün
+  ///
+  /// In tr, this message translates to:
+  /// **'Ramazan Başlangıcı'**
+  String get religiousRamadanStart;
+
+  /// Dini gün
+  ///
+  /// In tr, this message translates to:
+  /// **'Kadir Gecesi'**
+  String get religiousQadr;
+
+  /// Dini gün
+  ///
+  /// In tr, this message translates to:
+  /// **'Ramazan Bayramı'**
+  String get religiousEidFitr;
+
+  /// Dini gün
+  ///
+  /// In tr, this message translates to:
+  /// **'Arefe Günü'**
+  String get religiousArafah;
+
+  /// Dini gün
+  ///
+  /// In tr, this message translates to:
+  /// **'Kurban Bayramı'**
+  String get religiousEidAdha;
+
+  /// İkindi mezhebi
+  ///
+  /// In tr, this message translates to:
+  /// **'Şafi (Standart)'**
+  String get asrShafi;
+
+  /// İkindi mezhebi
+  ///
+  /// In tr, this message translates to:
+  /// **'Hanefi'**
+  String get asrHanafi;
+
+  /// Enlem düzeltmesi
+  ///
+  /// In tr, this message translates to:
+  /// **'Otomatik'**
+  String get latAuto;
+
+  /// Enlem düzeltmesi
+  ///
+  /// In tr, this message translates to:
+  /// **'Gece ortası'**
+  String get latMidnight;
+
+  /// Enlem düzeltmesi
+  ///
+  /// In tr, this message translates to:
+  /// **'Gecenin yedide biri'**
+  String get latOneSeventh;
+
+  /// Enlem düzeltmesi
+  ///
+  /// In tr, this message translates to:
+  /// **'Açı tabanlı'**
+  String get latAngle;
+
+  /// Ayar
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesaplama Yöntemi'**
+  String get calcMethodLabel;
+
+  /// Ayar
+  ///
+  /// In tr, this message translates to:
+  /// **'İkindi (Mezhep)'**
+  String get calcAsrLabel;
+
+  /// Bölüm
+  ///
+  /// In tr, this message translates to:
+  /// **'Gelişmiş'**
+  String get calcAdvanced;
+
+  /// Ayar
+  ///
+  /// In tr, this message translates to:
+  /// **'Yüksek Enlem Düzeltmesi'**
+  String get calcLatitudeLabel;
+
+  /// Bilgi notu
+  ///
+  /// In tr, this message translates to:
+  /// **'Tüm konumlar için varsayılan ayar. Bir konum kendi ayarını seçmediği sürece bu kullanılır.'**
+  String get calcGlobalNote;
+
+  /// Bölüm
+  ///
+  /// In tr, this message translates to:
+  /// **'Vakit düzeltmeleri'**
+  String get calcTuneSection;
+
+  /// Bilgi notu
+  ///
+  /// In tr, this message translates to:
+  /// **'Vakitleri elindeki takvime göre birkaç dakika kaydırabilirsin. Bildirimler, alarmlar ve widget da kaydırılmış vakti kullanır.'**
+  String get calcTuneHint;
+
+  /// Kısa dakika
+  ///
+  /// In tr, this message translates to:
+  /// **'{minutes} dk'**
+  String minutesShort(Object minutes);
+
+  /// Durum
+  ///
+  /// In tr, this message translates to:
+  /// **'Veriler güncel'**
+  String get offlineFresh;
+
+  /// Durum
+  ///
+  /// In tr, this message translates to:
+  /// **'Veriler güncellenmeli'**
+  String get offlineShouldUpdate;
+
+  /// Durum
+  ///
+  /// In tr, this message translates to:
+  /// **'Veriler çok eski, güncelleme gerekli'**
+  String get offlineTooOld;
+
+  /// Durum
+  ///
+  /// In tr, this message translates to:
+  /// **'Veri bulunamadı'**
+  String get offlineNoData;
+
+  /// Durum
+  ///
+  /// In tr, this message translates to:
+  /// **'İnternet bağlantısı yok. Kaydedilmiş veriler gösteriliyor.'**
+  String get offlineNoConnection;
+
+  /// Hata
+  ///
+  /// In tr, this message translates to:
+  /// **'Veri alınamadı. Lütfen internet bağlantınızı kontrol edin.'**
+  String get offlineFetchFailed;
+
+  /// Hata
+  ///
+  /// In tr, this message translates to:
+  /// **'Güncelleme başarısız. Kaydedilmiş veriler gösteriliyor.'**
+  String get offlineUpdateFailed;
+
+  /// Hata
+  ///
+  /// In tr, this message translates to:
+  /// **'Veri yüklenirken hata oluştu: {error}'**
+  String errorDataLoad(Object error);
+
+  /// Hata
+  ///
+  /// In tr, this message translates to:
+  /// **'Konum değiştirilemedi: {error}'**
+  String errorLocationChange(Object error);
+
+  /// Hata
+  ///
+  /// In tr, this message translates to:
+  /// **'GPS yenileme hatası: {error}'**
+  String errorGpsRefresh(Object error);
+
+  /// Bildirim mesajı
+  ///
+  /// In tr, this message translates to:
+  /// **'GPS konumu güncellendi: {location}'**
+  String gpsUpdated(Object location);
+
+  /// Hata
+  ///
+  /// In tr, this message translates to:
+  /// **'Veri formatı değişmiş olabilir. Lütfen uygulamayı güncellemeyi deneyin.'**
+  String get errorParseFormat;
+
+  /// Yükleme
+  ///
+  /// In tr, this message translates to:
+  /// **'Yükleniyor...'**
+  String get loading;
+
+  /// Takvim rozeti
+  ///
+  /// In tr, this message translates to:
+  /// **'BUGÜN'**
+  String get today;
+
+  /// Sayaç etiketi
+  ///
+  /// In tr, this message translates to:
+  /// **'SONRAKİ'**
+  String get nextLabel;
+
+  /// Sayaç alt bilgisi
+  ///
+  /// In tr, this message translates to:
+  /// **'{prayer} ezanı {time}\'de'**
+  String adhanAt(Object prayer, Object time);
+
+  /// Kart başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıradaki'**
+  String get upcomingTitle;
+
+  /// Düğme
+  ///
+  /// In tr, this message translates to:
+  /// **'Tümü'**
+  String get upcomingAll;
+
+  /// Boş durum
+  ///
+  /// In tr, this message translates to:
+  /// **'Yaklaşan bildirim veya alarm yok'**
+  String get upcomingEmpty;
+
+  /// Hata
+  ///
+  /// In tr, this message translates to:
+  /// **'QR görevi için bir kod okut ya da yaz'**
+  String get alarmQrRequired;
+
+  /// Düğme
+  ///
+  /// In tr, this message translates to:
+  /// **'Kayıtlı kodlardan seç'**
+  String get alarmPickSavedCode;
+
+  /// Ayar
+  ///
+  /// In tr, this message translates to:
+  /// **'Hangi vakte göre?'**
+  String get alarmAnchorQuestion;
+
+  /// Yön
+  ///
+  /// In tr, this message translates to:
+  /// **'Önce'**
+  String get alarmBefore;
+
+  /// Yön
+  ///
+  /// In tr, this message translates to:
+  /// **'Sonra'**
+  String get alarmAfter;
+
+  /// Yön
+  ///
+  /// In tr, this message translates to:
+  /// **'Vakitten önce'**
+  String get alarmBeforePrayer;
+
+  /// Yön
+  ///
+  /// In tr, this message translates to:
+  /// **'Vakitten sonra'**
+  String get alarmAfterPrayer;
+
+  /// Hata
+  ///
+  /// In tr, this message translates to:
+  /// **'Ses dosyası alınamadı'**
+  String get alarmSoundImportFailed;
+
+  /// Ayar
+  ///
+  /// In tr, this message translates to:
+  /// **'Erteleme süresi'**
+  String get alarmSnoozeMinutes;
+
+  /// Diyalog
+  ///
+  /// In tr, this message translates to:
+  /// **'Kodu kütüphaneye kaydet'**
+  String get qrSaveTitle;
+
+  /// Alan ipucu
+  ///
+  /// In tr, this message translates to:
+  /// **'Örn. Banyo aynası'**
+  String get qrSaveHint;
+
+  /// Boş durum
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz kayıtlı kod yok — okuttuğun kodu kaydederek başla'**
+  String get qrLibraryEmpty;
+
+  /// Diyalog
+  ///
+  /// In tr, this message translates to:
+  /// **'Kodu yeniden adlandır'**
+  String get qrRenameTitle;
+
+  /// Diyalog
+  ///
+  /// In tr, this message translates to:
+  /// **'Kod kullanımda'**
+  String get qrInUseTitle;
+
+  /// Diyalog gövdesi
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu kodu şu alarmlar görev olarak kullanıyor: {alarms}. Kütüphaneden silmek alarmı bozmaz ama kodu yeniden seçemezsin.'**
+  String qrInUseBody(Object alarms);
+
+  /// Düğme
+  ///
+  /// In tr, this message translates to:
+  /// **'Yine de sil'**
+  String get qrDeleteAnyway;
+
+  /// Varsayılan ad
+  ///
+  /// In tr, this message translates to:
+  /// **'QR kod'**
+  String get qrDefaultName;
+
+  /// Alan ipucu
+  ///
+  /// In tr, this message translates to:
+  /// **'Kodu okut ya da yaz'**
+  String get qrFieldHint;
+
+  /// İpucu
+  ///
+  /// In tr, this message translates to:
+  /// **'Kodu okut'**
+  String get qrScanTooltip;
+
+  /// Bilgi notu
+  ///
+  /// In tr, this message translates to:
+  /// **'Kodu yatağından uzak bir yere yapıştır: banyo kapısı, mutfak. Alarm ancak bu kod okutulunca kapanır.'**
+  String get qrFieldNote;
+
+  /// Zaman
+  ///
+  /// In tr, this message translates to:
+  /// **'az önce'**
+  String get stopJustNow;
+
+  /// Zaman
+  ///
+  /// In tr, this message translates to:
+  /// **'{minutes} dk önce'**
+  String stopMinutesAgo(Object minutes);
+
+  /// Kalan hak
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} hak kaldı'**
+  String stopSnoozeLeft(Object count);
+
+  /// Düğme
+  ///
+  /// In tr, this message translates to:
+  /// **'Görevi yap'**
+  String get stopDoMission;
+
+  /// Bilgi
+  ///
+  /// In tr, this message translates to:
+  /// **'Seçim yapmazsan alarm {countdown} sonra döner'**
+  String stopReturnsIn(Object countdown);
+
+  /// Bilgi
+  ///
+  /// In tr, this message translates to:
+  /// **'Dokunmazsan {countdown} sonra kapanır'**
+  String stopClosesIn(Object countdown);
+
+  /// Bilgi
+  ///
+  /// In tr, this message translates to:
+  /// **'Süre doldu, alarm geri dönüyor'**
+  String get missionTimeUp;
+
+  /// Bilgi
+  ///
+  /// In tr, this message translates to:
+  /// **'süre bitince alarm geri döner'**
+  String get missionCountdownNote;
+
+  /// Düğme
+  ///
+  /// In tr, this message translates to:
+  /// **'Alarmı tamamen kapat'**
+  String get missionCloseCompletely;
+
+  /// Hata
+  ///
+  /// In tr, this message translates to:
+  /// **'Yanlış, tekrar dene.'**
+  String get missionWrongAnswer;
+
+  /// Durum
+  ///
+  /// In tr, this message translates to:
+  /// **'tamamlandı'**
+  String get missionShakeDone;
+
+  /// Hata
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu alarma kayıtlı bir QR kod yok.'**
+  String get qrMissionNoCode;
+
+  /// Bilgi
+  ///
+  /// In tr, this message translates to:
+  /// **'Alarmı düzenleyip kod ekleyebilir ya da acil çıkışı kullanabilirsin.'**
+  String get qrMissionNoCodeHint;
+
+  /// Hata
+  ///
+  /// In tr, this message translates to:
+  /// **'Farklı bir kod okundu'**
+  String get qrMissionMismatch;
+
+  /// Yönerge
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydettiğin kodu okut'**
+  String get qrMissionScanSaved;
+
+  /// Yönerge
+  ///
+  /// In tr, this message translates to:
+  /// **'Alarmı kurarken kaydettiğin kodu bul ve onu okut.'**
+  String get qrMissionFindCode;
+
+  /// Yönerge
+  ///
+  /// In tr, this message translates to:
+  /// **'Kamerayı koda doğru tut.'**
+  String get qrMissionAimCamera;
+
+  /// Acil çıkış cümlesi
+  ///
+  /// In tr, this message translates to:
+  /// **'alarmı kapatıyorum'**
+  String get abortDismissing;
+
+  /// Acil çıkış cümlesi
+  ///
+  /// In tr, this message translates to:
+  /// **'görevi yapmadan alarmı kapatıyorum'**
+  String get abortDismissingHard;
+
+  /// Diyalog
+  ///
+  /// In tr, this message translates to:
+  /// **'Alarmı görevi yapmadan kapatıyorsun.'**
+  String get abortTitle;
+
+  /// Bilgi
+  ///
+  /// In tr, this message translates to:
+  /// **'Çıkış artık en zor kademede; daha da zorlaşmayacak.'**
+  String get abortMaxLevel;
+
+  /// Bilgi
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir dahaki sefere çıkış daha zor olacak.'**
+  String get abortHarderNext;
+
+  /// Yönerge
+  ///
+  /// In tr, this message translates to:
+  /// **'Şunu birebir yaz: “{phrase}”'**
+  String abortTypePhrase(Object phrase);
+
+  /// Alan ipucu
+  ///
+  /// In tr, this message translates to:
+  /// **'Cümleyi yaz'**
+  String get abortPhraseHint;
+
+  /// Yönerge
+  ///
+  /// In tr, this message translates to:
+  /// **'Kapatmak için 3 saniye basılı tut'**
+  String get abortHoldToClose;
+
+  /// Düğme
+  ///
+  /// In tr, this message translates to:
+  /// **'Güncelle'**
+  String get remindersUpdate;
+
+  /// Sheet başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirimi Güncelle'**
+  String get remindersUpdateTitle;
+
+  /// Sheet başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni Bildirim Ekle'**
+  String get remindersAddTitle;
+
+  /// Düğme
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirim Ekle'**
+  String get remindersAddButton;
+
+  /// Yönerge
+  ///
+  /// In tr, this message translates to:
+  /// **'Hangi vakitte bildirim almak istiyorsunuz?'**
+  String get remindersWhichPrayer;
+
+  /// Bölüm
+  ///
+  /// In tr, this message translates to:
+  /// **'Namaz Vakti'**
+  String get remindersPrayerSection;
+
+  /// Bölüm
+  ///
+  /// In tr, this message translates to:
+  /// **'Türetilmiş Vakitler'**
+  String get remindersDerivedSection;
+
+  /// Bilgi
+  ///
+  /// In tr, this message translates to:
+  /// **'Kerahat ve nafile pencereleri, seçtiğin vakitten hesaplanır.'**
+  String get remindersDerivedHint;
+
+  /// Bölüm
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirim Zamanı'**
+  String get remindersTimeSection;
+
+  /// Bölüm
+  ///
+  /// In tr, this message translates to:
+  /// **'Günler'**
+  String get remindersDaysSection;
+
+  /// Bölüm
+  ///
+  /// In tr, this message translates to:
+  /// **'Etiket (isteğe bağlı)'**
+  String get remindersLabelSection;
+
+  /// Seçenek
+  ///
+  /// In tr, this message translates to:
+  /// **'Tam vaktinde'**
+  String get remindersOnTimeOption;
+
+  /// Seçenek
+  ///
+  /// In tr, this message translates to:
+  /// **'Öncesinde'**
+  String get remindersBeforeOption;
+
+  /// Yönerge
+  ///
+  /// In tr, this message translates to:
+  /// **'Dakika seçin'**
+  String get remindersPickMinutes;
+
+  /// Hata
+  ///
+  /// In tr, this message translates to:
+  /// **'En az 1 dk önce olabilir'**
+  String get remindersMinOffsetError;
+
+  /// Hata
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu vakitten en fazla {max} dk önce bildirim ekleyebilirsin.'**
+  String remindersMaxOffsetError(Object max);
+
+  /// İpucu
+  ///
+  /// In tr, this message translates to:
+  /// **'Silmek için satırı sola kaydırın.'**
+  String get remindersSwipeToDelete;
+
+  /// Bilgi
+  ///
+  /// In tr, this message translates to:
+  /// **'Her vakit için tam vaktinde veya X dakika önce hatırlatma alabilirsiniz.'**
+  String get remindersIntro;
+
+  /// İpucu
+  ///
+  /// In tr, this message translates to:
+  /// **'Silmek için satırı sola kaydırın; yanlışlıkla silersen alttaki \"Geri al\" ile dönersin. Alarmlar vakit güncellendiğinde otomatik yeniden planlanır.'**
+  String get alarmsSwipeHint;
+
+  /// Bilgi
+  ///
+  /// In tr, this message translates to:
+  /// **'Alarmlar vakit verisi güncellendikçe yeniden planlanır.'**
+  String get alarmsRescheduleNote;
+
+  /// Uyarı
+  ///
+  /// In tr, this message translates to:
+  /// **'Sesli alarm bu cihazda desteklenmiyor (iOS 26 ve üzeri gerekir). Alarmlar kaydedilir ancak çalmaz.'**
+  String get alarmsUnsupported;
+
+  /// Uyarı
+  ///
+  /// In tr, this message translates to:
+  /// **'Alarmların çalması için izin gerekiyor.'**
+  String get alarmsNeedPermission;
+
+  /// Düğme
+  ///
+  /// In tr, this message translates to:
+  /// **'İzin ver'**
+  String get permissionGrant;
+
+  /// Uyarı
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirim almak için izin vermeniz gerekiyor.'**
+  String get notificationsNeedPermission;
+
+  /// Uyarı
+  ///
+  /// In tr, this message translates to:
+  /// **'Tam zamanlı alarm kapalı. Bildirimler gecikebilir.'**
+  String get exactAlarmOff;
+
+  /// Düğme
+  ///
+  /// In tr, this message translates to:
+  /// **'Aç'**
+  String get actionOpen;
+
+  /// Bildirim mesajı
+  ///
+  /// In tr, this message translates to:
+  /// **'{label} alarmı silindi'**
+  String alarmDeleted(Object label);
+
+  /// Uyarı
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu alarm ertelendi ve görevi bekliyor; görevi yapmadan kapatılamaz.'**
+  String get alarmBlockedSnoozed;
+
+  /// Bildirim mesajı
+  ///
+  /// In tr, this message translates to:
+  /// **'Alarm kapatıldı'**
+  String get alarmTurnedOff;
+
+  /// Erteleme bilgisi
+  ///
+  /// In tr, this message translates to:
+  /// **'{time}\'te çalacak'**
+  String snoozeUntil(Object time);
+
+  /// Tema
+  ///
+  /// In tr, this message translates to:
+  /// **'Koyu'**
+  String get themeDark;
+
+  /// Tema
+  ///
+  /// In tr, this message translates to:
+  /// **'Açık'**
+  String get themeLight;
+
+  /// Tema
+  ///
+  /// In tr, this message translates to:
+  /// **'Sistem'**
+  String get themeSystem;
+
+  /// Bölüm
+  ///
+  /// In tr, this message translates to:
+  /// **'Tema'**
+  String get themeLabel;
+
+  /// Ayar
+  ///
+  /// In tr, this message translates to:
+  /// **'Vakte göre renk'**
+  String get appearanceTimeColor;
+
+  /// Ayar açıklaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Zemin gün içinde ilerler'**
+  String get appearanceTimeColorOn;
+
+  /// Ayar açıklaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Sabit bir palet seçin'**
+  String get appearanceTimeColorOff;
+
+  /// Alt bilgi
+  ///
+  /// In tr, this message translates to:
+  /// **'Sürüm yükleniyor...'**
+  String get settingsVersionLoading;
+
+  /// Alt bilgi
+  ///
+  /// In tr, this message translates to:
+  /// **'Sürüm {version}'**
+  String settingsVersion(Object version);
+
+  /// Alt bilgi
+  ///
+  /// In tr, this message translates to:
+  /// **'Vakitler cihazınızda saklanır, dışarı gönderilmez.'**
+  String get settingsFooter;
+
+  /// Gizlilik metni
+  ///
+  /// In tr, this message translates to:
+  /// **'Konumunuz yalnızca namaz vakitlerini hesaplamak için kullanılır ve cihazınızda saklanır. Vakit verisi Aladhan API üzerinden koordinatla sorgulanır; kişisel bilgi gönderilmez.'**
+  String get privacyBody;
+
+  /// Saat dilimi
+  ///
+  /// In tr, this message translates to:
+  /// **'Yaz saati uygulanıyor ({offset})'**
+  String dstSummer(Object offset);
+
+  /// Saat dilimi
+  ///
+  /// In tr, this message translates to:
+  /// **'Kış saati uygulanıyor ({offset})'**
+  String dstWinter(Object offset);
+
+  /// Gün kısaltması
+  ///
+  /// In tr, this message translates to:
+  /// **'Pzt'**
+  String get weekdayShortMon;
+
+  /// Gün kısaltması
+  ///
+  /// In tr, this message translates to:
+  /// **'Sal'**
+  String get weekdayShortTue;
+
+  /// Gün kısaltması
+  ///
+  /// In tr, this message translates to:
+  /// **'Çar'**
+  String get weekdayShortWed;
+
+  /// Gün kısaltması
+  ///
+  /// In tr, this message translates to:
+  /// **'Per'**
+  String get weekdayShortThu;
+
+  /// Gün kısaltması
+  ///
+  /// In tr, this message translates to:
+  /// **'Cum'**
+  String get weekdayShortFri;
+
+  /// Gün kısaltması
+  ///
+  /// In tr, this message translates to:
+  /// **'Cmt'**
+  String get weekdayShortSat;
+
+  /// Gün kısaltması
+  ///
+  /// In tr, this message translates to:
+  /// **'Paz'**
+  String get weekdayShortSun;
+
+  /// Gün harfi
+  ///
+  /// In tr, this message translates to:
+  /// **'Pt'**
+  String get weekdayLetterMon;
+
+  /// Gün harfi
+  ///
+  /// In tr, this message translates to:
+  /// **'Sa'**
+  String get weekdayLetterTue;
+
+  /// Gün harfi
+  ///
+  /// In tr, this message translates to:
+  /// **'Ça'**
+  String get weekdayLetterWed;
+
+  /// Gün harfi
+  ///
+  /// In tr, this message translates to:
+  /// **'Pe'**
+  String get weekdayLetterThu;
+
+  /// Gün harfi
+  ///
+  /// In tr, this message translates to:
+  /// **'Cu'**
+  String get weekdayLetterFri;
+
+  /// Gün harfi
+  ///
+  /// In tr, this message translates to:
+  /// **'Ct'**
+  String get weekdayLetterSat;
+
+  /// Gün harfi
+  ///
+  /// In tr, this message translates to:
+  /// **'Pa'**
+  String get weekdayLetterSun;
+
+  /// Sapma etiketi
+  ///
+  /// In tr, this message translates to:
+  /// **'{sign}{minutes} dk'**
+  String offsetMinutes(Object sign, Object minutes);
+
+  /// Erteleme bilgisi
+  ///
+  /// In tr, this message translates to:
+  /// **'Ertelendi · {time}\'te çalacak'**
+  String snoozedLabel(Object time);
+
+  /// Hata
+  ///
+  /// In tr, this message translates to:
+  /// **'Hata: {error}'**
+  String errorGenericWith(Object error);
+
+  /// Bildirim mesajı
+  ///
+  /// In tr, this message translates to:
+  /// **'{location} silindi'**
+  String locationDeleted(Object location);
 }
 
 class _AppLocalizationsDelegate

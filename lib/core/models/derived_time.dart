@@ -33,22 +33,6 @@ extension DerivedTimeKindX on DerivedTimeKind {
     DerivedTimeKind.lastThird => PrayerType.maghrib,
   };
 
-  String get label => switch (this) {
-    DerivedTimeKind.ishraq => 'İşrak',
-    DerivedTimeKind.istiwa => 'Kerahat (zeval)',
-    DerivedTimeKind.preMaghrib => 'Kerahat (akşam öncesi)',
-    DerivedTimeKind.midnight => 'Gece yarısı',
-    DerivedTimeKind.lastThird => 'Gecenin son üçte biri',
-  };
-
-  String get description => switch (this) {
-    DerivedTimeKind.ishraq => 'Güneşten sonra kerahat biter',
-    DerivedTimeKind.istiwa => 'Öğleden önceki kerahat başlar',
-    DerivedTimeKind.preMaghrib => 'Akşamdan önceki kerahat başlar',
-    DerivedTimeKind.midnight => 'Şer\'i gecenin ortası',
-    DerivedTimeKind.lastThird => 'Teheccüd vakti başlar',
-  };
-
   /// Depolamada kullanılan kararlı değer; enum adı değişse de kayıt bozulmaz.
   String get storageValue => switch (this) {
     DerivedTimeKind.ishraq => 'ishraq',

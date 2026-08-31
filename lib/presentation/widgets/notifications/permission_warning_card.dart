@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/l10n_extensions.dart';
 
 import '../common/info_banner.dart';
 
@@ -25,7 +26,7 @@ class PermissionWarningCard extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 16),
       child: InfoBanner(
         icon: Icons.notifications_off_rounded,
-        text: 'Bildirim almak için izin vermeniz gerekiyor.',
+        text: context.l10n.notificationsNeedPermission,
         action: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -42,7 +43,7 @@ class PermissionWarningCard extends StatelessWidget {
                   final granted = await onRequestPermission!.call();
                   onPermissionGranted(granted);
                 },
-                child: const Text('İzin ver'),
+                child: Text(context.l10n.permissionGrant),
               ),
           ],
         ),

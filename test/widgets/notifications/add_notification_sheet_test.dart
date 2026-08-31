@@ -1,4 +1,6 @@
 import 'package:ezanvakti/core/models/derived_time.dart';
+import 'package:ezanvakti/l10n/app_localizations.dart';
+import 'package:ezanvakti/l10n/l10n_extensions.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart';
 import 'package:ezanvakti/presentation/widgets/notifications/add_notification_bottom_sheet.dart';
 import 'package:flutter/cupertino.dart';
@@ -6,8 +8,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../theme_harness.dart';
+import '../../support/l10n_helper.dart';
 
 void main() {
+  late AppLocalizations l10n;
+
+  setUpAll(() async => l10n = await loadTestL10n());
+
   Future<void> pumpSheet(
     WidgetTester tester, {
     void Function(PrayerType, int, Set<int>, String?, DerivedTimeKind?)? onAdd,
@@ -137,7 +144,7 @@ void main() {
       },
     );
 
-    await tester.tap(find.text(DerivedTimeKind.istiwa.label));
+    await tester.tap(find.text(l10n.derivedName(DerivedTimeKind.istiwa)));
     await tester.pump();
     await tester.tap(find.text('Bildirim Ekle'));
     await tester.pumpAndSettle();
@@ -151,9 +158,9 @@ void main() {
 
     await pumpSheet(tester, onAdd: (_, _, _, _, k) => kind = k);
 
-    await tester.tap(find.text(DerivedTimeKind.ishraq.label));
+    await tester.tap(find.text(l10n.derivedName(DerivedTimeKind.ishraq)));
     await tester.pump();
-    await tester.tap(find.text(DerivedTimeKind.ishraq.label));
+    await tester.tap(find.text(l10n.derivedName(DerivedTimeKind.ishraq)));
     await tester.pump();
     await tester.tap(find.text('Bildirim Ekle'));
     await tester.pumpAndSettle();

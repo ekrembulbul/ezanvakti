@@ -13,12 +13,30 @@ enum ReligiousDayKind {
   other,
 }
 
-/// Bir dini gün: miladi tarihi, adı ve nasıl belirlendiği.
+/// Dini günlerin dile bağlı olmayan kimlikleri.
+enum ReligiousDayId {
+  newYear,
+  ashura,
+  mawlid,
+  regaib,
+  miraj,
+  baraat,
+  ramadanStart,
+  qadr,
+  eidFitr,
+  arafah,
+  eidAdha,
+}
+
+/// Bir dini gün: miladi tarihi, kimliği ve nasıl belirlendiği.
+///
+/// Ad **taşımaz**: metin çeviriden gelir. Ada göre eşleşme yapan kod
+/// çeviri gelince sessizce bozulurdu.
 class ReligiousDay {
   /// Miladi karşılık (gün başına yuvarlanmış).
   final DateTime date;
 
-  final String name;
+  final ReligiousDayId id;
   final ReligiousDayKind kind;
 
   /// Tarih hicri takvimden **hesaplandı** mı. Diyanet ilanları astronomik
@@ -28,7 +46,7 @@ class ReligiousDay {
 
   const ReligiousDay({
     required this.date,
-    required this.name,
+    required this.id,
     required this.kind,
     this.isEstimated = true,
   });

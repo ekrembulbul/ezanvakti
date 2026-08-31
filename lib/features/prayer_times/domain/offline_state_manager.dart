@@ -168,30 +168,4 @@ class OfflineStateManager {
     return cachedTimes.length >= expectedDays;
   }
 
-  String getCacheStatusMessage(CacheStatus status) {
-    switch (status) {
-      case CacheStatus.available:
-        return 'Veriler güncel';
-      case CacheStatus.stale:
-        return 'Veriler güncellenmeli';
-      case CacheStatus.expired:
-        return 'Veriler çok eski, güncelleme gerekli';
-      case CacheStatus.notFound:
-        return 'Veri bulunamadı';
-      case CacheStatus.incomplete:
-        return 'Veriler eksik';
-    }
-  }
-
-  String getOfflineMessage() {
-    return 'İnternet bağlantısı yok. Kaydedilmiş veriler gösteriliyor.';
-  }
-
-  String getNoDataMessage() {
-    return 'Veri alınamadı. Lütfen internet bağlantınızı kontrol edin.';
-  }
-
-  String getUpdateFailedMessage() {
-    return 'Güncelleme başarısız. Kaydedilmiş veriler gösteriliyor.';
-  }
 }

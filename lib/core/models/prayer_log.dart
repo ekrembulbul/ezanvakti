@@ -19,12 +19,6 @@ extension PrayerStatusX on PrayerStatus {
     PrayerStatus.missed => 'missed',
   };
 
-  String get label => switch (this) {
-    PrayerStatus.done => 'Kıldım',
-    PrayerStatus.qada => 'Kaza',
-    PrayerStatus.missed => 'Kaçtı',
-  };
-
   static PrayerStatus? fromStorage(String? value) {
     if (value == null) return null;
     for (final status in PrayerStatus.values) {

@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import '../../../l10n/l10n_extensions.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
@@ -83,14 +84,14 @@ class _AddNotificationBottomSheetState
 
     if (_isBefore) {
       if (_selectedOffset <= 0) {
-        setState(() => _errorText = 'En az 1 dk önce olabilir');
+        setState(() => _errorText = context.l10n.remindersMinOffsetError);
         return;
       }
 
       if (_selectedOffset > maxOffset) {
         setState(() {
           _errorText =
-              'Bu vakitten en fazla $maxOffset dk önce bildirim ekleyebilirsin.';
+              context.l10n.remindersMaxOffsetError(maxOffset);
         });
         return;
       }
@@ -130,8 +131,8 @@ class _AddNotificationBottomSheetState
 
   @override
   Widget build(BuildContext context) {
-    final title = widget.title ?? 'Yeni Bildirim Ekle';
-    final submitLabel = widget.submitLabel ?? 'Bildirim Ekle';
+    final title = widget.title ?? context.l10n.remindersAddTitle;
+    final submitLabel = widget.submitLabel ?? context.l10n.remindersAddButton;
 
     final viewInsets = MediaQuery.of(context).viewInsets.bottom;
     return Container(
@@ -173,18 +174,18 @@ class _AddNotificationBottomSheetState
               ),
               const SizedBox(height: 8),
               Text(
-                'Hangi vakitte bildirim almak istiyorsunuz?',
+                context.l10n.remindersWhichPrayer,
                 style: TextStyle(color: tokens.textSecondary),
               ),
               const SizedBox(height: 24),
-              const Center(child: SectionLabel('Namaz Vakti')),
+              Center(child: SectionLabel(context.l10n.remindersPrayerSection)),
               const SizedBox(height: 12),
               _buildPrayerTypeSelector(),
               const SizedBox(height: 20),
-              const Center(child: SectionLabel('Türetilmiş Vakitler')),
+              Center(child: SectionLabel(context.l10n.remindersDerivedSection)),
               const SizedBox(height: 8),
               Text(
-                'Kerahat ve nafile pencereleri, seçtiğin vakitten hesaplanır.',
+                context.l10n.remindersDerivedHint,
                 textAlign: TextAlign.center,
                 style: AppTypography.hint.copyWith(
                   color: tokens.textTertiary,
@@ -194,21 +195,21 @@ class _AddNotificationBottomSheetState
               const SizedBox(height: 12),
               _buildDerivedSelector(),
               const SizedBox(height: 24),
-              const Center(child: SectionLabel('Bildirim Zamanı')),
+              Center(child: SectionLabel(context.l10n.remindersTimeSection)),
               const SizedBox(height: 12),
               _buildTimeSelector(),
               const SizedBox(height: 24),
-              const Center(child: SectionLabel('Günler')),
+              Center(child: SectionLabel(context.l10n.remindersDaysSection)),
               const SizedBox(height: 12),
               _buildWeekdaySelector(),
               const SizedBox(height: 24),
-              const Center(child: SectionLabel('Etiket (isteğe bağlı)')),
+              Center(child: SectionLabel(context.l10n.remindersLabelSection)),
               const SizedBox(height: 12),
               TextField(
                 controller: _label,
                 style: TextStyle(color: tokens.textPrimary),
                 decoration: InputDecoration(
-                  hintText: 'Örn. Cuma namazı',
+                  hintText: context.l10n.reminderFridayLabel,
                   hintStyle: TextStyle(color: tokens.textTertiary),
                   filled: true,
                   fillColor: tokens.surface,
@@ -283,7 +284,7 @@ class _AddNotificationBottomSheetState
                 ),
               ),
               child: Text(
-                kind.label,
+                context.l10n.derivedName(kind),
                 style: TextStyle(
                   color: isSelected ? tokens.accent : tokens.textSecondary,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
@@ -299,7 +300,7 @@ class _AddNotificationBottomSheetState
 
   /// Gün çipleri; alarm ekranındaki kalıpla aynı (1=Pazartesi).
   Widget _buildWeekdaySelector() {
-    const names = ['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pa'];
+    final names = [for (var d = 1; d <= 7; d++) context.l10n.weekdayLetter(d)];
 
     return Row(
       children: List.generate(7, (index) {
@@ -372,7 +373,7 @@ class _AddNotificationBottomSheetState
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    PrayerUtils.getPrayerName(type),
+                    context.l10n.prayerName(type),
                     style: TextStyle(
                       color: isSelected ? tokens.accent : tokens.textPrimary,
                       fontWeight: isSelected
@@ -402,7 +403,7 @@ class _AddNotificationBottomSheetState
             runAlignment: WrapAlignment.center,
             children: [
               _buildTimeChip(
-                label: 'Tam vaktinde',
+                label: context.l10n.remindersOnTimeOption,
                 isSelected: !_isBefore,
                 onTap: () {
                   setState(() {
@@ -413,7 +414,7 @@ class _AddNotificationBottomSheetState
                 },
               ),
               _buildTimeChip(
-                label: 'Öncesinde',
+                label: context.l10n.remindersBeforeOption,
                 isSelected: _isBefore,
                 onTap: () {
                   setState(() {
@@ -469,7 +470,7 @@ class _AddNotificationBottomSheetState
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              'Dakika seçin',
+                              context.l10n.remindersPickMinutes,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: AppTypography.rowSubtitle.copyWith(

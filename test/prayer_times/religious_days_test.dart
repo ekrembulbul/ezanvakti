@@ -16,7 +16,7 @@ void main() {
 
   test('Kadir Gecesi Ramazan 27 de', () {
     final days = range(DateTime(2027, 2, 1), DateTime(2027, 3, 15));
-    final qadr = days.where((d) => d.name.contains('Kadir'));
+    final qadr = days.where((d) => d.id == ReligiousDayId.qadr);
     expect(qadr, hasLength(1));
     expect(qadr.first.date, DateTime(2027, 3, 6));
   });
@@ -42,13 +42,13 @@ void main() {
     for (var i = 1; i < days.length; i++) {
       expect(days[i].date.isBefore(days[i - 1].date), isFalse);
     }
-    final keys = days.map((d) => '${d.date}-${d.name}').toSet();
+    final keys = days.map((d) => '${d.date}-${d.id.name}').toSet();
     expect(keys.length, days.length);
   });
 
   test('Regaib Recep ayinin ilk persembesi', () {
     final days = range(DateTime(2026, 12, 1), DateTime(2027, 1, 31));
-    final regaib = days.where((d) => d.name.contains('Regaib'));
+    final regaib = days.where((d) => d.id == ReligiousDayId.regaib);
     expect(regaib, hasLength(1));
     expect(regaib.first.date.weekday, DateTime.thursday);
   });
@@ -58,25 +58,13 @@ void main() {
     expect(days.every((d) => d.isEstimated), isTrue);
   });
 
-  test('bir yillik aralikta on bir kandil/bayram bulunur', () {
+  test('bir yillik aralikta tum kandil ve bayramlar bulunur', () {
     // Hicri yil miladi yildan kisa oldugu icin bazi gunler iki kez dusebilir;
     // en az bir tam hicri yil kapsandigindan hepsi bulunmali.
     final days = range(DateTime(2026, 9, 1), DateTime(2027, 9, 1));
-    final names = days.map((d) => d.name).toSet();
-    for (final expected in [
-      'Hicri Yılbaşı',
-      'Aşure Günü',
-      'Mevlid Kandili',
-      'Regaib Kandili',
-      'Miraç Kandili',
-      'Berat Kandili',
-      'Ramazan Başlangıcı',
-      'Kadir Gecesi',
-      'Ramazan Bayramı',
-      'Arefe Günü',
-      'Kurban Bayramı',
-    ]) {
-      expect(names, contains(expected), reason: expected);
+    final ids = days.map((d) => d.id).toSet();
+    for (final expected in ReligiousDayId.values) {
+      expect(ids, contains(expected), reason: expected.name);
     }
   });
 }

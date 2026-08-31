@@ -1,4 +1,5 @@
 import '../../../core/interfaces/widget_publisher.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../core/models/location.dart';
 import '../../../core/models/prayer_time.dart';
 import '../../../core/utils/app_logger.dart';
@@ -19,6 +20,7 @@ Future<void> publishWidgetSnapshot({
   required List<PrayerTime> prayerTimes,
   required DateTime now,
   WidgetLabels? labels,
+  AppLocalizations? l10n,
 }) async {
   if (location == null) return;
 
@@ -29,6 +31,7 @@ Future<void> publishWidgetSnapshot({
         prayerTimes: prayerTimes,
         now: now,
         labels: labels,
+        l10n: l10n,
       ),
     );
   } catch (e, stackTrace) {

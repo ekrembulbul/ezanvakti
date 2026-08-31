@@ -818,4 +818,556 @@ class AppLocalizationsTr extends AppLocalizations {
   String durationMinute(Object minutes) {
     return '$minutes dakika';
   }
+
+  @override
+  String get hijriMuharram => 'Muharrem';
+
+  @override
+  String get hijriSafar => 'Safer';
+
+  @override
+  String get hijriRabiAwwal => 'Rebiülevvel';
+
+  @override
+  String get hijriRabiThani => 'Rebiülahir';
+
+  @override
+  String get hijriJumadaAwwal => 'Cemaziyülevvel';
+
+  @override
+  String get hijriJumadaThani => 'Cemaziyülahir';
+
+  @override
+  String get hijriRajab => 'Recep';
+
+  @override
+  String get hijriShaban => 'Şaban';
+
+  @override
+  String get hijriRamadan => 'Ramazan';
+
+  @override
+  String get hijriShawwal => 'Şevval';
+
+  @override
+  String get hijriDhulQadah => 'Zilkade';
+
+  @override
+  String get hijriDhulHijjah => 'Zilhicce';
+
+  @override
+  String get religiousNewYear => 'Hicri Yılbaşı';
+
+  @override
+  String get religiousAshura => 'Aşure Günü';
+
+  @override
+  String get religiousMawlid => 'Mevlid Kandili';
+
+  @override
+  String get religiousRegaib => 'Regaib Kandili';
+
+  @override
+  String get religiousMiraj => 'Miraç Kandili';
+
+  @override
+  String get religiousBaraat => 'Berat Kandili';
+
+  @override
+  String get religiousRamadanStart => 'Ramazan Başlangıcı';
+
+  @override
+  String get religiousQadr => 'Kadir Gecesi';
+
+  @override
+  String get religiousEidFitr => 'Ramazan Bayramı';
+
+  @override
+  String get religiousArafah => 'Arefe Günü';
+
+  @override
+  String get religiousEidAdha => 'Kurban Bayramı';
+
+  @override
+  String get asrShafi => 'Şafi (Standart)';
+
+  @override
+  String get asrHanafi => 'Hanefi';
+
+  @override
+  String get latAuto => 'Otomatik';
+
+  @override
+  String get latMidnight => 'Gece ortası';
+
+  @override
+  String get latOneSeventh => 'Gecenin yedide biri';
+
+  @override
+  String get latAngle => 'Açı tabanlı';
+
+  @override
+  String get calcMethodLabel => 'Hesaplama Yöntemi';
+
+  @override
+  String get calcAsrLabel => 'İkindi (Mezhep)';
+
+  @override
+  String get calcAdvanced => 'Gelişmiş';
+
+  @override
+  String get calcLatitudeLabel => 'Yüksek Enlem Düzeltmesi';
+
+  @override
+  String get calcGlobalNote =>
+      'Tüm konumlar için varsayılan ayar. Bir konum kendi ayarını seçmediği sürece bu kullanılır.';
+
+  @override
+  String get calcTuneSection => 'Vakit düzeltmeleri';
+
+  @override
+  String get calcTuneHint =>
+      'Vakitleri elindeki takvime göre birkaç dakika kaydırabilirsin. Bildirimler, alarmlar ve widget da kaydırılmış vakti kullanır.';
+
+  @override
+  String minutesShort(Object minutes) {
+    return '$minutes dk';
+  }
+
+  @override
+  String get offlineFresh => 'Veriler güncel';
+
+  @override
+  String get offlineShouldUpdate => 'Veriler güncellenmeli';
+
+  @override
+  String get offlineTooOld => 'Veriler çok eski, güncelleme gerekli';
+
+  @override
+  String get offlineNoData => 'Veri bulunamadı';
+
+  @override
+  String get offlineNoConnection =>
+      'İnternet bağlantısı yok. Kaydedilmiş veriler gösteriliyor.';
+
+  @override
+  String get offlineFetchFailed =>
+      'Veri alınamadı. Lütfen internet bağlantınızı kontrol edin.';
+
+  @override
+  String get offlineUpdateFailed =>
+      'Güncelleme başarısız. Kaydedilmiş veriler gösteriliyor.';
+
+  @override
+  String errorDataLoad(Object error) {
+    return 'Veri yüklenirken hata oluştu: $error';
+  }
+
+  @override
+  String errorLocationChange(Object error) {
+    return 'Konum değiştirilemedi: $error';
+  }
+
+  @override
+  String errorGpsRefresh(Object error) {
+    return 'GPS yenileme hatası: $error';
+  }
+
+  @override
+  String gpsUpdated(Object location) {
+    return 'GPS konumu güncellendi: $location';
+  }
+
+  @override
+  String get errorParseFormat =>
+      'Veri formatı değişmiş olabilir. Lütfen uygulamayı güncellemeyi deneyin.';
+
+  @override
+  String get loading => 'Yükleniyor...';
+
+  @override
+  String get today => 'BUGÜN';
+
+  @override
+  String get nextLabel => 'SONRAKİ';
+
+  @override
+  String adhanAt(Object prayer, Object time) {
+    return '$prayer ezanı $time\'de';
+  }
+
+  @override
+  String get upcomingTitle => 'Sıradaki';
+
+  @override
+  String get upcomingAll => 'Tümü';
+
+  @override
+  String get upcomingEmpty => 'Yaklaşan bildirim veya alarm yok';
+
+  @override
+  String get alarmQrRequired => 'QR görevi için bir kod okut ya da yaz';
+
+  @override
+  String get alarmPickSavedCode => 'Kayıtlı kodlardan seç';
+
+  @override
+  String get alarmAnchorQuestion => 'Hangi vakte göre?';
+
+  @override
+  String get alarmBefore => 'Önce';
+
+  @override
+  String get alarmAfter => 'Sonra';
+
+  @override
+  String get alarmBeforePrayer => 'Vakitten önce';
+
+  @override
+  String get alarmAfterPrayer => 'Vakitten sonra';
+
+  @override
+  String get alarmSoundImportFailed => 'Ses dosyası alınamadı';
+
+  @override
+  String get alarmSnoozeMinutes => 'Erteleme süresi';
+
+  @override
+  String get qrSaveTitle => 'Kodu kütüphaneye kaydet';
+
+  @override
+  String get qrSaveHint => 'Örn. Banyo aynası';
+
+  @override
+  String get qrLibraryEmpty =>
+      'Henüz kayıtlı kod yok — okuttuğun kodu kaydederek başla';
+
+  @override
+  String get qrRenameTitle => 'Kodu yeniden adlandır';
+
+  @override
+  String get qrInUseTitle => 'Kod kullanımda';
+
+  @override
+  String qrInUseBody(Object alarms) {
+    return 'Bu kodu şu alarmlar görev olarak kullanıyor: $alarms. Kütüphaneden silmek alarmı bozmaz ama kodu yeniden seçemezsin.';
+  }
+
+  @override
+  String get qrDeleteAnyway => 'Yine de sil';
+
+  @override
+  String get qrDefaultName => 'QR kod';
+
+  @override
+  String get qrFieldHint => 'Kodu okut ya da yaz';
+
+  @override
+  String get qrScanTooltip => 'Kodu okut';
+
+  @override
+  String get qrFieldNote =>
+      'Kodu yatağından uzak bir yere yapıştır: banyo kapısı, mutfak. Alarm ancak bu kod okutulunca kapanır.';
+
+  @override
+  String get stopJustNow => 'az önce';
+
+  @override
+  String stopMinutesAgo(Object minutes) {
+    return '$minutes dk önce';
+  }
+
+  @override
+  String stopSnoozeLeft(Object count) {
+    return '$count hak kaldı';
+  }
+
+  @override
+  String get stopDoMission => 'Görevi yap';
+
+  @override
+  String stopReturnsIn(Object countdown) {
+    return 'Seçim yapmazsan alarm $countdown sonra döner';
+  }
+
+  @override
+  String stopClosesIn(Object countdown) {
+    return 'Dokunmazsan $countdown sonra kapanır';
+  }
+
+  @override
+  String get missionTimeUp => 'Süre doldu, alarm geri dönüyor';
+
+  @override
+  String get missionCountdownNote => 'süre bitince alarm geri döner';
+
+  @override
+  String get missionCloseCompletely => 'Alarmı tamamen kapat';
+
+  @override
+  String get missionWrongAnswer => 'Yanlış, tekrar dene.';
+
+  @override
+  String get missionShakeDone => 'tamamlandı';
+
+  @override
+  String get qrMissionNoCode => 'Bu alarma kayıtlı bir QR kod yok.';
+
+  @override
+  String get qrMissionNoCodeHint =>
+      'Alarmı düzenleyip kod ekleyebilir ya da acil çıkışı kullanabilirsin.';
+
+  @override
+  String get qrMissionMismatch => 'Farklı bir kod okundu';
+
+  @override
+  String get qrMissionScanSaved => 'Kaydettiğin kodu okut';
+
+  @override
+  String get qrMissionFindCode =>
+      'Alarmı kurarken kaydettiğin kodu bul ve onu okut.';
+
+  @override
+  String get qrMissionAimCamera => 'Kamerayı koda doğru tut.';
+
+  @override
+  String get abortDismissing => 'alarmı kapatıyorum';
+
+  @override
+  String get abortDismissingHard => 'görevi yapmadan alarmı kapatıyorum';
+
+  @override
+  String get abortTitle => 'Alarmı görevi yapmadan kapatıyorsun.';
+
+  @override
+  String get abortMaxLevel =>
+      'Çıkış artık en zor kademede; daha da zorlaşmayacak.';
+
+  @override
+  String get abortHarderNext => 'Bir dahaki sefere çıkış daha zor olacak.';
+
+  @override
+  String abortTypePhrase(Object phrase) {
+    return 'Şunu birebir yaz: “$phrase”';
+  }
+
+  @override
+  String get abortPhraseHint => 'Cümleyi yaz';
+
+  @override
+  String get abortHoldToClose => 'Kapatmak için 3 saniye basılı tut';
+
+  @override
+  String get remindersUpdate => 'Güncelle';
+
+  @override
+  String get remindersUpdateTitle => 'Bildirimi Güncelle';
+
+  @override
+  String get remindersAddTitle => 'Yeni Bildirim Ekle';
+
+  @override
+  String get remindersAddButton => 'Bildirim Ekle';
+
+  @override
+  String get remindersWhichPrayer =>
+      'Hangi vakitte bildirim almak istiyorsunuz?';
+
+  @override
+  String get remindersPrayerSection => 'Namaz Vakti';
+
+  @override
+  String get remindersDerivedSection => 'Türetilmiş Vakitler';
+
+  @override
+  String get remindersDerivedHint =>
+      'Kerahat ve nafile pencereleri, seçtiğin vakitten hesaplanır.';
+
+  @override
+  String get remindersTimeSection => 'Bildirim Zamanı';
+
+  @override
+  String get remindersDaysSection => 'Günler';
+
+  @override
+  String get remindersLabelSection => 'Etiket (isteğe bağlı)';
+
+  @override
+  String get remindersOnTimeOption => 'Tam vaktinde';
+
+  @override
+  String get remindersBeforeOption => 'Öncesinde';
+
+  @override
+  String get remindersPickMinutes => 'Dakika seçin';
+
+  @override
+  String get remindersMinOffsetError => 'En az 1 dk önce olabilir';
+
+  @override
+  String remindersMaxOffsetError(Object max) {
+    return 'Bu vakitten en fazla $max dk önce bildirim ekleyebilirsin.';
+  }
+
+  @override
+  String get remindersSwipeToDelete => 'Silmek için satırı sola kaydırın.';
+
+  @override
+  String get remindersIntro =>
+      'Her vakit için tam vaktinde veya X dakika önce hatırlatma alabilirsiniz.';
+
+  @override
+  String get alarmsSwipeHint =>
+      'Silmek için satırı sola kaydırın; yanlışlıkla silersen alttaki \"Geri al\" ile dönersin. Alarmlar vakit güncellendiğinde otomatik yeniden planlanır.';
+
+  @override
+  String get alarmsRescheduleNote =>
+      'Alarmlar vakit verisi güncellendikçe yeniden planlanır.';
+
+  @override
+  String get alarmsUnsupported =>
+      'Sesli alarm bu cihazda desteklenmiyor (iOS 26 ve üzeri gerekir). Alarmlar kaydedilir ancak çalmaz.';
+
+  @override
+  String get alarmsNeedPermission => 'Alarmların çalması için izin gerekiyor.';
+
+  @override
+  String get permissionGrant => 'İzin ver';
+
+  @override
+  String get notificationsNeedPermission =>
+      'Bildirim almak için izin vermeniz gerekiyor.';
+
+  @override
+  String get exactAlarmOff =>
+      'Tam zamanlı alarm kapalı. Bildirimler gecikebilir.';
+
+  @override
+  String get actionOpen => 'Aç';
+
+  @override
+  String alarmDeleted(Object label) {
+    return '$label alarmı silindi';
+  }
+
+  @override
+  String get alarmBlockedSnoozed =>
+      'Bu alarm ertelendi ve görevi bekliyor; görevi yapmadan kapatılamaz.';
+
+  @override
+  String get alarmTurnedOff => 'Alarm kapatıldı';
+
+  @override
+  String snoozeUntil(Object time) {
+    return '$time\'te çalacak';
+  }
+
+  @override
+  String get themeDark => 'Koyu';
+
+  @override
+  String get themeLight => 'Açık';
+
+  @override
+  String get themeSystem => 'Sistem';
+
+  @override
+  String get themeLabel => 'Tema';
+
+  @override
+  String get appearanceTimeColor => 'Vakte göre renk';
+
+  @override
+  String get appearanceTimeColorOn => 'Zemin gün içinde ilerler';
+
+  @override
+  String get appearanceTimeColorOff => 'Sabit bir palet seçin';
+
+  @override
+  String get settingsVersionLoading => 'Sürüm yükleniyor...';
+
+  @override
+  String settingsVersion(Object version) {
+    return 'Sürüm $version';
+  }
+
+  @override
+  String get settingsFooter =>
+      'Vakitler cihazınızda saklanır, dışarı gönderilmez.';
+
+  @override
+  String get privacyBody =>
+      'Konumunuz yalnızca namaz vakitlerini hesaplamak için kullanılır ve cihazınızda saklanır. Vakit verisi Aladhan API üzerinden koordinatla sorgulanır; kişisel bilgi gönderilmez.';
+
+  @override
+  String dstSummer(Object offset) {
+    return 'Yaz saati uygulanıyor ($offset)';
+  }
+
+  @override
+  String dstWinter(Object offset) {
+    return 'Kış saati uygulanıyor ($offset)';
+  }
+
+  @override
+  String get weekdayShortMon => 'Pzt';
+
+  @override
+  String get weekdayShortTue => 'Sal';
+
+  @override
+  String get weekdayShortWed => 'Çar';
+
+  @override
+  String get weekdayShortThu => 'Per';
+
+  @override
+  String get weekdayShortFri => 'Cum';
+
+  @override
+  String get weekdayShortSat => 'Cmt';
+
+  @override
+  String get weekdayShortSun => 'Paz';
+
+  @override
+  String get weekdayLetterMon => 'Pt';
+
+  @override
+  String get weekdayLetterTue => 'Sa';
+
+  @override
+  String get weekdayLetterWed => 'Ça';
+
+  @override
+  String get weekdayLetterThu => 'Pe';
+
+  @override
+  String get weekdayLetterFri => 'Cu';
+
+  @override
+  String get weekdayLetterSat => 'Ct';
+
+  @override
+  String get weekdayLetterSun => 'Pa';
+
+  @override
+  String offsetMinutes(Object sign, Object minutes) {
+    return '$sign$minutes dk';
+  }
+
+  @override
+  String snoozedLabel(Object time) {
+    return 'Ertelendi · $time\'te çalacak';
+  }
+
+  @override
+  String errorGenericWith(Object error) {
+    return 'Hata: $error';
+  }
+
+  @override
+  String locationDeleted(Object location) {
+    return '$location silindi';
+  }
 }

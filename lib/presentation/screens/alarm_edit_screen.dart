@@ -103,7 +103,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
     // cikisla susturabilirdi. Kaydetmeden once kod zorunlu.
     if (_mission == AlarmMission.qr && _qrPayload.text.trim().isEmpty) {
       _revealQrSection();
-      _snack('QR görevi için bir kod okut ya da yaz');
+      _snack(context.l10n.alarmQrRequired);
       return;
     }
 
@@ -229,7 +229,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                 child: TextButton.icon(
                   onPressed: _openSavedCodes,
                   icon: const Icon(Icons.bookmarks_outlined, size: 18),
-                  label: const Text('Kayıtlı kodlardan seç'),
+                  label: Text(context.l10n.alarmPickSavedCode),
                 ),
               ),
             ],
@@ -298,11 +298,11 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
       children: [
         OptionRow<PrayerType>(
           label: 'Vakit',
-          sheetTitle: 'Hangi vakte göre?',
+          sheetTitle: context.l10n.alarmAnchorQuestion,
           selected: _anchor,
           items: [
             for (final p in PrayerNameHelper.getAllPrayerTypes())
-              OptionItem(value: p, label: PrayerNameHelper.getName(p)),
+              OptionItem(value: p, label: context.l10n.prayerName(p)),
           ],
           onChanged: (v) => setState(() => _anchor = v),
         ),
@@ -316,13 +316,13 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                 spacing: 10,
                 runSpacing: 10,
                 children: [
-                  _timeChip('Önce', isBefore, () {
+                  _timeChip(context.l10n.alarmBefore, isBefore, () {
                     setState(() => _offset = -_anchorMagnitude(maxOffset));
                   }),
                   _timeChip('Tam vaktinde', isExact, () {
                     setState(() => _offset = 0);
                   }),
-                  _timeChip('Sonra', isAfter, () {
+                  _timeChip(context.l10n.alarmAfter, isAfter, () {
                     setState(() => _offset = _anchorMagnitude(maxOffset));
                   }),
                 ],
@@ -402,7 +402,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    isBefore ? 'Vakitten önce' : 'Vakitten sonra',
+                    isBefore ? context.l10n.alarmBeforePrayer : context.l10n.alarmAfterPrayer,
                     style: TextStyle(
                       color: tokens.textPrimary,
                       fontWeight: FontWeight.w600,
@@ -441,7 +441,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                 maxOffset,
                 (i) => Center(
                   child: Text(
-                    '${i + 1} dk',
+                    context.l10n.minutesShort(i + 1),
                     style: TextStyle(
                       color: tokens.textPrimary,
                       fontWeight: FontWeight.w600,
@@ -521,7 +521,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   }
 
   Widget _dayCell(int day) {
-    const names = ['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pa'];
+    final names = [for (var d = 1; d <= 7; d++) context.l10n.weekdayLetter(d)];
     final selected = _weekdays.contains(day);
     return GestureDetector(
       onTap: () => _toggleDay(day),
@@ -636,7 +636,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
         .importCustomSound(file.path);
     if (!mounted) return;
     if (soundId == null) {
-      _snack('Ses dosyası alınamadı');
+      _snack(context.l10n.alarmSoundImportFailed);
       return;
     }
     setState(() {
@@ -665,7 +665,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
 
   Widget _snoozeMinutesSelector() {
     return OptionRow<int>(
-      label: 'Erteleme süresi',
+      label: context.l10n.alarmSnoozeMinutes,
       selected: _snoozeMinutes,
       items: [
         for (final m in kSnoozeMinuteOptions)
@@ -758,24 +758,27 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   /// Okutulan kodu kütüphaneye kaydetmeyi önerir; ad boş bırakılırsa
   /// generik ad kullanılır. "Vazgeç" yalnızca kaydı atlar, kod alanda kalır.
   Future<void> _offerSaveScannedCode(String code) async {
+    // Çeviri asenkron adımlardan önce okunuyor: `await` sonrası context'e
+    // dokunmak (widget ölmüş olabilir) yanlış.
+    final l10n = context.l10n;
     final nameController = TextEditingController();
     final save = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Kodu kütüphaneye kaydet'),
+        title: Text(context.l10n.qrSaveTitle),
         content: TextField(
           controller: nameController,
           autofocus: true,
-          decoration: const InputDecoration(hintText: 'Örn. Banyo aynası'),
+          decoration: InputDecoration(hintText: context.l10n.qrSaveHint),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Vazgeç'),
+            child: Text(context.l10n.actionCancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Kaydet'),
+            child: Text(context.l10n.actionSave),
           ),
         ],
       ),
@@ -785,7 +788,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
       await ServiceLocator().get<LocalStorage>().saveQrCode(
         QrCodeEntry(
           id: DateTime.now().microsecondsSinceEpoch.toString(),
-          label: label.isEmpty ? 'QR kod' : label,
+          label: label.isEmpty ? l10n.qrDefaultName : label,
           payload: code,
           createdAt: DateTime.now(),
         ),
@@ -801,7 +804,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
     final codes = await storage.getQrCodes();
     if (!mounted) return;
     if (codes.isEmpty) {
-      _snack('Henüz kayıtlı kod yok — okuttuğun kodu kaydederek başla');
+      _snack(context.l10n.qrLibraryEmpty);
       return;
     }
     final alarms = await ServiceLocator().get<AlarmsManager>().getAlarms();
@@ -856,16 +859,16 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
     final save = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Kodu yeniden adlandır'),
+        title: Text(context.l10n.qrRenameTitle),
         content: TextField(controller: nameController, autofocus: true),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Vazgeç'),
+            child: Text(context.l10n.actionCancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Kaydet'),
+            child: Text(context.l10n.actionSave),
           ),
         ],
       ),
@@ -891,20 +894,16 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
       final proceed = await showDialog<bool>(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          title: const Text('Kod kullanımda'),
-          content: Text(
-            'Bu kodu şu alarmlar görev olarak kullanıyor: '
-            '${users.join(', ')}. Kütüphaneden silmek alarmı bozmaz ama '
-            'kodu yeniden seçemezsin.',
-          ),
+          title: Text(context.l10n.qrInUseTitle),
+          content: Text(context.l10n.qrInUseBody(users.join(', '))),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),
-              child: const Text('Vazgeç'),
+              child: Text(context.l10n.actionCancel),
             ),
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('Yine de sil'),
+              child: Text(context.l10n.qrDeleteAnyway),
             ),
           ],
         ),

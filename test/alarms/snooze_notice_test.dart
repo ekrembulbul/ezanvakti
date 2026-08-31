@@ -2,9 +2,16 @@ import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/core/models/alarm_mission.dart';
 import 'package:ezanvakti/core/models/mission_session.dart';
 import 'package:ezanvakti/presentation/widgets/reminders/snooze_notice.dart';
+import 'package:ezanvakti/l10n/app_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../support/l10n_helper.dart';
+
 void main() {
+  late AppLocalizations l10n;
+
+  setUpAll(() async => l10n = await loadTestL10n());
+
   final firedAt = DateTime(2026, 8, 18, 5, 0);
   final until = DateTime(2026, 8, 18, 5, 10);
 
@@ -81,7 +88,7 @@ void main() {
 
   group('label', () {
     test('Saat HH:mm bicimiyle yazilir', () {
-      expect(SnoozeNotice.label(until), contains('05:10'));
+      expect(SnoozeNotice.label(until, l10n), contains('05:10'));
     });
   });
 }

@@ -40,6 +40,7 @@ class _LocationListScreenState extends State<LocationListScreen> {
   }
 
   Future<void> _loadLocations() async {
+    final l10n = context.l10n;
     setState(() => _isLoading = true);
     try {
       final locations = await widget.locationRepository.getSavedLocations();
@@ -49,7 +50,7 @@ class _LocationListScreenState extends State<LocationListScreen> {
       });
     } catch (e) {
       setState(() => _isLoading = false);
-      _showSnackBar('Konumlar yüklenemedi: $e', isError: true);
+      _showSnackBar(l10n.locationsLoadFailed(e), isError: true);
     }
   }
 
@@ -90,36 +91,38 @@ class _LocationListScreenState extends State<LocationListScreen> {
       Navigator.popUntil(context, (route) => route.isFirst);
     } else {
       _loadLocations();
-      _showSnackBar('Konum güncellendi');
+      _showSnackBar(context.l10n.locationUpdated);
     }
   }
 
   /// Onay sorulmadan siler; geri alma "Geri al" ile verilir.
   Future<void> _deleteLocation(Location location) async {
+    final l10n = context.l10n;
     try {
       await widget.locationRepository.deleteLocation(location.id);
       _loadLocations();
       _showSnackBar(
-        '${location.displayName} silindi',
+        l10n.locationDeleted(location.displayName),
         action: SnackBarAction(
-          label: 'Geri al',
+          label: l10n.snackUndo,
           textColor: Colors.white,
           onPressed: () => _restoreLocation(location),
         ),
       );
     } catch (e) {
-      _showSnackBar('Hata: $e', isError: true);
+      _showSnackBar(l10n.errorGenericWith(e), isError: true);
     }
   }
 
   /// Silinen konumu **aynı id ile** geri yazar; kayıtlı vakitler ve alarm
   /// eşleşmeleri bozulmasın.
   Future<void> _restoreLocation(Location location) async {
+    final l10n = context.l10n;
     try {
       await widget.locationRepository.saveLocation(location);
       _loadLocations();
     } catch (e) {
-      _showSnackBar('Geri alınamadı: $e', isError: true);
+      _showSnackBar(l10n.locationUndoFailed(e), isError: true);
     }
   }
 

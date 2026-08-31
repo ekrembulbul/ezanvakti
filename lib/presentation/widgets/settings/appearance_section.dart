@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/l10n_extensions.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/models/appearance_settings.dart';
@@ -34,15 +35,24 @@ class AppearanceSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Tema',
+            context.l10n.themeLabel,
             style: AppTypography.rowTitle.copyWith(color: tokens.textPrimary),
           ),
           const SizedBox(height: 12),
           SlidingSegment<AppThemeMode>(
-            items: const [
-              SegmentItem(value: AppThemeMode.dark, label: 'Koyu'),
-              SegmentItem(value: AppThemeMode.light, label: 'Açık'),
-              SegmentItem(value: AppThemeMode.system, label: 'Sistem'),
+            items: [
+              SegmentItem(
+                value: AppThemeMode.dark,
+                label: context.l10n.themeDark,
+              ),
+              SegmentItem(
+                value: AppThemeMode.light,
+                label: context.l10n.themeLight,
+              ),
+              SegmentItem(
+                value: AppThemeMode.system,
+                label: context.l10n.themeSystem,
+              ),
             ],
             selected: settings.themeMode,
             onChanged: controller.setThemeMode,
@@ -60,7 +70,7 @@ class AppearanceSection extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Vakte göre renk',
+                      context.l10n.appearanceTimeColor,
                       style: AppTypography.rowTitle.copyWith(
                         color: tokens.textPrimary,
                       ),
@@ -68,8 +78,8 @@ class AppearanceSection extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text(
                       settings.timeBasedColor
-                          ? 'Zemin gün içinde ilerler'
-                          : 'Sabit bir palet seçin',
+                          ? context.l10n.appearanceTimeColorOn
+                          : context.l10n.appearanceTimeColorOff,
                       style: AppTypography.rowSubtitle.copyWith(
                         color: tokens.textSecondary,
                       ),

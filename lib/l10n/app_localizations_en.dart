@@ -821,4 +821,556 @@ class AppLocalizationsEn extends AppLocalizations {
   String durationMinute(Object minutes) {
     return '$minutes min';
   }
+
+  @override
+  String get hijriMuharram => 'Muharram';
+
+  @override
+  String get hijriSafar => 'Safar';
+
+  @override
+  String get hijriRabiAwwal => 'Rabi al-Awwal';
+
+  @override
+  String get hijriRabiThani => 'Rabi al-Thani';
+
+  @override
+  String get hijriJumadaAwwal => 'Jumada al-Awwal';
+
+  @override
+  String get hijriJumadaThani => 'Jumada al-Thani';
+
+  @override
+  String get hijriRajab => 'Rajab';
+
+  @override
+  String get hijriShaban => 'Sha\'ban';
+
+  @override
+  String get hijriRamadan => 'Ramadan';
+
+  @override
+  String get hijriShawwal => 'Shawwal';
+
+  @override
+  String get hijriDhulQadah => 'Dhu al-Qi\'dah';
+
+  @override
+  String get hijriDhulHijjah => 'Dhu al-Hijjah';
+
+  @override
+  String get religiousNewYear => 'Islamic New Year';
+
+  @override
+  String get religiousAshura => 'Ashura';
+
+  @override
+  String get religiousMawlid => 'Mawlid al-Nabi';
+
+  @override
+  String get religiousRegaib => 'Laylat al-Raghaib';
+
+  @override
+  String get religiousMiraj => 'Laylat al-Miraj';
+
+  @override
+  String get religiousBaraat => 'Laylat al-Baraat';
+
+  @override
+  String get religiousRamadanStart => 'Start of Ramadan';
+
+  @override
+  String get religiousQadr => 'Laylat al-Qadr';
+
+  @override
+  String get religiousEidFitr => 'Eid al-Fitr';
+
+  @override
+  String get religiousArafah => 'Day of Arafah';
+
+  @override
+  String get religiousEidAdha => 'Eid al-Adha';
+
+  @override
+  String get asrShafi => 'Shafi (Standard)';
+
+  @override
+  String get asrHanafi => 'Hanafi';
+
+  @override
+  String get latAuto => 'Automatic';
+
+  @override
+  String get latMidnight => 'Middle of the night';
+
+  @override
+  String get latOneSeventh => 'One seventh of the night';
+
+  @override
+  String get latAngle => 'Angle based';
+
+  @override
+  String get calcMethodLabel => 'Calculation method';
+
+  @override
+  String get calcAsrLabel => 'Asr (school)';
+
+  @override
+  String get calcAdvanced => 'Advanced';
+
+  @override
+  String get calcLatitudeLabel => 'High latitude rule';
+
+  @override
+  String get calcGlobalNote =>
+      'Default for all locations. Used unless a location has its own setting.';
+
+  @override
+  String get calcTuneSection => 'Time adjustments';
+
+  @override
+  String get calcTuneHint =>
+      'Shift times by a few minutes to match your calendar. Notifications, alarms and the widget use the adjusted times.';
+
+  @override
+  String minutesShort(Object minutes) {
+    return '$minutes min';
+  }
+
+  @override
+  String get offlineFresh => 'Data is up to date';
+
+  @override
+  String get offlineShouldUpdate => 'Data should be refreshed';
+
+  @override
+  String get offlineTooOld => 'Data is too old, an update is needed';
+
+  @override
+  String get offlineNoData => 'No data';
+
+  @override
+  String get offlineNoConnection =>
+      'No internet connection. Showing saved data.';
+
+  @override
+  String get offlineFetchFailed =>
+      'Could not fetch data. Please check your connection.';
+
+  @override
+  String get offlineUpdateFailed => 'Update failed. Showing saved data.';
+
+  @override
+  String errorDataLoad(Object error) {
+    return 'Error loading data: $error';
+  }
+
+  @override
+  String errorLocationChange(Object error) {
+    return 'Could not change location: $error';
+  }
+
+  @override
+  String errorGpsRefresh(Object error) {
+    return 'GPS refresh failed: $error';
+  }
+
+  @override
+  String gpsUpdated(Object location) {
+    return 'GPS location updated: $location';
+  }
+
+  @override
+  String get errorParseFormat =>
+      'The data format may have changed. Please try updating the app.';
+
+  @override
+  String get loading => 'Loading…';
+
+  @override
+  String get today => 'TODAY';
+
+  @override
+  String get nextLabel => 'NEXT';
+
+  @override
+  String adhanAt(Object prayer, Object time) {
+    return 'Adhan for $prayer at $time';
+  }
+
+  @override
+  String get upcomingTitle => 'Upcoming';
+
+  @override
+  String get upcomingAll => 'All';
+
+  @override
+  String get upcomingEmpty => 'No upcoming notification or alarm';
+
+  @override
+  String get alarmQrRequired => 'Scan or type a code for the QR task';
+
+  @override
+  String get alarmPickSavedCode => 'Pick a saved code';
+
+  @override
+  String get alarmAnchorQuestion => 'Anchored to which prayer?';
+
+  @override
+  String get alarmBefore => 'Before';
+
+  @override
+  String get alarmAfter => 'After';
+
+  @override
+  String get alarmBeforePrayer => 'Before the prayer';
+
+  @override
+  String get alarmAfterPrayer => 'After the prayer';
+
+  @override
+  String get alarmSoundImportFailed => 'Could not import the sound file';
+
+  @override
+  String get alarmSnoozeMinutes => 'Snooze duration';
+
+  @override
+  String get qrSaveTitle => 'Save code to library';
+
+  @override
+  String get qrSaveHint => 'e.g. Bathroom mirror';
+
+  @override
+  String get qrLibraryEmpty =>
+      'No saved codes yet — save a code after scanning';
+
+  @override
+  String get qrRenameTitle => 'Rename code';
+
+  @override
+  String get qrInUseTitle => 'Code in use';
+
+  @override
+  String qrInUseBody(Object alarms) {
+    return 'These alarms use this code as their task: $alarms. Deleting it from the library does not break the alarm, but you cannot pick the code again.';
+  }
+
+  @override
+  String get qrDeleteAnyway => 'Delete anyway';
+
+  @override
+  String get qrDefaultName => 'QR code';
+
+  @override
+  String get qrFieldHint => 'Scan or type the code';
+
+  @override
+  String get qrScanTooltip => 'Scan code';
+
+  @override
+  String get qrFieldNote =>
+      'Stick the code away from your bed — bathroom door, kitchen. The alarm only stops when this code is scanned.';
+
+  @override
+  String get stopJustNow => 'just now';
+
+  @override
+  String stopMinutesAgo(Object minutes) {
+    return '$minutes min ago';
+  }
+
+  @override
+  String stopSnoozeLeft(Object count) {
+    return '$count left';
+  }
+
+  @override
+  String get stopDoMission => 'Do the task';
+
+  @override
+  String stopReturnsIn(Object countdown) {
+    return 'The alarm returns in $countdown if you do not choose';
+  }
+
+  @override
+  String stopClosesIn(Object countdown) {
+    return 'Closes in $countdown if untouched';
+  }
+
+  @override
+  String get missionTimeUp => 'Time is up, the alarm is returning';
+
+  @override
+  String get missionCountdownNote => 'the alarm returns when time runs out';
+
+  @override
+  String get missionCloseCompletely => 'Dismiss the alarm completely';
+
+  @override
+  String get missionWrongAnswer => 'Wrong, try again.';
+
+  @override
+  String get missionShakeDone => 'done';
+
+  @override
+  String get qrMissionNoCode => 'This alarm has no saved QR code.';
+
+  @override
+  String get qrMissionNoCodeHint =>
+      'Edit the alarm to add a code, or use the emergency exit.';
+
+  @override
+  String get qrMissionMismatch => 'A different code was scanned';
+
+  @override
+  String get qrMissionScanSaved => 'Scan the code you saved';
+
+  @override
+  String get qrMissionFindCode =>
+      'Find the code you saved when setting the alarm and scan it.';
+
+  @override
+  String get qrMissionAimCamera => 'Point the camera at the code.';
+
+  @override
+  String get abortDismissing => 'i am dismissing the alarm';
+
+  @override
+  String get abortDismissingHard =>
+      'i am dismissing the alarm without the task';
+
+  @override
+  String get abortTitle => 'You are dismissing the alarm without the task.';
+
+  @override
+  String get abortMaxLevel =>
+      'The exit is already at its hardest level; it will not get harder.';
+
+  @override
+  String get abortHarderNext => 'Next time the exit will be harder.';
+
+  @override
+  String abortTypePhrase(Object phrase) {
+    return 'Type this exactly: “$phrase”';
+  }
+
+  @override
+  String get abortPhraseHint => 'Type the phrase';
+
+  @override
+  String get abortHoldToClose => 'Hold for 3 seconds to dismiss';
+
+  @override
+  String get remindersUpdate => 'Update';
+
+  @override
+  String get remindersUpdateTitle => 'Update notification';
+
+  @override
+  String get remindersAddTitle => 'Add notification';
+
+  @override
+  String get remindersAddButton => 'Add notification';
+
+  @override
+  String get remindersWhichPrayer =>
+      'For which prayer do you want a notification?';
+
+  @override
+  String get remindersPrayerSection => 'Prayer';
+
+  @override
+  String get remindersDerivedSection => 'Derived times';
+
+  @override
+  String get remindersDerivedHint =>
+      'Disliked and voluntary windows are computed from the chosen prayer.';
+
+  @override
+  String get remindersTimeSection => 'Notification time';
+
+  @override
+  String get remindersDaysSection => 'Days';
+
+  @override
+  String get remindersLabelSection => 'Label (optional)';
+
+  @override
+  String get remindersOnTimeOption => 'On time';
+
+  @override
+  String get remindersBeforeOption => 'Before';
+
+  @override
+  String get remindersPickMinutes => 'Pick minutes';
+
+  @override
+  String get remindersMinOffsetError => 'Must be at least 1 min before';
+
+  @override
+  String remindersMaxOffsetError(Object max) {
+    return 'You can add a notification at most $max min before this prayer.';
+  }
+
+  @override
+  String get remindersSwipeToDelete => 'Swipe a row to delete it.';
+
+  @override
+  String get remindersIntro =>
+      'For each prayer you can be reminded on time or X minutes before.';
+
+  @override
+  String get alarmsSwipeHint =>
+      'Swipe a row to delete; if it was a mistake, use \"Undo\" below. Alarms are rescheduled automatically when times update.';
+
+  @override
+  String get alarmsRescheduleNote =>
+      'Alarms are rescheduled as prayer data updates.';
+
+  @override
+  String get alarmsUnsupported =>
+      'Audible alarms are not supported on this device (iOS 26 or later required). Alarms are saved but will not ring.';
+
+  @override
+  String get alarmsNeedPermission => 'Permission is needed for alarms to ring.';
+
+  @override
+  String get permissionGrant => 'Grant';
+
+  @override
+  String get notificationsNeedPermission =>
+      'You need to grant permission to receive notifications.';
+
+  @override
+  String get exactAlarmOff =>
+      'Exact alarms are off. Notifications may be delayed.';
+
+  @override
+  String get actionOpen => 'Open';
+
+  @override
+  String alarmDeleted(Object label) {
+    return 'Alarm $label deleted';
+  }
+
+  @override
+  String get alarmBlockedSnoozed =>
+      'This alarm is snoozed and still owes its task; it cannot be turned off yet.';
+
+  @override
+  String get alarmTurnedOff => 'Alarm turned off';
+
+  @override
+  String snoozeUntil(Object time) {
+    return 'Rings at $time';
+  }
+
+  @override
+  String get themeDark => 'Dark';
+
+  @override
+  String get themeLight => 'Light';
+
+  @override
+  String get themeSystem => 'System';
+
+  @override
+  String get themeLabel => 'Theme';
+
+  @override
+  String get appearanceTimeColor => 'Color follows the time';
+
+  @override
+  String get appearanceTimeColorOn => 'The background shifts through the day';
+
+  @override
+  String get appearanceTimeColorOff => 'Pick a fixed palette';
+
+  @override
+  String get settingsVersionLoading => 'Loading version…';
+
+  @override
+  String settingsVersion(Object version) {
+    return 'Version $version';
+  }
+
+  @override
+  String get settingsFooter =>
+      'Prayer times are stored on your device and never sent anywhere.';
+
+  @override
+  String get privacyBody =>
+      'Your location is used only to calculate prayer times and stays on your device. Times are requested from the Aladhan API by coordinates; no personal data is sent.';
+
+  @override
+  String dstSummer(Object offset) {
+    return 'Daylight saving time in effect ($offset)';
+  }
+
+  @override
+  String dstWinter(Object offset) {
+    return 'Standard time in effect ($offset)';
+  }
+
+  @override
+  String get weekdayShortMon => 'Mon';
+
+  @override
+  String get weekdayShortTue => 'Tue';
+
+  @override
+  String get weekdayShortWed => 'Wed';
+
+  @override
+  String get weekdayShortThu => 'Thu';
+
+  @override
+  String get weekdayShortFri => 'Fri';
+
+  @override
+  String get weekdayShortSat => 'Sat';
+
+  @override
+  String get weekdayShortSun => 'Sun';
+
+  @override
+  String get weekdayLetterMon => 'Mo';
+
+  @override
+  String get weekdayLetterTue => 'Tu';
+
+  @override
+  String get weekdayLetterWed => 'We';
+
+  @override
+  String get weekdayLetterThu => 'Th';
+
+  @override
+  String get weekdayLetterFri => 'Fr';
+
+  @override
+  String get weekdayLetterSat => 'Sa';
+
+  @override
+  String get weekdayLetterSun => 'Su';
+
+  @override
+  String offsetMinutes(Object sign, Object minutes) {
+    return '$sign$minutes min';
+  }
+
+  @override
+  String snoozedLabel(Object time) {
+    return 'Snoozed · rings at $time';
+  }
+
+  @override
+  String errorGenericWith(Object error) {
+    return 'Error: $error';
+  }
+
+  @override
+  String locationDeleted(Object location) {
+    return '$location deleted';
+  }
 }

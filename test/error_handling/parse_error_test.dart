@@ -129,8 +129,9 @@ void main() {
         );
         fail('Should have thrown ParseException');
       } on ParseException catch (e) {
-        expect(e.getUserMessage(), contains('Veri formatı değişmiş olabilir'));
-        expect(e.getUserMessage(), contains('güncellemeyi deneyin'));
+        // Metin artik cevrilmiyor; istisna teshis anahtari donuyor ve
+        // kullaniciya gosterilecek karsiligi arayuz katmani (l10n) seciyor.
+        expect(e.getUserMessage(), 'parse_format_changed');
       }
     });
 
@@ -223,13 +224,13 @@ void main() {
       expect(stringValue, contains('Original'));
     });
 
-    test('getUserMessage returns Turkish user-friendly message', () {
+    test('getUserMessage kararli bir teshis anahtari doner', () {
       final exception = ParseException(message: 'Any technical message');
 
       final userMessage = exception.getUserMessage();
       expect(userMessage, isA<String>());
       expect(userMessage.length, greaterThan(0));
-      expect(userMessage, contains('Veri formatı'));
+      expect(userMessage, 'parse_format_changed');
     });
   });
 

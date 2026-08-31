@@ -238,8 +238,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
           style: AppTypography.rowTitle.copyWith(color: tokens.textPrimary),
         ),
         content: Text(
-          'Namaz vakitlerini bulunduğunuz konuma göre gösterebilmek için konum iznine ihtiyaç var. '
-          'İzni vererek bulunduğunuz il/ilçe otomatik seçilecektir.',
+          context.l10n.locationPermissionBody,
           style: AppTypography.rowSubtitle.copyWith(
             color: tokens.textSecondary,
             height: 1.5,
@@ -408,7 +407,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
         ),
         const SizedBox(height: 12),
         Text(
-          'GPS ile otomatik tespit edin veya\nadres arayarak konum seçin',
+          context.l10n.locationsEmptyHint,
           style: TextStyle(
             fontSize: 15,
             color: tokens.textSecondary,
@@ -587,7 +586,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
           child: TextButton.icon(
             onPressed: _clearSelection,
             icon: const Icon(Icons.search_rounded, size: 16),
-            label: const Text('Değiştir'),
+            label: Text(context.l10n.locationChange),
             style: TextButton.styleFrom(foregroundColor: tokens.accent),
           ),
         ),
@@ -604,8 +603,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Hesaplama yöntemi genel ayardan alınır. Bu konuma özel '
-                'değiştirmek için kaydettikten sonra düzenleyin.',
+                context.l10n.locationCalculationFromGlobal,
                 style: TextStyle(
                   color: tokens.textTertiary,
                   fontSize: 12,

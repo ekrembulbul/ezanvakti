@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/l10n_extensions.dart';
 
 import '../../../core/models/notification_setting.dart' show PrayerType;
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
-import '../../utils/prayer_name_helper.dart';
 
 /// Vakit başına ± dakika düzeltmesi. Kullanıcı, hesaplanan vakitle elindeki
 /// takvim arasındaki 1–2 dakikalık farkı buradan kapatır.
@@ -43,8 +43,7 @@ class PrayerTuneSelector extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Vakitleri elindeki takvime göre birkaç dakika kaydırabilirsin. '
-          'Bildirimler, alarmlar ve widget da kaydırılmış vakti kullanır.',
+          context.l10n.calcTuneHint,
           style: AppTypography.hint.copyWith(
             color: tokens.textTertiary,
             height: 1.5,
@@ -66,7 +65,7 @@ class PrayerTuneSelector extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              PrayerNameHelper.getName(type),
+              context.l10n.prayerName(type),
               style: AppTypography.rowTitle.copyWith(color: tokens.textPrimary),
             ),
           ),
@@ -79,7 +78,12 @@ class PrayerTuneSelector extends StatelessWidget {
           SizedBox(
             width: 64,
             child: Text(
-              value == 0 ? '0 dk' : '${value > 0 ? '+' : '−'}${value.abs()} dk',
+              value == 0
+                  ? context.l10n.minutesShort(0)
+                  : context.l10n.offsetMinutes(
+                      value > 0 ? '+' : '−',
+                      value.abs(),
+                    ),
               textAlign: TextAlign.center,
               style: AppTypography.rowTitle.copyWith(
                 color: value == 0 ? tokens.textTertiary : tokens.accent,

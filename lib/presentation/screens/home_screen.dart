@@ -144,9 +144,9 @@ class _HomeScreenState extends State<HomeScreen> {
     if (today == null) {
       // İlk yüklemede veri henüz gelmediyse boş ekran yerine yükleniyor göster.
       if (widget.lastUpdateTime == null) return const LoadingState();
-      return const EmptyState(
+      return EmptyState(
         icon: Icons.hourglass_empty_rounded,
-        message: 'Veri bulunamadı',
+        message: context.l10n.offlineNoData,
       );
     }
 
@@ -165,8 +165,9 @@ class _HomeScreenState extends State<HomeScreen> {
     final nextTime =
         ramadan?.time ??
         PrayerUtils.getNextPrayerTime(today, widget.tomorrowsPrayerTime);
+    final nextType = PrayerUtils.getNextPrayerType(today);
     final nextName = ramadan == null
-        ? PrayerUtils.getNextPrayerName(today)
+        ? (nextType == null ? null : context.l10n.prayerName(nextType))
         : (ramadan.kind == RamadanCountdownKind.iftar
               ? context.l10n.ramadanIftarCountdown
               : context.l10n.ramadanSuhoorCountdown);

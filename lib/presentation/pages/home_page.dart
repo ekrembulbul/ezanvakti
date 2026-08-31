@@ -320,7 +320,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           ..showSnackBar(
             SnackBar(
               content: Text(
-                'GPS konumu güncellendi: ${gpsLocation.displayName}',
+                context.l10n.gpsUpdated(gpsLocation.displayName),
               ),
             ),
           );
@@ -335,7 +335,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           ..showSnackBar(
             SnackBar(
               content: Text(
-                'GPS yenileme hatası: ${e.toString().replaceAll('Exception: ', '')}',
+                context.l10n.errorGpsRefresh(
+                  e.toString().replaceAll('Exception: ', ''),
+                ),
               ),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
@@ -407,10 +409,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         prayerTimes: data.all,
         now: DateTime.now(),
         labels: mounted ? widgetLabelsFrom(context.l10n) : null,
+        l10n: mounted ? context.l10n : null,
       );
     } catch (e) {
       logger.error('Failed to load prayer data', e);
-      appState.setError('Veri yüklenirken hata oluştu: $e');
+      appState.setError(
+        mounted ? context.l10n.errorDataLoad(e) : e.toString(),
+      );
       appState.setRefreshing(false);
     }
   }
@@ -569,7 +574,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       if (mounted) {
         ScaffoldMessenger.of(context)
           ..clearSnackBars()
-          ..showSnackBar(SnackBar(content: Text('Konum değiştirilemedi: $e')));
+          ..showSnackBar(
+            SnackBar(content: Text(context.l10n.errorLocationChange(e))),
+          );
       }
     }
   }

@@ -4,9 +4,9 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 
 class LoadingState extends StatelessWidget {
-  final String message;
+  final String? message;
 
-  const LoadingState({super.key, this.message = 'Yükleniyor...'});
+  const LoadingState({super.key, this.message});
 
   @override
   Widget build(BuildContext context) {
@@ -17,13 +17,15 @@ class LoadingState extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CircularProgressIndicator(color: tokens.accent),
-          const SizedBox(height: 20),
-          Text(
-            message,
-            style: AppTypography.rowSubtitle.copyWith(
-              color: tokens.textSecondary,
+          if (message != null) ...[
+            const SizedBox(height: 20),
+            Text(
+              message!,
+              style: AppTypography.rowSubtitle.copyWith(
+                color: tokens.textSecondary,
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );

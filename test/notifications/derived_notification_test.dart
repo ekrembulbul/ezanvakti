@@ -1,4 +1,5 @@
 import 'package:ezanvakti/core/models/derived_time.dart';
+import 'package:ezanvakti/l10n/l10n_extensions.dart';
 import 'dart:ui';
 
 import 'package:ezanvakti/l10n/app_localizations.dart';
@@ -32,9 +33,14 @@ void main() {
     type: LocationType.manual,
   );
 
+  late AppLocalizations l10n;
   late RecordingNotificationService service;
   late NotificationTestStorage storage;
   late NotificationScheduler scheduler;
+
+  setUpAll(() async {
+    l10n = await AppLocalizations.delegate.load(const Locale('tr'));
+  });
 
   setUp(() {
     service = RecordingNotificationService();
@@ -77,7 +83,7 @@ void main() {
     final call = service.calls.first;
     expect(call.scheduledTime.hour, 12);
     expect(call.scheduledTime.minute, 50);
-    expect(call.title, DerivedTimeKind.istiwa.label);
+    expect(call.title, l10n.derivedName(DerivedTimeKind.istiwa));
   });
 
   test('israk bildirimi gunesten 45 dk sonra planlanir', () async {
@@ -132,7 +138,7 @@ void main() {
     final ids = service.calls.map((call) => call.id).toSet();
     expect(ids.length, service.calls.length, reason: 'kimlikler cakismamali');
     expect(
-      service.calls.any((call) => call.title == DerivedTimeKind.istiwa.label),
+      service.calls.any((call) => call.title == l10n.derivedName(DerivedTimeKind.istiwa)),
       isTrue,
     );
     expect(service.calls.any((call) => call.title == 'Öğle'), isTrue);
@@ -185,10 +191,11 @@ void main() {
           NotificationScheduler.scheduleDaysAhead;
       if (!withinWindow) return;
 
+      // Baslik cevrilmis ad; testte kaynak dil (Turkce) kullaniliyor.
       final matches = service.calls.where(
-        (call) => call.title == target.name,
+        (call) => call.title == l10n.religiousDayName(target.id),
       );
-      expect(matches, isNotEmpty, reason: target.name);
+      expect(matches, isNotEmpty, reason: target.id.name);
       expect(matches.first.scheduledTime.hour, 19, reason: 'aksam vakti');
       expect(matches.first.body, contains('hesaplanmıştır'));
     });

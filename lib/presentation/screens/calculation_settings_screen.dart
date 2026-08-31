@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/l10n_extensions.dart';
 
 import '../../core/models/calculation_params.dart';
 import '../../core/models/calculation_settings.dart';
@@ -69,8 +70,7 @@ class _CalculationSettingsScreenState extends State<CalculationSettingsScreen> {
                 child: ListView(
                   children: [
                     Text(
-                      'Tüm konumlar için varsayılan ayar. Bir konum kendi '
-                      'ayarını seçmediği sürece bu kullanılır.',
+                      context.l10n.calcGlobalNote,
                       style: AppTypography.rowSubtitle.copyWith(
                         color: tokens.textSecondary,
                         height: 1.4,
@@ -93,7 +93,7 @@ class _CalculationSettingsScreenState extends State<CalculationSettingsScreen> {
                           setState(() => _latitudeAdjustment = value),
                     ),
                     const SizedBox(height: 28),
-                    const SectionLabel('Vakit düzeltmeleri'),
+                    SectionLabel(context.l10n.calcTuneSection),
                     const SizedBox(height: 10),
                     PrayerTuneSelector(
                       tune: _tune,
