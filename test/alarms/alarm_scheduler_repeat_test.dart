@@ -1,4 +1,5 @@
 import 'package:ezanvakti/core/interfaces/alarm_service.dart';
+import 'package:ezanvakti/core/models/fasting_log.dart';
 import 'package:ezanvakti/core/models/prayer_log.dart';
 import 'package:ezanvakti/core/models/quiet_window.dart';
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
@@ -54,6 +55,40 @@ class _RecordingAlarmService implements AlarmService {
 }
 
 class _StorageWithAlarms implements LocalStorage {
+
+  final Map<String, String> _rawSettings = {};
+
+  @override
+  Future<String?> getSetting(String key) async => _rawSettings[key];
+
+  @override
+  Future<void> setSetting(String key, String value) async =>
+      _rawSettings[key] = value;
+
+  final Map<String, FastingStatus> _fastingLog = {};
+  int _fastingQada = 0;
+
+  @override
+  Future<Map<String, FastingStatus>> getFastingLog(
+    DateTime from,
+    DateTime to,
+  ) async => Map.of(_fastingLog);
+
+  @override
+  Future<void> setFastingLog(DateTime date, FastingStatus? status) async {
+    final key = fastingLogKey(date);
+    if (status == null) {
+      _fastingLog.remove(key);
+    } else {
+      _fastingLog[key] = status;
+    }
+  }
+
+  @override
+  Future<int> getFastingQadaCount() async => _fastingQada;
+
+  @override
+  Future<void> setFastingQadaCount(int count) async => _fastingQada = count;
 
   final Map<String, PrayerStatus> _prayerLog = {};
   final Map<PrayerType, int> _qadaCounts = {};

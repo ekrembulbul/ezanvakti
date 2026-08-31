@@ -639,4 +639,52 @@ class AppLocalizationsAr extends AppLocalizations {
   String shareCaption(Object location, Object period) {
     return '$location · أوقات الصلاة لـ$period';
   }
+
+  @override
+  String get ramadanIftarCountdown => 'حتى الإفطار';
+
+  @override
+  String get ramadanSuhoorCountdown => 'حتى نهاية السحور';
+
+  @override
+  String ramadanDay(Object day) {
+    return 'رمضان اليوم $day';
+  }
+
+  @override
+  String get ramadanCalendarTitle => 'إمساكية رمضان';
+
+  @override
+  String get ramadanFastingSection => 'متابعة الصيام';
+
+  @override
+  String get ramadanFasted => 'صمت';
+
+  @override
+  String get ramadanFastMissed => 'قضاء';
+
+  @override
+  String get ramadanFastExempt => 'معذور';
+
+  @override
+  String get ramadanFastingQada => 'صيام القضاء';
+
+  @override
+  String get ramadanSetupTitle => 'تنبيهات رمضان';
+
+  @override
+  String get ramadanSetupBody =>
+      'هل تريد إضافة تنبيهي السحور (قبل الفجر بـ٤٥ دقيقة) والإفطار؟ ستظهر في قائمة التنبيهات ويمكنك حذفها متى شئت.';
+
+  @override
+  String get ramadanSetupAccept => 'أضف';
+
+  @override
+  String get ramadanSuhoorLabel => 'السحور';
+
+  @override
+  String get ramadanIftarLabel => 'الإفطار';
+
+  @override
+  String get ramadanRemindersAdded => 'تمت إضافة تنبيهي السحور والإفطار';
 }

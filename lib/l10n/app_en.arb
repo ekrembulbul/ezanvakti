@@ -192,5 +192,20 @@
   "locationSearch": "Search a city",
   "locationUseGps": "Use my location",
   "locationEmpty": "No saved locations",
-  "shareCaption": "{location} · prayer times for {period}"
+  "shareCaption": "{location} · prayer times for {period}",
+  "ramadanIftarCountdown": "To iftar",
+  "ramadanSuhoorCountdown": "To end of suhoor",
+  "ramadanDay": "Ramadan day {day}",
+  "ramadanCalendarTitle": "Ramadan Timetable",
+  "ramadanFastingSection": "Fasting",
+  "ramadanFasted": "Fasted",
+  "ramadanFastMissed": "To make up",
+  "ramadanFastExempt": "Exempt",
+  "ramadanFastingQada": "Fasts to make up",
+  "ramadanSetupTitle": "Ramadan reminders",
+  "ramadanSetupBody": "Add suhoor (45 min before Fajr) and iftar notifications? They appear in your reminders list and can be removed anytime.",
+  "ramadanSetupAccept": "Add",
+  "ramadanSuhoorLabel": "Suhoor",
+  "ramadanIftarLabel": "Iftar",
+  "ramadanRemindersAdded": "Suhoor and iftar reminders added"
 }

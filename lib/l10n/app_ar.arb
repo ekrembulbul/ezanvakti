@@ -192,5 +192,20 @@
   "locationSearch": "ابحث عن مدينة",
   "locationUseGps": "استخدم موقعي",
   "locationEmpty": "لا توجد مواقع محفوظة",
-  "shareCaption": "{location} · أوقات الصلاة لـ{period}"
+  "shareCaption": "{location} · أوقات الصلاة لـ{period}",
+  "ramadanIftarCountdown": "حتى الإفطار",
+  "ramadanSuhoorCountdown": "حتى نهاية السحور",
+  "ramadanDay": "رمضان اليوم {day}",
+  "ramadanCalendarTitle": "إمساكية رمضان",
+  "ramadanFastingSection": "متابعة الصيام",
+  "ramadanFasted": "صمت",
+  "ramadanFastMissed": "قضاء",
+  "ramadanFastExempt": "معذور",
+  "ramadanFastingQada": "صيام القضاء",
+  "ramadanSetupTitle": "تنبيهات رمضان",
+  "ramadanSetupBody": "هل تريد إضافة تنبيهي السحور (قبل الفجر بـ٤٥ دقيقة) والإفطار؟ ستظهر في قائمة التنبيهات ويمكنك حذفها متى شئت.",
+  "ramadanSetupAccept": "أضف",
+  "ramadanSuhoorLabel": "السحور",
+  "ramadanIftarLabel": "الإفطار",
+  "ramadanRemindersAdded": "تمت إضافة تنبيهي السحور والإفطار"
 }

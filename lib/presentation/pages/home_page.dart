@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/providers/app_state.dart';
+import '../../core/models/notification_setting.dart';
 
 import '../../core/di/service_locator.dart';
 import '../../core/interfaces/alarm_service.dart';
@@ -28,6 +29,8 @@ import '../screens/calendar_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/quiet_windows_screen.dart';
 import '../screens/tools_screen.dart';
+import 'package:hijri/hijri_calendar.dart';
+import '../../features/ramadan/domain/ramadan_mode.dart';
 import '../screens/calculation_settings_screen.dart';
 import '../screens/location_list_screen.dart';
 import '../screens/reminders_screen.dart';
@@ -69,6 +72,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       logger.debug('PostFrameCallback executing');
       _loadGeneralSettings();
+      _refreshRamadanMode();
       _loadPrayerData();
       _startLocationMonitoring();
       _scheduleMidnightRefresh();
@@ -111,6 +115,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       if (!mounted) return;
       _loadPrayerData();
       _scheduleMidnightRefresh();
+      // Gün dönünce Ramazan'a girilmiş ya da çıkılmış olabilir.
+      _refreshRamadanMode();
       openMissionIfPending(context);
     });
 
@@ -180,6 +186,87 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   /// Genel tercihleri depodan okuyup [AppState]'e taşır; saat biçimi ve
   /// otomatik konum bu tek kaynaktan okunuyor.
+  /// Ramazan modu; gün dönümünde ve açılışta hesaplanır.
+  bool _ramadanActive = false;
+
+  /// Ramazan'ın ilk gününde sahur/iftar hatırlatmaları bir kez önerilir.
+  static const String _ramadanPromptKey = 'ramadan_prompt_year';
+
+  Future<void> _refreshRamadanMode() async {
+    final settings = await ServiceLocator()
+        .get<LocalStorage>()
+        .getGeneralSettings();
+    final active =
+        settings.ramadanMode && RamadanMode.isActive(DateTime.now());
+    if (!mounted) return;
+    setState(() => _ramadanActive = active);
+    if (active) await _maybeOfferRamadanReminders();
+  }
+
+  /// Yılda bir kez sorar; kullanıcı reddetse de o Ramazan boyunca tekrar
+  /// sormaz — ısrarcı olmak istemiyoruz.
+  Future<void> _maybeOfferRamadanReminders() async {
+    final storage = ServiceLocator().get<LocalStorage>();
+    final hijriYear = HijriCalendar.fromDate(DateTime.now()).hYear.toString();
+    final asked = await storage.getSetting(_ramadanPromptKey);
+    if (asked == hijriYear || !mounted) return;
+    await storage.setSetting(_ramadanPromptKey, hijriYear);
+    if (!mounted) return;
+
+    final accepted = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(dialogContext.l10n.ramadanSetupTitle),
+        content: Text(dialogContext.l10n.ramadanSetupBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(dialogContext.l10n.actionCancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(dialogContext.l10n.ramadanSetupAccept),
+          ),
+        ],
+      ),
+    );
+    if (accepted != true || !mounted) return;
+    await _addRamadanReminders();
+  }
+
+  /// Sahur ve iftar hatırlatmalarını **normal bildirim satırları** olarak
+  /// ekler: Hatırlatıcılar listesinde görünür, silinebilir. Gizli otomatik
+  /// bildirim yok.
+  Future<void> _addRamadanReminders() async {
+    final manager = ServiceLocator().get<NotificationSettingsManager>();
+    final l10n = context.l10n;
+    await manager.addSetting(
+      NotificationSetting(
+        prayerType: PrayerType.fajr,
+        isActive: true,
+        minutesBefore: 45,
+        label: l10n.ramadanSuhoorLabel,
+      ),
+    );
+    await manager.addSetting(
+      NotificationSetting(
+        prayerType: PrayerType.maghrib,
+        isActive: true,
+        label: l10n.ramadanIftarLabel,
+      ),
+    );
+    if (!mounted) return;
+    final appState = context.read<AppState>();
+    appState.setNotificationSettings(await manager.getSettings());
+    await _rescheduleReminders();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context)
+      ..clearSnackBars()
+      ..showSnackBar(
+        SnackBar(content: Text(context.l10n.ramadanRemindersAdded)),
+      );
+  }
+
   Future<void> _loadGeneralSettings() async {
     final settings = await ServiceLocator()
         .get<LocalStorage>()
@@ -506,6 +593,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 builder: (context, appState, child) {
                   return HomeScreen(
                     missionSession: appState.missionSession,
+                    ramadanActive: _ramadanActive,
                     location: appState.activeLocation!,
                     todaysPrayerTime: appState.todaysPrayerTime,
                     tomorrowsPrayerTime: appState.tomorrowsPrayerTime,

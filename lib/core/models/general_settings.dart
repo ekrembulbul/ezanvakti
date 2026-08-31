@@ -12,6 +12,7 @@ class GeneralSettings {
   static const String religiousDaysKey = 'general_religious_days';
   static const String religiousDayEveKey = 'general_religious_day_eve';
   static const String languageKey = 'general_language';
+  static const String ramadanModeKey = 'general_ramadan_mode';
 
   /// Saatlerin 12/24 gösterimi.
   final TimeFormatPreference timeFormat;
@@ -35,6 +36,9 @@ class GeneralSettings {
   /// Arayüz dili; [AppLanguage.system] cihaz dilini izler.
   final AppLanguage language;
 
+  /// Ramazan'da arayüz iftar/sahur odaklı hale gelsin mi.
+  final bool ramadanMode;
+
   const GeneralSettings({
     this.timeFormat = TimeFormatPreference.system,
     this.autoLocation = true,
@@ -43,6 +47,7 @@ class GeneralSettings {
     this.religiousDayNotifications = false,
     this.religiousDayEve = true,
     this.language = AppLanguage.system,
+    this.ramadanMode = true,
   });
 
   GeneralSettings copyWith({
@@ -53,6 +58,7 @@ class GeneralSettings {
     bool? religiousDayNotifications,
     bool? religiousDayEve,
     AppLanguage? language,
+    bool? ramadanMode,
   }) {
     return GeneralSettings(
       timeFormat: timeFormat ?? this.timeFormat,
@@ -63,6 +69,7 @@ class GeneralSettings {
           religiousDayNotifications ?? this.religiousDayNotifications,
       religiousDayEve: religiousDayEve ?? this.religiousDayEve,
       language: language ?? this.language,
+      ramadanMode: ramadanMode ?? this.ramadanMode,
     );
   }
 
@@ -74,6 +81,7 @@ class GeneralSettings {
     religiousDaysKey: religiousDayNotifications.toString(),
     religiousDayEveKey: religiousDayEve.toString(),
     languageKey: language.storageValue,
+    ramadanModeKey: ramadanMode.toString(),
   };
 
   /// Eksik ya da bozuk kayıtlar varsayılana düşer.
@@ -105,6 +113,11 @@ class GeneralSettings {
         _ => defaults.religiousDayEve,
       },
       language: AppLanguage.fromStorage(map[languageKey]),
+      ramadanMode: switch (map[ramadanModeKey]) {
+        'true' => true,
+        'false' => false,
+        _ => defaults.ramadanMode,
+      },
     );
   }
 
@@ -119,7 +132,8 @@ class GeneralSettings {
           defaultSound == other.defaultSound &&
           religiousDayNotifications == other.religiousDayNotifications &&
           religiousDayEve == other.religiousDayEve &&
-          language == other.language;
+          language == other.language &&
+          ramadanMode == other.ramadanMode;
 
   @override
   int get hashCode => Object.hash(
@@ -130,5 +144,6 @@ class GeneralSettings {
     religiousDayNotifications,
     religiousDayEve,
     language,
+    ramadanMode,
   );
 }

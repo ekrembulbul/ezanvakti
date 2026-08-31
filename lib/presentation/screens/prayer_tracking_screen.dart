@@ -5,7 +5,9 @@ import 'package:flutter/services.dart';
 import '../../core/di/service_locator.dart';
 import '../../core/interfaces/local_storage.dart';
 import '../../core/models/notification_setting.dart' show PrayerType;
+import '../../core/models/fasting_log.dart';
 import '../../core/models/prayer_log.dart';
+import '../../features/ramadan/domain/ramadan_mode.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/tokens_context.dart';
 import '../widgets/common/app_bar_widgets.dart';
@@ -36,7 +38,13 @@ class _PrayerTrackingScreenState extends State<PrayerTrackingScreen> {
 
   Map<String, PrayerStatus> _log = {};
   Map<PrayerType, int> _qada = {};
+  Map<String, FastingStatus> _fasting = {};
+  int _fastingQada = 0;
   bool _loading = true;
+
+  /// Oruç bölümü yalnızca Ramazan'da görünür: yılın kalanında boş bir ızgara
+  /// ekranı kalabalıklaştırırdı.
+  bool get _ramadan => RamadanMode.isActive(_today);
 
   LocalStorage get _storage =>
       widget.storage ?? ServiceLocator().get<LocalStorage>();
@@ -61,10 +69,14 @@ class _PrayerTrackingScreenState extends State<PrayerTrackingScreen> {
     final days = _days;
     final log = await _storage.getPrayerLog(days.first, days.last);
     final qada = await _storage.getQadaCounts();
+    final fasting = await _storage.getFastingLog(days.first, days.last);
+    final fastingQada = await _storage.getFastingQadaCount();
     if (!mounted) return;
     setState(() {
       _log = log;
       _qada = qada;
+      _fasting = fasting;
+      _fastingQada = fastingQada;
       _loading = false;
     });
   }
@@ -110,6 +122,14 @@ class _PrayerTrackingScreenState extends State<PrayerTrackingScreen> {
                   SectionLabel(context.l10n.trackingQadaCounter),
                   const SizedBox(height: 10),
                   for (final type in trackedPrayerTypes) _qadaRow(type),
+                  if (_ramadan) ...[
+                    const SizedBox(height: 26),
+                    SectionLabel(context.l10n.ramadanFastingSection),
+                    const SizedBox(height: 10),
+                    _fastingGrid(),
+                    const SizedBox(height: 16),
+                    _fastingQadaRow(),
+                  ],
                 ],
               ),
       ),
@@ -236,6 +256,122 @@ class _PrayerTrackingScreenState extends State<PrayerTrackingScreen> {
         ),
       ],
     );
+  }
+
+  /// Oruç ızgarası: son yedi gün, dokunuşla tuttum → kaza → muaf → boş.
+  Widget _fastingGrid() {
+    final tokens = context.tokens;
+    final days = _days;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: tokens.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: tokens.border),
+      ),
+      child: Row(
+        children: [
+          for (final day in days)
+            Expanded(
+              child: GestureDetector(
+                onTap: () => _cycleFasting(day),
+                child: Column(
+                  children: [
+                    Text(
+                      '${day.day}',
+                      style: AppTypography.hint.copyWith(
+                        color: tokens.textTertiary,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      height: 34,
+                      margin: const EdgeInsets.symmetric(horizontal: 2),
+                      decoration: BoxDecoration(
+                        color: _fastingColor(_fasting[fastingLogKey(day)]),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: tokens.border),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Color _fastingColor(FastingStatus? status) {
+    final tokens = context.tokens;
+    return switch (status) {
+      FastingStatus.fasted => tokens.accent,
+      FastingStatus.missed => tokens.accent.withValues(alpha: 0.35),
+      FastingStatus.exempt => tokens.border,
+      null => Colors.transparent,
+    };
+  }
+
+  Future<void> _cycleFasting(DateTime day) async {
+    final key = fastingLogKey(day);
+    final next = nextFastingStatus(_fasting[key]);
+    setState(() {
+      if (next == null) {
+        _fasting.remove(key);
+      } else {
+        _fasting[key] = next;
+      }
+    });
+    HapticFeedback.selectionClick();
+    await _storage.setFastingLog(day, next);
+  }
+
+  Widget _fastingQadaRow() {
+    final tokens = context.tokens;
+
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            context.l10n.ramadanFastingQada,
+            style: AppTypography.rowTitle.copyWith(color: tokens.textPrimary),
+          ),
+        ),
+        IconButton(
+          onPressed: _fastingQada > 0 ? () => _bumpFastingQada(-1) : null,
+          icon: const Icon(Icons.remove_rounded, size: 20),
+          color: tokens.accent,
+          disabledColor: tokens.textTertiary,
+          visualDensity: VisualDensity.compact,
+        ),
+        SizedBox(
+          width: 56,
+          child: Text(
+            '$_fastingQada',
+            textAlign: TextAlign.center,
+            style: AppTypography.rowTitle.copyWith(
+              color: _fastingQada == 0
+                  ? tokens.textTertiary
+                  : tokens.textPrimary,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+        ),
+        IconButton(
+          onPressed: () => _bumpFastingQada(1),
+          icon: const Icon(Icons.add_rounded, size: 20),
+          color: tokens.accent,
+          visualDensity: VisualDensity.compact,
+        ),
+      ],
+    );
+  }
+
+  Future<void> _bumpFastingQada(int delta) async {
+    final next = clampQadaCount(_fastingQada + delta);
+    setState(() => _fastingQada = next);
+    await _storage.setFastingQadaCount(next);
   }
 
   Widget _qadaRow(PrayerType type) {

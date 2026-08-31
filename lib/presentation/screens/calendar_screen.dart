@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../l10n/l10n_extensions.dart';
 import 'package:flutter/rendering.dart';
 
+import '../../features/ramadan/domain/ramadan_mode.dart';
 import '../services/calendar_share_service.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/tokens_context.dart';
@@ -137,7 +138,9 @@ class _CalendarAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: Column(
         children: [
           Text(
-            context.l10n.calendarTitle,
+            RamadanMode.isActive(DateTime.now())
+                ? context.l10n.ramadanCalendarTitle
+                : context.l10n.calendarTitle,
             style: AppTypography.screenTitle.copyWith(
               color: tokens.textPrimary,
             ),

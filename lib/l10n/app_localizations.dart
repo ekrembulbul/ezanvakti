@@ -1257,6 +1257,96 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{location} · {period} namaz vakitleri'**
   String shareCaption(Object location, Object period);
+
+  /// Sayaç etiketi
+  ///
+  /// In tr, this message translates to:
+  /// **'İftara'**
+  String get ramadanIftarCountdown;
+
+  /// Sayaç etiketi
+  ///
+  /// In tr, this message translates to:
+  /// **'Sahurun bitişine'**
+  String get ramadanSuhoorCountdown;
+
+  /// Gün etiketi
+  ///
+  /// In tr, this message translates to:
+  /// **'Ramazan {day}. gün'**
+  String ramadanDay(Object day);
+
+  /// Ekran başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Ramazan İmsakiyesi'**
+  String get ramadanCalendarTitle;
+
+  /// Bölüm başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Oruç takibi'**
+  String get ramadanFastingSection;
+
+  /// Durum
+  ///
+  /// In tr, this message translates to:
+  /// **'Tuttum'**
+  String get ramadanFasted;
+
+  /// Durum
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaza'**
+  String get ramadanFastMissed;
+
+  /// Durum
+  ///
+  /// In tr, this message translates to:
+  /// **'Muaf'**
+  String get ramadanFastExempt;
+
+  /// Sayaç
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaza orucu'**
+  String get ramadanFastingQada;
+
+  /// Diyalog başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Ramazan hatırlatmaları'**
+  String get ramadanSetupTitle;
+
+  /// Diyalog gövdesi
+  ///
+  /// In tr, this message translates to:
+  /// **'Sahur (imsaktan 45 dk önce) ve iftar bildirimi eklensin mi? Hatırlatıcılar listesinde görünür, dilediğinde silebilirsin.'**
+  String get ramadanSetupBody;
+
+  /// Düğme
+  ///
+  /// In tr, this message translates to:
+  /// **'Ekle'**
+  String get ramadanSetupAccept;
+
+  /// Bildirim etiketi
+  ///
+  /// In tr, this message translates to:
+  /// **'Sahur'**
+  String get ramadanSuhoorLabel;
+
+  /// Bildirim etiketi
+  ///
+  /// In tr, this message translates to:
+  /// **'İftar'**
+  String get ramadanIftarLabel;
+
+  /// Bildirim mesajı
+  ///
+  /// In tr, this message translates to:
+  /// **'Sahur ve iftar hatırlatmaları eklendi'**
+  String get ramadanRemindersAdded;
 }
 
 class _AppLocalizationsDelegate

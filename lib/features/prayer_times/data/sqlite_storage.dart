@@ -12,6 +12,7 @@ import '../../../core/models/calculation_settings.dart';
 import '../../../core/models/appearance_settings.dart';
 import '../../../core/models/derived_time.dart';
 import '../../../core/models/general_settings.dart';
+import '../../../core/models/fasting_log.dart';
 import '../../../core/models/prayer_log.dart';
 import '../../../core/models/quiet_window.dart';
 import '../../../core/models/abort_state.dart';
@@ -35,7 +36,7 @@ class SqliteStorage implements LocalStorage {
 
     return await openDatabase(
       path,
-      version: 12,
+      version: 13,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -112,6 +113,18 @@ class SqliteStorage implements LocalStorage {
       CREATE TABLE dhikr_log (
         date TEXT PRIMARY KEY,
         count INTEGER NOT NULL
+      )
+    ''');
+    await _createFastingTable(db);
+  }
+
+  /// v13: oruç takibi. Kaza orucu sayısı `settings` tablosunda tutuluyor —
+  /// tek bir sayı için ayrı tablo gereksiz.
+  Future<void> _createFastingTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE fasting_log (
+        date TEXT PRIMARY KEY,
+        status TEXT NOT NULL
       )
     ''');
   }
@@ -252,6 +265,9 @@ class SqliteStorage implements LocalStorage {
     }
     if (oldVersion < 8) {
       await db.execute('ALTER TABLE alarms ADD COLUMN qr_payload TEXT');
+    }
+    if (oldVersion < 13) {
+      await _createFastingTable(db);
     }
     if (oldVersion < 12) {
       await _createTrackingTables(db);
@@ -586,11 +602,23 @@ class SqliteStorage implements LocalStorage {
   }
 
   @override
+  Future<String?> getSetting(String key) => _readSetting(key);
+
+  @override
+  Future<void> setSetting(String key, String value) async {
+    final db = await database;
+    await db.insert('settings', {
+      'key': key,
+      'value': value,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  @override
   Future<GeneralSettings> getGeneralSettings() async {
     final db = await database;
     final rows = await db.query(
       'settings',
-      where: 'key IN (?, ?, ?, ?, ?, ?, ?)',
+      where: 'key IN (?, ?, ?, ?, ?, ?, ?, ?)',
       whereArgs: [
         GeneralSettings.timeFormatKey,
         GeneralSettings.autoLocationKey,
@@ -599,6 +627,7 @@ class SqliteStorage implements LocalStorage {
         GeneralSettings.religiousDaysKey,
         GeneralSettings.religiousDayEveKey,
         GeneralSettings.languageKey,
+        GeneralSettings.ramadanModeKey,
       ],
     );
     return GeneralSettings.fromMap({
@@ -758,6 +787,60 @@ class SqliteStorage implements LocalStorage {
     await db.insert('qada_counts', {
       'prayer_type': prayerType.name,
       'count': clampQadaCount(count),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  static const String _fastingQadaKey = 'fasting_qada_count';
+
+  @override
+  Future<Map<String, FastingStatus>> getFastingLog(
+    DateTime from,
+    DateTime to,
+  ) async {
+    final db = await database;
+    final rows = await db.query(
+      'fasting_log',
+      where: 'date >= ? AND date <= ?',
+      whereArgs: [_dayKey(from), _dayKey(to)],
+    );
+    final result = <String, FastingStatus>{};
+    for (final row in rows) {
+      final status = FastingStatusX.fromStorage(row['status'] as String?);
+      if (status == null) continue;
+      result[row['date'] as String] = status;
+    }
+    return result;
+  }
+
+  @override
+  Future<void> setFastingLog(DateTime date, FastingStatus? status) async {
+    final db = await database;
+    if (status == null) {
+      await db.delete(
+        'fasting_log',
+        where: 'date = ?',
+        whereArgs: [_dayKey(date)],
+      );
+      return;
+    }
+    await db.insert('fasting_log', {
+      'date': _dayKey(date),
+      'status': status.storageValue,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  @override
+  Future<int> getFastingQadaCount() async {
+    final raw = await _readSetting(_fastingQadaKey);
+    return int.tryParse(raw ?? '') ?? 0;
+  }
+
+  @override
+  Future<void> setFastingQadaCount(int count) async {
+    final db = await database;
+    await db.insert('settings', {
+      'key': _fastingQadaKey,
+      'value': clampQadaCount(count).toString(),
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 

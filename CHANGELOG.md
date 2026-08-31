@@ -4,6 +4,18 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.11.0] - 2026-08-31
+
+### Eklendi
+- **Ramazan modu.** Ramazan boyunca ana ekrandaki sayaç sıradaki vakit yerine **iftara** (gündüz) ya da **sahurun bitişine** (imsaktan önce ve akşamdan sonra) sayar. Takvim sekmesi "Ramazan İmsakiyesi" adını alır.
+- **Sahur ve iftar hatırlatmaları.** Ramazan'ın ilk gününde bir kez sorulur; kabul edersen normal bildirim satırı olarak eklenir — Hatırlatıcılar listesinde görünür ve silinebilir. Gizli otomatik bildirim yok, yılda bir kez sorulur.
+- **Oruç takibi.** Ramazan'da Namaz takibi ekranında oruç ızgarası (tuttum / kaza / muaf) ve kaza orucu sayacı.
+- Ramazan modu Ayarlar'dan kapatılabilir.
+
+### Bilinen sınır
+- Ramazan'ın başlangıcı hicri takvimden hesaplanır; Diyanet ilanından bir gün sapabilir. Sayaç ve imsakiye o günün gerçek vakitlerinden hesaplandığı için içerik doğru kalır.
+- Widget'ta Ramazan'a özel görünüm yok; widget sıradaki vakti göstermeye devam eder.
+
 ## [0.10.0] - 2026-08-31
 
 ### Eklendi

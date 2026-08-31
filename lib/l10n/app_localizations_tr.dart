@@ -640,4 +640,52 @@ class AppLocalizationsTr extends AppLocalizations {
   String shareCaption(Object location, Object period) {
     return '$location · $period namaz vakitleri';
   }
+
+  @override
+  String get ramadanIftarCountdown => 'İftara';
+
+  @override
+  String get ramadanSuhoorCountdown => 'Sahurun bitişine';
+
+  @override
+  String ramadanDay(Object day) {
+    return 'Ramazan $day. gün';
+  }
+
+  @override
+  String get ramadanCalendarTitle => 'Ramazan İmsakiyesi';
+
+  @override
+  String get ramadanFastingSection => 'Oruç takibi';
+
+  @override
+  String get ramadanFasted => 'Tuttum';
+
+  @override
+  String get ramadanFastMissed => 'Kaza';
+
+  @override
+  String get ramadanFastExempt => 'Muaf';
+
+  @override
+  String get ramadanFastingQada => 'Kaza orucu';
+
+  @override
+  String get ramadanSetupTitle => 'Ramazan hatırlatmaları';
+
+  @override
+  String get ramadanSetupBody =>
+      'Sahur (imsaktan 45 dk önce) ve iftar bildirimi eklensin mi? Hatırlatıcılar listesinde görünür, dilediğinde silebilirsin.';
+
+  @override
+  String get ramadanSetupAccept => 'Ekle';
+
+  @override
+  String get ramadanSuhoorLabel => 'Sahur';
+
+  @override
+  String get ramadanIftarLabel => 'İftar';
+
+  @override
+  String get ramadanRemindersAdded => 'Sahur ve iftar hatırlatmaları eklendi';
 }

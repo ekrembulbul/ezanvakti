@@ -4,6 +4,7 @@ import '../models/notification_setting.dart';
 import '../models/calculation_settings.dart';
 import '../models/appearance_settings.dart';
 import '../models/general_settings.dart';
+import '../models/fasting_log.dart';
 import '../models/prayer_log.dart';
 import '../models/quiet_window.dart';
 import '../models/abort_state.dart';
@@ -59,6 +60,17 @@ abstract class LocalStorage {
 
   Future<void> setQadaCount(PrayerType prayerType, int count);
 
+  /// [from]–[to] arasındaki oruç kayıtları; anahtar `fastingLogKey`.
+  Future<Map<String, FastingStatus>> getFastingLog(DateTime from, DateTime to);
+
+  /// Tek günün kaydını yazar; [status] null ise siler.
+  Future<void> setFastingLog(DateTime date, FastingStatus? status);
+
+  /// Kaza orucu sayısı; kayıt yoksa 0.
+  Future<int> getFastingQadaCount();
+
+  Future<void> setFastingQadaCount(int count);
+
   /// O günün zikir sayacı; kayıt yoksa 0.
   Future<int> getDhikrCount(DateTime date);
 
@@ -69,6 +81,12 @@ abstract class LocalStorage {
 
   /// Pencere listesinin tamamını değiştirir.
   Future<void> saveQuietWindows(List<QuietWindow> windows);
+
+  /// `settings` tablosundan tek değer okur; yoksa null. Modellenmeye değmeyen
+  /// küçük bayraklar için (ör. "bu Ramazan sorulmuş mu").
+  Future<String?> getSetting(String key);
+
+  Future<void> setSetting(String key, String value);
 
   /// Genel tercihler (saat biçimi, otomatik konum); kayıt yoksa varsayılanlar.
   Future<GeneralSettings> getGeneralSettings();

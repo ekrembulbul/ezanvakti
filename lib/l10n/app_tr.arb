@@ -891,5 +891,70 @@
         "type": "Object"
       }
     }
+  },
+  "ramadanIftarCountdown": "İftara",
+  "@ramadanIftarCountdown": {
+    "description": "Sayaç etiketi"
+  },
+  "ramadanSuhoorCountdown": "Sahurun bitişine",
+  "@ramadanSuhoorCountdown": {
+    "description": "Sayaç etiketi"
+  },
+  "ramadanDay": "Ramazan {day}. gün",
+  "@ramadanDay": {
+    "description": "Gün etiketi",
+    "placeholders": {
+      "day": {
+        "type": "Object"
+      }
+    }
+  },
+  "ramadanCalendarTitle": "Ramazan İmsakiyesi",
+  "@ramadanCalendarTitle": {
+    "description": "Ekran başlığı"
+  },
+  "ramadanFastingSection": "Oruç takibi",
+  "@ramadanFastingSection": {
+    "description": "Bölüm başlığı"
+  },
+  "ramadanFasted": "Tuttum",
+  "@ramadanFasted": {
+    "description": "Durum"
+  },
+  "ramadanFastMissed": "Kaza",
+  "@ramadanFastMissed": {
+    "description": "Durum"
+  },
+  "ramadanFastExempt": "Muaf",
+  "@ramadanFastExempt": {
+    "description": "Durum"
+  },
+  "ramadanFastingQada": "Kaza orucu",
+  "@ramadanFastingQada": {
+    "description": "Sayaç"
+  },
+  "ramadanSetupTitle": "Ramazan hatırlatmaları",
+  "@ramadanSetupTitle": {
+    "description": "Diyalog başlığı"
+  },
+  "ramadanSetupBody": "Sahur (imsaktan 45 dk önce) ve iftar bildirimi eklensin mi? Hatırlatıcılar listesinde görünür, dilediğinde silebilirsin.",
+  "@ramadanSetupBody": {
+    "description": "Diyalog gövdesi"
+  },
+  "ramadanSetupAccept": "Ekle",
+  "@ramadanSetupAccept": {
+    "description": "Düğme"
+  },
+  "ramadanSuhoorLabel": "Sahur",
+  "@ramadanSuhoorLabel": {
+    "description": "Bildirim etiketi"
+  },
+  "ramadanIftarLabel": "İftar",
+  "@ramadanIftarLabel": {
+    "description": "Bildirim etiketi"
+  },
+  "ramadanRemindersAdded": "Sahur ve iftar hatırlatmaları eklendi",
+  "@ramadanRemindersAdded": {
+    "description": "Bildirim mesajı"
   }
 }
