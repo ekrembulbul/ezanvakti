@@ -10,6 +10,10 @@ import 'package:flutter/material.dart';
 import '../../core/constants/notification_constants.dart';
 import '../../core/di/service_locator.dart';
 import '../../core/interfaces/alarm_service.dart';
+import '../../core/interfaces/local_storage.dart';
+import '../../core/models/qr_code_entry.dart';
+import '../../features/alarms/domain/alarms_manager.dart';
+import '../../features/alarms/domain/qr_library.dart';
 import '../../core/models/alarm.dart';
 import '../../core/models/notification_setting.dart' show PrayerType;
 import '../../core/theme/app_tokens.dart';
@@ -200,7 +204,18 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
               const SizedBox(height: 12),
               KeyedSubtree(
                 key: _qrSectionKey,
-                child: QrPayloadField(controller: _qrPayload),
+                child: QrPayloadField(
+                  controller: _qrPayload,
+                  onScanned: _offerSaveScannedCode,
+                ),
+              ),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: _openSavedCodes,
+                  icon: const Icon(Icons.bookmarks_outlined, size: 18),
+                  label: const Text('Kayıtlı kodlardan seç'),
+                ),
               ),
             ],
           ],
@@ -711,6 +726,166 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
         if (v == AlarmMission.qr) _revealQrSection();
       },
     );
+  }
+
+  /// Okutulan kodu kütüphaneye kaydetmeyi önerir; ad boş bırakılırsa
+  /// generik ad kullanılır. "Vazgeç" yalnızca kaydı atlar, kod alanda kalır.
+  Future<void> _offerSaveScannedCode(String code) async {
+    final nameController = TextEditingController();
+    final save = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Kodu kütüphaneye kaydet'),
+        content: TextField(
+          controller: nameController,
+          autofocus: true,
+          decoration: const InputDecoration(hintText: 'Örn. Banyo aynası'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Vazgeç'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Kaydet'),
+          ),
+        ],
+      ),
+    );
+    if (save == true) {
+      final label = nameController.text.trim();
+      await ServiceLocator().get<LocalStorage>().saveQrCode(
+        QrCodeEntry(
+          id: DateTime.now().microsecondsSinceEpoch.toString(),
+          label: label.isEmpty ? 'QR kod' : label,
+          payload: code,
+          createdAt: DateTime.now(),
+        ),
+      );
+    }
+    nameController.dispose();
+  }
+
+  /// Kayıtlı kodlar alt sayfası: dokunuş seçer, çöp ikonu siler (kodu görev
+  /// olarak kullanan alarm varsa önce uyarır), uzun basış yeniden adlandırır.
+  Future<void> _openSavedCodes() async {
+    final storage = ServiceLocator().get<LocalStorage>();
+    final codes = await storage.getQrCodes();
+    if (!mounted) return;
+    if (codes.isEmpty) {
+      _snack('Henüz kayıtlı kod yok — okuttuğun kodu kaydederek başla');
+      return;
+    }
+    final alarms = await ServiceLocator().get<AlarmsManager>().getAlarms();
+    if (!mounted) return;
+
+    final entries = List.of(codes);
+    await showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) => SafeArea(
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              for (final entry in entries)
+                ListTile(
+                  leading: const Icon(Icons.qr_code_rounded),
+                  title: Text(entry.label),
+                  subtitle: Text(
+                    entry.payload,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  onTap: () {
+                    _qrPayload.text = entry.payload;
+                    Navigator.pop(sheetContext);
+                  },
+                  onLongPress: () async {
+                    final renamed = await _renameCode(entry);
+                    if (renamed != null) {
+                      setSheetState(() {
+                        entries[entries.indexOf(entry)] = renamed;
+                      });
+                    }
+                  },
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete_outline_rounded),
+                    onPressed: () async {
+                      final removed = await _deleteCode(entry, alarms);
+                      if (removed) setSheetState(() => entries.remove(entry));
+                    },
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<QrCodeEntry?> _renameCode(QrCodeEntry entry) async {
+    final nameController = TextEditingController(text: entry.label);
+    final save = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Kodu yeniden adlandır'),
+        content: TextField(controller: nameController, autofocus: true),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Vazgeç'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Kaydet'),
+          ),
+        ],
+      ),
+    );
+    QrCodeEntry? renamed;
+    final label = nameController.text.trim();
+    if (save == true && label.isNotEmpty) {
+      renamed = QrCodeEntry(
+        id: entry.id,
+        label: label,
+        payload: entry.payload,
+        createdAt: entry.createdAt,
+      );
+      await ServiceLocator().get<LocalStorage>().saveQrCode(renamed);
+    }
+    nameController.dispose();
+    return renamed;
+  }
+
+  Future<bool> _deleteCode(QrCodeEntry entry, List<Alarm> alarms) async {
+    final users = alarmsUsingQrPayload(alarms, entry.payload);
+    if (users.isNotEmpty) {
+      final proceed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Kod kullanımda'),
+          content: Text(
+            'Bu kodu şu alarmlar görev olarak kullanıyor: '
+            '${users.join(', ')}. Kütüphaneden silmek alarmı bozmaz ama '
+            'kodu yeniden seçemezsin.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Vazgeç'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Yine de sil'),
+            ),
+          ],
+        ),
+      );
+      if (proceed != true) return false;
+    }
+    await ServiceLocator().get<LocalStorage>().deleteQrCode(entry.id);
+    return true;
   }
 
   /// QR bölümünü görünür alana kaydırır. Bölüm bu kare içinde yaratıldığı için

@@ -25,10 +25,15 @@ class QrPayloadField extends StatelessWidget {
   /// Testlerde kamera açılmasın diye; verilirse okutma bunun sonucunu kullanır.
   final Future<String?> Function(BuildContext context)? scanOverride;
 
+  /// Okutma başarıyla sonuçlanınca çağrılır (elle yazmada çağrılmaz);
+  /// düzenleme ekranı kodu kütüphaneye kaydetmeyi buradan önerir.
+  final ValueChanged<String>? onScanned;
+
   const QrPayloadField({
     super.key,
     required this.controller,
     this.scanOverride,
+    this.onScanned,
   });
 
   Future<void> _scan(BuildContext context) async {
@@ -36,6 +41,7 @@ class QrPayloadField extends StatelessWidget {
     final code = await scanner(context);
     if (code == null) return;
     controller.text = code;
+    onScanned?.call(code);
   }
 
   @override
