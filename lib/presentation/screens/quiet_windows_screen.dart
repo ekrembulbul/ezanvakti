@@ -182,7 +182,8 @@ class _QuietWindowsScreenState extends State<QuietWindowsScreen> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Cuma öğle vaktinin çevresinde bildirimler susar.',
+                      'Cuma öğle vaktinin çevresinde bildirimler susar. '
+                      'Süreleri değiştirebilir ya da tamamen kapatabilirsin.',
                       style: AppTypography.hint.copyWith(
                         color: tokens.textTertiary,
                         height: 1.4,

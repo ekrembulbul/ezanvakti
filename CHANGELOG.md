@@ -7,7 +7,7 @@ proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 ## [0.7.0] - 2026-08-31
 
 ### Eklendi
-- **Sessiz pencereler.** Belirlediğin aralıklarda bildirimler sessiz gösterilir ya da hiç gösterilmez. Cuma namazı hazır şablon olarak geliyor (öğleden 15 dk önce – 60 dk sonra); istediğin vakit için kendi pencereni de ekleyebilirsin. Not: iPhone'da bir uygulama telefonu sessize alamaz — bu ayar yalnızca Ezan Vakti bildirimlerini etkiler, alarmlara dokunmaz.
+- **Sessiz pencereler.** Belirlediğin aralıklarda bildirimler sessiz gösterilir ya da hiç gösterilmez. Cuma namazı şablonu **açık geliyor** (öğleden 15 dk önce – 60 dk sonra); süresini değiştirebilir, modunu seçebilir ya da tamamen kapatabilirsin — istediğin vakit için kendi pencereni de ekleyebilirsin. Not: iPhone'da bir uygulama telefonu sessize alamaz — bu ayar yalnızca Ezan Vakti bildirimlerini etkiler, alarmlara dokunmaz.
 - **Bildirim başına ses:** sistem sesi, uygulamanın kısa uyarı tonu ya da sessiz. Yeni bildirimlerin varsayılan sesi Ayarlar'dan seçiliyor.
 - **Odak modunda göster.** Açıkken bildirimler Odak modunda özete düşmeden anında görünür. (Telefonun sessiz anahtarını delmez.)
 - **Bildirimlere gün filtresi ve etiket.** Bir hatırlatma yalnızca seçtiğin günlerde çalabiliyor; etiket verirsen bildirim başlığında o yazıyor. Bildirim listesinde tek dokunuşla **Cuma namazı hatırlatıcısı** ekleniyor.

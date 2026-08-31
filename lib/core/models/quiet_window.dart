@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'notification_setting.dart' show PrayerType;
 
 /// Pencerenin neye göre kurulduğu.
@@ -16,6 +18,32 @@ enum QuietMode {
 
   /// Bildirim hiç planlanmaz.
   skip,
+}
+
+/// Depodaki ham değeri pencere listesine çevirir.
+///
+/// **Hiç kayıt yoksa** Cuma şablonu döner: kullanıcı hiçbir şey yapmadan
+/// Cuma vaktinde bildirimler susar. Kullanıcı şablonu kapattığında ya da
+/// düzenlediğinde artık kayıt vardır ve tercihi aynen korunur — boş liste
+/// kaydedilmişse boş kalır, varsayılan geri gelmez.
+///
+/// Bozuk kayıt boş listeye düşer (varsayılana değil): kullanıcının kapattığı
+/// bir pencerenin sessizce geri gelmesi, susturmanın hiç uygulanmamasından
+/// daha şaşırtıcıdır.
+List<QuietWindow> decodeQuietWindows(
+  String? raw, {
+  required List<QuietWindow> Function(Object error) onError,
+}) {
+  if (raw == null) return [QuietWindow.fridayDefault()];
+  try {
+    final decoded = jsonDecode(raw) as List;
+    return [
+      for (final item in decoded)
+        QuietWindow.fromJson(item as Map<String, dynamic>),
+    ];
+  } catch (e) {
+    return onError(e);
+  }
 }
 
 /// Bildirimlerin susturulacağı zaman aralığı.

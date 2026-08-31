@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:ezanvakti/core/models/notification_setting.dart';
 import 'package:ezanvakti/core/models/quiet_window.dart';
 import 'package:ezanvakti/features/notifications/domain/quiet_window_rules.dart';
@@ -113,6 +115,46 @@ void main() {
       ),
     ];
     expect(modeAt(windows, fridayDhuhr), QuietMode.skip);
+  });
+
+  group('varsayilan cozumleme', () {
+    List<QuietWindow> decode(String? raw) =>
+        decodeQuietWindows(raw, onError: (_) => const []);
+
+    test('hic kayit yoksa Cuma sablonu gelir ve aciktir', () {
+      final windows = decode(null);
+      expect(windows, hasLength(1));
+      expect(windows.single.trigger, QuietTrigger.fridayDhuhr);
+      expect(windows.single.isActive, isTrue);
+      expect(windows.single.minutesBefore, 15);
+      expect(windows.single.minutesAfter, 60);
+    });
+
+    test('kullanicinin kapattigi sablon geri gelmez', () {
+      final off = QuietWindow.fridayDefault().copyWith(isActive: false);
+      final windows = decode('[${jsonEncode(off.toJson())}]');
+      expect(windows.single.isActive, isFalse);
+    });
+
+    test('kullanicinin degistirdigi sureler korunur', () {
+      final edited = QuietWindow.fridayDefault().copyWith(
+        minutesBefore: 30,
+        minutesAfter: 90,
+        mode: QuietMode.skip,
+      );
+      final windows = decode('[${jsonEncode(edited.toJson())}]');
+      expect(windows.single.minutesBefore, 30);
+      expect(windows.single.minutesAfter, 90);
+      expect(windows.single.mode, QuietMode.skip);
+    });
+
+    test('bos liste kaydedilmisse bos kalir', () {
+      expect(decode('[]'), isEmpty);
+    });
+
+    test('bozuk kayit varsayilana degil bosa duser', () {
+      expect(decode('bozuk-json'), isEmpty);
+    });
   });
 
   test('JSON round-trip', () {

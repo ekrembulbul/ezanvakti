@@ -635,19 +635,16 @@ class SqliteStorage implements LocalStorage {
 
   @override
   Future<List<QuietWindow>> getQuietWindows() async {
-    final raw = await _readSetting(_quietWindowsKey);
-    if (raw == null) return const [];
-    // Bozuk kayıt tüm bildirimleri susturmasın; pencere yok kabul edilir.
-    try {
-      final decoded = jsonDecode(raw) as List;
-      return [
-        for (final item in decoded)
-          QuietWindow.fromJson(item as Map<String, dynamic>),
-      ];
-    } catch (e) {
-      AppLogger().warning('Sessiz pencereler okunamadi, bos kabul edildi', e);
-      return const [];
-    }
+    return decodeQuietWindows(
+      await _readSetting(_quietWindowsKey),
+      onError: (error) {
+        AppLogger().warning(
+          'Sessiz pencereler okunamadi, bos kabul edildi',
+          error,
+        );
+        return const [];
+      },
+    );
   }
 
   @override
