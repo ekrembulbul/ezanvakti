@@ -4,6 +4,7 @@ import 'package:android_intent_plus/android_intent.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
+import '../../../core/constants/notification_sounds.dart';
 import '../../../core/interfaces/notification_service.dart';
 import '../../../core/models/notification_setting.dart';
 import '../../../core/utils/app_logger.dart';
@@ -116,7 +117,13 @@ class FlutterLocalNotificationService implements NotificationService {
     required DateTime scheduledTime,
     required String title,
     required String body,
+    String? soundId,
+    bool silent = false,
+    bool timeSensitive = true,
   }) async {
+    // Android'de ses kanala bağlı ve kanal sesi sonradan değişmiyor; ses
+    // başına kanal Android turunda gelecek. Şimdilik sessizlik kanal
+    // seviyesinden değil, iOS tarafından uygulanıyor.
     const androidDetails = AndroidNotificationDetails(
       'ezan_vakti_channel',
       'Ezan Vakti Bildirimleri',
@@ -126,13 +133,19 @@ class FlutterLocalNotificationService implements NotificationService {
       icon: 'ic_stat_notification',
     );
 
-    const iosDetails = DarwinNotificationDetails(
+    final iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
-      presentSound: true,
+      presentSound: !silent,
+      sound: silent ? null : NotificationSounds.fileFor(soundId),
+      // Time sensitive: Odak modunda özete düşmek yerine anında görünür.
+      // Sessiz anahtarını delmez — o yalnızca AlarmKit'in yapabildiği şey.
+      interruptionLevel: timeSensitive
+          ? InterruptionLevel.timeSensitive
+          : InterruptionLevel.active,
     );
 
-    const details = NotificationDetails(
+    final details = NotificationDetails(
       android: androidDetails,
       iOS: iosDetails,
     );

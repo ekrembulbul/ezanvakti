@@ -344,6 +344,9 @@ class FakeNotificationService implements NotificationService {
     required DateTime scheduledTime,
     required String title,
     required String body,
+    String? soundId,
+    bool silent = false,
+    bool timeSensitive = true,
   }) async {
     scheduled.add(
       ScheduledNotification(

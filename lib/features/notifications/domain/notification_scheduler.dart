@@ -1,3 +1,4 @@
+import '../../../core/constants/notification_sounds.dart';
 import '../../../core/interfaces/notification_service.dart';
 import '../../../core/interfaces/local_storage.dart';
 import '../../../core/models/prayer_time.dart';
@@ -34,6 +35,7 @@ class NotificationScheduler {
     );
 
     final settings = await storage.getNotificationSettings();
+    final general = await storage.getGeneralSettings();
 
     // Mevcut tüm planlanmış bildirimleri önce iptal et — ayar listesi boş olsa
     // bile. Aksi halde kullanıcı tüm bildirimleri silince, daha önce OS'a
@@ -101,6 +103,8 @@ class NotificationScheduler {
             notificationTime: notificationTime,
             title: _getNotificationTitle(setting),
             body: _getNotificationBody(setting, prayerDateTime),
+            soundId: setting.soundId,
+            silent: NotificationSounds.isSilent(setting.soundId),
           ),
         );
       }
@@ -116,6 +120,9 @@ class NotificationScheduler {
         scheduledTime: candidate.notificationTime,
         title: candidate.title,
         body: candidate.body,
+        soundId: candidate.soundId,
+        silent: candidate.silent,
+        timeSensitive: general.showInFocusMode,
       );
       logger.debug(
         '${_formatTime(candidate.notificationTime)} icin bildirim planlandi (${candidate.id})',
@@ -244,11 +251,15 @@ class _NotificationCandidate {
   final DateTime notificationTime;
   final String title;
   final String body;
+  final String? soundId;
+  final bool silent;
 
   const _NotificationCandidate({
     required this.id,
     required this.notificationTime,
     required this.title,
     required this.body,
+    this.soundId,
+    this.silent = false,
   });
 }
