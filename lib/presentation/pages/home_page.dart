@@ -26,6 +26,7 @@ import '../screens/home_screen.dart';
 import '../screens/calendar_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/quiet_windows_screen.dart';
+import '../screens/tools_screen.dart';
 import '../screens/calculation_settings_screen.dart';
 import '../screens/location_list_screen.dart';
 import '../screens/reminders_screen.dart';
@@ -536,6 +537,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
                 },
               ),
               const RemindersScreen(),
+              const ToolsScreen(),
             ],
           ),
         ),
@@ -544,6 +546,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             NavItem(label: 'Vakitler', icon: Icons.schedule_rounded),
             NavItem(label: 'Takvim', icon: Icons.calendar_month_rounded),
             NavItem(label: 'Hatırlatıcılar', icon: Icons.notifications_rounded),
+            NavItem(label: 'Araçlar', icon: Icons.handyman_rounded),
           ],
           selected: _tabIndex,
           onChanged: (index) => setState(() => _tabIndex = index),
