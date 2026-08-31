@@ -52,7 +52,7 @@ class QrPayloadField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionLabel('QR KOD'),
+        SectionLabel(context.l10n.qrSectionLabel),
         const SizedBox(height: 8),
         // Okutma dugmesi alanin yaninda duruyor: ikisi de ayni isi — kodu
         // doldurmayi — yapiyor, alt alta durunca ikinci bir adim gibi

@@ -258,7 +258,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
 
   Widget _fixedSection() {
     return _section(
-      'Saat',
+      context.l10n.alarmFixedSection,
       InkWell(
         onTap: _pickTime,
         borderRadius: BorderRadius.circular(12),
@@ -297,7 +297,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         OptionRow<PrayerType>(
-          label: 'Vakit',
+          label: context.l10n.alarmAnchorLabel,
           sheetTitle: context.l10n.alarmAnchorQuestion,
           selected: _anchor,
           items: [
@@ -308,7 +308,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
         ),
         const SizedBox(height: 16),
         _section(
-          'Zamanlama',
+          context.l10n.alarmTimingSection,
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -319,7 +319,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                   _timeChip(context.l10n.alarmBefore, isBefore, () {
                     setState(() => _offset = -_anchorMagnitude(maxOffset));
                   }),
-                  _timeChip('Tam vaktinde', isExact, () {
+                  _timeChip(context.l10n.alarmExactTime, isExact, () {
                     setState(() => _offset = 0);
                   }),
                   _timeChip(context.l10n.alarmAfter, isAfter, () {
@@ -410,7 +410,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                     ),
                   ),
                   Text(
-                    '1 - $maxOffset dk',
+                    context.l10n.offsetRangeHint(maxOffset),
                     style: TextStyle(color: tokens.textSecondary, fontSize: 11),
                   ),
                 ],
@@ -613,8 +613,8 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   }
 
   Future<void> _pickCustomSound() async {
-    const audioGroup = XTypeGroup(
-      label: 'Ses',
+    final audioGroup = XTypeGroup(
+      label: context.l10n.soundFileTypeLabel,
       extensions: [
         'mp3',
         'm4a',
@@ -669,7 +669,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
       selected: _snoozeMinutes,
       items: [
         for (final m in kSnoozeMinuteOptions)
-          OptionItem(value: m, label: '$m dakika'),
+          OptionItem(value: m, label: context.l10n.alarmSnoozeMinutesOption(m)),
       ],
       onChanged: (v) => setState(() => _snoozeMinutes = v),
     );
@@ -889,7 +889,11 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   }
 
   Future<bool> _deleteCode(QrCodeEntry entry, List<Alarm> alarms) async {
-    final users = alarmsUsingQrPayload(alarms, entry.payload);
+    final users = alarmsUsingQrPayload(
+      alarms,
+      entry.payload,
+      unnamedLabel: context.l10n.alarmDefaultLabel,
+    );
     if (users.isNotEmpty) {
       final proceed = await showDialog<bool>(
         context: context,

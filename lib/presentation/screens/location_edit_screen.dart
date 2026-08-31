@@ -130,7 +130,7 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
           ..clearSnackBars()
           ..showSnackBar(
             SnackBar(
-              content: Text('Kaydedilemedi: $e'),
+              content: Text(context.l10n.locationSaveFailed('$e')),
               backgroundColor: Theme.of(context).colorScheme.error,
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
@@ -284,7 +284,7 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Genel ayar: $methodName · $schoolLabel',
+              context.l10n.locationGlobalCalculation(methodName, schoolLabel),
               style: AppTypography.rowSubtitle.copyWith(
                 color: tokens.textSecondary,
               ),
@@ -304,7 +304,7 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
         padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       ),
-      child: const Text('Kaydet'),
+      child: Text(context.l10n.actionSave),
     );
   }
 }

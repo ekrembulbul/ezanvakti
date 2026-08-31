@@ -29,13 +29,24 @@ void main() {
   );
 
   test('kodu kullanan QR gorevli alarmlarin etiketleri doner', () {
-    expect(alarmsUsingQrPayload([qrAlarm, otherQr, mathAlarm], 'KOD-1'), [
-      'Sahur',
-    ]);
+    expect(
+      alarmsUsingQrPayload(
+        [qrAlarm, otherQr, mathAlarm],
+        'KOD-1',
+        unnamedLabel: 'Alarm',
+      ),
+      ['Sahur'],
+    );
   });
 
   test('etiketsiz alarm generik adla doner, kullanilmayan kod bos doner', () {
-    expect(alarmsUsingQrPayload([otherQr], 'KOD-2'), ['Alarm']);
-    expect(alarmsUsingQrPayload([qrAlarm, otherQr], 'KOD-9'), isEmpty);
+    expect(
+      alarmsUsingQrPayload([otherQr], 'KOD-2', unnamedLabel: 'Alarm'),
+      ['Alarm'],
+    );
+    expect(
+      alarmsUsingQrPayload([qrAlarm, otherQr], 'KOD-9', unnamedLabel: 'Alarm'),
+      isEmpty,
+    );
   });
 }

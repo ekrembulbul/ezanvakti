@@ -59,7 +59,7 @@ class _CalculationSettingsScreenState extends State<CalculationSettingsScreen> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      appBar: const SimpleAppBar(title: 'Hesaplama'),
+      appBar: SimpleAppBar(title: context.l10n.settingsCalculation),
       body: AppSurface(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -103,7 +103,10 @@ class _CalculationSettingsScreenState extends State<CalculationSettingsScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              ElevatedButton(onPressed: _save, child: const Text('Kaydet')),
+              ElevatedButton(
+                onPressed: _save,
+                child: Text(context.l10n.actionSave),
+              ),
             ],
           ),
         ),

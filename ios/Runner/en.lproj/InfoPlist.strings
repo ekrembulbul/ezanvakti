@@ -1,0 +1,7 @@
+/* Base language; kept explicit so `en` is a real bundle localization. */
+"CFBundleDisplayName" = "Prayer Times & Alarm";
+"CFBundleName" = "Prayer Times";
+"NSLocationWhenInUseUsageDescription" = "Location access is needed to show prayer times for where you are.";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Location access is needed to show prayer times for where you are.";
+"NSCameraUsageDescription" = "Camera access is needed to scan the code you saved, so you can dismiss an alarm with a QR task.";
+"NSAlarmKitUsageDescription" = "Alarm access is needed to set audible alarms for prayer times and the times you choose.";

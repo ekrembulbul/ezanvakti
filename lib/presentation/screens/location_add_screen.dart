@@ -206,11 +206,16 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
   /// koordinata düşer; namaz vakti yine ham koordinattan hesaplanır.
   Future<({String province, String district, String? countryCode})>
   _reverseGeocodeLabel(double latitude, double longitude) async {
+    // `await` sonrasi context kullanilamaz; ceviriler simdi yakalaniyor.
+    final gpsFallbackLabel = context.l10n.locationTypeGps;
     try {
       final placemarks = await placemarkFromCoordinates(latitude, longitude);
       if (placemarks.isNotEmpty) {
         final placemark = placemarks.first;
-        final label = resolveGpsLabel(placemark);
+        final label = resolveGpsLabel(
+          placemark,
+          fallbackLabel: gpsFallbackLabel,
+        );
         return (
           province: label.province,
           district: label.district,
@@ -224,7 +229,11 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
         '${latitude.toStringAsFixed(3)}, ${longitude.toStringAsFixed(3)}';
     // displayName "$district, $province" urettigi icin okunabilir sira:
     // "GPS Konumu, 41.008, 28.978".
-    return (province: coordsLabel, district: 'GPS Konumu', countryCode: null);
+    return (
+      province: coordsLabel,
+      district: gpsFallbackLabel,
+      countryCode: null,
+    );
   }
 
   Future<bool> _showLocationRationale() async {
@@ -301,7 +310,9 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
         }
       }
     } catch (e) {
-      _showSnackBar('Hata: $e', isError: true);
+      if (mounted) {
+        _showSnackBar(context.l10n.errorGenericWith('$e'), isError: true);
+      }
     }
   }
 
@@ -361,7 +372,9 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: SimpleAppBar(
-        title: _showManualSelection ? 'Konum Ara' : 'Yeni Konum',
+        title: _showManualSelection
+            ? context.l10n.locationSearch
+            : context.l10n.locationAddTitle,
         showBack: widget.fromLocationList && !_showManualSelection,
       ),
       body: AppSurface(
@@ -398,7 +411,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
         ),
         const SizedBox(height: 32),
         Text(
-          'Yeni Konum Ekle',
+          context.l10n.locationAddTitle,
           style: AppTypography.counterLabel.copyWith(
             fontSize: 24,
             letterSpacing: -0.5,
@@ -418,8 +431,10 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
         const SizedBox(height: 48),
         LocationChoiceButton(
           icon: Icons.my_location_rounded,
-          title: _isLoadingLocation ? context.l10n.locationGettingPosition : 'GPS ile Bul',
-          subtitle: 'Otomatik konum tespiti',
+          title: _isLoadingLocation
+              ? context.l10n.locationGettingPosition
+              : context.l10n.locationFindWithGps,
+          subtitle: context.l10n.locationAutoDetect,
           isLoading: _isLoadingLocation,
           isHighlighted: true,
           onTap: _detectLocation,
@@ -431,7 +446,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
         const SizedBox(height: 16),
         LocationChoiceButton(
           icon: Icons.search_rounded,
-          title: 'Adres Ara',
+          title: context.l10n.locationSearchAddress,
           subtitle: context.l10n.locationSearchHint,
           onTap: () => setState(() {
             _showManualSelection = true;
@@ -666,7 +681,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
                 borderRadius: BorderRadius.circular(14),
               ),
             ),
-            child: const Text('Geri'),
+            child: Text(context.l10n.actionBack),
           ),
         ),
         const SizedBox(width: 16),
@@ -684,9 +699,12 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
                 borderRadius: BorderRadius.circular(14),
               ),
             ),
-            child: const Text(
-              'Kaydet',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+            child: Text(
+              context.l10n.actionSave,
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+              ),
             ),
           ),
         ),

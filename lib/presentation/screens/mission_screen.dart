@@ -82,7 +82,7 @@ class MissionScreen extends StatelessWidget {
   }
 
   Widget _header(AppTokens tokens, AppLocalizations l10n) {
-    final title = alarm.label.isEmpty ? 'Alarm' : alarm.label;
+    final title = alarm.label.isEmpty ? l10n.alarmDefaultLabel : alarm.label;
 
     return Column(
       children: [
@@ -149,7 +149,7 @@ class MissionScreen extends StatelessWidget {
         child: FittedBox(
           fit: BoxFit.scaleDown,
           child: Text(
-            '${alarm.snoozeMinutes} dk ertele · $snoozeRemaining hak',
+            l10n.missionSnoozeAction(alarm.snoozeMinutes, snoozeRemaining),
             style: AppTypography.rowTitle.copyWith(
               fontSize: kMissionButtonFontSize,
             ),

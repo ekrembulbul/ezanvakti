@@ -8,6 +8,10 @@ import '../../../core/constants/notification_sounds.dart';
 import '../../../core/interfaces/notification_service.dart';
 import '../../../core/models/notification_setting.dart';
 import '../../../core/utils/app_logger.dart';
+import '../../../l10n/device_localizations.dart';
+
+/// Tek Android bildirim kanali; ses basina kanal Android turunda gelecek.
+const String _androidChannelId = 'ezan_vakti_channel';
 
 class FlutterLocalNotificationService implements NotificationService {
   final FlutterLocalNotificationsPlugin _plugin =
@@ -41,10 +45,14 @@ class FlutterLocalNotificationService implements NotificationService {
           AndroidFlutterLocalNotificationsPlugin
         >();
     if (androidPlugin != null) {
-      const androidChannel = AndroidNotificationChannel(
-        'ezan_vakti_channel',
-        'Ezan Vakti Bildirimleri',
-        description: 'Namaz vakitlerini bildiren bildirimler',
+      // Kanal adi sistem ayarlarinda gorunur. `createNotificationChannel`
+      // ayni id ile cagrilinca adi gunceller; cihaz dili degisince her
+      // acilista duzelir.
+      final l10n = await deviceLocalizations();
+      final androidChannel = AndroidNotificationChannel(
+        _androidChannelId,
+        l10n.androidChannelName,
+        description: l10n.androidChannelDescription,
         importance: Importance.high,
       );
       await androidPlugin.createNotificationChannel(androidChannel);
@@ -124,10 +132,13 @@ class FlutterLocalNotificationService implements NotificationService {
     // Android'de ses kanala bağlı ve kanal sesi sonradan değişmiyor; ses
     // başına kanal Android turunda gelecek. Şimdilik sessizlik kanal
     // seviyesinden değil, iOS tarafından uygulanıyor.
-    const androidDetails = AndroidNotificationDetails(
-      'ezan_vakti_channel',
-      'Ezan Vakti Bildirimleri',
-      channelDescription: 'Namaz vakitlerini bildiren bildirimler',
+    // Kanal `init` icinde olusturuluyor; buradaki ad/aciklama yalnizca kanal
+    // hic yoksa kullanilir.
+    final channelL10n = await deviceLocalizations();
+    final androidDetails = AndroidNotificationDetails(
+      _androidChannelId,
+      channelL10n.androidChannelName,
+      channelDescription: channelL10n.androidChannelDescription,
       importance: Importance.high,
       priority: Priority.high,
       icon: 'ic_stat_notification',

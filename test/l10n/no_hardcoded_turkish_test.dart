@@ -14,6 +14,22 @@ void main() {
   /// Türkçe'ye özgü harfler; İngilizce ve Arapça metinlerde bulunmaz.
   final turkish = RegExp('[çğıöşüÇĞİÖŞÜ]');
 
+  /// Sadece ASCII harflerden oluşan Türkçe kelimeler. Harf taraması bunları
+  /// göremiyor; `Text('Ayarlar')` gibi sızıntılar bu yüzden gözden kaçtı.
+  /// Listeye yalnızca İngilizce'de başka anlamı olmayan kelimeler girer —
+  /// "Alarm" gibi iki dilde de aynı yazılanlar yanlış alarm üretir.
+  const asciiTurkishWords = <String>[
+    'Ayarlar', 'Kapat', 'Ertele', 'Iptal', 'Tamam', 'Kaydet', 'Vazgec',
+    'Duzenle', 'Ekle', 'Yenile', 'Devam', 'Geri', 'Namaz', 'Vakit',
+    'Vakitler', 'Ezan', 'Konum', 'Sehir', 'Ilce', 'Bildirim', 'Bugun',
+    'Yarin', 'Dun', 'Simdi', 'Hata', 'Uyari', 'Acik', 'Kapali', 'Yok',
+    'Evet', 'Hayir', 'hak', 'kez', 'dk',
+  ];
+  final asciiTurkish = RegExp(
+    r'\b(?:' + asciiTurkishWords.join('|') + r')\b',
+    caseSensitive: false,
+  );
+
   /// Tek ve çift tırnaklı string literal'ler.
   final literal = RegExp(r"'((?:[^'\\]|\\.)*)'|" r'"((?:[^"\\]|\\.)*)"');
 
@@ -21,7 +37,14 @@ void main() {
   const allowed = <String, String>{
     'lib/core/models/calculation_params.dart':
         'Kurum adları özel isimdir: "Diyanet İşleri Başkanlığı" çevrilmez.',
+    'lib/features/location/data/photon_geocoding_service.dart':
+        'User-Agent başlığı sunucuya gider, kullanıcıya gösterilmez.',
+    'lib/presentation/services/calendar_share_service.dart':
+        'Dosya adı ASCII bir slug; çeviriyle değişmemesi gerekiyor.',
   };
+
+  /// Log çağrıları: mesajlar geliştirici içindir, çevrilmez.
+  final logCall = RegExp(r'\b(?:_?logger|AppLogger\(\))\.\w+\(|debugPrint\(');
 
   test('lib/ altinda sabit Turkce kullanici metni yok', () {
     final offenders = <String>[];
@@ -33,15 +56,28 @@ void main() {
       if (allowed.containsKey(entity.path)) continue;
 
       final lines = entity.readAsLinesSync();
+      // Log çağrısı birden çok satıra yayılabiliyor; kapanışa kadar atlanır.
+      var inLogCall = false;
       for (var i = 0; i < lines.length; i++) {
         final line = lines[i];
+        if (inLogCall) {
+          if (line.contains(');')) inLogCall = false;
+          continue;
+        }
+        if (logCall.hasMatch(line)) {
+          inLogCall = !line.contains(');');
+          continue;
+        }
         final trimmed = line.trimLeft();
         if (trimmed.startsWith('//')) continue;
         final code = line.replaceAll(RegExp(r'//.*$'), '');
 
         for (final match in literal.allMatches(code)) {
           final value = match.group(1) ?? match.group(2) ?? '';
-          if (value.length < 2 || !turkish.hasMatch(value)) continue;
+          if (value.length < 2) continue;
+          if (!turkish.hasMatch(value) && !asciiTurkish.hasMatch(value)) {
+            continue;
+          }
           offenders.add('${entity.path}:${i + 1}: $value');
         }
       }

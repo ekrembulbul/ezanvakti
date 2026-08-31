@@ -1,0 +1,3 @@
+/* أوامر Siri الصوتية. يجب أن يحتوي كل نص على ${applicationName}. */
+"${applicationName} next prayer" = "${applicationName} الصلاة التالية";
+"${applicationName} prayer time" = "${applicationName} وقت الصلاة";

@@ -43,6 +43,9 @@ class CalculationMethod {
 /// Aladhan'ın desteklediği hesaplama yöntemleri (id ve görünen ad).
 ///
 /// id değerleri Aladhan API'sinin `method` parametresine birebir karşılık gelir.
+/// Adlar **kurum adıdır ve çevrilmez**; her dilde aynı görünür. Yer adları da
+/// bu yüzden uluslararası yazımıyla yazılır (Makkah, Tehran, …) — aksi hâlde
+/// İngilizce/Arapça cihazda Türkçeleştirilmiş adlar görünüyordu.
 class CalculationMethods {
   const CalculationMethods._();
 
@@ -50,14 +53,14 @@ class CalculationMethods {
     CalculationMethod(id: 1, name: 'Muslim World League'),
     CalculationMethod(id: 2, name: 'Islamic Society of North America (ISNA)'),
     CalculationMethod(id: 3, name: 'Egyptian General Authority of Survey'),
-    CalculationMethod(id: 4, name: 'Umm Al-Qura University, Mekke'),
+    CalculationMethod(id: 4, name: 'Umm Al-Qura University, Makkah'),
     CalculationMethod(id: 5, name: 'University of Islamic Sciences, Karachi'),
-    CalculationMethod(id: 6, name: 'Institute of Geophysics, Tahran'),
-    CalculationMethod(id: 7, name: 'Shia Ithna-Ashari, Leva Institute, Kum'),
+    CalculationMethod(id: 6, name: 'Institute of Geophysics, Tehran'),
+    CalculationMethod(id: 7, name: 'Shia Ithna-Ashari, Leva Institute, Qom'),
     CalculationMethod(id: 8, name: 'Gulf Region'),
-    CalculationMethod(id: 9, name: 'Kuveyt'),
-    CalculationMethod(id: 10, name: 'Katar'),
-    CalculationMethod(id: 11, name: 'Majlis Ugama Islam Singapura, Singapur'),
+    CalculationMethod(id: 9, name: 'Kuwait'),
+    CalculationMethod(id: 10, name: 'Qatar'),
+    CalculationMethod(id: 11, name: 'Majlis Ugama Islam Singapura, Singapore'),
     CalculationMethod(
       id: 12,
       name: 'Union des Organisations Islamiques de France',
@@ -65,13 +68,13 @@ class CalculationMethods {
     CalculationMethod(id: 13, name: 'Diyanet İşleri Başkanlığı'),
     CalculationMethod(id: 14, name: 'Spiritual Administration of Muslims of Russia'),
     CalculationMethod(id: 15, name: 'Moonsighting Committee Worldwide'),
-    CalculationMethod(id: 16, name: 'Dubai (BAE)'),
+    CalculationMethod(id: 16, name: 'Dubai (UAE)'),
     CalculationMethod(id: 17, name: 'Jabatan Kemajuan Islam Malaysia (JAKIM)'),
-    CalculationMethod(id: 18, name: 'Tunus'),
-    CalculationMethod(id: 19, name: 'Cezayir'),
+    CalculationMethod(id: 18, name: 'Tunisia'),
+    CalculationMethod(id: 19, name: 'Algeria'),
     CalculationMethod(id: 20, name: 'Kementerian Agama Republik Indonesia'),
-    CalculationMethod(id: 21, name: 'Fas'),
-    CalculationMethod(id: 22, name: 'Comunidade Islâmica de Lisboa (Portekiz)'),
+    CalculationMethod(id: 21, name: 'Morocco'),
+    CalculationMethod(id: 22, name: 'Comunidade Islâmica de Lisboa (Portugal)'),
   ];
 
   /// Verilen id'ye karşılık gelen yöntemi döner; bulunamazsa Diyanet'e düşer.

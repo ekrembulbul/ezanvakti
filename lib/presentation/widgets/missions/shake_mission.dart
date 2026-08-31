@@ -120,7 +120,9 @@ class _ShakeMissionState extends State<ShakeMission>
               ),
               const SizedBox(height: 6),
               Text(
-                remaining > 0 ? 'kez daha salla' : context.l10n.missionShakeDone,
+                remaining > 0
+                    ? context.l10n.missionShakeRemaining
+                    : context.l10n.missionShakeDone,
                 style: AppTypography.rowTitle.copyWith(
                   fontSize: kMissionLeadFontSize,
                   color: tokens.textSecondary,

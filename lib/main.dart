@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'l10n/app_localizations.dart';
+import 'l10n/l10n_extensions.dart';
 import 'l10n/locale_resolver.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'core/constants/app_constants.dart';
 import 'core/di/service_locator.dart';
 import 'core/providers/app_state.dart';
 import 'core/theme/app_theme.dart';
@@ -15,7 +15,11 @@ import 'presentation/pages/app_root.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await initializeDateFormatting('tr_TR', null);
+  // Tarih adlari (gun/ay) cihaz dilinde basiliyor; desteklenen her dilin
+  // sembolleri yukleniyor.
+  for (final locale in AppLocalizations.supportedLocales) {
+    await initializeDateFormatting(locale.languageCode, null);
+  }
 
   final serviceLocator = ServiceLocator();
   await serviceLocator.initialize();
@@ -66,12 +70,12 @@ class MyApp extends StatelessWidget {
           );
 
           return MaterialApp(
-            title: AppConstants.appTitle,
+            // Android gorev listesinde gorunur; cihaz dilinden gelir.
+            onGenerateTitle: (context) => context.l10n.appName,
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            // Kullanıcı tercihi; null ise cihaz dili kullanılır. Arapça
-            // seçilince yön (RTL) MaterialApp tarafından uygulanır.
-            locale: context.watch<AppState>().generalSettings.language.locale,
+            // Dil **cihazdan** gelir; uygulama içinde seçim yok. Arapça
+            // cihazda yön (RTL) MaterialApp tarafından uygulanır.
             // Desteklenmeyen cihaz dilinde Flutter listenin ilkine (alfabetik
             // olarak Arapça) düşüyordu; İngilizce daha geniş anlaşılıyor.
             localeResolutionCallback: (deviceLocale, _) =>

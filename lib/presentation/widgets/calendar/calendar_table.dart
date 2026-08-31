@@ -137,8 +137,9 @@ class _CalendarRow extends StatelessWidget {
 
   Widget _dayLabel(BuildContext context) {
     final tokens = context.tokens;
-    final dayNumber = DateFormat('d MMM', 'tr_TR').format(day.date);
-    final weekday = DateFormat('EEEE', 'tr_TR').format(day.date);
+    final locale = Localizations.localeOf(context).toLanguageTag();
+    final dayNumber = DateFormat('d MMM', locale).format(day.date);
+    final weekday = DateFormat('EEEE', locale).format(day.date);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

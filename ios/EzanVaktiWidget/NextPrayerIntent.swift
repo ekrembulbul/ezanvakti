@@ -6,9 +6,11 @@ import Foundation
 /// Salt okuma: App Group'taki snapshot'a bakar, uygulamayı açmaz. Veri yoksa
 /// kullanıcıya ne yapması gerektiğini söyler.
 struct NextPrayerIntent: AppIntent {
-    static var title: LocalizedStringResource = "Sıradaki vakit"
+    // Siri/Spotlight metinleri `*.lproj/Localizable.strings` ile çevriliyor;
+    // buradaki İngilizce metin hem taban hem anahtar.
+    static var title: LocalizedStringResource = "Next prayer"
     static var description = IntentDescription(
-        "Sıradaki namaz vaktini ve kalan süreyi söyler."
+        "Tells the next prayer time and how long is left."
     )
 
     /// Uygulamayı açmadan cevap verilir; kullanıcı akışı kesilmesin.
@@ -78,11 +80,13 @@ struct EzanVaktiShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
         AppShortcut(
             intent: NextPrayerIntent(),
+            // Sesli komutlar `*.lproj/AppShortcuts.strings` ile çevriliyor;
+            // anahtar buradaki metnin ${applicationName} yazılmış hâli.
             phrases: [
-                "\(.applicationName) sıradaki vakit",
-                "\(.applicationName) namaz vakti",
+                "\(.applicationName) next prayer",
+                "\(.applicationName) prayer time",
             ],
-            shortTitle: "Sıradaki vakit",
+            shortTitle: "Next prayer",
             systemImageName: "clock"
         )
     }

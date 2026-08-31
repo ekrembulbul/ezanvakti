@@ -33,7 +33,9 @@ import UIKit
 /// böylece kullanıcı görev ekranına düşer.
 @available(iOS 26.1, *)
 struct MissionStopIntent: LiveActivityIntent {
-  static let title: LocalizedStringResource = "Alarmı durdur"
+  // Metin `*.lproj/Localizable.strings` içinde bu İngilizce anahtarla
+  // çevriliyor; cihaz dili neyse o gösterilir.
+  static let title: LocalizedStringResource = "Stop alarm"
   static let openAppWhenRun: Bool = true
 
   init() {}
@@ -252,7 +254,7 @@ class AlarmKitHandler {
     let chainConfig = args["chainConfig"] as? [String: Any] ?? [:]
 
     let title: LocalizedStringResource =
-      label.isEmpty ? "Ezan Vakti & Alarm" : LocalizedStringResource(stringLiteral: label)
+      label.isEmpty ? "Prayer Times & Alarm" : LocalizedStringResource(stringLiteral: label)
     // Uyari yalnizca durdur dugmesi tasir. Sistemin Ertele dugmesi
     // (.countdown) sayilamiyordu; erteleme uygulama icindeki ara ekrana
     // tasindi (spec 2026-08-30 D5).
@@ -391,7 +393,7 @@ class AlarmKitHandler {
     let uuid = AlarmKitHandler().uuidFor(watchdogId)
     let label = session["label"] as? String ?? ""
     let title: LocalizedStringResource =
-      label.isEmpty ? "Ezan Vakti & Alarm" : LocalizedStringResource(stringLiteral: label)
+      label.isEmpty ? "Prayer Times & Alarm" : LocalizedStringResource(stringLiteral: label)
     let alert = AlarmPresentation.Alert(title: title)
     let attributes = AlarmAttributes<EzanAlarmMetadata>(
       presentation: AlarmPresentation(alert: alert),

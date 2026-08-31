@@ -574,7 +574,9 @@ class _RemindersScreenState extends State<RemindersScreen>
             key: const Key('add_reminder_button'),
             icon: Icons.add_rounded,
             onTap: _add,
-            tooltip: _tab == ReminderTab.alarms ? 'Alarm ekle' : 'Bildirim ekle',
+            tooltip: _tab == ReminderTab.alarms
+                ? context.l10n.alarmAdd
+                : context.l10n.remindersAddButton,
           ),
           const SizedBox(width: 8),
         ],

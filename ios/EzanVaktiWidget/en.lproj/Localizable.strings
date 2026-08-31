@@ -1,0 +1,5 @@
+/* Base language; kept explicit so `en` is a real bundle localization. */
+"Prayer Times" = "Prayer Times";
+"The next prayer and its countdown." = "The next prayer and its countdown.";
+"Next prayer" = "Next prayer";
+"Tells the next prayer time and how long is left." = "Tells the next prayer time and how long is left.";

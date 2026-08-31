@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Varsayılan (taban) dil: İngilizce. Cihaz dili tr/ar ise values-tr /
+     values-ar devreye girer; desteklenmeyen dilde bu dosya kullanılır. -->
 <resources>
-    <string name="alarm_dismiss">Kapat</string>
-    <string name="alarm_snooze">Ertele</string>
-    <string name="alarm_snooze_minutes">%d dk ertele</string>
-    <string name="alarm_default_label">Ezan Vakti &amp; Alarm</string>
-    <string name="alarm_slide_to_stop">Kapatmak için kaydır</string>
+    <string name="app_name">Prayer Times &amp; Alarm</string>
+    <string name="alarm_dismiss">Dismiss</string>
+    <string name="alarm_snooze">Snooze</string>
+    <string name="alarm_snooze_minutes">Snooze %d min</string>
+    <string name="alarm_default_label">Prayer Times &amp; Alarm</string>
+    <string name="alarm_slide_to_stop">Slide to stop</string>
+    <string name="alarm_ringing">Alarm is ringing</string>
+    <string name="alarm_channel_name">Prayer Times alarms</string>
+    <string name="alarm_channel_description">Audible alarms</string>
 </resources>

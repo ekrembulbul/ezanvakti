@@ -3,7 +3,6 @@ import '../utils/directional_icons.dart';
 import '../../l10n/l10n_extensions.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-import '../../core/constants/app_constants.dart';
 import '../../core/models/location.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/tokens_context.dart';
@@ -57,7 +56,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       final packageInfo = await PackageInfo.fromPlatform();
       if (mounted) setState(() => _version = packageInfo.version);
     } catch (_) {
-      if (mounted) setState(() => _version = 'Bilinmiyor');
+      if (mounted) setState(() => _version = context.l10n.versionUnknown);
     }
   }
 
@@ -188,7 +187,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Column(
       children: [
         Text(
-          AppConstants.appTitle,
+          context.l10n.appName,
           textAlign: TextAlign.center,
           style: AppTypography.rowTitle.copyWith(color: tokens.textPrimary),
         ),
@@ -240,7 +239,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Tamam'),
+            child: Text(context.l10n.actionOk),
           ),
         ],
       ),

@@ -63,7 +63,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get actionReset => 'Sıfırla';
 
   @override
-  String get actionRetry => 'Tekrar dene';
+  String get actionRetry => 'Yeniden Dene';
 
   @override
   String get settingsTitle => 'Ayarlar';
@@ -93,25 +93,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get settingsPrivacy => 'Gizlilik';
 
   @override
-  String get settingsLanguage => 'Dil';
-
-  @override
   String get settingsTimeFormat => 'Saat biçimi';
 
   @override
   String get settingsQuietWindows => 'Sessiz pencereler';
-
-  @override
-  String get languageSystem => 'Sistem';
-
-  @override
-  String get languageTurkish => 'Türkçe';
-
-  @override
-  String get languageEnglish => 'İngilizce';
-
-  @override
-  String get languageArabic => 'Arapça';
 
   @override
   String get timeFormatSystem => 'Sistem';
@@ -558,7 +543,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get alarmWeekend => 'Hafta sonu';
 
   @override
-  String get alarmCopySuffix => '(kopya)';
+  String alarmCopySuffix(String label) {
+    return '$label (kopya)';
+  }
 
   @override
   String get alarmDuplicate => 'Kopyala';
@@ -1370,4 +1357,138 @@ class AppLocalizationsTr extends AppLocalizations {
   String locationDeleted(Object location) {
     return '$location silindi';
   }
+
+  @override
+  String get androidChannelName => 'Ezan Vakti Bildirimleri';
+
+  @override
+  String get androidChannelDescription =>
+      'Namaz vakitlerini bildiren bildirimler';
+
+  @override
+  String missionSnoozeAction(int minutes, int count) {
+    return '$minutes dk ertele · $count hak';
+  }
+
+  @override
+  String get appName => 'Ezan Vakti & Alarm';
+
+  @override
+  String get alarmAnchorLabel => 'Vakit';
+
+  @override
+  String offsetRangeHint(int max) {
+    return '1 - $max dk';
+  }
+
+  @override
+  String stopSnoozeAction(int minutes) {
+    return 'Ertele · $minutes dk';
+  }
+
+  @override
+  String get actionBack => 'Geri';
+
+  @override
+  String get locationAutoDetect => 'Otomatik konum tespiti';
+
+  @override
+  String get locationFindWithGps => 'GPS ile Bul';
+
+  @override
+  String locationsCount(int count) {
+    return '$count konum';
+  }
+
+  @override
+  String get countdownLessThanMinute => '<1dk';
+
+  @override
+  String countdownMinutesShort(int minutes) {
+    return '${minutes}dk';
+  }
+
+  @override
+  String countdownHourMinuteShort(int hours, int minutes) {
+    return '${hours}s ${minutes}dk';
+  }
+
+  @override
+  String get missionShakeRemaining => 'kez daha salla';
+
+  @override
+  String get gpsFallbackLabel => 'GPS Konumu';
+
+  @override
+  String get alarmFixedSection => 'Saat';
+
+  @override
+  String get alarmTimingSection => 'Zamanlama';
+
+  @override
+  String get alarmExactTime => 'Tam vaktinde';
+
+  @override
+  String alarmSnoozeMinutesOption(int minutes) {
+    return '$minutes dakika';
+  }
+
+  @override
+  String get alarmDefaultLabel => 'Alarm';
+
+  @override
+  String get soundFileTypeLabel => 'Ses';
+
+  @override
+  String get stopHeadline => 'ALARM DURDURULDU';
+
+  @override
+  String stopMissionSummary(String mission, String level, int seconds) {
+    return '$mission · $level · $seconds sn';
+  }
+
+  @override
+  String get missionAnswerHint => 'Cevap';
+
+  @override
+  String get missionFinish => 'Bitir';
+
+  @override
+  String get missionConfirm => 'Onayla';
+
+  @override
+  String missionAbortWait(int seconds) {
+    return 'Bekle: $seconds sn';
+  }
+
+  @override
+  String get qrScannerTitle => 'Kodu okut';
+
+  @override
+  String get qrSectionLabel => 'QR KOD';
+
+  @override
+  String get locationTypeGps => 'GPS Konumu';
+
+  @override
+  String get locationTypeManual => 'Manuel';
+
+  @override
+  String get locationSearchAddress => 'Adres Ara';
+
+  @override
+  String locationSaveFailed(String error) {
+    return 'Kaydedilemedi: $error';
+  }
+
+  @override
+  String locationGlobalCalculation(String method, String school) {
+    return 'Genel ayar: $method · $school';
+  }
+
+  @override
+  String get versionUnknown => 'Bilinmiyor';
+
+  @override
+  String get errorLocationPermission => 'Konum izni gerekli';
 }

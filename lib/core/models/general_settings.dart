@@ -1,5 +1,4 @@
 import '../constants/notification_sounds.dart';
-import 'app_language.dart';
 import '../utils/time_formatter.dart';
 
 /// Uygulama geneli davranış tercihleri. `settings` tablosunda anahtar-değer
@@ -11,7 +10,6 @@ class GeneralSettings {
   static const String defaultSoundKey = 'general_default_sound';
   static const String religiousDaysKey = 'general_religious_days';
   static const String religiousDayEveKey = 'general_religious_day_eve';
-  static const String languageKey = 'general_language';
   static const String ramadanModeKey = 'general_ramadan_mode';
 
   /// Saatlerin 12/24 gösterimi.
@@ -33,9 +31,6 @@ class GeneralSettings {
   /// Açıkken dini günden bir gün önce de hatırlatılır.
   final bool religiousDayEve;
 
-  /// Arayüz dili; [AppLanguage.system] cihaz dilini izler.
-  final AppLanguage language;
-
   /// Ramazan'da arayüz iftar/sahur odaklı hale gelsin mi.
   final bool ramadanMode;
 
@@ -46,7 +41,6 @@ class GeneralSettings {
     this.defaultSound = NotificationSounds.system,
     this.religiousDayNotifications = false,
     this.religiousDayEve = true,
-    this.language = AppLanguage.system,
     this.ramadanMode = true,
   });
 
@@ -57,7 +51,6 @@ class GeneralSettings {
     String? defaultSound,
     bool? religiousDayNotifications,
     bool? religiousDayEve,
-    AppLanguage? language,
     bool? ramadanMode,
   }) {
     return GeneralSettings(
@@ -68,7 +61,6 @@ class GeneralSettings {
       religiousDayNotifications:
           religiousDayNotifications ?? this.religiousDayNotifications,
       religiousDayEve: religiousDayEve ?? this.religiousDayEve,
-      language: language ?? this.language,
       ramadanMode: ramadanMode ?? this.ramadanMode,
     );
   }
@@ -80,7 +72,6 @@ class GeneralSettings {
     defaultSoundKey: defaultSound,
     religiousDaysKey: religiousDayNotifications.toString(),
     religiousDayEveKey: religiousDayEve.toString(),
-    languageKey: language.storageValue,
     ramadanModeKey: ramadanMode.toString(),
   };
 
@@ -112,7 +103,6 @@ class GeneralSettings {
         'false' => false,
         _ => defaults.religiousDayEve,
       },
-      language: AppLanguage.fromStorage(map[languageKey]),
       ramadanMode: switch (map[ramadanModeKey]) {
         'true' => true,
         'false' => false,
@@ -132,7 +122,6 @@ class GeneralSettings {
           defaultSound == other.defaultSound &&
           religiousDayNotifications == other.religiousDayNotifications &&
           religiousDayEve == other.religiousDayEve &&
-          language == other.language &&
           ramadanMode == other.ramadanMode;
 
   @override
@@ -143,7 +132,6 @@ class GeneralSettings {
     defaultSound,
     religiousDayNotifications,
     religiousDayEve,
-    language,
     ramadanMode,
   );
 }

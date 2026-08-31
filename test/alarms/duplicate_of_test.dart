@@ -19,7 +19,11 @@ void main() {
   );
 
   test('duplicateOf yeni id ve "(kopya)" etiketiyle birebir kopyalar', () {
-    final copy = duplicateOf(source, newId: 'n1');
+    final copy = duplicateOf(
+      source,
+      newId: 'n1',
+      copyLabel: (label) => '$label (kopya)',
+    );
     expect(copy.id, 'n1');
     expect(copy.label, 'Sahur (kopya)');
     expect(copy.isActive, isTrue, reason: 'kopya acik baslar');
@@ -34,6 +38,13 @@ void main() {
 
   test('etiketsiz kaynakta kopya etiketi bos kalir', () {
     const plain = Alarm(id: 's2', kind: AlarmKind.fixed, hour: 8);
-    expect(duplicateOf(plain, newId: 'n2').label, '');
+    expect(
+      duplicateOf(
+        plain,
+        newId: 'n2',
+        copyLabel: (label) => '$label (kopya)',
+      ).label,
+      '',
+    );
   });
 }

@@ -1,4 +1,5 @@
 import '../../../core/models/mission_session.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../l10n/l10n_extensions.dart';
 import '../../utils/time_format_context.dart';
 import '../reminders/snooze_notice.dart';
@@ -158,7 +159,7 @@ class UpcomingCard extends StatelessWidget {
         skipped
             ? '${context.l10n.reminderSkippedOnce} · ${_clock(context, item.time)}'
             : '$offset · ${_clock(context, item.time)} · '
-                  '${formatRemaining(item.time.difference(now))}',
+                  '${formatRemaining(item.time.difference(now), context.l10n)}',
       ),
       trailing: _skipSwitch(occurrence, skipped),
     );
@@ -233,11 +234,11 @@ class UpcomingCard extends StatelessWidget {
 }
 
 /// Kalan süreyi tasarımın kısa biçimiyle yazar: "2s 43dk", "43dk", "<1dk".
-String formatRemaining(Duration remaining) {
-  if (remaining.inMinutes < 1) return '<1dk';
+String formatRemaining(Duration remaining, AppLocalizations l10n) {
+  if (remaining.inMinutes < 1) return l10n.countdownLessThanMinute;
 
   final hours = remaining.inHours;
   final minutes = remaining.inMinutes % 60;
-  if (hours == 0) return '${minutes}dk';
-  return '${hours}s ${minutes}dk';
+  if (hours == 0) return l10n.countdownMinutesShort(minutes);
+  return l10n.countdownHourMinuteShort(hours, minutes);
 }

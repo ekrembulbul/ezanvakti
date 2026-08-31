@@ -3,16 +3,15 @@ import 'package:intl/intl.dart';
 /// Kullanıcının saat gösterim tercihi.
 enum TimeFormatPreference {
   /// Cihazın 24/12 saat ayarına uyar.
-  system('system', 'Sistem'),
-  h24('h24', '24 saat'),
-  h12('h12', '12 saat');
+  system('system'),
+  h24('h24'),
+  h12('h12');
 
-  const TimeFormatPreference(this.storageValue, this.label);
+  const TimeFormatPreference(this.storageValue);
 
   /// `settings` tablosunda saklanan kararlı değer; enum adı değişse de
   /// kayıtlar bozulmasın diye ayrı tutuluyor.
   final String storageValue;
-  final String label;
 
   static TimeFormatPreference fromStorage(String? value) {
     for (final preference in values) {

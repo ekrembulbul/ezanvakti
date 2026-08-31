@@ -25,8 +25,7 @@ class NotificationScheduler {
   /// Çeviri örneği planlama anında bu sağlayıcıdan alınır — kullanıcı dili
   /// değiştirdiğinde bir sonraki planlama yeni dilde kurulur.
   ///
-  /// Parametre, kullanıcının uygulama içi dil tercihidir; `null` ise cihaz
-  /// dili kullanılır.
+  /// Dil cihazdan gelir; parametre yalnızca testlerin dili sabitlemesi için.
   final Future<AppLocalizations> Function(Locale? preferred) localizations;
 
   static const int scheduleDaysAhead = 7;
@@ -65,9 +64,7 @@ class NotificationScheduler {
 
     final settings = await storage.getNotificationSettings();
     final general = await storage.getGeneralSettings();
-    // Kullanıcı uygulama içinde bir dil seçtiyse bildirimler de o dilde
-    // gelmeli; seçmediyse cihaz dili kullanılır.
-    final l10n = await localizations(general.language.locale);
+    final l10n = await localizations(null);
     final quietWindows = await storage.getQuietWindows();
 
     // Mevcut tüm planlanmış bildirimleri önce iptal et — ayar listesi boş olsa

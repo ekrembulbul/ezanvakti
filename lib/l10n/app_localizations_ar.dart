@@ -93,25 +93,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsPrivacy => 'الخصوصية';
 
   @override
-  String get settingsLanguage => 'اللغة';
-
-  @override
   String get settingsTimeFormat => 'صيغة الوقت';
 
   @override
   String get settingsQuietWindows => 'فترات الصمت';
-
-  @override
-  String get languageSystem => 'النظام';
-
-  @override
-  String get languageTurkish => 'التركية';
-
-  @override
-  String get languageEnglish => 'الإنجليزية';
-
-  @override
-  String get languageArabic => 'العربية';
 
   @override
   String get timeFormatSystem => 'النظام';
@@ -557,7 +542,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get alarmWeekend => 'عطلة نهاية الأسبوع';
 
   @override
-  String get alarmCopySuffix => '(نسخة)';
+  String alarmCopySuffix(String label) {
+    return '$label (نسخة)';
+  }
 
   @override
   String get alarmDuplicate => 'نسخ';
@@ -1359,4 +1346,137 @@ class AppLocalizationsAr extends AppLocalizations {
   String locationDeleted(Object location) {
     return 'تم حذف $location';
   }
+
+  @override
+  String get androidChannelName => 'إشعارات أوقات الصلاة';
+
+  @override
+  String get androidChannelDescription => 'إشعارات تنبّهك بأوقات الصلاة';
+
+  @override
+  String missionSnoozeAction(int minutes, int count) {
+    return 'تأجيل $minutes دقيقة · $count متبقّية';
+  }
+
+  @override
+  String get appName => 'أوقات الصلاة والمنبه';
+
+  @override
+  String get alarmAnchorLabel => 'الصلاة';
+
+  @override
+  String offsetRangeHint(int max) {
+    return '1 - $max دقيقة';
+  }
+
+  @override
+  String stopSnoozeAction(int minutes) {
+    return 'تأجيل · $minutes دقيقة';
+  }
+
+  @override
+  String get actionBack => 'رجوع';
+
+  @override
+  String get locationAutoDetect => 'تحديد موقعي تلقائيًا';
+
+  @override
+  String get locationFindWithGps => 'البحث عبر GPS';
+
+  @override
+  String locationsCount(int count) {
+    return '$count مواقع';
+  }
+
+  @override
+  String get countdownLessThanMinute => '<1د';
+
+  @override
+  String countdownMinutesShort(int minutes) {
+    return '$minutesد';
+  }
+
+  @override
+  String countdownHourMinuteShort(int hours, int minutes) {
+    return '$hoursس $minutesد';
+  }
+
+  @override
+  String get missionShakeRemaining => 'مرات أخرى';
+
+  @override
+  String get gpsFallbackLabel => 'موقع GPS';
+
+  @override
+  String get alarmFixedSection => 'الوقت';
+
+  @override
+  String get alarmTimingSection => 'التوقيت';
+
+  @override
+  String get alarmExactTime => 'في الوقت تمامًا';
+
+  @override
+  String alarmSnoozeMinutesOption(int minutes) {
+    return '$minutes دقيقة';
+  }
+
+  @override
+  String get alarmDefaultLabel => 'منبه';
+
+  @override
+  String get soundFileTypeLabel => 'صوت';
+
+  @override
+  String get stopHeadline => 'تم إيقاف المنبه';
+
+  @override
+  String stopMissionSummary(String mission, String level, int seconds) {
+    return '$mission · $level · $seconds ث';
+  }
+
+  @override
+  String get missionAnswerHint => 'الإجابة';
+
+  @override
+  String get missionFinish => 'إنهاء';
+
+  @override
+  String get missionConfirm => 'تأكيد';
+
+  @override
+  String missionAbortWait(int seconds) {
+    return 'انتظر: $seconds ث';
+  }
+
+  @override
+  String get qrScannerTitle => 'امسح الرمز';
+
+  @override
+  String get qrSectionLabel => 'رمز QR';
+
+  @override
+  String get locationTypeGps => 'موقع GPS';
+
+  @override
+  String get locationTypeManual => 'يدوي';
+
+  @override
+  String get locationSearchAddress => 'ابحث عن عنوان';
+
+  @override
+  String locationSaveFailed(String error) {
+    return 'تعذّر الحفظ: $error';
+  }
+
+  @override
+  String locationGlobalCalculation(String method, String school) {
+    return 'الإعداد العام: $method · $school';
+  }
+
+  @override
+  String get versionUnknown => 'غير معروف';
+
+  @override
+  String get errorLocationPermission => 'إذن الموقع مطلوب';
 }

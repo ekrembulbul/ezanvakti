@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../l10n/app_localizations.dart';
 import '../../l10n/l10n_extensions.dart';
 import 'package:flutter/foundation.dart';
 
@@ -299,11 +300,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
     final logger = AppLogger();
     final appState = context.read<AppState>();
+    // `await` sonrasi context kullanilamaz; ceviri simdi yakalaniyor.
+    final l10n = context.l10n;
 
     try {
       logger.debug('Manual GPS refresh triggered');
 
-      final gpsLocation = await _locationService.getCurrentGpsLocation();
+      final gpsLocation = await _locationService.getCurrentGpsLocation(
+        fallbackLabel: l10n.gpsFallbackLabel,
+      );
 
       final locationRepository = ServiceLocator().get<LocationRepository>();
       final savedLocation = await locationRepository.saveOrUpdateGpsLocation(
@@ -335,9 +340,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           ..showSnackBar(
             SnackBar(
               content: Text(
-                context.l10n.errorGpsRefresh(
-                  e.toString().replaceAll('Exception: ', ''),
-                ),
+                l10n.errorGpsRefresh(_gpsErrorText(l10n, e)),
               ),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
@@ -348,6 +351,16 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         setState(() => _isRefreshingGps = false);
       }
     }
+  }
+
+  /// GPS servisi kullaniciya gosterilecek metni degil, kararli bir teshis
+  /// anahtari firlatir; karsiligi burada seciliyor.
+  String _gpsErrorText(AppLocalizations l10n, Object error) {
+    final text = error.toString().replaceAll('Exception: ', '');
+    if (text == GpsLocationService.permissionRequiredKey) {
+      return l10n.errorLocationPermission;
+    }
+    return text;
   }
 
   /// Vakit penceresini yükler ve bildirim/alarm planlamasını tazeler.

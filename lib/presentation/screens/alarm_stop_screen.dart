@@ -87,7 +87,7 @@ class AlarmStopScreen extends StatelessWidget {
             children: [
               const SizedBox(height: 8),
               Text(
-                'ALARM DURDURULDU',
+                l10n.stopHeadline,
                 textAlign: TextAlign.center,
                 style: AppTypography.sectionLabel.copyWith(
                   color: tokens.textTertiary,
@@ -123,7 +123,7 @@ class AlarmStopScreen extends StatelessWidget {
   }
 
   Widget _header(AppTokens tokens, AppLocalizations l10n) {
-    final title = alarm.label.isEmpty ? 'Alarm' : alarm.label;
+    final title = alarm.label.isEmpty ? l10n.alarmDefaultLabel : alarm.label;
     return Column(
       children: [
         Text(
@@ -171,8 +171,11 @@ class AlarmStopScreen extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              '${missionLabel(alarm.mission, l10n)} · '
-              '${alarm.missionLevel} · $seconds sn',
+              l10n.stopMissionSummary(
+                missionLabel(alarm.mission, l10n),
+                '${alarm.missionLevel}',
+                seconds,
+              ),
               style: AppTypography.rowTitle.copyWith(
                 fontSize: kMissionSupportFontSize,
                 color: tokens.textPrimary,
@@ -198,7 +201,7 @@ class AlarmStopScreen extends StatelessWidget {
           ),
         ),
         child: Text(
-          gated ? l10n.stopDoMission : 'Tamam',
+          gated ? l10n.stopDoMission : l10n.actionOk,
           style: AppTypography.rowTitle.copyWith(
             fontSize: kMissionButtonFontSize,
           ),
@@ -223,7 +226,7 @@ class AlarmStopScreen extends StatelessWidget {
         child: FittedBox(
           fit: BoxFit.scaleDown,
           child: Text(
-            'Ertele · ${alarm.snoozeMinutes} dk',
+            l10n.stopSnoozeAction(alarm.snoozeMinutes),
             style: AppTypography.rowTitle.copyWith(
               fontSize: kMissionButtonFontSize,
             ),

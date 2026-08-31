@@ -24,6 +24,7 @@ void main() {
     final caption = CalendarShareService.captionFor(
       location,
       DateTime(2026, 9, 4),
+      format: (location, period) => '$location · $period namaz vakitleri',
     );
     expect(caption, contains('2026/09'));
     expect(caption, contains(location.displayName));
@@ -34,6 +35,7 @@ void main() {
       boundary: null,
       location: location,
       date: DateTime(2026, 9, 4),
+      captionFormat: (location, period) => '$location · $period',
     );
     expect(result, isFalse);
   });

@@ -4,6 +4,21 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.11.3] - 2026-08-31
+
+### Değişti
+- **Uygulama içindeki dil seçimi kaldırıldı.** Uygulama artık telefonun diline uyar ve değiştirilemez. Telefon Türkçe/İngilizce/Arapça ise arayüz o dilde, başka bir dilse İngilizce olur.
+- **Uygulama adı, izin metinleri, widget galerisi ve Siri komutları da çevrildi.** Ana ekrandaki uygulama adı, konum/kamera/alarm izin diyalogları, widget galerisindeki açıklama ve "sıradaki vakit" sesli komutu artık telefonun dilinde geliyor.
+- **Tarihler cihaz diline göre yazılıyor.** Gün ve ay adları sabit Türkçe biçimlendirmeyle basılıyordu; İngilizce/Arapça telefonda da Türkçe görünüyordu.
+- Hesaplama yöntemlerindeki Türkçeleştirilmiş yer adları uluslararası yazımına çekildi ("Mekke" → "Makkah", "Kuveyt" → "Kuwait"). Kurum adları özel isim olduğu için çevrilmiyor.
+
+### Düzeltildi
+- Ekranlarda kalan son sabit Türkçe metinler çevrildi: alarm düzenleme bölüm başlıkları, alarm durdurma ara ekranı, görev ekranlarındaki düğmeler, QR tarayıcı, hata ekranındaki "Yeniden Dene", konum ekranlarındaki kaydet/geri düğmeleri ve konum türü etiketleri.
+
+### Teknik not
+- iOS tarafında `tr/en/ar.lproj` altında `InfoPlist.strings`, `Localizable.strings` ve `AppShortcuts.strings`; Android tarafında `values-tr/` ve `values-ar/` eklendi. Taban dil (çevirisi olmayan cihazlar için) İngilizce.
+- Sabit Türkçe metin testi artık yalnızca Türkçe'ye özgü harflere değil, ASCII yazılan Türkçe kelimelere de bakıyor — "Ayarlar", "Kaydet", "dk" gibi sızıntılar bu yüzden gözden kaçmıştı. Log çağrıları taramadan muaf.
+
 ## [0.11.2] - 2026-08-31
 
 ### Değişti

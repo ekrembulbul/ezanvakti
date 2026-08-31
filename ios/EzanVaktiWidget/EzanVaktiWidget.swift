@@ -94,8 +94,10 @@ struct EzanVaktiWidget: Widget {
         ) { entry in
             EzanVaktiWidgetEntryView(entry: entry)
         }
-        .configurationDisplayName("Ezan Vakti")
-        .description("Sıradaki vakit ve geri sayım.")
+        // Galeri metinleri `*.lproj/Localizable.strings` ile çevriliyor;
+        // buradaki İngilizce metin hem taban hem anahtar.
+        .configurationDisplayName("Prayer Times")
+        .description("The next prayer and its countdown.")
         .supportedFamilies([
             .systemSmall, .systemMedium, .accessoryRectangular, .accessoryCircular,
         ])

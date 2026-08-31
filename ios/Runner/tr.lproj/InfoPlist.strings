@@ -1,0 +1,9 @@
+/* Uygulama adı — ana ekranda ve ayarlarda görünür. */
+"CFBundleDisplayName" = "Ezan Vakti & Alarm";
+"CFBundleName" = "Ezan Vakti";
+
+/* İzin diyaloglarında gösterilen açıklamalar. */
+"NSLocationWhenInUseUsageDescription" = "Namaz vakitlerini bulunduğunuz konuma göre göstermek için konum iznine ihtiyaç var.";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Namaz vakitlerini bulunduğunuz konuma göre göstermek için konum iznine ihtiyaç var.";
+"NSCameraUsageDescription" = "QR görevli alarmı kapatmak için kaydettiğiniz kodu okutmak üzere kameraya erişim gerekiyor.";
+"NSAlarmKitUsageDescription" = "Namaz vakitleri ve seçtiğiniz saatler için sesli alarm kurmak amacıyla alarm iznine ihtiyaç var.";

@@ -93,25 +93,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsPrivacy => 'Privacy';
 
   @override
-  String get settingsLanguage => 'Language';
-
-  @override
   String get settingsTimeFormat => 'Time format';
 
   @override
   String get settingsQuietWindows => 'Quiet windows';
-
-  @override
-  String get languageSystem => 'System';
-
-  @override
-  String get languageTurkish => 'Turkish';
-
-  @override
-  String get languageEnglish => 'English';
-
-  @override
-  String get languageArabic => 'Arabic';
 
   @override
   String get timeFormatSystem => 'System';
@@ -559,7 +544,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get alarmWeekend => 'Weekend';
 
   @override
-  String get alarmCopySuffix => '(copy)';
+  String alarmCopySuffix(String label) {
+    return '$label (copy)';
+  }
 
   @override
   String get alarmDuplicate => 'Duplicate';
@@ -1373,4 +1360,137 @@ class AppLocalizationsEn extends AppLocalizations {
   String locationDeleted(Object location) {
     return '$location deleted';
   }
+
+  @override
+  String get androidChannelName => 'Prayer Times notifications';
+
+  @override
+  String get androidChannelDescription => 'Notifications for prayer times';
+
+  @override
+  String missionSnoozeAction(int minutes, int count) {
+    return 'Snooze $minutes min · $count left';
+  }
+
+  @override
+  String get appName => 'Prayer Times & Alarm';
+
+  @override
+  String get alarmAnchorLabel => 'Prayer';
+
+  @override
+  String offsetRangeHint(int max) {
+    return '1 - $max min';
+  }
+
+  @override
+  String stopSnoozeAction(int minutes) {
+    return 'Snooze · $minutes min';
+  }
+
+  @override
+  String get actionBack => 'Back';
+
+  @override
+  String get locationAutoDetect => 'Detect my location automatically';
+
+  @override
+  String get locationFindWithGps => 'Find with GPS';
+
+  @override
+  String locationsCount(int count) {
+    return '$count locations';
+  }
+
+  @override
+  String get countdownLessThanMinute => '<1m';
+
+  @override
+  String countdownMinutesShort(int minutes) {
+    return '${minutes}m';
+  }
+
+  @override
+  String countdownHourMinuteShort(int hours, int minutes) {
+    return '${hours}h ${minutes}m';
+  }
+
+  @override
+  String get missionShakeRemaining => 'more shakes to go';
+
+  @override
+  String get gpsFallbackLabel => 'GPS location';
+
+  @override
+  String get alarmFixedSection => 'Time';
+
+  @override
+  String get alarmTimingSection => 'Timing';
+
+  @override
+  String get alarmExactTime => 'On time';
+
+  @override
+  String alarmSnoozeMinutesOption(int minutes) {
+    return '$minutes minutes';
+  }
+
+  @override
+  String get alarmDefaultLabel => 'Alarm';
+
+  @override
+  String get soundFileTypeLabel => 'Audio';
+
+  @override
+  String get stopHeadline => 'ALARM STOPPED';
+
+  @override
+  String stopMissionSummary(String mission, String level, int seconds) {
+    return '$mission · $level · $seconds s';
+  }
+
+  @override
+  String get missionAnswerHint => 'Answer';
+
+  @override
+  String get missionFinish => 'Finish';
+
+  @override
+  String get missionConfirm => 'Confirm';
+
+  @override
+  String missionAbortWait(int seconds) {
+    return 'Wait: $seconds s';
+  }
+
+  @override
+  String get qrScannerTitle => 'Scan the code';
+
+  @override
+  String get qrSectionLabel => 'QR CODE';
+
+  @override
+  String get locationTypeGps => 'GPS location';
+
+  @override
+  String get locationTypeManual => 'Manual';
+
+  @override
+  String get locationSearchAddress => 'Search address';
+
+  @override
+  String locationSaveFailed(String error) {
+    return 'Could not save: $error';
+  }
+
+  @override
+  String locationGlobalCalculation(String method, String school) {
+    return 'Global setting: $method · $school';
+  }
+
+  @override
+  String get versionUnknown => 'Unknown';
+
+  @override
+  String get errorLocationPermission => 'Location permission is required';
 }

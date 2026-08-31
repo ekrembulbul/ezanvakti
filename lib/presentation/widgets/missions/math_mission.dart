@@ -164,7 +164,7 @@ class _MathMissionState extends State<MathMission> {
         decoration: InputDecoration(
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 22),
-          hintText: 'Cevap',
+          hintText: context.l10n.missionAnswerHint,
           hintStyle: AppTypography.gridValue.copyWith(
             color: tokens.textTertiary,
           ),
@@ -201,7 +201,9 @@ class _MathMissionState extends State<MathMission> {
           ),
         ),
         child: Text(
-          _index + 1 >= _questions.length ? 'Bitir' : 'Onayla',
+          _index + 1 >= _questions.length
+              ? context.l10n.missionFinish
+              : context.l10n.missionConfirm,
           style: AppTypography.rowTitle.copyWith(
             color: Colors.white,
             fontSize: kMissionButtonFontSize,

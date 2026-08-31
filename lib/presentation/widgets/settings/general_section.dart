@@ -5,13 +5,11 @@ import 'package:provider/provider.dart';
 import '../../../core/di/service_locator.dart';
 import '../../../core/interfaces/local_storage.dart';
 import '../../../core/interfaces/widget_publisher.dart';
-import '../../../core/models/app_language.dart';
 import '../../../core/models/general_settings.dart';
 import '../../../core/providers/app_state.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 import '../../../core/utils/time_formatter.dart';
-import '../common/option_picker.dart';
 import '../common/sliding_segment.dart';
 
 /// Ayarlar → Genel bölümünün tercih kartı: saat biçimi ve otomatik konum.
@@ -66,24 +64,7 @@ class GeneralSection extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Divider(height: 1, thickness: 1, color: tokens.divider),
-          const SizedBox(height: 4),
-          // Dört uzun etiket kaydırmalı segmente sığmıyor; seçici satır
-          // (alt sayfa) hem sığıyor hem yeni dil eklenince bozulmuyor.
-          OptionRow<AppLanguage>(
-            label: context.l10n.settingsLanguage,
-            selected: settings.language,
-            valueLabel: context.l10n.languageLabel,
-            items: [
-              for (final language in AppLanguage.values)
-                OptionItem(
-                  value: language,
-                  label: context.l10n.languageLabel(language),
-                ),
-            ],
-            onChanged: (value) =>
-                _update(context, settings.copyWith(language: value)),
-          ),
-          const SizedBox(height: 8),
+
           Divider(height: 1, thickness: 1, color: tokens.divider),
           const SizedBox(height: 8),
           Row(

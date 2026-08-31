@@ -1,9 +1,9 @@
 import 'package:flutter/widgets.dart';
 
-import '../core/models/app_language.dart';
 import '../core/models/calculation_params.dart';
 import '../features/alarms/domain/abort_gate.dart';
 import '../core/models/derived_time.dart';
+import '../core/models/location.dart';
 import '../core/models/religious_day.dart';
 import '../core/models/notification_setting.dart' show PrayerType;
 import '../core/utils/time_formatter.dart';
@@ -95,11 +95,9 @@ extension L10nLabels on AppLocalizations {
     AbortPhrase.long => abortDismissingHard,
   };
 
-  String languageLabel(AppLanguage language) => switch (language) {
-    AppLanguage.system => languageSystem,
-    AppLanguage.turkish => languageTurkish,
-    AppLanguage.english => languageEnglish,
-    AppLanguage.arabic => languageArabic,
+  String locationTypeLabel(LocationType type) => switch (type) {
+    LocationType.gps => locationTypeGps,
+    LocationType.manual => locationTypeManual,
   };
 
   String timeFormatLabel(TimeFormatPreference preference) => switch (preference) {

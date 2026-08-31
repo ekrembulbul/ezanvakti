@@ -1,0 +1,4 @@
+/* Siri sesli komutları. Her karşılık ${applicationName} içermek zorunda;
+   içermezse derleme hata verir. */
+"${applicationName} next prayer" = "${applicationName} sıradaki vakit";
+"${applicationName} prayer time" = "${applicationName} namaz vakti";

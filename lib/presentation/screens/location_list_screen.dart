@@ -167,7 +167,7 @@ class _LocationListScreenState extends State<LocationListScreen> {
           AppBarActionButton(
             icon: Icons.add_location_alt_rounded,
             onTap: _addNewLocation,
-            tooltip: 'Yeni Konum',
+            tooltip: context.l10n.locationAdd,
           ),
           const SizedBox(width: 8),
         ],
@@ -190,12 +190,11 @@ class _LocationListScreenState extends State<LocationListScreen> {
       return EmptyState(
         icon: Icons.location_off_rounded,
         message: context.l10n.locationsEmpty,
-        subtitle:
-            'GPS ile otomatik tespit edin veya\nmanuel olarak konum ekleyin.',
+        subtitle: context.l10n.locationsEmptyHint,
         action: ElevatedButton.icon(
           onPressed: _addNewLocation,
           icon: const Icon(Icons.add_location_alt_rounded),
-          label: const Text('Konum Ekle'),
+          label: Text(context.l10n.locationAdd),
         ),
       );
     }
@@ -203,7 +202,7 @@ class _LocationListScreenState extends State<LocationListScreen> {
     return ListView(
       padding: const EdgeInsets.only(top: 12, bottom: 24),
       children: [
-        SectionLabel('${_locations.length} konum'),
+        SectionLabel(context.l10n.locationsCount(_locations.length)),
         const SizedBox(height: 10),
         GroupedList(
           children: [for (final location in _locations) _tile(location)],
@@ -228,7 +227,7 @@ class _LocationListScreenState extends State<LocationListScreen> {
           ? Icons.my_location_rounded
           : Icons.location_on_rounded,
       title: Text(location.displayName),
-      subtitle: Text(location.type.displayName),
+      subtitle: Text(context.l10n.locationTypeLabel(location.type)),
       onTap: isActive
           ? null
           : () {

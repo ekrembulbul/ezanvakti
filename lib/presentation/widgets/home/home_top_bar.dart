@@ -109,7 +109,10 @@ class HomeDateLine extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
-    final gregorian = DateFormat('EEEE, d MMMM y', 'tr_TR').format(date);
+    final gregorian = DateFormat(
+      'EEEE, d MMMM y',
+      Localizations.localeOf(context).toLanguageTag(),
+    ).format(date);
 
     return SizedBox(
       height: 20,

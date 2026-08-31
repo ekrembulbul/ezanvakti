@@ -208,10 +208,10 @@ abstract class AppLocalizations {
   /// **'Sıfırla'**
   String get actionReset;
 
-  /// Düğme
+  /// Hata ekranindaki tekrar dene dugmesi.
   ///
   /// In tr, this message translates to:
-  /// **'Tekrar dene'**
+  /// **'Yeniden Dene'**
   String get actionRetry;
 
   /// Ekran başlığı
@@ -271,12 +271,6 @@ abstract class AppLocalizations {
   /// Ayar satırı
   ///
   /// In tr, this message translates to:
-  /// **'Dil'**
-  String get settingsLanguage;
-
-  /// Ayar satırı
-  ///
-  /// In tr, this message translates to:
   /// **'Saat biçimi'**
   String get settingsTimeFormat;
 
@@ -285,30 +279,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Sessiz pencereler'**
   String get settingsQuietWindows;
-
-  /// Dil seçeneği
-  ///
-  /// In tr, this message translates to:
-  /// **'Sistem'**
-  String get languageSystem;
-
-  /// Dil seçeneği
-  ///
-  /// In tr, this message translates to:
-  /// **'Türkçe'**
-  String get languageTurkish;
-
-  /// Dil seçeneği
-  ///
-  /// In tr, this message translates to:
-  /// **'İngilizce'**
-  String get languageEnglish;
-
-  /// Dil seçeneği
-  ///
-  /// In tr, this message translates to:
-  /// **'Arapça'**
-  String get languageArabic;
 
   /// Saat biçimi seçeneği
   ///
@@ -1102,11 +1072,11 @@ abstract class AppLocalizations {
   /// **'Hafta sonu'**
   String get alarmWeekend;
 
-  /// Kopya etiketi
+  /// Kopyalanan alarmin etiketi.
   ///
   /// In tr, this message translates to:
-  /// **'(kopya)'**
-  String get alarmCopySuffix;
+  /// **'{label} (kopya)'**
+  String alarmCopySuffix(String label);
 
   /// Menü
   ///
@@ -2541,6 +2511,228 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{location} silindi'**
   String locationDeleted(Object location);
+
+  /// Android bildirim kanalinin sistem ayarlarindaki adi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ezan Vakti Bildirimleri'**
+  String get androidChannelName;
+
+  /// Android bildirim kanalinin sistem ayarlarindaki aciklamasi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Namaz vakitlerini bildiren bildirimler'**
+  String get androidChannelDescription;
+
+  /// Gorev ekranindaki erteleme dugmesi; sure ve kalan hak.
+  ///
+  /// In tr, this message translates to:
+  /// **'{minutes} dk ertele · {count} hak'**
+  String missionSnoozeAction(int minutes, int count);
+
+  /// Uygulama adi; Android gorev listesi ve ayarlar basligi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ezan Vakti & Alarm'**
+  String get appName;
+
+  /// Alarmin bagli oldugu namaz vaktini secen satirin etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Vakit'**
+  String get alarmAnchorLabel;
+
+  /// Kaydirma araligi ipucu.
+  ///
+  /// In tr, this message translates to:
+  /// **'1 - {max} dk'**
+  String offsetRangeHint(int max);
+
+  /// Ara ekrandaki erteleme dugmesi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ertele · {minutes} dk'**
+  String stopSnoozeAction(int minutes);
+
+  /// Bir adim geri donen dugme.
+  ///
+  /// In tr, this message translates to:
+  /// **'Geri'**
+  String get actionBack;
+
+  /// GPS secenegi alt metni.
+  ///
+  /// In tr, this message translates to:
+  /// **'Otomatik konum tespiti'**
+  String get locationAutoDetect;
+
+  /// GPS ile konum bulma dugmesi.
+  ///
+  /// In tr, this message translates to:
+  /// **'GPS ile Bul'**
+  String get locationFindWithGps;
+
+  /// Kayitli konum sayisi basligi.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} konum'**
+  String locationsCount(int count);
+
+  /// Bir dakikadan az kalan geri sayim.
+  ///
+  /// In tr, this message translates to:
+  /// **'<1dk'**
+  String get countdownLessThanMinute;
+
+  /// Kisa geri sayim; yalnizca dakika.
+  ///
+  /// In tr, this message translates to:
+  /// **'{minutes}dk'**
+  String countdownMinutesShort(int minutes);
+
+  /// Kisa geri sayim; saat ve dakika.
+  ///
+  /// In tr, this message translates to:
+  /// **'{hours}s {minutes}dk'**
+  String countdownHourMinuteShort(int hours, int minutes);
+
+  /// Sallama gorevinde kalan sallama sayisinin alt metni.
+  ///
+  /// In tr, this message translates to:
+  /// **'kez daha salla'**
+  String get missionShakeRemaining;
+
+  /// Adres cozulemedigindeki GPS konum etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'GPS Konumu'**
+  String get gpsFallbackLabel;
+
+  /// Sabit saatli alarm bolumunun basligi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Saat'**
+  String get alarmFixedSection;
+
+  /// Cipali alarmin zamanlama bolumu basligi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Zamanlama'**
+  String get alarmTimingSection;
+
+  /// Kaydirma yok; tam vakitte calan secenek.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tam vaktinde'**
+  String get alarmExactTime;
+
+  /// Erteleme suresi secenegi.
+  ///
+  /// In tr, this message translates to:
+  /// **'{minutes} dakika'**
+  String alarmSnoozeMinutesOption(int minutes);
+
+  /// Etiketi olmayan alarmin gorunen adi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Alarm'**
+  String get alarmDefaultLabel;
+
+  /// Dosya seciciye verilen ses dosyasi turu adi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ses'**
+  String get soundFileTypeLabel;
+
+  /// Ara ekranin ust basligi.
+  ///
+  /// In tr, this message translates to:
+  /// **'ALARM DURDURULDU'**
+  String get stopHeadline;
+
+  /// Ara ekranda gorev ozeti.
+  ///
+  /// In tr, this message translates to:
+  /// **'{mission} · {level} · {seconds} sn'**
+  String stopMissionSummary(String mission, String level, int seconds);
+
+  /// Matematik goreviniin cevap alani ipucu.
+  ///
+  /// In tr, this message translates to:
+  /// **'Cevap'**
+  String get missionAnswerHint;
+
+  /// Son soruda gorunen dugme.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bitir'**
+  String get missionFinish;
+
+  /// Ara sorularda gorunen dugme.
+  ///
+  /// In tr, this message translates to:
+  /// **'Onayla'**
+  String get missionConfirm;
+
+  /// Acil cikis penceresindeki geri sayim.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bekle: {seconds} sn'**
+  String missionAbortWait(int seconds);
+
+  /// Tam ekran QR tarayicinin basligi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kodu okut'**
+  String get qrScannerTitle;
+
+  /// QR kod alaninin bolum etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'QR KOD'**
+  String get qrSectionLabel;
+
+  /// GPS ile eklenen konumun tur etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'GPS Konumu'**
+  String get locationTypeGps;
+
+  /// Elle eklenen konumun tur etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Manuel'**
+  String get locationTypeManual;
+
+  /// Adres arama secenegi basligi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Adres Ara'**
+  String get locationSearchAddress;
+
+  /// Konum kaydedilemedigindeki uyari.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaydedilemedi: {error}'**
+  String locationSaveFailed(String error);
+
+  /// Konumun genel hesaplama ayarini gosteren satir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Genel ayar: {method} · {school}'**
+  String locationGlobalCalculation(String method, String school);
+
+  /// Surum numarasi okunamadiginda gosterilir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bilinmiyor'**
+  String get versionUnknown;
+
+  /// GPS izni yokken gosterilen hata.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konum izni gerekli'**
+  String get errorLocationPermission;
 }
 
 class _AppLocalizationsDelegate

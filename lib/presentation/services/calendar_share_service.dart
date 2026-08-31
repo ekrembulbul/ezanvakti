@@ -29,12 +29,10 @@ class CalendarShareService {
   static String captionFor(
     Location location,
     DateTime date, {
-    String Function(String location, String period)? format,
+    required String Function(String location, String period) format,
   }) {
-    final period =
-        '${date.year}/${date.month.toString().padLeft(2, '0')}';
-    return format?.call(location.displayName, period) ??
-        '${location.displayName} · $period namaz vakitleri';
+    final period = '${date.year}/${date.month.toString().padLeft(2, '0')}';
+    return format(location.displayName, period);
   }
 
   /// Türkçe karakterleri ve boşlukları dosya adına uygun hale getirir.
@@ -63,7 +61,7 @@ class CalendarShareService {
     required Location location,
     required DateTime date,
     Rect? originRect,
-    String Function(String location, String period)? captionFormat,
+    required String Function(String location, String period) captionFormat,
   }) async {
     if (boundary == null) {
       _logger.warning('Takvim paylasimi: cizim alani bulunamadi');

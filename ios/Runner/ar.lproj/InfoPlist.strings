@@ -1,0 +1,9 @@
+/* اسم التطبيق — يظهر على الشاشة الرئيسية وفي الإعدادات. */
+"CFBundleDisplayName" = "أوقات الصلاة والمنبه";
+"CFBundleName" = "أوقات الصلاة";
+
+/* النصوص التي تظهر في نوافذ أذونات النظام. */
+"NSLocationWhenInUseUsageDescription" = "نحتاج إذن الموقع لعرض أوقات الصلاة حسب مكانك.";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "نحتاج إذن الموقع لعرض أوقات الصلاة حسب مكانك.";
+"NSCameraUsageDescription" = "نحتاج إذن الكاميرا لمسح الرمز الذي حفظته، لإيقاف منبه يتطلب مهمة QR.";
+"NSAlarmKitUsageDescription" = "نحتاج إذن المنبهات لضبط منبهات صوتية لأوقات الصلاة وللأوقات التي تختارها.";

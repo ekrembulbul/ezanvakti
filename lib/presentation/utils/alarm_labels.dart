@@ -5,12 +5,11 @@ import '../../l10n/l10n_extensions.dart';
 
 /// "07:30" (sabit) veya "İmsak −30 dk" (çıpalı).
 ///
-/// [l10n] verilmezse saat 24 saatlik biçimde basılır ve çıpalı alarmda vakit
-/// adı yerine tipin kendi adı kullanılır — yalnızca saf çağrılar ve testler
-/// için; arayüz her zaman çeviriyi geçer.
+/// [formatHourMinute] verilmezse saat 24 saatlik biçimde basılır. [l10n]
+/// zorunlu: eskiden opsiyoneldi ve null dalı sabit Türkçe üretiyordu.
 String alarmTimeLabel(
   Alarm alarm, {
-  AppLocalizations? l10n,
+  required AppLocalizations l10n,
   String Function(int hour, int minute)? formatHourMinute,
 }) {
   if (alarm.kind == AlarmKind.fixed) {
@@ -21,12 +20,10 @@ String alarmTimeLabel(
     final m = alarm.minute.toString().padLeft(2, '0');
     return '$h:$m';
   }
-  final name = l10n?.prayerName(alarm.anchor) ?? alarm.anchor.name;
+  final name = l10n.prayerName(alarm.anchor);
   if (alarm.offsetMinutes == 0) return name;
   final sign = alarm.offsetMinutes < 0 ? '−' : '+';
-  final minutes = l10n == null
-      ? '${alarm.offsetMinutes.abs()} dk'
-      : l10n.minutesShort(alarm.offsetMinutes.abs());
+  final minutes = l10n.minutesShort(alarm.offsetMinutes.abs());
   return '$name $sign$minutes';
 }
 

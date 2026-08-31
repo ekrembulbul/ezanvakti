@@ -336,7 +336,7 @@ class _QuietWindowsScreenState extends State<QuietWindowsScreen> {
           SizedBox(
             width: 56,
             child: Text(
-              '$value dk',
+              context.l10n.minutesShort(value),
               textAlign: TextAlign.center,
               style: AppTypography.rowTitle.copyWith(color: tokens.textPrimary),
             ),

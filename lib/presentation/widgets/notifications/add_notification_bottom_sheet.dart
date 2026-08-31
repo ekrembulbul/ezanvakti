@@ -479,7 +479,7 @@ class _AddNotificationBottomSheetState
                               ),
                             ),
                             Text(
-                              '1 - $maxOffset dk',
+                              context.l10n.offsetRangeHint(maxOffset),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: AppTypography.sectionLabel.copyWith(
@@ -522,7 +522,7 @@ class _AddNotificationBottomSheetState
                         maxOffset,
                         (i) => Center(
                           child: Text(
-                            '${i + 1} dk',
+                            context.l10n.minutesShort(i + 1),
                             style: TextStyle(
                               color: tokens.textPrimary,
                               fontWeight: FontWeight.w600,

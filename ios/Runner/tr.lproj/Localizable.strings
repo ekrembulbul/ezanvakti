@@ -1,0 +1,4 @@
+/* AlarmKit uyarısındaki başlık ve durdurma düğmesi.
+   Anahtarlar Swift'teki İngilizce metin birebir. */
+"Prayer Times & Alarm" = "Ezan Vakti & Alarm";
+"Stop alarm" = "Alarmı durdur";

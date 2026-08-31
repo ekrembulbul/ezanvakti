@@ -34,7 +34,7 @@ class PermissionWarningCard extends StatelessWidget {
               TextButton(
                 key: const Key('open_settings_button'),
                 onPressed: onOpenAppSettings,
-                child: const Text('Ayarlar'),
+                child: Text(context.l10n.settingsTitle),
               ),
             if (onRequestPermission != null)
               TextButton(

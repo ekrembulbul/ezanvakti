@@ -72,9 +72,9 @@
   "@actionReset": {
     "description": "Düğme"
   },
-  "actionRetry": "Tekrar dene",
+  "actionRetry": "Yeniden Dene",
   "@actionRetry": {
-    "description": "Düğme"
+    "description": "Hata ekranindaki tekrar dene dugmesi."
   },
   "settingsTitle": "Ayarlar",
   "@settingsTitle": {
@@ -112,10 +112,6 @@
   "@settingsPrivacy": {
     "description": "Ayar satırı"
   },
-  "settingsLanguage": "Dil",
-  "@settingsLanguage": {
-    "description": "Ayar satırı"
-  },
   "settingsTimeFormat": "Saat biçimi",
   "@settingsTimeFormat": {
     "description": "Ayar satırı"
@@ -123,22 +119,6 @@
   "settingsQuietWindows": "Sessiz pencereler",
   "@settingsQuietWindows": {
     "description": "Ayar satırı"
-  },
-  "languageSystem": "Sistem",
-  "@languageSystem": {
-    "description": "Dil seçeneği"
-  },
-  "languageTurkish": "Türkçe",
-  "@languageTurkish": {
-    "description": "Dil seçeneği"
-  },
-  "languageEnglish": "İngilizce",
-  "@languageEnglish": {
-    "description": "Dil seçeneği"
-  },
-  "languageArabic": "Arapça",
-  "@languageArabic": {
-    "description": "Dil seçeneği"
   },
   "timeFormatSystem": "Sistem",
   "@timeFormatSystem": {
@@ -770,9 +750,14 @@
   "@alarmWeekend": {
     "description": "Tekrar"
   },
-  "alarmCopySuffix": "(kopya)",
+  "alarmCopySuffix": "{label} (kopya)",
   "@alarmCopySuffix": {
-    "description": "Kopya etiketi"
+    "description": "Kopyalanan alarmin etiketi.",
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
   },
   "alarmDuplicate": "Kopyala",
   "@alarmDuplicate": {
@@ -1907,5 +1892,223 @@
         "type": "Object"
       }
     }
+  },
+  "androidChannelName": "Ezan Vakti Bildirimleri",
+  "@androidChannelName": {
+    "description": "Android bildirim kanalinin sistem ayarlarindaki adi."
+  },
+  "androidChannelDescription": "Namaz vakitlerini bildiren bildirimler",
+  "@androidChannelDescription": {
+    "description": "Android bildirim kanalinin sistem ayarlarindaki aciklamasi."
+  },
+  "missionSnoozeAction": "{minutes} dk ertele · {count} hak",
+  "@missionSnoozeAction": {
+    "description": "Gorev ekranindaki erteleme dugmesi; sure ve kalan hak.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "appName": "Ezan Vakti & Alarm",
+  "@appName": {
+    "description": "Uygulama adi; Android gorev listesi ve ayarlar basligi."
+  },
+  "alarmAnchorLabel": "Vakit",
+  "@alarmAnchorLabel": {
+    "description": "Alarmin bagli oldugu namaz vaktini secen satirin etiketi."
+  },
+  "offsetRangeHint": "1 - {max} dk",
+  "@offsetRangeHint": {
+    "description": "Kaydirma araligi ipucu.",
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "stopSnoozeAction": "Ertele · {minutes} dk",
+  "@stopSnoozeAction": {
+    "description": "Ara ekrandaki erteleme dugmesi.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "actionBack": "Geri",
+  "@actionBack": {
+    "description": "Bir adim geri donen dugme."
+  },
+  "locationAutoDetect": "Otomatik konum tespiti",
+  "@locationAutoDetect": {
+    "description": "GPS secenegi alt metni."
+  },
+  "locationFindWithGps": "GPS ile Bul",
+  "@locationFindWithGps": {
+    "description": "GPS ile konum bulma dugmesi."
+  },
+  "locationsCount": "{count} konum",
+  "@locationsCount": {
+    "description": "Kayitli konum sayisi basligi.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "countdownLessThanMinute": "<1dk",
+  "@countdownLessThanMinute": {
+    "description": "Bir dakikadan az kalan geri sayim."
+  },
+  "countdownMinutesShort": "{minutes}dk",
+  "@countdownMinutesShort": {
+    "description": "Kisa geri sayim; yalnizca dakika.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "countdownHourMinuteShort": "{hours}s {minutes}dk",
+  "@countdownHourMinuteShort": {
+    "description": "Kisa geri sayim; saat ve dakika.",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "missionShakeRemaining": "kez daha salla",
+  "@missionShakeRemaining": {
+    "description": "Sallama gorevinde kalan sallama sayisinin alt metni."
+  },
+  "gpsFallbackLabel": "GPS Konumu",
+  "@gpsFallbackLabel": {
+    "description": "Adres cozulemedigindeki GPS konum etiketi."
+  },
+  "alarmFixedSection": "Saat",
+  "@alarmFixedSection": {
+    "description": "Sabit saatli alarm bolumunun basligi."
+  },
+  "alarmTimingSection": "Zamanlama",
+  "@alarmTimingSection": {
+    "description": "Cipali alarmin zamanlama bolumu basligi."
+  },
+  "alarmExactTime": "Tam vaktinde",
+  "@alarmExactTime": {
+    "description": "Kaydirma yok; tam vakitte calan secenek."
+  },
+  "alarmSnoozeMinutesOption": "{minutes} dakika",
+  "@alarmSnoozeMinutesOption": {
+    "description": "Erteleme suresi secenegi.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "alarmDefaultLabel": "Alarm",
+  "@alarmDefaultLabel": {
+    "description": "Etiketi olmayan alarmin gorunen adi."
+  },
+  "soundFileTypeLabel": "Ses",
+  "@soundFileTypeLabel": {
+    "description": "Dosya seciciye verilen ses dosyasi turu adi."
+  },
+  "stopHeadline": "ALARM DURDURULDU",
+  "@stopHeadline": {
+    "description": "Ara ekranin ust basligi."
+  },
+  "stopMissionSummary": "{mission} · {level} · {seconds} sn",
+  "@stopMissionSummary": {
+    "description": "Ara ekranda gorev ozeti.",
+    "placeholders": {
+      "mission": {
+        "type": "String"
+      },
+      "level": {
+        "type": "String"
+      },
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "missionAnswerHint": "Cevap",
+  "@missionAnswerHint": {
+    "description": "Matematik goreviniin cevap alani ipucu."
+  },
+  "missionFinish": "Bitir",
+  "@missionFinish": {
+    "description": "Son soruda gorunen dugme."
+  },
+  "missionConfirm": "Onayla",
+  "@missionConfirm": {
+    "description": "Ara sorularda gorunen dugme."
+  },
+  "missionAbortWait": "Bekle: {seconds} sn",
+  "@missionAbortWait": {
+    "description": "Acil cikis penceresindeki geri sayim.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "qrScannerTitle": "Kodu okut",
+  "@qrScannerTitle": {
+    "description": "Tam ekran QR tarayicinin basligi."
+  },
+  "qrSectionLabel": "QR KOD",
+  "@qrSectionLabel": {
+    "description": "QR kod alaninin bolum etiketi."
+  },
+  "locationTypeGps": "GPS Konumu",
+  "@locationTypeGps": {
+    "description": "GPS ile eklenen konumun tur etiketi."
+  },
+  "locationTypeManual": "Manuel",
+  "@locationTypeManual": {
+    "description": "Elle eklenen konumun tur etiketi."
+  },
+  "locationSearchAddress": "Adres Ara",
+  "@locationSearchAddress": {
+    "description": "Adres arama secenegi basligi."
+  },
+  "locationSaveFailed": "Kaydedilemedi: {error}",
+  "@locationSaveFailed": {
+    "description": "Konum kaydedilemedigindeki uyari.",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "locationGlobalCalculation": "Genel ayar: {method} · {school}",
+  "@locationGlobalCalculation": {
+    "description": "Konumun genel hesaplama ayarini gosteren satir.",
+    "placeholders": {
+      "method": {
+        "type": "String"
+      },
+      "school": {
+        "type": "String"
+      }
+    }
+  },
+  "versionUnknown": "Bilinmiyor",
+  "@versionUnknown": {
+    "description": "Surum numarasi okunamadiginda gosterilir."
+  },
+  "errorLocationPermission": "Konum izni gerekli",
+  "@errorLocationPermission": {
+    "description": "GPS izni yokken gosterilen hata."
   }
 }

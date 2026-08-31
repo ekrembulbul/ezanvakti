@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../l10n/l10n_extensions.dart';
+
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 
@@ -72,7 +74,7 @@ class ErrorState extends StatelessWidget {
               ElevatedButton.icon(
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Yeniden Dene'),
+                label: Text(context.l10n.actionRetry),
               ),
           ],
         ),

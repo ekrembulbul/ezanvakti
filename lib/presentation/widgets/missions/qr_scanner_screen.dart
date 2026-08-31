@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+
+import '../../../l10n/l10n_extensions.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 /// Tam ekran QR okuyucu; okunan **ilk** kodu döndürür.
@@ -45,7 +47,7 @@ class _QrScannerScreenState extends State<QrScannerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Kodu okut')),
+      appBar: AppBar(title: Text(context.l10n.qrScannerTitle)),
       body: widget.codes != null
           ? const SizedBox.expand()
           : MobileScanner(

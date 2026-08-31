@@ -19,13 +19,18 @@ class AlarmsManager {
       storage.saveAlarm(alarm.copyWith(isActive: isActive));
 }
 
-/// [source]'un yeni kimlikli kopyası: etiket sonuna " (kopya)" eklenir,
-/// kopya açık başlar. **Kaydetmez** — düzenleme ekranı kaydeder; kullanıcı
-/// vazgeçerse kopya kalmaz.
-Alarm duplicateOf(Alarm source, {required String newId}) => Alarm(
+/// [source]'un yeni kimlikli kopyası; kopya açık başlar. **Kaydetmez** —
+/// düzenleme ekranı kaydeder; kullanıcı vazgeçerse kopya kalmaz.
+///
+/// [copyLabel] etiketi "(kopya)" gibi bir ekle sarar; çeviri çağırandan gelir.
+Alarm duplicateOf(
+  Alarm source, {
+  required String newId,
+  required String Function(String label) copyLabel,
+}) => Alarm(
   id: newId,
   kind: source.kind,
-  label: source.label.isEmpty ? '' : '${source.label} (kopya)',
+  label: source.label.isEmpty ? '' : copyLabel(source.label),
   isActive: true,
   hour: source.hour,
   minute: source.minute,

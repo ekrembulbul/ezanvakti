@@ -118,7 +118,7 @@ class _AbortDialogState extends State<AbortDialog> {
           if (_remaining > 0) ...[
             const SizedBox(height: 16),
             Text(
-              'Bekle: $_remaining sn',
+              context.l10n.missionAbortWait(_remaining),
               style: AppTypography.tabLabel.copyWith(
                 color: tokens.textSecondary,
               ),
