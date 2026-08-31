@@ -24,6 +24,7 @@ class NotificationSettingsManager {
     final index = settings.indexWhere(
       (s) =>
           s.prayerType == setting.prayerType &&
+          s.derivedKind == setting.derivedKind &&
           s.minutesBefore == setting.minutesBefore &&
           s.weekdaysCsv == setting.weekdaysCsv,
     );
@@ -173,11 +174,13 @@ class NotificationSettingsManager {
     required PrayerType prayerType,
     required int minutesBefore,
     String weekdays = '',
+    String derivedKind = '',
   }) async {
     await storage.deleteNotificationSetting(
       prayerType: prayerType,
       minutesBefore: minutesBefore,
       weekdays: weekdays,
+      derivedKind: derivedKind,
     );
     _logger.debug('Removed setting $prayerType ($minutesBefore dk) [$weekdays]');
   }

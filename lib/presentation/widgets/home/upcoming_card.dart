@@ -135,7 +135,7 @@ class UpcomingCard extends StatelessWidget {
         // Planlayıcı da kimliği vaktin gününden üretir; ikisi aynı olmak
         // zorunda, yoksa anahtar kapalı görünürken bildirim gelir.
         date: item.prayerDate,
-        prayerType: item.setting.prayerType,
+        pointIndex: NotificationScheduler.pointIndexOf(item.setting),
         minutesBefore: item.setting.minutesBefore,
       ),
       fireAt: item.time,

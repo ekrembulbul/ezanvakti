@@ -139,7 +139,7 @@ void main() {
       kind: SkipKind.notification,
       reference: NotificationScheduler.notificationIdFor(
         date: day.date,
-        prayerType: PrayerType.dhuhr,
+        pointIndex: PrayerType.dhuhr.index,
         minutesBefore: 0,
       ),
       fireAt: day.dhuhr,

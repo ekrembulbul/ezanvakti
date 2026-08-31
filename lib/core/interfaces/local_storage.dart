@@ -84,6 +84,7 @@ abstract class LocalStorage {
     required PrayerType prayerType,
     required int minutesBefore,
     String weekdays = '',
+    String derivedKind = '',
   });
 
   /// Varsayılan bildirimlerin daha önce bir kez oluşturulup oluşturulmadığını

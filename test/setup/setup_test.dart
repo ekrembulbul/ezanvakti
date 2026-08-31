@@ -244,6 +244,7 @@ class MockLocalStorage implements LocalStorage {
     required PrayerType prayerType,
     required int minutesBefore,
     String weekdays = '',
+    String derivedKind = '',
   }) async {
     _notificationSettings = _notificationSettings
         .where(

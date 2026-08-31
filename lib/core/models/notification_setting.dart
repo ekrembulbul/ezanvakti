@@ -1,11 +1,20 @@
+import 'derived_time.dart';
+
 enum PrayerType { fajr, sunrise, dhuhr, asr, maghrib, isha }
 
 /// Bir vakit için kurulmuş bildirim.
 ///
-/// Kimliği **(vakit, kaç dakika önce, günler)** üçlüsüdür: aynı vakit ve
-/// sapmada hem "her gün" hem "yalnızca Cuma" satırı bulunabilir.
+/// Kimliği **(vakit, türetilmiş nokta, kaç dakika önce, günler)** dörtlüsüdür:
+/// aynı vakit ve sapmada hem "her gün" hem "yalnızca Cuma" satırı, hem de
+/// vaktin kendisi ile ondan türeyen bir nokta (ör. öğle ve zeval) yan yana
+/// bulunabilir.
 class NotificationSetting {
+  /// Vakit bildirimlerinde hedef vakit; türetilmiş noktalarda o noktanın
+  /// çıpası (bkz. [DerivedTimeKindX.anchor]).
   final PrayerType prayerType;
+
+  /// Dolu ise satır bir türetilmiş noktaya (kerahat, teheccüd…) kuruludur.
+  final DerivedTimeKind? derivedKind;
   final bool isActive;
   final int minutesBefore;
 
@@ -23,11 +32,18 @@ class NotificationSetting {
   const NotificationSetting({
     required this.prayerType,
     required this.isActive,
+    this.derivedKind,
     this.minutesBefore = 0,
     this.soundId,
     this.weekdays = const {},
     this.label,
   });
+
+  bool get isDerived => derivedKind != null;
+
+  /// Kullanıcıya görünen ad: türetilmiş noktalarda noktanın adı, aksi halde
+  /// vaktin adı (çağıran taraf vakit adını kendi sözlüğünden verir).
+  String? get derivedLabel => derivedKind?.label;
 
   /// Boş gün kümesi "her gün" demek.
   bool firesOnWeekday(int weekday) =>
@@ -40,6 +56,7 @@ class NotificationSetting {
   Map<String, dynamic> toJson() {
     return {
       'prayerType': prayerType.name,
+      'derivedKind': derivedKind?.storageValue,
       'isActive': isActive,
       'minutesBefore': minutesBefore,
       'soundId': soundId,
@@ -65,6 +82,9 @@ class NotificationSetting {
       prayerType: PrayerType.values.firstWhere(
         (e) => e.name == json['prayerType'],
       ),
+      derivedKind: DerivedTimeKindX.fromStorage(
+        json['derivedKind'] as String?,
+      ),
       isActive: json['isActive'] as bool,
       minutesBefore: json['minutesBefore'] as int? ?? 0,
       soundId: json['soundId'] as String?,
@@ -75,6 +95,7 @@ class NotificationSetting {
 
   NotificationSetting copyWith({
     PrayerType? prayerType,
+    DerivedTimeKind? derivedKind,
     bool? isActive,
     int? minutesBefore,
     String? soundId,
@@ -83,6 +104,7 @@ class NotificationSetting {
   }) {
     return NotificationSetting(
       prayerType: prayerType ?? this.prayerType,
+      derivedKind: derivedKind ?? this.derivedKind,
       isActive: isActive ?? this.isActive,
       minutesBefore: minutesBefore ?? this.minutesBefore,
       soundId: soundId ?? this.soundId,
@@ -97,6 +119,7 @@ class NotificationSetting {
       other is NotificationSetting &&
           runtimeType == other.runtimeType &&
           prayerType == other.prayerType &&
+          derivedKind == other.derivedKind &&
           isActive == other.isActive &&
           minutesBefore == other.minutesBefore &&
           soundId == other.soundId &&
@@ -106,6 +129,7 @@ class NotificationSetting {
   @override
   int get hashCode => Object.hash(
     prayerType,
+    derivedKind,
     isActive,
     minutesBefore,
     soundId,

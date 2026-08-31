@@ -96,7 +96,7 @@ class NotificationScheduler {
 
         final id = notificationIdFor(
           date: prayerTime.date,
-          prayerType: setting.prayerType,
+          pointIndex: pointIndexOf(setting),
           minutesBefore: setting.minutesBefore,
         );
         if (!seenIds.add(id)) continue; // ayni (gun,vakit,offset) tekrari
@@ -175,24 +175,37 @@ class NotificationScheduler {
     );
   }
 
-  /// (gün, vakit, offset) için 32-bit'e sığan, çakışmaya dayanıklı sayısal bir
-  /// kimlik üretir. Eski "String + hashCode" yöntemi teorik olarak çakışabiliyordu;
-  /// bu şema benzersizliği garanti eder ve id'den geri çözülebilir.
-  /// Bir bildirim örneğinin kimliği: gün · vakit · offset.
+  /// Bir bildirim örneğinin kimliği: gün · nokta · offset.
+  ///
+  /// Şema 32-bit'e sığar ve id'den geri çözülebilir:
+  /// `(gün % 10000) · 200000 + nokta · 10000 + offset`.
+  /// Nokta alanı iki hane oldu; 6 vakit + 5 türetilmiş + dini gün tek haneye
+  /// sığmıyordu. Gün alanı 10000 ile modlanıyor — 27 yılda bir tekrar eder,
+  /// planlama penceresi 7 gün olduğu için çakışma imkânsız.
   ///
   /// Atlama kayıtları da bu kimliği `reference` olarak kullanır; kart ve
   /// planlayıcı aynı değeri üretmek zorunda.
   static String notificationIdFor({
     required DateTime date,
-    required PrayerType prayerType,
+    required int pointIndex,
     required int minutesBefore,
   }) {
     final dayOrdinal =
         DateTime(date.year, date.month, date.day).millisecondsSinceEpoch ~/
         Duration.millisecondsPerDay;
-    final id = dayOrdinal * 10000 + prayerType.index * 1000 + minutesBefore;
+    final id =
+        (dayOrdinal % 10000) * 200000 + pointIndex * 10000 + minutesBefore;
     return id.toString();
   }
+
+  /// Vakitler 0–5, türetilmiş noktalar 6–10, dini günler 11.
+  static int pointIndexOf(NotificationSetting setting) {
+    final derived = setting.derivedKind;
+    return derived == null ? setting.prayerType.index : 6 + derived.index;
+  }
+
+  /// Dini gün bildirimlerinin ayrılmış nokta indeksi.
+  static const int religiousDayPointIndex = 11;
 
   DateTime? _getPrayerDateTime(PrayerTime prayerTime, PrayerType prayerType) {
     switch (prayerType) {

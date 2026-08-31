@@ -2,6 +2,7 @@ import 'dart:async';
 
 import '../services/upcoming_resolver.dart';
 import '../../core/models/prayer_time.dart';
+import '../../core/models/derived_time.dart';
 import '../../core/models/skipped_occurrence.dart';
 import '../../features/alarms/domain/alarm_scheduler.dart';
 import '../../features/notifications/domain/skip_manager.dart';
@@ -257,6 +258,7 @@ class _RemindersScreenState extends State<RemindersScreen>
         prayerType: original.prayerType,
         minutesBefore: original.minutesBefore,
         weekdays: original.weekdaysCsv,
+        derivedKind: original.derivedKind?.storageValue ?? '',
       );
       await _settingsManager.addSetting(updated);
     } else {
@@ -274,6 +276,7 @@ class _RemindersScreenState extends State<RemindersScreen>
       prayerType: setting.prayerType,
       minutesBefore: setting.minutesBefore,
       weekdays: setting.weekdaysCsv,
+      derivedKind: setting.derivedKind?.storageValue ?? '',
     );
     await _syncNotifications(appState);
     _snack(

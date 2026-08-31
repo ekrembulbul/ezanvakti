@@ -208,15 +208,16 @@ class FlutterLocalNotificationService implements NotificationService {
     _logger.debug('Pending notifications count: ${pending.length}');
 
     return pending.map((notification) {
-      // Kimlik dayOrdinal*10000 + prayerIndex*1000 + minutesBefore olarak
-      // kodlanır; vakit ve offset buradan geri çözülür (gün-içi saat OS
-      // bekleyen listesinde yer almaz, bu yüzden tarih gün başına yuvarlanır).
+      // Kimlik (gün % 10000)*200000 + nokta*10000 + offset olarak kodlanır;
+      // nokta ve offset buradan geri çözülür. Gün alanı modlandığı için
+      // mutlak tarih geri getirilemez — bekleyen listede yalnızca teşhis
+      // amaçlı kullanıldığından gün başı yeterli.
       final raw = notification.id;
-      final minutesBefore = raw % 1000;
-      final prayerIndex = (raw ~/ 1000) % 10;
-      final dayOrdinal = raw ~/ 10000;
-      final prayerType = prayerIndex < PrayerType.values.length
-          ? PrayerType.values[prayerIndex]
+      final minutesBefore = raw % 10000;
+      final pointIndex = (raw ~/ 10000) % 20;
+      final dayOrdinal = raw ~/ 200000;
+      final prayerType = pointIndex < PrayerType.values.length
+          ? PrayerType.values[pointIndex]
           : PrayerType.fajr;
 
       return ScheduledNotification(

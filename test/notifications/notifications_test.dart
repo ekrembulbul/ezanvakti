@@ -201,6 +201,7 @@ class MockLocalStorage implements LocalStorage {
     required PrayerType prayerType,
     required int minutesBefore,
     String weekdays = '',
+    String derivedKind = '',
   }) async {
     _notificationSettings = _notificationSettings
         .where(
@@ -956,7 +957,7 @@ void main() {
             kind: SkipKind.notification,
             reference: NotificationScheduler.notificationIdFor(
               date: skippedDay.date,
-              prayerType: PrayerType.dhuhr,
+              pointIndex: PrayerType.dhuhr.index,
               minutesBefore: 0,
             ),
             fireAt: skippedDay.dhuhr,

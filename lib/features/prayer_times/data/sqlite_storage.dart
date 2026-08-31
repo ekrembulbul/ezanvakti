@@ -10,6 +10,7 @@ import '../../../core/models/qr_code_entry.dart';
 import '../../../core/models/calculation_params.dart';
 import '../../../core/models/calculation_settings.dart';
 import '../../../core/models/appearance_settings.dart';
+import '../../../core/models/derived_time.dart';
 import '../../../core/models/general_settings.dart';
 import '../../../core/models/quiet_window.dart';
 import '../../../core/models/abort_state.dart';
@@ -33,7 +34,7 @@ class SqliteStorage implements LocalStorage {
 
     return await openDatabase(
       path,
-      version: 10,
+      version: 11,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -89,18 +90,19 @@ class SqliteStorage implements LocalStorage {
     await _createQrCodesTable(db);
   }
 
-  /// v10 şeması: kimlik (vakit, sapma, günler) üçlüsü.
+  /// v11 şeması: kimlik (vakit, türetilmiş nokta, sapma, günler) dörtlüsü.
   Future<void> _createNotificationSettingsTable(Database db) async {
     await db.execute('''
       CREATE TABLE notification_settings (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         prayer_type TEXT NOT NULL,
+        derived_kind TEXT NOT NULL DEFAULT '',
         is_active INTEGER NOT NULL,
         minutes_before INTEGER NOT NULL,
         sound_id TEXT,
         weekdays TEXT NOT NULL DEFAULT '',
         label TEXT,
-        UNIQUE(prayer_type, minutes_before, weekdays)
+        UNIQUE(prayer_type, derived_kind, minutes_before, weekdays)
       )
     ''');
   }
@@ -224,6 +226,21 @@ class SqliteStorage implements LocalStorage {
     }
     if (oldVersion < 8) {
       await db.execute('ALTER TABLE alarms ADD COLUMN qr_payload TEXT');
+    }
+    if (oldVersion < 11) {
+      // Türetilmiş nokta alanı; UNIQUE kısıtı dörtlü kimliğe genişledi.
+      // Mevcut satırlar vakit bildirimi olarak korunur (derived_kind = '').
+      await db.execute('ALTER TABLE notification_settings RENAME TO ns_v10');
+      await _createNotificationSettingsTable(db);
+      await db.execute('''
+        INSERT INTO notification_settings
+          (prayer_type, derived_kind, is_active, minutes_before, sound_id,
+           weekdays, label)
+        SELECT prayer_type, '', is_active, minutes_before, sound_id,
+               weekdays, label
+        FROM ns_v10
+      ''');
+      await db.execute('DROP TABLE ns_v10');
     }
     if (oldVersion < 10) {
       // Ses, gün filtresi ve etiket alanları. UNIQUE kısıtı üçlü kimliğe
@@ -477,6 +494,9 @@ class SqliteStorage implements LocalStorage {
 
   static Map<String, Object?> _notificationRow(NotificationSetting setting) => {
     'prayer_type': setting.prayerType.name,
+    // Boş string, NULL yerine: UNIQUE kısıtı NULL'ları eşit saymaz, aynı
+    // vakit-sapma-gün bileşimi tekrar tekrar eklenebilirdi.
+    'derived_kind': setting.derivedKind?.storageValue ?? '',
     'is_active': setting.isActive ? 1 : 0,
     'minutes_before': setting.minutesBefore,
     'sound_id': setting.soundId,
@@ -499,12 +519,15 @@ class SqliteStorage implements LocalStorage {
     required PrayerType prayerType,
     required int minutesBefore,
     String weekdays = '',
+    String derivedKind = '',
   }) async {
     final db = await database;
     await db.delete(
       'notification_settings',
-      where: 'prayer_type = ? AND minutes_before = ? AND weekdays = ?',
-      whereArgs: [prayerType.name, minutesBefore, weekdays],
+      where:
+          'prayer_type = ? AND derived_kind = ? AND minutes_before = ? '
+          'AND weekdays = ?',
+      whereArgs: [prayerType.name, derivedKind, minutesBefore, weekdays],
     );
   }
 
@@ -755,9 +778,12 @@ class SqliteStorage implements LocalStorage {
     await db.update(
       'notification_settings',
       _notificationRow(setting),
-      where: 'prayer_type = ? AND minutes_before = ? AND weekdays = ?',
+      where:
+          'prayer_type = ? AND derived_kind = ? AND minutes_before = ? '
+          'AND weekdays = ?',
       whereArgs: [
         setting.prayerType.name,
+        setting.derivedKind?.storageValue ?? '',
         setting.minutesBefore,
         setting.weekdaysCsv,
       ],
@@ -778,6 +804,9 @@ class SqliteStorage implements LocalStorage {
         NotificationSetting(
           prayerType: matches.first,
           isActive: (row['is_active'] as int) == 1,
+          derivedKind: DerivedTimeKindX.fromStorage(
+            row['derived_kind'] as String?,
+          ),
           minutesBefore: row['minutes_before'] as int,
           soundId: row['sound_id'] as String?,
           weekdays: NotificationSetting.parseWeekdays(

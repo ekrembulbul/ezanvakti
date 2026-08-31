@@ -254,6 +254,7 @@ class FakeStorage implements LocalStorage {
     required PrayerType prayerType,
     required int minutesBefore,
     String weekdays = '',
+    String derivedKind = '',
   }) async {
     _notificationSettings.removeWhere(
       (s) => s.prayerType == prayerType && s.minutesBefore == minutesBefore,
