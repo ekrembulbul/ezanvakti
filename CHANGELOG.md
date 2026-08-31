@@ -4,6 +4,21 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.9.0] - 2026-08-31
+
+### Eklendi
+- **Araçlar sekmesi.** Alt gezinmede dördüncü sekme: Vakitler · Takvim · Hatırlatıcılar · Araçlar.
+- **Kıble pusulası.** Kâbe yönü konumundan hesaplanıyor, cihazın pusulası gerçek kuzeye göre okunuyor. Kıbleye dönünce titreşimle haber veriyor; pusula kalibrasyon isterse uyarı çıkıyor.
+- **Namaz takibi ve kaza sayacı.** Son yedi günün ızgarasında her vakte dokunarak "kıldım → kaza → boş" arasında geçiş yapılıyor; ayrıca vakit başına kaza sayacı var. Seri/rozet yok — defter gibi, oyun gibi değil.
+- **Zikirmatik.** Tam ekran dokunma alanı, hedef seçimi (33/99/100/500/1000), tur sayısı; tur tamamlanınca ayrı titreşim. Sayaç günlük tutuluyor.
+- **"Sıradaki vakit" Siri kısayolu.** Uygulamayı açmadan sıradaki vakti ve kalan süreyi söylüyor; Spotlight'ta da çıkıyor.
+- **Kilit ekranı halka widget'ı** (`accessoryCircular`): vakte kalan süre halkası ve vaktin saati.
+- Widget artık uygulamadaki **12/24 saat tercihini** kullanıyor.
+
+### Bilinen sınır
+- Kıble ve Siri kısayolu yalnızca gerçek cihazda anlamlı çalışır.
+- Denetim Merkezi'ne "ezan sessiz" düğmesi eklenmedi: widget uzantısından planlanmış bildirimleri değiştirmek güvenilir değil, çalışmayan bir düğme yanlış güven verirdi.
+
 ## [0.8.0] - 2026-08-31
 
 ### Eklendi
