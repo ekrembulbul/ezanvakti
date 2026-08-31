@@ -20,6 +20,9 @@ import UIKit
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "EzanAlarmKit") {
       AlarmKitHandler.register(with: registrar)
     }
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "EzanHeading") {
+      HeadingStreamHandler.register(with: registrar)
+    }
   }
 }
 
