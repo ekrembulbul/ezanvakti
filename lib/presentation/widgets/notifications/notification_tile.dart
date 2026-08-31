@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/models/notification_setting.dart';
+import '../../../core/models/derived_time.dart';
 import '../../../core/utils/prayer_utils.dart';
+import '../../utils/alarm_labels.dart' show weekdaysLabel;
 import '../common/grouped_list.dart';
 
 /// Bildirim listesindeki tek satır.
@@ -42,6 +44,15 @@ class NotificationTile extends StatelessWidget {
       ? 'Tam vaktinde'
       : '${setting.minutesBefore} dk önce';
 
+  /// Başlık: türetilmiş noktalarda noktanın adı, aksi halde vaktin adı.
+  /// Kullanıcı etiket verdiyse etiket kazanır — bildirimde de o görünüyor.
+  String get _title {
+    final label = setting.label;
+    if (label != null && label.trim().isNotEmpty) return label.trim();
+    return setting.derivedKind?.label ??
+        PrayerUtils.getPrayerName(setting.prayerType);
+  }
+
   /// Atlanan bildirim de kapalı görünür: kullanıcı için ikisi de "bu sefer
   /// gelmeyecek" demek. Atlanan örnek geçince satır kendiliğinden açılır.
   bool get _isOn => setting.isActive && !_skipping;
@@ -53,7 +64,12 @@ class NotificationTile extends StatelessWidget {
   String get _subtitle {
     if (_skipping) return 'Yalnızca bu sefer atlanacak';
     if (!setting.isActive) return 'Kapalı';
-    return _offsetText;
+    final parts = [
+      _offsetText,
+      if (setting.isDayScoped) weekdaysLabel(setting.weekdays),
+      if (setting.isDerived) setting.derivedKind!.description,
+    ];
+    return parts.join(' · ');
   }
 
   void _onSwitch(bool value) {
@@ -73,8 +89,10 @@ class NotificationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GroupedRow(
-      icon: PrayerUtils.getPrayerIcon(setting.prayerType),
-      title: Text(PrayerUtils.getPrayerName(setting.prayerType)),
+      icon: setting.isDerived
+          ? Icons.hourglass_bottom_rounded
+          : PrayerUtils.getPrayerIcon(setting.prayerType),
+      title: Text(_title),
       subtitle: Text(_subtitle),
       onTap: onTap,
       dimmed: !_isOn || !hasPermission,

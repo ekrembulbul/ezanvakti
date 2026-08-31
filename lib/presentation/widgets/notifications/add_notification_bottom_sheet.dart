@@ -4,6 +4,7 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 import '../../../core/models/prayer_time.dart';
+import '../../../core/models/derived_time.dart';
 import '../../../core/models/notification_setting.dart';
 import '../../../core/utils/prayer_utils.dart';
 import '../common/section_label.dart';
@@ -16,6 +17,7 @@ class AddNotificationBottomSheet extends StatefulWidget {
     int minutesBefore,
     Set<int> weekdays,
     String? label,
+    DerivedTimeKind? derivedKind,
   )
   onAdd;
   final PrayerTime? prayerTime;
@@ -45,6 +47,9 @@ class _AddNotificationBottomSheetState
   int _selectedOffset = _defaultOffset;
   String? _errorText;
 
+  /// Seçili türetilmiş nokta; null ise satır bir namaz vakti içindir.
+  DerivedTimeKind? _derivedKind;
+
   /// UI'da her zaman 7 gün seçili gösterilir; modelde "hepsi" boş kümedir.
   late Set<int> _weekdays;
   late TextEditingController _label;
@@ -54,6 +59,7 @@ class _AddNotificationBottomSheetState
     super.initState();
     final initial = widget.initialSetting;
     _selectedType = initial?.prayerType ?? PrayerType.fajr;
+    _derivedKind = initial?.derivedKind;
     _isBefore = (initial?.minutesBefore ?? 0) > 0;
     _selectedOffset = initial?.minutesBefore ?? _defaultOffset;
     final days = initial?.weekdays ?? const <int>{};
@@ -101,6 +107,7 @@ class _AddNotificationBottomSheetState
       minutes,
       _weekdays.length == 7 ? const <int>{} : _weekdays,
       label.isEmpty ? null : label,
+      _derivedKind,
     );
   }
 
@@ -173,6 +180,19 @@ class _AddNotificationBottomSheetState
               const Center(child: SectionLabel('Namaz Vakti')),
               const SizedBox(height: 12),
               _buildPrayerTypeSelector(),
+              const SizedBox(height: 20),
+              const Center(child: SectionLabel('Türetilmiş Vakitler')),
+              const SizedBox(height: 8),
+              Text(
+                'Kerahat ve nafile pencereleri, seçtiğin vakitten hesaplanır.',
+                textAlign: TextAlign.center,
+                style: AppTypography.hint.copyWith(
+                  color: tokens.textTertiary,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 12),
+              _buildDerivedSelector(),
               const SizedBox(height: 24),
               const Center(child: SectionLabel('Bildirim Zamanı')),
               const SizedBox(height: 12),
@@ -227,6 +247,52 @@ class _AddNotificationBottomSheetState
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// Türetilmiş nokta çipleri. Seçim vaktin **yerine** geçer: bir çipe
+  /// dokununca o noktanın çıpa vakti de seçilir; tekrar dokunmak seçimi
+  /// kaldırır ve satır yeniden bir vakit bildirimi olur.
+  Widget _buildDerivedSelector() {
+    return Center(
+      child: Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        alignment: WrapAlignment.center,
+        children: DerivedTimeKind.values.map((kind) {
+          final isSelected = kind == _derivedKind;
+          return GestureDetector(
+            onTap: () => setState(() {
+              if (isSelected) {
+                _derivedKind = null;
+              } else {
+                _derivedKind = kind;
+                _selectedType = kind.anchor;
+              }
+            }),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? tokens.accent.withValues(alpha: 0.2)
+                    : tokens.surface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: isSelected ? tokens.accent : tokens.border,
+                ),
+              ),
+              child: Text(
+                kind.label,
+                style: TextStyle(
+                  color: isSelected ? tokens.accent : tokens.textSecondary,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  fontSize: 13,
+                ),
+              ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }

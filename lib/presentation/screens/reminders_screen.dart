@@ -187,10 +187,12 @@ class _RemindersScreenState extends State<RemindersScreen>
     int minutesBefore, [
     Set<int> weekdays = const {},
     String? label,
+    DerivedTimeKind? derivedKind,
   ]) async {
     final appState = context.read<AppState>();
     final setting = NotificationSetting(
       prayerType: type,
+      derivedKind: derivedKind,
       isActive: true,
       minutesBefore: minutesBefore,
       weekdays: weekdays,
@@ -200,6 +202,7 @@ class _RemindersScreenState extends State<RemindersScreen>
     final exists = appState.notificationSettings.any(
       (s) =>
           s.prayerType == type &&
+          s.derivedKind == derivedKind &&
           s.minutesBefore == minutesBefore &&
           s.weekdaysCsv == setting.weekdaysCsv,
     );
@@ -224,10 +227,12 @@ class _RemindersScreenState extends State<RemindersScreen>
     int minutesBefore, [
     Set<int> weekdays = const {},
     String? label,
+    DerivedTimeKind? derivedKind,
   ]) async {
     final appState = context.read<AppState>();
     final updated = NotificationSetting(
       prayerType: type,
+      derivedKind: derivedKind,
       isActive: original.isActive,
       minutesBefore: minutesBefore,
       soundId: original.soundId,
@@ -237,9 +242,11 @@ class _RemindersScreenState extends State<RemindersScreen>
     final duplicate = appState.notificationSettings.any(
       (s) =>
           s.prayerType == type &&
+          s.derivedKind == derivedKind &&
           s.minutesBefore == minutesBefore &&
           s.weekdaysCsv == updated.weekdaysCsv &&
           !(s.prayerType == original.prayerType &&
+              s.derivedKind == original.derivedKind &&
               s.minutesBefore == original.minutesBefore &&
               s.weekdaysCsv == original.weekdaysCsv),
     );
@@ -250,6 +257,7 @@ class _RemindersScreenState extends State<RemindersScreen>
 
     final keyChanged =
         type != original.prayerType ||
+        derivedKind != original.derivedKind ||
         minutesBefore != original.minutesBefore ||
         updated.weekdaysCsv != original.weekdaysCsv;
 
@@ -500,9 +508,16 @@ class _RemindersScreenState extends State<RemindersScreen>
         initialSetting: initial,
         submitLabel: initial == null ? null : 'Güncelle',
         title: initial == null ? null : 'Bildirimi Güncelle',
-        onAdd: (type, minutes, weekdays, label) => initial == null
-            ? _addNotification(type, minutes, weekdays, label)
-            : _updateNotification(initial, type, minutes, weekdays, label),
+        onAdd: (type, minutes, weekdays, label, derivedKind) => initial == null
+            ? _addNotification(type, minutes, weekdays, label, derivedKind)
+            : _updateNotification(
+                initial,
+                type,
+                minutes,
+                weekdays,
+                label,
+                derivedKind,
+              ),
       ),
     );
   }
