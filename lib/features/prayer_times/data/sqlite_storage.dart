@@ -548,6 +548,38 @@ class SqliteStorage implements LocalStorage {
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
+  static const String _alarmScheduleFailuresKey = 'alarm_schedule_failures';
+
+  @override
+  Future<Map<String, String>> getAlarmScheduleFailures() async {
+    final raw = await _readSetting(_alarmScheduleFailuresKey);
+    if (raw == null) return {};
+    try {
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      return decoded.map((k, v) => MapEntry(k, v.toString()));
+    } catch (e) {
+      AppLogger().warning('Alarm hata kaydi okunamadi, bos kabul edildi', e);
+      return {};
+    }
+  }
+
+  @override
+  Future<void> saveAlarmScheduleFailures(Map<String, String> failures) async {
+    final db = await database;
+    if (failures.isEmpty) {
+      await db.delete(
+        'settings',
+        where: 'key = ?',
+        whereArgs: [_alarmScheduleFailuresKey],
+      );
+      return;
+    }
+    await db.insert('settings', {
+      'key': _alarmScheduleFailuresKey,
+      'value': jsonEncode(failures),
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
   static const String _missionSessionKey = 'mission_session';
   static const String _abortStateKey = 'mission_abort_state';
 

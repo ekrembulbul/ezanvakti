@@ -52,6 +52,7 @@ class AlarmScheduler {
 
     final now = DateTime.now();
     final currentAppearance = appearance();
+    final failures = <String, String>{};
     for (final alarm in alarms) {
       if (!alarm.isActive) continue;
       if (alarm.kind == AlarmKind.anchored) {
@@ -61,6 +62,7 @@ class AlarmScheduler {
           byDate: byDate,
           skips: skips,
           currentAppearance: currentAppearance,
+          failures: failures,
         );
         continue;
       }
@@ -103,8 +105,23 @@ class AlarmScheduler {
         );
       } catch (e) {
         _logger.warning('Alarm planlanamadı (id: ${alarm.id})', e);
+        failures[alarm.id] = _shortMessage(e);
       }
     }
+
+    // Kalıcı kayıt arayüz içindir; yazılamaması planlamayı düşürmemeli
+    // (testlerdeki kısmi sahte depolar da desteklemeyebilir).
+    try {
+      await storage.saveAlarmScheduleFailures(failures);
+    } catch (e) {
+      _logger.warning('Alarm hata kaydi yazilamadi', e);
+    }
+  }
+
+  /// Satırda gösterilecek kadar kısa hata özeti.
+  static String _shortMessage(Object error) {
+    final text = error.toString();
+    return text.length <= 120 ? text : text.substring(0, 120);
   }
 
   /// Çıpalı alarmın önümüzdeki çalışlarını önden dizer (K1/F1b): saat her
@@ -119,6 +136,7 @@ class AlarmScheduler {
     required Map<DateTime, PrayerTime> byDate,
     required Set<SkippedOccurrence> skips,
     required AlarmAppearance currentAppearance,
+    required Map<String, String> failures,
   }) async {
     final fires = computeNextFires(
       alarm: alarm,
@@ -159,6 +177,7 @@ class AlarmScheduler {
         );
       } catch (e) {
         _logger.warning('Alarm planlanamadı (id: ${alarm.id}, gün $i)', e);
+        failures[alarm.id] = _shortMessage(e);
       }
     }
   }

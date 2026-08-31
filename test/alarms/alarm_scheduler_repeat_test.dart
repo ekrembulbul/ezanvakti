@@ -8,7 +8,6 @@ import 'package:ezanvakti/core/models/notification_setting.dart' show PrayerType
 import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/core/models/skipped_occurrence.dart';
 import 'package:ezanvakti/features/alarms/domain/alarm_scheduler.dart';
-import 'package:ezanvakti/features/notifications/domain/skip_rules.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// scheduleAlarm cagrilarini butun argumanlariyla kaydeden servis.

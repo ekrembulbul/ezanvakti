@@ -72,6 +72,16 @@ class FakeProvider implements PrayerTimeProvider {
 
 /// Bellekte tutan depo. Vakitler konum + gun anahtariyla saklanir.
 class FakeStorage implements LocalStorage {
+
+  Map<String, String> _alarmScheduleFailures = {};
+
+  @override
+  Future<Map<String, String>> getAlarmScheduleFailures() async =>
+      _alarmScheduleFailures;
+
+  @override
+  Future<void> saveAlarmScheduleFailures(Map<String, String> failures) async =>
+      _alarmScheduleFailures = failures;
   final Map<String, Map<String, PrayerTime>> _times = {};
   final List<Location> _locations = [];
   final List<Alarm> _alarms = [];

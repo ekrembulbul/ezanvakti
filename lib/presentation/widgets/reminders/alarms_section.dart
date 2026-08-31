@@ -40,6 +40,10 @@ class AlarmsSection extends StatelessWidget {
 
   final Set<SkippedOccurrence> skips;
 
+  /// Son planlamada kurulamayan alarmlar (alarmId → mesaj); satırda uyarı
+  /// olarak gösterilir.
+  final Map<String, String> scheduleFailures;
+
   /// Tek seferlik atlama değiştirildiğinde çağrılır.
   final void Function(SkippedOccurrence occurrence, bool skipped)?
   onSkipChanged;
@@ -57,6 +61,7 @@ class AlarmsSection extends StatelessWidget {
     this.onDisableBlocked,
     this.nextFireByAlarm = const {},
     this.skips = const {},
+    this.scheduleFailures = const {},
     this.onSkipChanged,
     required this.onEdit,
     required this.onDelete,
@@ -86,6 +91,9 @@ class AlarmsSection extends StatelessWidget {
   /// altta çıkan çubuktan seçiliyor. Burada yalnızca **hangi durumda**
   /// olduğu yazıyor.
   String _subtitle(Alarm alarm, DateTime? snoozedUntil, bool skipped) {
+    if (alarm.isActive && scheduleFailures.containsKey(alarm.id)) {
+      return 'Kurulamadı — düzenleyip kaydederek yeniden dene';
+    }
     if (snoozedUntil != null) return SnoozeNotice.label(snoozedUntil);
     if (skipped) return 'Yalnızca bu sefer atlanacak';
     if (!alarm.isActive) return 'Kapalı';

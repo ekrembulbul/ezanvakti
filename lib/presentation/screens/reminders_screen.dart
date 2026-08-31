@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/di/service_locator.dart';
+import '../../core/interfaces/local_storage.dart';
 import '../../core/interfaces/alarm_service.dart';
 import '../../core/interfaces/notification_service.dart';
 import '../../core/models/alarm.dart';
@@ -147,6 +148,7 @@ class _RemindersScreenState extends State<RemindersScreen>
 
     _syncQueue = _syncQueue
         .then((_) => _reschedule(appState))
+        .then((_) => _refreshScheduleFailures())
         .catchError((Object error, StackTrace stackTrace) {
           AppLogger().error(
             'Hatırlatıcı planlaması başarısız',
@@ -160,6 +162,16 @@ class _RemindersScreenState extends State<RemindersScreen>
   Future<void> _syncNotifications(AppState appState) async {
     appState.setNotificationSettings(await _settingsManager.getSettings());
     _queueReschedule(appState);
+  }
+
+  /// Son planlamada kurulamayan alarmlar; satır uyarısı için.
+  Map<String, String> _scheduleFailures = {};
+
+  Future<void> _refreshScheduleFailures() async {
+    final failures = await ServiceLocator()
+        .get<LocalStorage>()
+        .getAlarmScheduleFailures();
+    if (mounted) setState(() => _scheduleFailures = failures);
   }
 
   Future<void> _syncAlarms(AppState appState) async {
@@ -582,6 +594,7 @@ class _RemindersScreenState extends State<RemindersScreen>
           AlarmsSection(
             missionSession: appState.missionSession,
             onDisableBlocked: _onDisableBlocked,
+            scheduleFailures: _scheduleFailures,
             nextFireByAlarm: _nextFireByAlarm(appState),
             skips: appState.skips,
             onSkipChanged: _toggleSkip,

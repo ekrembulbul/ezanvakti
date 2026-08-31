@@ -43,7 +43,7 @@ AlarmKit sesi "Zil Sesi ve Uyarılar" seviyesiyle çalar; üçüncü taraflara s
 - Bayatlık eşiği görevli yolda: `MissionTuning.chainDeadlineMinutes` (60) yeniden kullanılır; yeni sabit eklenmez.
 - Çıpalı ön dizim: 7 gün; birincil `<id>` eksiz, ileri günler `<id>#d1..#d6`; `MissionChainKeys.select` `#d` kayıtlarını zincir SAYMAZ (görev bitince silinmezler; her yeniden planlama diziyi zaten tazeler).
 - Olay şeması: `{alarmId, stoppedAt, chainStopped?: bool}` — `chainStopped` yoksa `false`.
-- Hata kaydı anahtarı: `alarm_schedule_failures` = JSON `{ "<alarmId>": {"at": iso8601, "message": string} }`.
+- Hata kaydı anahtarı: `alarm_schedule_failures` = JSON `{ "<alarmId>": "<kısa mesaj>" }` (an bilgisi loglarda; arayüz yalnızca varlığına bakıyor).
 - Dart hafta günü 1=Pazartesi..7=Pazar ↔ Swift `Locale.Weekday` eşlemesi: 1→.monday … 7→.sunday.
 
 ## Doğrulama

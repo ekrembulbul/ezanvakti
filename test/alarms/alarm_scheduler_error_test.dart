@@ -12,6 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 class _FlakyAlarmService implements AlarmService {
   final List<String> scheduled = [];
   int cancelAllCount = 0;
+  String? failingId = 'patlayan';
 
   @override
   Future<void> cancelAllAlarms() async => cancelAllCount++;
@@ -31,7 +32,7 @@ class _FlakyAlarmService implements AlarmService {
     required Map<String, dynamic> chainConfig,
     List<int> repeatWeekdays = const [],
   }) async {
-    if (id == 'patlayan') {
+    if (id == failingId) {
       throw PlatformException(code: 'schedule_failed', message: 'izin yok');
     }
     scheduled.add(id);
@@ -64,8 +65,17 @@ class _StorageWithAlarms implements LocalStorage {
 
   _StorageWithAlarms(this.alarms);
 
+  Map<String, String> failures = {};
+
   @override
   Future<List<Alarm>> getAlarms() async => alarms;
+
+  @override
+  Future<Map<String, String>> getAlarmScheduleFailures() async => failures;
+
+  @override
+  Future<void> saveAlarmScheduleFailures(Map<String, String> value) async =>
+      failures = value;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -86,6 +96,20 @@ void main() {
     await scheduler.scheduleAlarms(prayerTimes: const []);
 
     expect(service.scheduled, ['saglam']);
+  });
+
+  test('Planlanamayan alarm kalici kayda dusuyor, duzelince temizleniyor', () async {
+    final service = _FlakyAlarmService();
+    final storage = _StorageWithAlarms([fixed('patlayan', 6), fixed('saglam', 7)]);
+    final scheduler = AlarmScheduler(alarmService: service, storage: storage);
+
+    await scheduler.scheduleAlarms(prayerTimes: const []);
+    expect(storage.failures.keys.toList(), ['patlayan']);
+
+    // Sonraki planlamada hata kalmadiysa kayit da kalmamali.
+    service.failingId = null;
+    await scheduler.scheduleAlarms(prayerTimes: const []);
+    expect(storage.failures, isEmpty);
   });
 
   test('Alarm listesi bos olsa da mevcut planlar temizlenir', () async {

@@ -15,6 +15,16 @@ import 'package:ezanvakti/features/notifications/domain/notification_settings_ma
 import 'package:ezanvakti/features/notifications/domain/default_notification_settings.dart';
 
 class MockLocalStorage implements LocalStorage {
+
+  Map<String, String> _alarmScheduleFailures = {};
+
+  @override
+  Future<Map<String, String>> getAlarmScheduleFailures() async =>
+      _alarmScheduleFailures;
+
+  @override
+  Future<void> saveAlarmScheduleFailures(Map<String, String> failures) async =>
+      _alarmScheduleFailures = failures;
   @override
   Future<AppearanceSettings> getAppearanceSettings() async =>
       const AppearanceSettings();

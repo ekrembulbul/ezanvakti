@@ -106,6 +106,13 @@ abstract class LocalStorage {
   /// Oturumu yazar; `null` verilirse kaydı siler.
   Future<void> saveMissionSession(MissionSession? session);
 
+  /// Son planlamada kurulamayan alarmlar: alarmId → kısa hata mesajı.
+  /// Arayüz satırda "Kurulamadı" uyarısını buradan gösterir.
+  Future<Map<String, String>> getAlarmScheduleFailures();
+
+  /// Kaydın tamamını değiştirir; boş map kaydı siler.
+  Future<void> saveAlarmScheduleFailures(Map<String, String> failures);
+
   /// Acil çıkışın global kademesi. Kayıt yoksa sıfır kademe döner.
   Future<AbortState> getAbortState();
 
