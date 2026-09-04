@@ -4,6 +4,16 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.11.5] - 2026-09-04
+
+### Düzeltildi
+- **Eski sürümden güncelleyenlerde uygulama açılış ekranında kalıyordu.** 0.5.5 (veritabanı şeması v8) yüklü bir telefona 0.11.x geldiğinde şema yükseltmesi hata veriyor, uygulama hiç başlamıyordu. Yükseltme adımları azalan sırada yazılmıştı: v11 adımı, henüz eklenmemiş olan `sound_id` sütununu okumaya çalışıyordu. Temiz kurulumlarda ve tek adımlık güncellemelerde görülmediği için gözden kaçmıştı.
+
+### Teknik not
+- `_onUpgrade` blokları artan sıraya alındı; v12 adımı v13'ün tablosunu da oluşturduğu için ikinci kez çalışıp "table fasting_log already exists" veriyordu, o çift çağrı da kaldırıldı.
+- v8 → v13 yükseltmesini uçtan uca çalıştıran testler eklendi (`test/storage/schema_migration_test.dart`): veriler korunuyor mu, sütunlar oluşuyor mu, kaldırılmış alarm sesi temizleniyor mu. Ayrı bir test blokların artan sırada durduğunu kaynak koddan doğruluyor.
+- Test için `sqflite_common_ffi` dev bağımlılığı eklendi; şema yükseltmesi artık cihaz olmadan doğrulanabiliyor.
+
 ## [0.11.4] - 2026-09-04
 
 ### Değişti

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'dart:convert';
@@ -38,7 +39,7 @@ class SqliteStorage implements LocalStorage {
       path,
       version: 13,
       onCreate: _onCreate,
-      onUpgrade: _onUpgrade,
+      onUpgrade: onUpgrade,
     );
   }
 
@@ -91,6 +92,7 @@ class SqliteStorage implements LocalStorage {
     await _createAlarmsTable(db);
     await _createQrCodesTable(db);
     await _createTrackingTables(db);
+    await _createFastingTable(db);
   }
 
   /// v12: namaz takibi, kaza sayaçları ve zikir sayacı.
@@ -115,7 +117,6 @@ class SqliteStorage implements LocalStorage {
         count INTEGER NOT NULL
       )
     ''');
-    await _createFastingTable(db);
   }
 
   /// v13: oruç takibi. Kaza orucu sayısı `settings` tablosunda tutuluyor —
@@ -181,7 +182,12 @@ class SqliteStorage implements LocalStorage {
     ''');
   }
 
-  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+  /// Şema yükseltmesi. **Bloklar artan sırada durmak zorunda**: her adım bir
+  /// öncekinin bıraktığı şemayı varsayıyor (örneğin v11 adımı, v10'da eklenen
+  /// `sound_id` kolonunu okuyor). Sıra bozulunca uzak sürümlerden gelen
+  /// yükseltme patlıyor; test bu sırayı kilitliyor.
+  @visibleForTesting
+  Future<void> onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
       await db.execute('''
         CREATE TABLE locations (
@@ -266,11 +272,28 @@ class SqliteStorage implements LocalStorage {
     if (oldVersion < 8) {
       await db.execute('ALTER TABLE alarms ADD COLUMN qr_payload TEXT');
     }
-    if (oldVersion < 13) {
-      await _createFastingTable(db);
+    if (oldVersion < 9) {
+      await _createQrCodesTable(db);
+      // 0.5.1'de kaldırılan sesler: model okuma sırasında 'default'a
+      // çeviriyordu; kalıcı temizlik burada (bkz. _migrateSoundId).
+      await db.execute(
+        "UPDATE alarms SET sound_id='default' "
+        "WHERE sound_id IN ('adhan','alarm')",
+      );
     }
-    if (oldVersion < 12) {
-      await _createTrackingTables(db);
+    if (oldVersion < 10) {
+      // Ses, gün filtresi ve etiket alanları. UNIQUE kısıtı üçlü kimliğe
+      // genişlediği için tablo yeniden oluşturuluyor (v5 kalıbı); mevcut
+      // satırlar "her gün" (boş günler) olarak korunuyor.
+      await db.execute('ALTER TABLE notification_settings RENAME TO ns_old');
+      await _createNotificationSettingsTable(db);
+      await db.execute('''
+        INSERT INTO notification_settings
+          (prayer_type, is_active, minutes_before, sound_id, weekdays, label)
+        SELECT prayer_type, is_active, minutes_before, NULL, '', NULL
+        FROM ns_old
+      ''');
+      await db.execute('DROP TABLE ns_old');
     }
     if (oldVersion < 11) {
       // Türetilmiş nokta alanı; UNIQUE kısıtı dörtlü kimliğe genişledi.
@@ -287,28 +310,11 @@ class SqliteStorage implements LocalStorage {
       ''');
       await db.execute('DROP TABLE ns_v10');
     }
-    if (oldVersion < 10) {
-      // Ses, gün filtresi ve etiket alanları. UNIQUE kısıtı üçlü kimliğe
-      // genişlediği için tablo yeniden oluşturuluyor (v5 kalıbı); mevcut
-      // satırlar "her gün" (boş günler) olarak korunuyor.
-      await db.execute('ALTER TABLE notification_settings RENAME TO ns_old');
-      await _createNotificationSettingsTable(db);
-      await db.execute('''
-        INSERT INTO notification_settings
-          (prayer_type, is_active, minutes_before, sound_id, weekdays, label)
-        SELECT prayer_type, is_active, minutes_before, NULL, '', NULL
-        FROM ns_old
-      ''');
-      await db.execute('DROP TABLE ns_old');
+    if (oldVersion < 12) {
+      await _createTrackingTables(db);
     }
-    if (oldVersion < 9) {
-      await _createQrCodesTable(db);
-      // 0.5.1'de kaldırılan sesler: model okuma sırasında 'default'a
-      // çeviriyordu; kalıcı temizlik burada (bkz. _migrateSoundId).
-      await db.execute(
-        "UPDATE alarms SET sound_id='default' "
-        "WHERE sound_id IN ('adhan','alarm')",
-      );
+    if (oldVersion < 13) {
+      await _createFastingTable(db);
     }
   }
 
