@@ -61,3 +61,9 @@ ios/fastlane/test_output/
 android/fastlane/report.xml
 android/fastlane/Preview.html
 android/fastlane/test_output/
+
+# Claude Code: yerel izin ayarlari ve gecici worktree'ler.
+# Yalnizca bu ikisi disarida birakiliyor; .claude altina paylasilan bir sey
+# (agent, skill) konursa versiyonlanmaya devam etsin.
+.claude/settings.local.json
+.claude/worktrees/
