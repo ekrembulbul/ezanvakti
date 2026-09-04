@@ -357,7 +357,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get quietIntro =>
-      'Bu aralıklarda Ezan Vakti bildirimleri sessiz gösterilir ya da hiç gösterilmez. iPhone\'da bir uygulama telefonu sessize alamaz; bu ayar yalnızca uygulamanın kendi bildirimlerini etkiler, alarmlara dokunmaz.';
+      'Bu aralıklarda Ezan Vakti bildirimleri sessiz gösterilir ya da hiç gösterilmez. Ayar yalnızca uygulamanın kendi bildirimlerini etkiler; telefonun zil profiline ve alarmlara dokunmaz.';
 
   @override
   String get quietFridaySection => 'Cuma namazı';

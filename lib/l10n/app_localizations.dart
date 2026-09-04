@@ -721,7 +721,7 @@ abstract class AppLocalizations {
   /// Açıklama
   ///
   /// In tr, this message translates to:
-  /// **'Bu aralıklarda Ezan Vakti bildirimleri sessiz gösterilir ya da hiç gösterilmez. iPhone\'da bir uygulama telefonu sessize alamaz; bu ayar yalnızca uygulamanın kendi bildirimlerini etkiler, alarmlara dokunmaz.'**
+  /// **'Bu aralıklarda Ezan Vakti bildirimleri sessiz gösterilir ya da hiç gösterilmez. Ayar yalnızca uygulamanın kendi bildirimlerini etkiler; telefonun zil profiline ve alarmlara dokunmaz.'**
   String get quietIntro;
 
   /// Bölüm başlığı

@@ -358,7 +358,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get quietIntro =>
-      'During these windows Ezan Vakti notifications are shown silently or not at all. An app cannot silence your iPhone; this setting affects only this app\'s notifications and leaves alarms untouched.';
+      'During these windows Ezan Vakti notifications are shown silently or not at all. The setting affects only this app\'s notifications; it does not touch your ringer profile or alarms.';
 
   @override
   String get quietFridaySection => 'Friday prayer';

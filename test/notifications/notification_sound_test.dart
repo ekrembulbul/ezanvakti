@@ -15,7 +15,25 @@ import 'fakes/recording_notification_service.dart';
 import 'fakes/notification_storage.dart';
 
 void main() {
-  final today = DateTime(2026, 9, 4); // Cuma
+  /// Fixture'in ilk gunu: **ogle vakti henuz gelmemis ilk Cuma'dan bir gun
+  /// once**. Uc gunluk pencere boylece her zaman hem o Cuma'yi hem de en az
+  /// bir Cuma-disi gunu iceriyor ve tamami planlayicinin 7 gunluk
+  /// ufkuna sigiyor.
+  ///
+  /// Onceden sabit bir tarih (2026-09-04 Cuma) yaziliyordu; o gunun 13:00'i
+  /// gecince fixture'da hic Cuma kalmiyor ve testler saate gore kiriliyordu.
+  final today = (() {
+    final now = DateTime.now();
+    final start = DateTime(now.year, now.month, now.day);
+    for (var i = 0; i <= 7; i++) {
+      final day = start.add(Duration(days: i));
+      final dhuhr = DateTime(day.year, day.month, day.day, 13, 0);
+      if (day.weekday == DateTime.friday && dhuhr.isAfter(now)) {
+        return day.subtract(const Duration(days: 1));
+      }
+    }
+    throw StateError('Cuma bulunamadi');
+  })();
   PrayerTime dayAt(DateTime date) => PrayerTime(
     date: date,
     fajr: DateTime(date.year, date.month, date.day, 5, 0),
@@ -43,6 +61,9 @@ void main() {
     scheduler = NotificationScheduler(
       notificationService: service,
       storage: storage,
+      // Sessiz pencereler yalnizca Android'de uygulaniyor; testler masaustunde
+      // kostugu icin bayrak acikca veriliyor.
+      quietWindowsEnabled: true,
       // Testler kaynak dilde (Turkce) kosuyor; cihaz diline bagli olmasin.
       localizations: (_) =>
           AppLocalizations.delegate.load(const Locale('tr')),
