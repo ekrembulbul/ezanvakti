@@ -1,5 +1,8 @@
-/* Uygulama adı — ana ekranda ve ayarlarda görünür. */
-"CFBundleDisplayName" = "Ezan Vakti & Alarm";
+/* Uygulama adı. `CFBundleDisplayName` ana ekranda ikonun altında görünür ve
+   **kısa** olmalı: iOS ~12 karakterden sonra önce boşlukları kırpıyor, sonra
+   "…" ekliyor ("Ezan Vakti & Alarm" → "EzanVakti&…"). App Store'da görünen
+   tam ad ayrı bir alan (App Store Connect > App Information > Name). */
+"CFBundleDisplayName" = "Ezan & Alarm";
 "CFBundleName" = "Ezan Vakti";
 
 /* İzin diyaloglarında gösterilen açıklamalar. */

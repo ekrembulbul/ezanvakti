@@ -1,5 +1,8 @@
-/* Base language; kept explicit so `en` is a real bundle localization. */
-"CFBundleDisplayName" = "Prayer Times & Alarm";
+/* Base language; kept explicit so `en` is a real bundle localization.
+   `CFBundleDisplayName` is the Home Screen label and must stay short: iOS
+   strips spaces past ~12 characters, then truncates. The full App Store name
+   lives in App Store Connect, not here. */
+"CFBundleDisplayName" = "Prayer & Alarm";
 "CFBundleName" = "Prayer Times";
 "NSLocationWhenInUseUsageDescription" = "Location access is needed to show prayer times for where you are.";
 "NSLocationAlwaysAndWhenInUseUsageDescription" = "Location access is needed to show prayer times for where you are.";

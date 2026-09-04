@@ -11,8 +11,13 @@
 		<string>Camera access is needed to scan the code you saved, so you can dismiss an alarm with a QR task.</string>
 	<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
+		<!-- Ana ekranda ikonun altında görünen ad. **Kısa tutulmalı**: iOS
+		     ~12 karakterden sonra önce boşlukları kırpıyor, sonra "…" ekliyor
+		     ("Prayer Times & Alarm" → "PrayerTimes&…"). TestFlight'ın beta
+		     noktası da yer kaplıyor. App Store'da görünen tam ad ayrı bir
+		     alan (App Store Connect > App Information > Name). -->
 		<key>CFBundleDisplayName</key>
-		<string>Prayer Times &amp; Alarm</string>
+		<string>Prayer &amp; Alarm</string>
 		<key>CFBundleExecutable</key>
 		<string>$(EXECUTABLE_NAME)</string>
 		<key>CFBundleIdentifier</key>
