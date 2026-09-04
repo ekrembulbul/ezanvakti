@@ -48,10 +48,13 @@ List<QuietWindow> decodeQuietWindows(
 
 /// Bildirimlerin susturulacağı zaman aralığı.
 ///
-/// **iOS'ta telefonu sessize almaz** — bir uygulama sessiz anahtarını ya da
-/// Odak modunu değiştiremez. Bu ayar yalnızca uygulamanın kendi bildirimlerini
-/// etkiler; alarmlara (AlarmKit) hiç dokunmaz, çünkü kullanıcı alarmı bilerek
-/// kurmuştur.
+/// **Yalnızca Android'de uygulanır** (bkz.
+/// `NotificationScheduler.quietWindowsEnabled`). iOS'ta bir uygulama sessiz
+/// anahtarını ya da Odak modunu değiştiremiyor; ayar orada yalnızca kendi
+/// bildirimlerimizi susturuyordu ve kullanıcının beklediği işi yapmıyordu.
+///
+/// Alarmlara (AlarmKit / AlarmRingService) hiçbir platformda dokunmaz —
+/// kullanıcı alarmı bilerek kurmuştur.
 class QuietWindow {
   final String id;
   final QuietTrigger trigger;

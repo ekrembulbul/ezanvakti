@@ -1,3 +1,7 @@
+import 'dart:ui';
+
+import 'package:ezanvakti/l10n/app_localizations.dart';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ezanvakti/core/models/fasting_log.dart';
 import 'package:ezanvakti/core/models/prayer_log.dart';
@@ -930,6 +934,103 @@ void main() {
 
       expect(settings.any((s) => s.minutesBefore == 0), isTrue);
       expect(settings.any((s) => s.minutesBefore > 0), isTrue);
+    });
+  });
+
+  group('Sessiz pencereler yalnizca Android', () {
+    late MockLocalStorage storage;
+    late MockNotificationService notificationService;
+
+    const testLocation = Location(
+      id: '1',
+      province: 'Istanbul',
+      district: 'Kadikoy',
+      latitude: 40.9828,
+      longitude: 29.0227,
+    );
+
+    setUp(() {
+      storage = MockLocalStorage();
+      notificationService = MockNotificationService();
+    });
+
+    /// Simdiden sonraki ilk Cuma ogle vakti. Her zaman 7 gunluk planlama
+    /// penceresine dusuyor: bugun Cuma ve ogle gectiyse bile sonraki Cuma
+    /// tam 7 gun sonra ayni saatte, yani cutoff'un icinde.
+    DateTime nextFridayDhuhr() {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      for (var i = 0; i <= 7; i++) {
+        final day = today.add(Duration(days: i));
+        final dhuhr = DateTime(day.year, day.month, day.day, 13, 15);
+        if (day.weekday == DateTime.friday && dhuhr.isAfter(now)) return dhuhr;
+      }
+      throw StateError('Cuma bulunamadi');
+    }
+
+    Future<List<ScheduledNotification>> scheduleAround(
+      DateTime dhuhr, {
+      required bool quietWindowsEnabled,
+    }) async {
+      await storage.saveNotificationSettings(const [
+        NotificationSetting(prayerType: PrayerType.dhuhr, isActive: true),
+      ]);
+      // Cuma ogle vaktini kapsayan, bildirimi hic planlamayan pencere.
+      await storage.saveQuietWindows(const [
+        QuietWindow(
+          id: 'friday',
+          trigger: QuietTrigger.fridayDhuhr,
+          minutesBefore: 15,
+          minutesAfter: 60,
+          mode: QuietMode.skip,
+        ),
+      ]);
+
+      final day = DateTime(dhuhr.year, dhuhr.month, dhuhr.day);
+      final scheduler = NotificationScheduler(
+        notificationService: notificationService,
+        storage: storage,
+        quietWindowsEnabled: quietWindowsEnabled,
+        localizations: (_) =>
+            AppLocalizations.delegate.load(const Locale('tr')),
+      );
+      await scheduler.scheduleNotifications(
+        location: testLocation,
+        prayerTimes: [
+          PrayerTime(
+            fajr: DateTime(day.year, day.month, day.day, 4, 11),
+            sunrise: DateTime(day.year, day.month, day.day, 5, 55),
+            dhuhr: dhuhr,
+            asr: DateTime(day.year, day.month, day.day, 17, 9),
+            maghrib: DateTime(day.year, day.month, day.day, 20, 25),
+            isha: DateTime(day.year, day.month, day.day, 22, 1),
+            date: day,
+          ),
+        ],
+      );
+      return notificationService.scheduledNotifications;
+    }
+
+    test('Android: pencere uygulanir, Cuma ogle bildirimi planlanmaz', () async {
+      final scheduled = await scheduleAround(
+        nextFridayDhuhr(),
+        quietWindowsEnabled: true,
+      );
+
+      expect(scheduled, isEmpty);
+    });
+
+    test('iOS: pencere yok sayilir, bildirim planlanir', () async {
+      final scheduled = await scheduleAround(
+        nextFridayDhuhr(),
+        quietWindowsEnabled: false,
+      );
+
+      expect(
+        scheduled,
+        hasLength(1),
+        reason: 'iOS\'ta sessiz pencere hic okunmamali',
+      );
     });
   });
 

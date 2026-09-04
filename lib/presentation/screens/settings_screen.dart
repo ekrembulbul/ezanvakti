@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import '../utils/directional_icons.dart';
 import '../../l10n/l10n_extensions.dart';
@@ -99,17 +101,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
             NotificationPrefsSection(
               onChanged: widget.onNotificationPrefsChanged,
             ),
-            const SizedBox(height: 12),
-            GroupedList(
-              children: [
-                _row(
-                  icon: Icons.notifications_off_rounded,
-                  title: context.l10n.settingsQuietWindows,
-                  value: null,
-                  onTap: widget.onQuietWindows,
-                ),
-              ],
-            ),
+            // Sessiz pencereler yalnızca Android'de: iOS'ta bir uygulama
+            // telefonu sessize alamıyor, ayar yalnızca kendi bildirimlerimizi
+            // susturuyordu — kullanıcının beklediği işi yapmıyordu.
+            if (Platform.isAndroid) ...[
+              const SizedBox(height: 12),
+              GroupedList(
+                children: [
+                  _row(
+                    icon: Icons.notifications_off_rounded,
+                    title: context.l10n.settingsQuietWindows,
+                    value: null,
+                    onTap: widget.onQuietWindows,
+                  ),
+                ],
+              ),
+            ],
             const SizedBox(height: 26),
             SectionLabel(context.l10n.settingsAppearance),
             const SizedBox(height: 10),

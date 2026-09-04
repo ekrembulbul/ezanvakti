@@ -4,6 +4,16 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.11.4] - 2026-09-04
+
+### Değişti
+- **Sessiz pencereler artık yalnızca Android'de.** iPhone'da bir uygulama telefonu sessize alamıyor; ayar orada yalnızca uygulamanın kendi bildirimlerini susturuyordu, yani "Cuma namazında telefonum sussun" beklentisini karşılamıyordu. iOS'ta Ayarlar'daki satır kaldırıldı ve pencereler hiç okunmuyor. Android'de aynen çalışmaya devam ediyor.
+- Sessiz pencere açıklaması güncellendi: artık iPhone'a atıf yok, ayarın telefonun zil profiline ve alarmlara dokunmadığı yazıyor.
+
+### Teknik not
+- `NotificationScheduler` yeni bir `quietWindowsEnabled` bayrağı taşıyor (varsayılan `Platform.isAndroid`); iOS'ta sessiz pencereler depodan hiç okunmuyor. Platform ayrımını iki test kilitliyor.
+- `notification_sound_test.dart` sabit bir tarihe (2026-09-04 Cuma) dayanıyordu ve o günün öğle vakti geçince kırılıyordu; fixture artık "öğlesi gelmemiş ilk Cuma"yı kendisi buluyor.
+
 ## [0.11.3] - 2026-08-31
 
 ### Değişti

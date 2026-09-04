@@ -1,5 +1,7 @@
-import '../../../core/constants/notification_sounds.dart';
+import 'dart:io';
 import 'dart:ui';
+
+import '../../../core/constants/notification_sounds.dart';
 
 import '../../../core/data/religious_days.dart';
 import '../../../l10n/app_localizations.dart';
@@ -21,6 +23,13 @@ class NotificationScheduler {
   final NotificationService notificationService;
   final LocalStorage storage;
 
+  /// Sessiz pencereler yalnızca **Android'de** anlamlı: orada bildirim kanalı
+  /// ve rahatsız etmeyin politikası üzerinden gerçek bir susturma yapılabiliyor.
+  /// iOS'ta bir uygulama telefonu sessize alamaz; ayar yalnızca kendi
+  /// bildirimlerimizi susturuyordu, kullanıcının beklediği işi yapmıyordu.
+  /// Testler bu bayrağı açıkça geçer; `Platform` masaüstünde Android değil.
+  final bool quietWindowsEnabled;
+
   /// Bildirim metinleri arka planda, `BuildContext` olmadan üretiliyor.
   /// Çeviri örneği planlama anında bu sağlayıcıdan alınır — kullanıcı dili
   /// değiştirdiğinde bir sonraki planlama yeni dilde kurulur.
@@ -39,7 +48,9 @@ class NotificationScheduler {
     required this.notificationService,
     required this.storage,
     Future<AppLocalizations> Function(Locale? preferred)? localizations,
-  }) : localizations = localizations ?? defaultLocalizations;
+    bool? quietWindowsEnabled,
+  }) : localizations = localizations ?? defaultLocalizations,
+       quietWindowsEnabled = quietWindowsEnabled ?? Platform.isAndroid;
 
   /// Varsayılan: cihaz dili; desteklenmiyorsa İngilizce (bkz.
   /// [LocaleResolver]). Kullanıcı uygulama içinde dil seçtiyse çağıran taraf
@@ -65,7 +76,9 @@ class NotificationScheduler {
     final settings = await storage.getNotificationSettings();
     final general = await storage.getGeneralSettings();
     final l10n = await localizations(null);
-    final quietWindows = await storage.getQuietWindows();
+    final quietWindows = quietWindowsEnabled
+        ? await storage.getQuietWindows()
+        : const <QuietWindow>[];
 
     // Mevcut tüm planlanmış bildirimleri önce iptal et — ayar listesi boş olsa
     // bile. Aksi halde kullanıcı tüm bildirimleri silince, daha önce OS'a
