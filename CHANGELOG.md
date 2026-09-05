@@ -4,7 +4,7 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
-## [Unreleased]
+## [0.11.7] - 2026-09-05
 
 ### Düzeltildi
 - **Uygulama koyu temaya alınınca ana ekran widget'ı açık kalıyordu.** Widget yalnızca telefonun görünümünü izliyordu; uygulamanın Görünüm > Tema seçimi (koyu/açık/sistem) ve "vakte göre renk" kapalıyken seçilen sabit palet widget'a hiç iletilmiyordu. Artık uygulama hangi görünümdeyse widget da o görünümde: koyu/açık seçimi cihaz temasından bağımsız uygulanır, sabit palet seçildiyse widget de o paletle çizilir. Çalar ekran zaten bu ayarları izliyordu; widget aynı davranışa getirildi.
