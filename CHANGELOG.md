@@ -4,6 +4,15 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.11.6] - 2026-09-05
+
+### Düzeltildi
+- **Ana ekranda uygulama adı boşluksuz görünüyordu** ("EzanVakti&…"). iOS ikonun altındaki etiketi ~12 karaktere sığdırmak için önce boşlukları kırpıyor, sonra "…" ekliyor; "Ezan Vakti & Alarm" 18 karakter olduğu için bu yola giriyordu. Ana ekran adı kısaltıldı: **Ezan & Alarm** (İngilizce "Prayer & Alarm", Arapça "الصلاة والمنبه"). App Store'da görünen tam ad değişmedi.
+
+### Teknik not
+- `CFBundleName` ve App Store Connect'teki ad korundu; yalnızca `CFBundleDisplayName` kısaltıldı. Üç `.strings` dosyasına da neden kısa tutulması gerektiği yorum olarak yazıldı.
+- `.claude/settings.local.json` ve `.claude/worktrees/` `.gitignore`'a alındı — yerel ayarlar ve geçici worktree dizinleri versiyonlanmamalı.
+
 ## [0.11.5] - 2026-09-04
 
 ### Düzeltildi
