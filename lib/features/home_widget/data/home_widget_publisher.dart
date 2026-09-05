@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'package:home_widget/home_widget.dart';
 
 import '../../../core/interfaces/widget_publisher.dart';
+import '../../../core/models/appearance_settings.dart';
 import '../../../core/utils/app_logger.dart';
+import '../domain/widget_appearance.dart';
 import '../domain/widget_snapshot.dart';
 
 /// Snapshot'ı App Group'a yazıp WidgetKit'e reload tetikleyen ince kabuk.
@@ -19,6 +21,9 @@ class HomeWidgetPublisher implements WidgetPublisher {
 
   /// Swift tarafındaki `SnapshotStore.timeFormatKey` ile birebir aynı.
   static const String timeFormatKey = 'ezanvakti_time_format';
+
+  /// Swift tarafındaki `SnapshotStore.appearanceKey` ile birebir aynı.
+  static const String appearanceKey = 'ezanvakti_appearance';
 
   /// Swift tarafındaki `kind` ile birebir aynı olmalı; aksi halde reload
   /// sessizce hiçbir widget'a ulaşmaz.
@@ -47,6 +52,17 @@ class HomeWidgetPublisher implements WidgetPublisher {
     await HomeWidget.updateWidget(iOSName: widgetKind);
     _logger.debug('Widget time format published: $storageValue');
   }
+
+  @override
+  Future<void> publishAppearance(AppearanceSettings settings) async {
+    await HomeWidget.setAppGroupId(appGroupId);
+    await HomeWidget.saveWidgetData<String>(
+      appearanceKey,
+      jsonEncode(widgetAppearanceJson(settings)),
+    );
+    await HomeWidget.updateWidget(iOSName: widgetKind);
+    _logger.debug('Widget appearance published: $settings');
+  }
 }
 
 /// iOS dışı platformlarda kullanılır. Widget yalnızca iOS'ta var; diğer
@@ -59,4 +75,7 @@ class NoopWidgetPublisher implements WidgetPublisher {
 
   @override
   Future<void> publishTimeFormat(String storageValue) async {}
+
+  @override
+  Future<void> publishAppearance(AppearanceSettings settings) async {}
 }

@@ -4,7 +4,9 @@ import Foundation
 ///
 /// `lib/core/theme/day_phase.dart` portu. İki kural aynen korunur: gece
 /// **Akşam'da değil Yatsı'da** başlar, ve sınır anı bir SONRAKİ dilime aittir.
-enum DayPhase: Equatable {
+/// Ham değerler Dart'taki `DayPhase.name` ile aynı: görünüm payload'ındaki
+/// `fixedPalette` bu adlarla gelir (`WidgetAppearance`).
+enum DayPhase: String, Equatable {
     case morning, afternoon, evening, night
 
     /// Vakit verisi yokken kullanılan dilim; uygulama ikonu da bu ailedendir.

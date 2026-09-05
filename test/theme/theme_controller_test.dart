@@ -1,4 +1,5 @@
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
+import 'package:ezanvakti/core/interfaces/widget_publisher.dart';
 import 'package:ezanvakti/core/models/fasting_log.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart' show PrayerType;
 import 'package:ezanvakti/core/models/prayer_log.dart';
@@ -9,6 +10,7 @@ import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/core/theme/day_phase.dart';
 import 'package:ezanvakti/core/theme/palettes.dart';
 import 'package:ezanvakti/core/theme/theme_controller.dart';
+import 'package:ezanvakti/features/home_widget/domain/widget_snapshot.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -120,6 +122,34 @@ class _InMemoryStorage implements LocalStorage {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+class _RecordingPublisher implements WidgetPublisher {
+  final List<AppearanceSettings> published = [];
+
+  @override
+  Future<void> publishAppearance(AppearanceSettings settings) async {
+    published.add(settings);
+  }
+
+  @override
+  Future<void> publishTimeFormat(String storageValue) async {}
+
+  @override
+  Future<void> publish(WidgetSnapshot snapshot) async {}
+}
+
+class _ThrowingPublisher implements WidgetPublisher {
+  @override
+  Future<void> publishAppearance(AppearanceSettings settings) async {
+    throw StateError('App Group yazilamadi');
+  }
+
+  @override
+  Future<void> publishTimeFormat(String storageValue) async {}
+
+  @override
+  Future<void> publish(WidgetSnapshot snapshot) async {}
+}
+
 /// Imsak 04:00, Ogle 13:00, Ikindi 17:00, Aksam 20:00, Yatsi 22:00.
 PrayerTime _day(int day) {
   DateTime at(int hour) => DateTime(2026, 8, day, hour, 0);
@@ -134,9 +164,14 @@ PrayerTime _day(int day) {
   );
 }
 
-ThemeController _controller(_InMemoryStorage storage, {DateTime? now}) {
+ThemeController _controller(
+  _InMemoryStorage storage, {
+  DateTime? now,
+  WidgetPublisher? publisher,
+}) {
   return ThemeController(
     storage: storage,
+    widgetPublisher: publisher,
     clock: () => now ?? DateTime(2026, 8, 1, 9, 0),
   );
 }
@@ -266,6 +301,86 @@ void main() {
     expect(controller.settings.themeMode, AppThemeMode.light);
     expect(controller.brightness, Brightness.light);
     expect(controller.phase, DayPhase.afternoon);
+
+    controller.dispose();
+  });
+
+  test('Tema modu degisince gorunum widget\'a yayinlanir', () async {
+    final publisher = _RecordingPublisher();
+    final controller = _controller(_InMemoryStorage(), publisher: publisher);
+    await controller.load();
+
+    await controller.setThemeMode(AppThemeMode.dark);
+
+    expect(publisher.published.last.themeMode, AppThemeMode.dark);
+
+    controller.dispose();
+  });
+
+  test('Vakte gore renk ve sabit palet degisimi de yayinlanir', () async {
+    final publisher = _RecordingPublisher();
+    final controller = _controller(_InMemoryStorage(), publisher: publisher);
+    await controller.load();
+
+    await controller.setTimeBasedColor(false);
+    await controller.setFixedPalette(DayPhase.night);
+
+    expect(
+      publisher.published.last,
+      const AppearanceSettings(
+        timeBasedColor: false,
+        fixedPalette: DayPhase.night,
+      ),
+    );
+
+    controller.dispose();
+  });
+
+  test('Acilista kayitli gorunum widget\'a yayinlanir', () async {
+    // Bu yayinin olmadigi surumde tema secen kullanici: App Group'ta kayit
+    // yok, ayara dokunmadan duzelmeli.
+    const stored = AppearanceSettings(themeMode: AppThemeMode.dark);
+    final publisher = _RecordingPublisher();
+    final controller = _controller(
+      _InMemoryStorage()..stored = stored,
+      publisher: publisher,
+    );
+
+    await controller.load();
+
+    expect(publisher.published, [stored]);
+
+    controller.dispose();
+  });
+
+  test('Ayni degeri yazmak widget\'a da yayin yapmaz', () async {
+    final publisher = _RecordingPublisher();
+    final controller = _controller(
+      _InMemoryStorage()
+        ..stored = const AppearanceSettings(themeMode: AppThemeMode.dark),
+      publisher: publisher,
+    );
+    await controller.load();
+
+    await controller.setThemeMode(AppThemeMode.dark);
+
+    expect(publisher.published, hasLength(1));
+
+    controller.dispose();
+  });
+
+  test('Widget yayini patlarsa ayar yine kaydedilir', () async {
+    final storage = _InMemoryStorage();
+    final controller = _controller(storage, publisher: _ThrowingPublisher());
+    await expectLater(controller.load(), completes);
+
+    var notified = 0;
+    controller.addListener(() => notified++);
+
+    await expectLater(controller.setThemeMode(AppThemeMode.dark), completes);
+
+    expect(storage.stored.themeMode, AppThemeMode.dark);
+    expect(notified, greaterThan(0));
 
     controller.dispose();
   });

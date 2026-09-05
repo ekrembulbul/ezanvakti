@@ -4,6 +4,16 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [Unreleased]
+
+### Düzeltildi
+- **Uygulama koyu temaya alınınca ana ekran widget'ı açık kalıyordu.** Widget yalnızca telefonun görünümünü izliyordu; uygulamanın Görünüm > Tema seçimi (koyu/açık/sistem) ve "vakte göre renk" kapalıyken seçilen sabit palet widget'a hiç iletilmiyordu. Artık uygulama hangi görünümdeyse widget da o görünümde: koyu/açık seçimi cihaz temasından bağımsız uygulanır, sabit palet seçildiyse widget de o paletle çizilir. Çalar ekran zaten bu ayarları izliyordu; widget aynı davranışa getirildi.
+
+### Teknik not
+- Görünüm ayarı App Group'a ayrı bir anahtarla (`ezanvakti_appearance`, tek JSON) yazılıyor; `ThemeController` her değişimde ve açılışta yayınlıyor. Açılıştaki yayın, temayı bu sürümden önce seçmiş kullanıcıları ayara dokunmadan düzeltiyor. Yayın hatası ayar kaydını bozmaz, yalnızca loglanır.
+- Widget tarafında `WidgetAppearance` (`ios/WidgetCore/`) payload'ı çözüyor: eksik ya da bozuk kayıt kurulum varsayılanına düşer, tanınmayan tek bir değer yalnızca kendi alanını düşürür. Kilit ekranı aileleri değişmedi; orada rengi sistem belirliyor.
+- Testler: Dart'ta `ThemeController` yayın davranışı ve payload içeriği, Swift'te `WidgetAppearanceTests` (çözümleme ve geri düşme).
+
 ## [0.11.6] - 2026-09-05
 
 ### Düzeltildi

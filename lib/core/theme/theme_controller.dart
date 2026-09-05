@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../interfaces/local_storage.dart';
+import '../interfaces/widget_publisher.dart';
 import '../models/alarm_theme.dart';
 import '../models/appearance_settings.dart';
 import '../models/prayer_time.dart';
+import '../utils/app_logger.dart';
 import 'app_tokens.dart';
 import 'day_phase.dart';
 import 'palettes.dart';
@@ -19,10 +21,15 @@ const Duration kPaletteTransition = Duration(milliseconds: 400);
 
 /// Görünüm ayarlarını, gün dilimini ve aktif paleti yöneten tek merkez.
 ///
+/// Ayarlar değişince ya da açılışta okununca widget'a da yayınlanır: widget
+/// ayrı süreçte çalışır, uygulamanın temasını ancak App Group'tan öğrenir.
+///
 /// Dakikalık yoklama yapmaz: bir sonraki dilim sınırına tek seferlik bir
 /// [Timer] kurar, tetiklenince yeniden hesaplayıp timer'ı yeniler.
 class ThemeController extends ChangeNotifier {
   final LocalStorage _storage;
+  final WidgetPublisher? _widgetPublisher;
+  final AppLogger _logger;
   final DateTime Function() _clock;
 
   AppearanceSettings _settings = const AppearanceSettings();
@@ -31,9 +38,15 @@ class ThemeController extends ChangeNotifier {
   PrayerTime? _tomorrow;
   Timer? _boundaryTimer;
 
-  ThemeController({required LocalStorage storage, DateTime Function()? clock})
-    : _storage = storage,
-      _clock = clock ?? DateTime.now;
+  ThemeController({
+    required LocalStorage storage,
+    WidgetPublisher? widgetPublisher,
+    AppLogger? logger,
+    DateTime Function()? clock,
+  }) : _storage = storage,
+       _widgetPublisher = widgetPublisher,
+       _logger = logger ?? AppLogger(),
+       _clock = clock ?? DateTime.now;
 
   AppearanceSettings get settings => _settings;
 
@@ -63,9 +76,13 @@ class ThemeController extends ChangeNotifier {
   );
 
   /// Kayıtlı ayarları okur. Uygulama açılışında bir kez çağrılır.
+  ///
+  /// Görünüm widget'a da yayınlanır: kullanıcı temayı bu yayının olmadığı bir
+  /// sürümde seçmiş olabilir; ayara yeniden dokunmadan düzelsin.
   Future<void> load() async {
     _settings = await _storage.getAppearanceSettings();
     notifyListeners();
+    await _publishAppearance();
   }
 
   /// Vakit verisi değiştiğinde çağrılır; dilimi ve sınır timer'ını tazeler.
@@ -107,6 +124,20 @@ class ThemeController extends ChangeNotifier {
     await _storage.saveAppearanceSettings(next);
     _scheduleBoundary();
     notifyListeners();
+    await _publishAppearance();
+  }
+
+  /// Widget kendi sürecinde çalışıyor; tercih App Group üzerinden taşınır.
+  /// Yayın patlarsa ayar kaydı bozulmaz: widget bir önceki görünümüyle kalır,
+  /// hata loglanır (`publishWidgetSnapshot` ile aynı kural).
+  Future<void> _publishAppearance() async {
+    final publisher = _widgetPublisher;
+    if (publisher == null) return;
+    try {
+      await publisher.publishAppearance(_settings);
+    } catch (e, stackTrace) {
+      _logger.warning('Widget appearance publish failed', e, stackTrace);
+    }
   }
 
   void _scheduleBoundary() {

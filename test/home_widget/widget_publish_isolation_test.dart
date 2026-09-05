@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ezanvakti/core/interfaces/widget_publisher.dart';
+import 'package:ezanvakti/core/models/appearance_settings.dart';
 import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/core/utils/app_logger.dart';
@@ -14,6 +15,9 @@ class _ThrowingPublisher implements WidgetPublisher {
 
   @override
   Future<void> publishTimeFormat(String storageValue) async {}
+
+  @override
+  Future<void> publishAppearance(AppearanceSettings settings) async {}
 }
 
 class _RecordingPublisher implements WidgetPublisher {
@@ -26,6 +30,9 @@ class _RecordingPublisher implements WidgetPublisher {
 
   @override
   Future<void> publishTimeFormat(String storageValue) async {}
+
+  @override
+  Future<void> publishAppearance(AppearanceSettings settings) async {}
 }
 
 const _location = Location(

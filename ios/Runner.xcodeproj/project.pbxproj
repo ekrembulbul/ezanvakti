@@ -33,6 +33,9 @@
 		E5A10006TIMEFMT00000006 /* TimeFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5A10005TIMEFMT00000005 /* TimeFormatting.swift */; };
 		E5A10007TIMEFMT00000007 /* TimeFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5A10005TIMEFMT00000005 /* TimeFormatting.swift */; };
 		E5A10009TIMETST00000009 /* TimeFormattingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5A10008TIMETST00000008 /* TimeFormattingTests.swift */; };
+		E5A1A00F00000000000000C2 /* WidgetAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5A1A00F00000000000000C1 /* WidgetAppearance.swift */; };
+		E5A1A00F00000000000000C3 /* WidgetAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5A1A00F00000000000000C1 /* WidgetAppearance.swift */; };
+		E5A1A00F00000000000000C5 /* WidgetAppearanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5A1A00F00000000000000C4 /* WidgetAppearanceTests.swift */; };
 		D21C739BBE421425A4D92EA5 /* NextPrayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = E196975553A7AF4A714CABE6 /* NextPrayer.swift */; };
 		D741A393DD2A38C3FD2E1F7C /* DayPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5037545AF269911350383C5 /* DayPhase.swift */; };
 		CE3180FD709F8298E641B1ED /* DayPhase.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5037545AF269911350383C5 /* DayPhase.swift */; };
@@ -135,6 +138,7 @@
 		78E52F47C605E236FD6E5A56 /* DayPhaseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayPhaseTests.swift; sourceTree = "<group>"; };
 		E196975553A7AF4A714CABE6 /* NextPrayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NextPrayer.swift; sourceTree = "<group>"; };
 		E5A10005TIMEFMT00000005 /* TimeFormatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeFormatting.swift; sourceTree = "<group>"; };
+		E5A1A00F00000000000000C1 /* WidgetAppearance.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetAppearance.swift; sourceTree = "<group>"; };
 		E5037545AF269911350383C5 /* DayPhase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayPhase.swift; sourceTree = "<group>"; };
 		E46E2062F6BABF50EC8A11BF /* PrayerTimelineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrayerTimelineTests.swift; sourceTree = "<group>"; };
 		3DF9F590ECDCCF88727C8B8A /* PrayerTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrayerTimeline.swift; sourceTree = "<group>"; };
@@ -146,6 +150,7 @@
 		DFD52B237E5D440A5C7EE976 /* MissionChainKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissionChainKeys.swift; sourceTree = "<group>"; };
 		B7892FE509B28D70BAC1532D /* MissionStopPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissionStopPolicyTests.swift; sourceTree = "<group>"; };
 		E5A10008TIMETST00000008 /* TimeFormattingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeFormattingTests.swift; sourceTree = "<group>"; };
+		E5A1A00F00000000000000C4 /* WidgetAppearanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetAppearanceTests.swift; sourceTree = "<group>"; };
 		9C93353C3414D398555C7C49 /* MissionStopPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissionStopPolicy.swift; sourceTree = "<group>"; };
 		E5A10004HEAD0004SWF00004 /* HeadingStreamHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeadingStreamHandler.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -210,6 +215,7 @@
 			children = (
 				B7892FE509B28D70BAC1532D /* MissionStopPolicyTests.swift */,
 				E5A10008TIMETST00000008 /* TimeFormattingTests.swift */,
+				E5A1A00F00000000000000C4 /* WidgetAppearanceTests.swift */,
 				658488B63AB7688B8CC98A61 /* MissionChainKeysTests.swift */,
 				81B761C52D3968D9DE59ABDE /* WidgetAlignmentTests.swift */,
 				0CD673697130AB97D2EBC5AF /* DayLabelTests.swift */,
@@ -267,6 +273,7 @@
 				E5037545AF269911350383C5 /* DayPhase.swift */,
 				E196975553A7AF4A714CABE6 /* NextPrayer.swift */,
 				E5A10005TIMEFMT00000005 /* TimeFormatting.swift */,
+				E5A1A00F00000000000000C1 /* WidgetAppearance.swift */,
 				1CBF60F5E301F1F03227E80F /* WidgetSnapshot.swift */,
 			);
 			path = WidgetCore;
@@ -570,6 +577,7 @@
 			files = (
 				8A5E96BE942E62D6008C7CC8 /* MissionStopPolicyTests.swift in Sources */,
 				E5A10009TIMETST00000009 /* TimeFormattingTests.swift in Sources */,
+				E5A1A00F00000000000000C5 /* WidgetAppearanceTests.swift in Sources */,
 				FAFB5317C339A04947386D61 /* MissionChainKeysTests.swift in Sources */,
 				D4378F6083BC7EE01F47AF6E /* WidgetAlignment.swift in Sources */,
 				2A221CB930D062D458051B3C /* WidgetAlignmentTests.swift in Sources */,
@@ -580,6 +588,7 @@
 				CE3180FD709F8298E641B1ED /* DayPhase.swift in Sources */,
 				D21C739BBE421425A4D92EA5 /* NextPrayer.swift in Sources */,
 				E5A10006TIMEFMT00000006 /* TimeFormatting.swift in Sources */,
+				E5A1A00F00000000000000C2 /* WidgetAppearance.swift in Sources */,
 				AA1A0A33E4A74770273BF6F7 /* DayPhaseTests.swift in Sources */,
 				B71DC66A6E425A2F0833BAF5 /* NextPrayerTests.swift in Sources */,
 				5295D1256CAED83269A7A280 /* WidgetSnapshot.swift in Sources */,
@@ -610,6 +619,7 @@
 				D741A393DD2A38C3FD2E1F7C /* DayPhase.swift in Sources */,
 				4333304CD35DFEC0BD95EEAC /* NextPrayer.swift in Sources */,
 				E5A10007TIMEFMT00000007 /* TimeFormatting.swift in Sources */,
+				E5A1A00F00000000000000C3 /* WidgetAppearance.swift in Sources */,
 				D30514B2E5C77F288369AAB2 /* WidgetSnapshot.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

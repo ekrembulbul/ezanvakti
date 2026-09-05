@@ -9,9 +9,9 @@ struct SmallView: View {
     var body: some View {
         switch entry.content {
         case .noData:
-            MessageView(text: "Vakitler için uygulamayı aç", phase: .fallback)
+            MessageView(text: "Vakitler için uygulamayı aç", phase: .fallback, appearance: entry.appearance)
         case .needsUpdate:
-            MessageView(text: "Uygulamayı güncelleyin", phase: .fallback)
+            MessageView(text: "Uygulamayı güncelleyin", phase: .fallback, appearance: entry.appearance)
         case let .ready(next, day, phase, locationLabel, isStale, isTomorrow):
             ready(
                 next: next, day: day, phase: phase,
@@ -24,7 +24,7 @@ struct SmallView: View {
         next: PrayerSlot, day: SnapshotDay, phase: DayPhase,
         locationLabel: String, isStale: Bool, isTomorrow: Bool
     ) -> some View {
-        let palette = Palette.forPhase(phase, colorScheme: colorScheme)
+        let palette = Palette.resolve(entry.appearance, phase: phase, colorScheme: colorScheme)
 
         return VStack(alignment: alignment.horizontal, spacing: 0) {
             // Üst blok: ikincil bilgi, küçük punto.

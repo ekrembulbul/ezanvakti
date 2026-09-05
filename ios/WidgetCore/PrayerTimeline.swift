@@ -26,6 +26,9 @@ struct PrayerEntry: TimelineEntry {
     /// Uygulamadaki 12/24 saat tercihi; provider App Group'tan okuyup yazar.
     var timeFormat: TimeFormatPreference = .system
 
+    /// Uygulamanın görünüm ayarı; provider App Group'tan okuyup yazar.
+    var appearance: WidgetAppearance = .fallback
+
     /// Uygulamanın dilindeki etiketler; v3 öncesi payload'da nil.
     var labels: SnapshotLabels?
 }

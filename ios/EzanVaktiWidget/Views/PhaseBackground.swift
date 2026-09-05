@@ -7,10 +7,11 @@ import SwiftUI
 struct PhaseBackground: View {
     @Environment(\.colorScheme) private var colorScheme
     let phase: DayPhase
+    let appearance: WidgetAppearance
 
     var body: some View {
         GeometryReader { geometry in
-            Palette.forPhase(phase, colorScheme: colorScheme)
+            Palette.resolve(appearance, phase: phase, colorScheme: colorScheme)
                 .backgroundGradient(in: geometry.size)
         }
     }

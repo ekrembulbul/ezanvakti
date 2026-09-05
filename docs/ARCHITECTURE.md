@@ -103,6 +103,10 @@ WidgetSnapshotBuilder (saf) ──▶ WidgetPublisher ──▶ App Group (tek J
   Snapshot'a yazılsaydı widget, uygulama açılmadıkça bir sonraki vakte
   geçemezdi.
 - Yayınlama hatası yukarı sızmaz; vakit gösterimi widget yüzünden bozulmaz.
+- Görünüm ayarı (tema, vakte göre renk, sabit palet) snapshot'tan ayrı bir
+  anahtarla (`ezanvakti_appearance`) gider; `ThemeController` her değişimde ve
+  açılışta yazar. Widget ayrı süreçte uygulamanın temasını göremez; bu yayın
+  olmadan yalnızca cihazın görünümünü izler.
 - Sorumluluk sınırı testlerin de sınırı: paketleme Dart'ta (`test/home_widget/`),
   yorumlama Swift'te (`ios/RunnerTests/`) sınanır.
 - Payload'da her gün kendi **hicri tarihini** taşır. Swift'te hesaplanmaz:

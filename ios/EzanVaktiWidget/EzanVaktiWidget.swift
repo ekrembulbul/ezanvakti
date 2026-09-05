@@ -14,6 +14,7 @@ struct Provider: AppIntentTimelineProvider {
         ).first ?? placeholder(in: context)
         entry.alignment = configuration.alignment
         entry.timeFormat = SnapshotStore.timeFormat()
+        entry.appearance = SnapshotStore.appearance()
         return entry
     }
 
@@ -22,12 +23,14 @@ struct Provider: AppIntentTimelineProvider {
     ) async -> Timeline<PrayerEntry> {
         let now = Date()
         let timeFormat = SnapshotStore.timeFormat()
+        let appearance = SnapshotStore.appearance()
         let entries = PrayerTimeline.entries(
             for: SnapshotStore.load(), now: now, calendar: .current
         ).map { entry -> PrayerEntry in
             var copy = entry
             copy.alignment = configuration.alignment
             copy.timeFormat = timeFormat
+            copy.appearance = appearance
             return copy
         }
 
@@ -62,7 +65,7 @@ struct EzanVaktiWidgetEntryView: View {
             .containerBackground(for: .widget) {
                 switch family {
                 case .systemSmall, .systemMedium:
-                    PhaseBackground(phase: phase)
+                    PhaseBackground(phase: phase, appearance: entry.appearance)
                 default:
                     AccessoryWidgetBackground()
                 }

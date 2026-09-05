@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ezanvakti/core/models/appearance_settings.dart';
+import 'package:ezanvakti/core/theme/day_phase.dart';
 import 'package:ezanvakti/core/utils/app_logger.dart';
 import 'package:ezanvakti/features/home_widget/data/home_widget_publisher.dart';
 import 'package:ezanvakti/features/home_widget/domain/widget_snapshot.dart';
@@ -50,6 +54,35 @@ void main() {
 
     // Paket iOSName'i kanala 'ios' anahtariyla gonderiyor
     // (home_widget-0.9.3/lib/src/home_widget.dart:70).
+    final update = calls.firstWhere((call) => call.method == 'updateWidget');
+    expect(update.arguments['ios'], HomeWidgetPublisher.widgetKind);
+  });
+
+  test('publishAppearance appearance key\'ine tek JSON string yazar', () async {
+    const settings = AppearanceSettings(
+      themeMode: AppThemeMode.dark,
+      timeBasedColor: false,
+      fixedPalette: DayPhase.night,
+    );
+
+    await HomeWidgetPublisher(logger: AppLogger()).publishAppearance(settings);
+
+    final save = calls.firstWhere((call) => call.method == 'saveWidgetData');
+    expect(save.arguments['id'], HomeWidgetPublisher.appearanceKey);
+    // Swift tarafi (`WidgetAppearance.swift`) bu anahtar adlarini ve enum
+    // degerlerini birebir okuyor.
+    expect(jsonDecode(save.arguments['data'] as String), {
+      'themeMode': 'dark',
+      'timeBasedColor': false,
+      'fixedPalette': 'night',
+    });
+  });
+
+  test('publishAppearance widget kind ile guncelleme tetikler', () async {
+    await HomeWidgetPublisher(
+      logger: AppLogger(),
+    ).publishAppearance(const AppearanceSettings());
+
     final update = calls.firstWhere((call) => call.method == 'updateWidget');
     expect(update.arguments['ios'], HomeWidgetPublisher.widgetKind);
   });

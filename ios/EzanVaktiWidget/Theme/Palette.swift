@@ -27,8 +27,18 @@ struct Palette {
         )
     }
 
-    static func forPhase(_ phase: DayPhase, colorScheme: ColorScheme) -> Palette {
-        colorScheme == .dark ? dark(phase) : light(phase)
+    /// Uygulamanın görünüm ayarı + hesaplanan dilim + cihazın görünümü.
+    ///
+    /// Tema `system` değilse cihazın koyu/açık tercihi yok sayılır: uygulama
+    /// koyuyken widget da koyu. "Vakte göre renk" kapalıysa dilim yerine
+    /// kullanıcının sabit paleti çizilir.
+    static func resolve(
+        _ appearance: WidgetAppearance, phase: DayPhase, colorScheme: ColorScheme
+    ) -> Palette {
+        let effectivePhase = appearance.phase(timeBased: phase)
+        return appearance.isDark(systemIsDark: colorScheme == .dark)
+            ? dark(effectivePhase)
+            : light(effectivePhase)
     }
 
     private static func dark(_ phase: DayPhase) -> Palette {

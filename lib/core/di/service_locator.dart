@@ -119,7 +119,18 @@ class ServiceLocator {
     // Gorunum tercihleri acilista okunur; ilk frame dogru palette cizilsin.
     // AlarmScheduler'dan once kuruluyor: calar ekranin paleti bu tercihlere
     // uyuyor.
-    final themeController = ThemeController(storage: localStorage);
+    // Widget yalnızca iOS'ta var; diğer platformlarda yayınlama no-op.
+    // ThemeController'dan önce kuruluyor: görünüm tercihi widget'a da gidiyor.
+    final WidgetPublisher widgetPublisher = Platform.isIOS
+        ? HomeWidgetPublisher(logger: logger)
+        : const NoopWidgetPublisher();
+    register<WidgetPublisher>(widgetPublisher);
+
+    final themeController = ThemeController(
+      storage: localStorage,
+      widgetPublisher: widgetPublisher,
+      logger: logger,
+    );
     await themeController.load();
     register<ThemeController>(themeController);
     logger.debug('ThemeController registered');
@@ -142,13 +153,6 @@ class ServiceLocator {
         notificationScheduler: notificationScheduler,
         alarmScheduler: alarmScheduler,
       ),
-    );
-
-    // Widget yalnızca iOS'ta var; diğer platformlarda yayınlama no-op.
-    register<WidgetPublisher>(
-      Platform.isIOS
-          ? HomeWidgetPublisher(logger: logger)
-          : const NoopWidgetPublisher(),
     );
 
     register<SkipManager>(SkipManager(storage: localStorage));
