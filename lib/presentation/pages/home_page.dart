@@ -44,9 +44,8 @@ import '../../features/home_widget/domain/widget_snapshot_publish.dart';
 import '../services/reminder_rescheduler.dart';
 import '../controllers/location_monitor_controller.dart';
 import '../../core/theme/theme_controller.dart';
-import '../../core/theme/tokens_context.dart';
 import '../widgets/common/app_nav_bar.dart';
-import '../widgets/common/app_surface.dart';
+import '../widgets/common/main_tab_scaffold.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -198,8 +197,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     final settings = await ServiceLocator()
         .get<LocalStorage>()
         .getGeneralSettings();
-    final active =
-        settings.ramadanMode && RamadanMode.isActive(DateTime.now());
+    final active = settings.ramadanMode && RamadanMode.isActive(DateTime.now());
     if (!mounted) return;
     setState(() => _ramadanActive = active);
     if (active) await _maybeOfferRamadanReminders();
@@ -324,9 +322,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           ..clearSnackBars()
           ..showSnackBar(
             SnackBar(
-              content: Text(
-                context.l10n.gpsUpdated(gpsLocation.displayName),
-              ),
+              content: Text(context.l10n.gpsUpdated(gpsLocation.displayName)),
             ),
           );
       }
@@ -339,9 +335,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           ..clearSnackBars()
           ..showSnackBar(
             SnackBar(
-              content: Text(
-                l10n.errorGpsRefresh(_gpsErrorText(l10n, e)),
-              ),
+              content: Text(l10n.errorGpsRefresh(_gpsErrorText(l10n, e))),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
@@ -426,9 +420,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       );
     } catch (e) {
       logger.error('Failed to load prayer data', e);
-      appState.setError(
-        mounted ? context.l10n.errorDataLoad(e) : e.toString(),
-      );
+      appState.setError(mounted ? context.l10n.errorDataLoad(e) : e.toString());
       appState.setRefreshing(false);
     }
   }
@@ -596,87 +588,64 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      // Sekme gecmisi biriktirmek geri tusunu ongorulemez kilar; 2. veya 3.
-      // sekmedeyken geri ilk sekmeye doner, orada uygulamadan cikar.
-      canPop: _tabIndex == 0,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop && _tabIndex != 0) setState(() => _tabIndex = 0);
-      },
-      child: Scaffold(
-        // Alt gezinme AppSurface'in disinda kaldigi icin zemini Scaffold verir;
-        // seffaf birakilirsa arkasinda hicbir sey boyanmiyor.
-        backgroundColor: context.tokens.backgroundStops.last,
-        body: AppSurface(
-          safeAreaTop: false,
-          safeAreaBottom: false,
-          child: IndexedStack(
-            index: _tabIndex,
-            children: [
-              Consumer<AppState>(
-                builder: (context, appState, child) {
-                  return HomeScreen(
-                    missionSession: appState.missionSession,
-                    ramadanActive: _ramadanActive,
-                    location: appState.activeLocation!,
-                    todaysPrayerTime: appState.todaysPrayerTime,
-                    tomorrowsPrayerTime: appState.tomorrowsPrayerTime,
-                    lastUpdateTime: appState.lastUpdateTime,
-                    isLoading: appState.isLoading,
-                    isRefreshing: appState.isRefreshing,
-                    prayerTimes: appState.prayerTimes,
-                    notificationSettings: appState.notificationSettings,
-                    alarms: appState.alarms,
-                    skips: appState.skips,
-                    onSkipChanged: _toggleSkip,
-                    errorMessage: appState.errorMessage,
-                    onRefresh: _refreshData,
-                    onGpsRefresh: _manualGpsRefresh,
-                    onSettingsTap: _navigateToSettings,
-                    onSeeReminders: () => setState(() => _tabIndex = 2),
-                    onLocationTap: _navigateToLocationList,
-                  );
-                },
-              ),
-              Consumer<AppState>(
-                builder: (context, appState, child) {
-                  return CalendarScreen(
-                    location: appState.activeLocation!,
-                    prayerTimes: appState.prayerTimes,
-                    onRefresh: _refreshData,
-                    isLoading: appState.isLoading,
-                    errorMessage: appState.errorMessage,
-                  );
-                },
-              ),
-              const RemindersScreen(),
-              const ToolsScreen(),
-            ],
-          ),
+    return MainTabScaffold(
+      selectedIndex: _tabIndex,
+      onChanged: (index) => setState(() => _tabIndex = index),
+      items: [
+        NavItem(
+          label: context.l10n.navPrayerTimes,
+          icon: Icons.schedule_rounded,
         ),
-        bottomNavigationBar: AppNavBar(
-          items: [
-            NavItem(
-              label: context.l10n.navPrayerTimes,
-              icon: Icons.schedule_rounded,
-            ),
-            NavItem(
-              label: context.l10n.navCalendar,
-              icon: Icons.calendar_month_rounded,
-            ),
-            NavItem(
-              label: context.l10n.navReminders,
-              icon: Icons.notifications_rounded,
-            ),
-            NavItem(
-              label: context.l10n.navTools,
-              icon: Icons.handyman_rounded,
-            ),
-          ],
-          selected: _tabIndex,
-          onChanged: (index) => setState(() => _tabIndex = index),
+        NavItem(
+          label: context.l10n.navCalendar,
+          icon: Icons.calendar_month_rounded,
         ),
-      ),
+        NavItem(
+          label: context.l10n.navReminders,
+          icon: Icons.notifications_rounded,
+        ),
+        NavItem(label: context.l10n.navTools, icon: Icons.handyman_rounded),
+      ],
+      children: [
+        Consumer<AppState>(
+          builder: (context, appState, child) {
+            return HomeScreen(
+              missionSession: appState.missionSession,
+              ramadanActive: _ramadanActive,
+              location: appState.activeLocation!,
+              todaysPrayerTime: appState.todaysPrayerTime,
+              tomorrowsPrayerTime: appState.tomorrowsPrayerTime,
+              lastUpdateTime: appState.lastUpdateTime,
+              isLoading: appState.isLoading,
+              isRefreshing: appState.isRefreshing,
+              prayerTimes: appState.prayerTimes,
+              notificationSettings: appState.notificationSettings,
+              alarms: appState.alarms,
+              skips: appState.skips,
+              onSkipChanged: _toggleSkip,
+              errorMessage: appState.errorMessage,
+              onRefresh: _refreshData,
+              onGpsRefresh: _manualGpsRefresh,
+              onSettingsTap: _navigateToSettings,
+              onSeeReminders: () => setState(() => _tabIndex = 2),
+              onLocationTap: _navigateToLocationList,
+            );
+          },
+        ),
+        Consumer<AppState>(
+          builder: (context, appState, child) {
+            return CalendarScreen(
+              location: appState.activeLocation!,
+              prayerTimes: appState.prayerTimes,
+              onRefresh: _refreshData,
+              isLoading: appState.isLoading,
+              errorMessage: appState.errorMessage,
+            );
+          },
+        ),
+        const RemindersScreen(),
+        const ToolsScreen(),
+      ],
     );
   }
 }

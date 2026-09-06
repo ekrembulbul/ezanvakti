@@ -11,17 +11,21 @@ void main() {
     NavItem(label: 'Hatırlatıcılar', icon: Icons.notifications_rounded),
   ];
 
-  Widget build({int selected = 0, ValueChanged<int>? onChanged}) =>
-      wrapWithTheme(
-        Align(
-          alignment: Alignment.bottomCenter,
-          child: AppNavBar(
-            items: items,
-            selected: selected,
-            onChanged: onChanged ?? (_) {},
-          ),
-        ),
-      );
+  Widget build({
+    int selected = 0,
+    ValueChanged<int>? onChanged,
+    Locale locale = const Locale('tr'),
+  }) => wrapWithTheme(
+    Align(
+      alignment: Alignment.bottomCenter,
+      child: AppNavBar(
+        items: items,
+        selected: selected,
+        onChanged: onChanged ?? (_) {},
+      ),
+    ),
+    locale: locale,
+  );
 
   testWidgets('Uc oge de etiketiyle cizilir', (tester) async {
     await tester.pumpWidget(build());
@@ -37,7 +41,10 @@ void main() {
     await tester.pumpWidget(build(selected: 1));
 
     final tokens = tokensFor();
-    expect(tester.widget<Text>(find.text('Takvim')).style!.color, tokens.accent);
+    expect(
+      tester.widget<Text>(find.text('Takvim')).style!.color,
+      tokens.accent,
+    );
     expect(
       tester.widget<Text>(find.text('Vakitler')).style!.color,
       tokens.textTertiary,
@@ -68,6 +75,24 @@ void main() {
     expect(indicator.dx, closeTo(label.dx, 0.5));
   });
 
+  testWidgets('RTL gösterge seçili etiketin altında kalır', (tester) async {
+    for (final (selected, label) in [
+      (0, 'Vakitler'),
+      (1, 'Takvim'),
+      (2, 'Hatırlatıcılar'),
+    ]) {
+      await tester.pumpWidget(
+        build(selected: selected, locale: const Locale('ar')),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.getCenter(find.byKey(kNavIndicatorKey)).dx,
+        closeTo(tester.getCenter(find.text(label)).dx, 0.5),
+      );
+    }
+  });
+
   testWidgets('Gosterge etiketin altinda kalir, uzerine binmez', (
     tester,
   ) async {
@@ -80,7 +105,8 @@ void main() {
     expect(
       indicatorTop,
       greaterThanOrEqualTo(labelBottom),
-      reason: 'Column mainAxisSize.min olursa etiket asagi kayip gostergenin '
+      reason:
+          'Column mainAxisSize.min olursa etiket asagi kayip gostergenin '
           'bandina giriyordu',
     );
   });

@@ -94,6 +94,9 @@ class AppNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
+    final directionSign = Directionality.of(context) == TextDirection.rtl
+        ? -1.0
+        : 1.0;
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -117,10 +120,11 @@ class AppNavBar extends StatelessWidget {
                           child: Transform.translate(
                             offset: Offset(
                               navContentDx(
-                                i,
-                                items.length,
-                                constraints.maxWidth,
-                              ),
+                                    i,
+                                    items.length,
+                                    constraints.maxWidth,
+                                  ) *
+                                  directionSign,
                               0,
                             ),
                             child: _NavButton(
@@ -132,10 +136,10 @@ class AppNavBar extends StatelessWidget {
                         ),
                     ],
                   ),
-                  AnimatedPositioned(
+                  AnimatedPositionedDirectional(
                     duration: _kNavAnimation,
                     curve: Curves.easeOutCubic,
-                    left:
+                    start:
                         slotWidth * selected +
                         (slotWidth - _kIndicatorWidth) / 2 +
                         navContentDx(
