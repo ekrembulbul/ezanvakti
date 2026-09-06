@@ -8,7 +8,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../l10n/locale_resolver.dart';
 import '../../../l10n/l10n_extensions.dart';
 import '../../../core/models/quiet_window.dart';
-import '../../prayer_times/domain/derived_times.dart';
+import 'notification_time_rules.dart';
 import 'quiet_window_rules.dart';
 import '../../../core/interfaces/notification_service.dart';
 import '../../../core/interfaces/local_storage.dart';
@@ -112,23 +112,19 @@ class NotificationScheduler {
     // Spesifik (belirli günlere kısıtlı) satırlar önce denenir: aynı
     // (gün, vakit, sapma) kimliğini paylaşan iki satırda Cuma'ya özel olan
     // genel satırı bastırsın (`seenIds` gerisini hallediyor).
-    final orderedSettings = [
-      ...settings.where((setting) => setting.isDayScoped),
-      ...settings.where((setting) => !setting.isDayScoped),
-    ];
+    final orderedSettings = NotificationTimeRules.prioritizeSettings(settings);
 
     for (final prayerTime in prayerTimes) {
       for (final setting in orderedSettings) {
         if (!setting.isActive) continue;
 
-        final prayerDateTime = _pointTime(setting, prayerTime, byDate);
-        // Türetilmiş nokta hesaplanamadıysa (ertesi günün verisi yok) o gün
-        // sessizce atlanır; bir sonraki yenilemede veri geldiğinde kurulur.
+        final prayerDateTime = NotificationTimeRules.pointTime(
+          setting: setting,
+          day: prayerTime,
+          prayerTimesByDate: byDate,
+        );
+        // Eksik veri veya tekrar gününe uymayan vakitler planlanmaz.
         if (prayerDateTime == null) continue;
-
-        // Gün filtresi vaktin gününe bakar; sapmalı bildirim bir önceki güne
-        // düşse bile satır hangi vakit için kurulduysa o güne aittir.
-        if (!setting.firesOnWeekday(prayerDateTime.weekday)) continue;
 
         // Geçmişi ve pencere dışını ele.
         if (prayerDateTime.isBefore(now) || prayerDateTime.isAfter(cutoff)) {
@@ -306,11 +302,7 @@ class NotificationScheduler {
       );
 
       if (!eve) continue;
-      final eveDate = DateTime(
-        day.date.year,
-        day.date.month,
-        day.date.day - 1,
-      );
+      final eveDate = DateTime(day.date.year, day.date.month, day.date.day - 1);
       final evePrayerTime = byDate[eveDate];
       if (evePrayerTime == null) continue;
 
@@ -362,42 +354,6 @@ class NotificationScheduler {
     );
   }
 
-  /// Satırın o gün için tetikleneceği an: vakit bildiriminde vaktin kendisi,
-  /// türetilmiş noktada hesaplanan an.
-  DateTime? _pointTime(
-    NotificationSetting setting,
-    PrayerTime day,
-    Map<DateTime, PrayerTime> byDate,
-  ) {
-    final derived = setting.derivedKind;
-    if (derived == null) {
-      return _getPrayerDateTime(day, setting.prayerType);
-    }
-    final nextDay = byDate[DateTime(
-      day.date.year,
-      day.date.month,
-      day.date.day + 1,
-    )];
-    return DerivedTimes.resolve(kind: derived, day: day, nextDay: nextDay);
-  }
-
-  DateTime? _getPrayerDateTime(PrayerTime prayerTime, PrayerType prayerType) {
-    switch (prayerType) {
-      case PrayerType.fajr:
-        return prayerTime.fajr;
-      case PrayerType.sunrise:
-        return prayerTime.sunrise;
-      case PrayerType.dhuhr:
-        return prayerTime.dhuhr;
-      case PrayerType.asr:
-        return prayerTime.asr;
-      case PrayerType.maghrib:
-        return prayerTime.maghrib;
-      case PrayerType.isha:
-        return prayerTime.isha;
-    }
-  }
-
   String _getNotificationTitle(
     NotificationSetting setting,
     AppLocalizations l10n,
@@ -440,7 +396,6 @@ class NotificationScheduler {
         : '$timeStr - '
               '${l10n.notificationMinutesLeft(prayer, setting.minutesBefore)}';
   }
-
 
   Future<List<ScheduledNotification>> getPendingNotifications() async {
     return await notificationService.getPendingNotifications();

@@ -2,8 +2,10 @@ import '../../core/models/alarm.dart';
 import '../../core/models/derived_time.dart';
 import '../../core/models/notification_setting.dart';
 import '../../core/models/prayer_time.dart';
-import '../../core/utils/prayer_utils.dart';
+import '../../core/models/skipped_occurrence.dart';
 import '../../features/alarms/domain/alarm_scheduler.dart';
+import '../../features/notifications/domain/notification_scheduler.dart';
+import '../../features/notifications/domain/notification_time_rules.dart';
 
 /// Ana ekrandaki "SIRADAKİ" kartının bir satırı: bildirim.
 ///
@@ -30,19 +32,14 @@ UpcomingNotification? resolveNextNotification({
 }) {
   UpcomingNotification? earliest;
 
-  for (final day in prayerTimes) {
-    for (final setting in settings) {
-      if (!setting.isActive) continue;
-
-      final prayerAt = PrayerUtils.getPrayerTime(day, setting.prayerType);
-      final fireAt = prayerAt.subtract(
-        Duration(minutes: setting.minutesBefore),
-      );
-      if (!fireAt.isAfter(now)) continue;
-
-      if (earliest == null || fireAt.isBefore(earliest.time)) {
-        earliest = (setting: setting, prayerDate: day.date, time: fireAt);
-      }
+  final occurrences = resolveNextOccurrencePerNotification(
+    settings: settings,
+    prayerTimes: prayerTimes,
+    now: now,
+  );
+  for (final occurrence in occurrences.values) {
+    if (earliest == null || occurrence.time.isBefore(earliest.time)) {
+      earliest = occurrence;
     }
   }
 
@@ -59,14 +56,38 @@ Map<String, DateTime> resolveNextFirePerNotification({
   required List<NotificationSetting> settings,
   required List<PrayerTime> prayerTimes,
   required DateTime now,
+}) => resolveNextOccurrencePerNotification(
+  settings: settings,
+  prayerTimes: prayerTimes,
+  now: now,
+).map((key, occurrence) => MapEntry(key, occurrence.time));
+
+/// Her aktif ayarın atlanmadan önceki ilk örneği, kaynak vakit günüyle birlikte.
+///
+/// Gün filtresi ve türetilmiş vakit hesabı planlayıcıyla aynıdır. Kaynak gün,
+/// gece noktalarında ve önceki güne taşan sapmalarda atlama kimliğini korur.
+Map<String, UpcomingNotification> resolveNextOccurrencePerNotification({
+  required List<NotificationSetting> settings,
+  required List<PrayerTime> prayerTimes,
+  required DateTime now,
 }) {
-  final result = <String, DateTime>{};
+  final result = <String, UpcomingNotification>{};
+  final byDate = <DateTime, PrayerTime>{
+    for (final day in prayerTimes)
+      DateTime(day.date.year, day.date.month, day.date.day): day,
+  };
+  final orderedSettings = NotificationTimeRules.prioritizeSettings(settings);
 
-  for (final day in prayerTimes) {
-    for (final setting in settings) {
-      if (!setting.isActive) continue;
+  for (final setting in orderedSettings) {
+    if (!setting.isActive) continue;
 
-      final prayerAt = PrayerUtils.getPrayerTime(day, setting.prayerType);
+    for (final day in prayerTimes) {
+      final prayerAt = NotificationTimeRules.pointTime(
+        setting: setting,
+        day: day,
+        prayerTimesByDate: byDate,
+      );
+      if (prayerAt == null) continue;
       final fireAt = prayerAt.subtract(
         Duration(minutes: setting.minutesBefore),
       );
@@ -74,7 +95,9 @@ Map<String, DateTime> resolveNextFirePerNotification({
 
       final key = notificationKey(setting);
       final current = result[key];
-      if (current == null || fireAt.isBefore(current)) result[key] = fireAt;
+      if (current == null || fireAt.isBefore(current.time)) {
+        result[key] = (setting: setting, prayerDate: day.date, time: fireAt);
+      }
     }
   }
 
@@ -88,6 +111,19 @@ Map<String, DateTime> resolveNextFirePerNotification({
 String notificationKey(NotificationSetting setting) =>
     '${setting.prayerType.name}-${setting.derivedKind?.storageValue ?? ''}-'
     '${setting.minutesBefore}-${setting.weekdaysCsv}';
+
+/// Görünen örneği planlayıcının sayısal kimliğiyle atlama kaydına dönüştürür.
+/// Kimlik, tetiklenme tarihi yerine vaktin kaynak gününden üretilir.
+SkippedOccurrence notificationOccurrence(UpcomingNotification item) =>
+    SkippedOccurrence(
+      kind: SkipKind.notification,
+      reference: NotificationScheduler.notificationIdFor(
+        date: item.prayerDate,
+        pointIndex: NotificationScheduler.pointIndexOf(item.setting),
+        minutesBefore: item.setting.minutesBefore,
+      ),
+      fireAt: item.time,
+    );
 
 /// [now]'dan sonra çalacak ilk alarmı döner.
 ///
