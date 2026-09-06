@@ -215,6 +215,90 @@ void main() {
   });
 
   group('DayRuler', () {
+    testWidgets(
+      'Ogle kerahatinin namaz olmayan ic birlesimi piksel boslugu birakmaz',
+      (tester) async {
+        await tester.pumpWidget(
+          wrapWithTheme(
+            SizedBox(
+              width: 360,
+              child: DayRuler(
+                prayerTime: _times(),
+                now: DateTime(2026, 8, 2, 12),
+                kerahatIntervals: KerahatTimes.forDay(_times()),
+              ),
+            ),
+          ),
+        );
+
+        const radius = Radius.circular(2.5);
+        RRect segmentRRect(
+          double left,
+          double right, {
+          required bool roundLeft,
+          required bool roundRight,
+        }) => RRect.fromLTRBAndCorners(
+          left,
+          0,
+          right,
+          5,
+          topLeft: roundLeft ? radius : Radius.zero,
+          bottomLeft: roundLeft ? radius : Radius.zero,
+          topRight: roundRight ? radius : Radius.zero,
+          bottomRight: roundRight ? radius : Radius.zero,
+        );
+        final tokens = tokensFor();
+
+        expect(
+          find.descendant(
+            of: find.byType(DayRuler),
+            matching: find.byType(CustomPaint),
+          ),
+          paints
+            ..rrect(
+              rrect: segmentRRect(0, 58.5, roundLeft: true, roundRight: true),
+              color: tokens.textTertiary.withValues(alpha: 0.4),
+            )
+            ..rrect(
+              rrect: segmentRRect(
+                61.5,
+                88.5,
+                roundLeft: true,
+                roundRight: true,
+              ),
+              color: tokens.accent,
+            )
+            ..rrect(
+              rrect: segmentRRect(
+                91.5,
+                101.25,
+                roundLeft: true,
+                roundRight: false,
+              ),
+              color: tokens.kerahatLine,
+            )
+            ..rrect(
+              rrect: segmentRRect(
+                101.25,
+                192.5,
+                roundLeft: false,
+                roundRight: false,
+              ),
+              color: tokens.accent,
+            )
+            ..rrect(
+              rrect: segmentRRect(
+                192.5,
+                193.5,
+                roundLeft: false,
+                roundRight: true,
+              ),
+              color: tokens.kerahatLine,
+            ),
+        );
+      },
+    );
+
     testWidgets('Uclarda Imsak/Yatsi saati yazmaz', (tester) async {
       await tester.pumpWidget(
         wrapWithTheme(_ruler(DateTime(2026, 8, 2, 17, 34))),

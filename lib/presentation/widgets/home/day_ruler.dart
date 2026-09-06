@@ -351,6 +351,12 @@ class _RulerPainter extends CustomPainter {
       final right = left + paintedRulerSegmentWidth(segment, size.width);
       if (right <= left) continue;
 
+      final leftRadius = segment.start == 0 || segment.gapBefore
+          ? radius
+          : Radius.zero;
+      final rightRadius = segment.end == 1 || segment.gapAfter
+          ? radius
+          : Radius.zero;
       paint.color = _colorFor(segment.kind);
       canvas.drawRRect(
         RRect.fromLTRBAndCorners(
@@ -358,10 +364,10 @@ class _RulerPainter extends CustomPainter {
           0,
           right,
           size.height,
-          topLeft: radius,
-          bottomLeft: radius,
-          topRight: radius,
-          bottomRight: radius,
+          topLeft: leftRadius,
+          bottomLeft: leftRadius,
+          topRight: rightRadius,
+          bottomRight: rightRadius,
         ),
         paint,
       );
