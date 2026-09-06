@@ -51,6 +51,7 @@ Ayrıntılar için [mimari](docs/ARCHITECTURE.md) ve [geliştirme rehberini](doc
 
 - Başlangıçta `git status` kontrol et; kullanıcıya ait değişiklikleri koru.
 - Kullanıcı farklı bir branch belirtmedikçe doğrulanmış işi `dev` üzerinde yerel commit'le. `dev` yoksa kullanıcıya sor; kendiliğinden oluşturma. Kullanıcı açıkça commit atılmamasını istediyse commit atma.
+- Sürüm çıkarma işlemlerini yalnızca `main` branch'i üzerinde yürüt; release öncesinde ilgili değişikliklerin `main`e alındığını ve çalışma ağacının temiz olduğunu doğrula.
 - Türkçe Conventional Commit mesajları kullan; farklı amaçları atomik commit'lere ayır.
 - Kullanıcı açıkça istemedikçe `push`, `merge`, branch silme veya yayınlama yapma.
 - Secret, yerel izin dosyası, build çıktısı ve geçici dosyaları commit'e alma.
