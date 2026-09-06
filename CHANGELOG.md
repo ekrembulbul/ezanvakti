@@ -4,6 +4,16 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.12.0] - 2026-09-06
+
+### Eklendi
+- **Hatırlatıcı listeleri düzenlenebilir.** Alarmları ve bildirimleri ayrı listelerde adlarına, sıradaki çalma zamanına veya özel sıraya göre görüntüleyebilirsin.
+- Alarmlar artık basılı tutularak kopyalanabilir; çalma saati, vakit farkı ve tekrar günleri listede ayrı gösterilir.
+
+### Düzeltildi
+- Bildirim ve alarm planlaması birbirinden ayrıldı; bildirim planlama hatası alarm planlamasını durdurmuyor.
+- Gece yarısını aşan ve tekrar günü seçilmiş bildirimlerin çalma zamanı ile gün filtresi aynı kuralları kullanıyor.
+
 ## [0.11.7] - 2026-09-05
 
 ### Düzeltildi
