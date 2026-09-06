@@ -356,7 +356,7 @@
   "remindersBeforeOption": "قبله",
   "remindersPickMinutes": "اختر الدقائق",
   "remindersMinOffsetError": "يجب أن يكون قبل دقيقة على الأقل",
-  "remindersMaxOffsetError": "يمكنك إضافة تنبيه قبل هذه الصلاة بحد أقصى {max} دقيقة.",
+  "remindersMaxOffsetError": "يمكنك إضافة تنبيه قبل هذه الصلاة بحد أقصى {max}.",
   "remindersSwipeToDelete": "اسحب الصف لحذفه.",
   "remindersIntro": "لكل صلاة يمكنك التذكير في وقتها أو قبلها بدقائق.",
   "alarmsSwipeHint": "اضغط مطولاً لنسخ المنبه، واسحب لليسار لحذفه. استخدم «تراجع» لاستعادة المنبه المحذوف.",
@@ -449,5 +449,12 @@
   "reminderReorderDone": "إنهاء الترتيب",
   "reminderReorderHint": "اسحب المقبض لتغيير الترتيب.",
   "reminderOrderSaveFailed": "تعذر حفظ الترتيب. حاول مرة أخرى.",
-  "reminderOrderLoadFailed": "تعذر تحميل الترتيب المحفوظ. أعد فتح الشاشة."
+  "reminderOrderLoadFailed": "تعذر تحميل الترتيب المحفوظ. أعد فتح الشاشة.",
+  "durationHoursShort": "{hours} س",
+  "durationDaysShort": "{days} ي",
+  "reminderBeforeDuration": "قبل {duration}",
+  "reminderAfterDuration": "بعد {duration}",
+  "quietWindowDurationSummary": "قبل {before} – بعد {after}",
+  "durationAgo": "منذ {duration}",
+  "notificationDurationLeft": "متبقي {duration} على {name}"
 }

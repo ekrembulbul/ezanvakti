@@ -1184,8 +1184,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get remindersMinOffsetError => 'يجب أن يكون قبل دقيقة على الأقل';
 
   @override
-  String remindersMaxOffsetError(Object max) {
-    return 'يمكنك إضافة تنبيه قبل هذه الصلاة بحد أقصى $max دقيقة.';
+  String remindersMaxOffsetError(String max) {
+    return 'يمكنك إضافة تنبيه قبل هذه الصلاة بحد أقصى $max.';
   }
 
   @override
@@ -1516,4 +1516,39 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get reminderOrderLoadFailed =>
       'تعذر تحميل الترتيب المحفوظ. أعد فتح الشاشة.';
+
+  @override
+  String durationHoursShort(int hours) {
+    return '$hours س';
+  }
+
+  @override
+  String durationDaysShort(int days) {
+    return '$days ي';
+  }
+
+  @override
+  String reminderBeforeDuration(String duration) {
+    return 'قبل $duration';
+  }
+
+  @override
+  String reminderAfterDuration(String duration) {
+    return 'بعد $duration';
+  }
+
+  @override
+  String quietWindowDurationSummary(String before, String after) {
+    return 'قبل $before – بعد $after';
+  }
+
+  @override
+  String durationAgo(String duration) {
+    return 'منذ $duration';
+  }
+
+  @override
+  String notificationDurationLeft(String name, String duration) {
+    return 'متبقي $duration على $name';
+  }
 }

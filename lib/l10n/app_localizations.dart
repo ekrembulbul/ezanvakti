@@ -2239,8 +2239,8 @@ abstract class AppLocalizations {
   /// Hata
   ///
   /// In tr, this message translates to:
-  /// **'Bu vakitten en fazla {max} dk önce bildirim ekleyebilirsin.'**
-  String remindersMaxOffsetError(Object max);
+  /// **'Bu vakitten en fazla {max} önce bildirim ekleyebilirsin.'**
+  String remindersMaxOffsetError(String max);
 
   /// İpucu
   ///
@@ -2799,6 +2799,48 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Kayıtlı sıralama yüklenemedi. Ekranı yeniden aç.'**
   String get reminderOrderLoadFailed;
+
+  /// Kısa süre gösterimindeki saat birimi.
+  ///
+  /// In tr, this message translates to:
+  /// **'{hours} sa'**
+  String durationHoursShort(int hours);
+
+  /// Kısa süre gösterimindeki gün birimi.
+  ///
+  /// In tr, this message translates to:
+  /// **'{days} gün'**
+  String durationDaysShort(int days);
+
+  /// Bir vakitten ne kadar önce çalışılacağını belirtir.
+  ///
+  /// In tr, this message translates to:
+  /// **'{duration} önce'**
+  String reminderBeforeDuration(String duration);
+
+  /// Bir vakitten ne kadar sonra çalışılacağını belirtir.
+  ///
+  /// In tr, this message translates to:
+  /// **'{duration} sonra'**
+  String reminderAfterDuration(String duration);
+
+  /// Sessiz pencerenin vakitten önceki ve sonraki süreleri.
+  ///
+  /// In tr, this message translates to:
+  /// **'{before} önce – {after} sonra'**
+  String quietWindowDurationSummary(String before, String after);
+
+  /// Bir olaydan bu yana geçen süre.
+  ///
+  /// In tr, this message translates to:
+  /// **'{duration} önce'**
+  String durationAgo(String duration);
+
+  /// Bildirim gövdesinde hedef vakte kalan yerelleştirilmiş süre.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} vaktine {duration} kaldı'**
+  String notificationDurationLeft(String name, String duration);
 }
 
 class _AppLocalizationsDelegate

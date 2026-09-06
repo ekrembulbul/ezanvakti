@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/models/notification_setting.dart';
+import '../../core/utils/duration_formatter.dart';
 import '../../l10n/app_localizations.dart';
 import '../../l10n/l10n_extensions.dart';
 
@@ -18,15 +19,21 @@ String notificationRuleLabel(
   NotificationSetting setting,
   AppLocalizations l10n,
 ) {
-  final offset = setting.minutesBefore == 0
-      ? l10n.reminderOnTime
-      : l10n.reminderMinutesBefore(setting.minutesBefore);
-  if (setting.label?.trim().isNotEmpty != true) return offset;
   final derived = setting.derivedKind;
   final point = derived == null
       ? l10n.prayerName(setting.prayerType)
       : l10n.derivedName(derived);
+  final offset = setting.minutesBefore == 0
+      ? l10n.reminderOnTime
+      : l10n.reminderBeforeDuration(
+          formatCompactMinutes(setting.minutesBefore, l10n),
+        );
   return '$point · $offset';
+}
+
+String? notificationCustomLabel(NotificationSetting setting) {
+  final label = setting.label?.trim();
+  return label == null || label.isEmpty ? null : label;
 }
 
 String reminderDayLabel(BuildContext context, DateTime time, DateTime now) {
@@ -43,10 +50,5 @@ String reminderDayLabel(BuildContext context, DateTime time, DateTime now) {
 }
 
 String reminderRemaining(Duration remaining, AppLocalizations l10n) {
-  if (remaining.inMinutes < 1) return l10n.countdownLessThanMinute;
-  final hours = remaining.inHours;
-  final minutes = remaining.inMinutes % 60;
-  return hours == 0
-      ? l10n.countdownMinutesShort(minutes)
-      : l10n.countdownHourMinuteShort(hours, minutes);
+  return formatCompactDuration(remaining, l10n);
 }

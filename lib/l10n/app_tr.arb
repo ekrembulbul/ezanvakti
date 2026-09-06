@@ -1656,12 +1656,12 @@
   "@remindersMinOffsetError": {
     "description": "Hata"
   },
-  "remindersMaxOffsetError": "Bu vakitten en fazla {max} dk önce bildirim ekleyebilirsin.",
+  "remindersMaxOffsetError": "Bu vakitten en fazla {max} önce bildirim ekleyebilirsin.",
   "@remindersMaxOffsetError": {
     "description": "Hata",
     "placeholders": {
       "max": {
-        "type": "Object"
+        "type": "String"
       }
     }
   },
@@ -2132,5 +2132,46 @@
   "reminderOrderSaveFailed": "Sıralama kaydedilemedi. Yeniden dene.",
   "@reminderOrderSaveFailed": {"description": "Hatırlatıcı listesi gösterimi ve sıralaması"},
   "reminderOrderLoadFailed": "Kayıtlı sıralama yüklenemedi. Ekranı yeniden aç.",
-  "@reminderOrderLoadFailed": {"description": "Hatırlatıcı listesi gösterimi ve sıralaması"}
+  "@reminderOrderLoadFailed": {"description": "Hatırlatıcı listesi gösterimi ve sıralaması"},
+  "durationHoursShort": "{hours} sa",
+  "@durationHoursShort": {
+    "description": "Kısa süre gösterimindeki saat birimi.",
+    "placeholders": {"hours": {"type": "int"}}
+  },
+  "durationDaysShort": "{days} gün",
+  "@durationDaysShort": {
+    "description": "Kısa süre gösterimindeki gün birimi.",
+    "placeholders": {"days": {"type": "int"}}
+  },
+  "reminderBeforeDuration": "{duration} önce",
+  "@reminderBeforeDuration": {
+    "description": "Bir vakitten ne kadar önce çalışılacağını belirtir.",
+    "placeholders": {"duration": {"type": "String"}}
+  },
+  "reminderAfterDuration": "{duration} sonra",
+  "@reminderAfterDuration": {
+    "description": "Bir vakitten ne kadar sonra çalışılacağını belirtir.",
+    "placeholders": {"duration": {"type": "String"}}
+  },
+  "quietWindowDurationSummary": "{before} önce – {after} sonra",
+  "@quietWindowDurationSummary": {
+    "description": "Sessiz pencerenin vakitten önceki ve sonraki süreleri.",
+    "placeholders": {
+      "before": {"type": "String"},
+      "after": {"type": "String"}
+    }
+  },
+  "durationAgo": "{duration} önce",
+  "@durationAgo": {
+    "description": "Bir olaydan bu yana geçen süre.",
+    "placeholders": {"duration": {"type": "String"}}
+  },
+  "notificationDurationLeft": "{name} vaktine {duration} kaldı",
+  "@notificationDurationLeft": {
+    "description": "Bildirim gövdesinde hedef vakte kalan yerelleştirilmiş süre.",
+    "placeholders": {
+      "name": {"type": "String"},
+      "duration": {"type": "String"}
+    }
+  }
 }

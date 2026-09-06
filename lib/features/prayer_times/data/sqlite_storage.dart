@@ -1015,6 +1015,11 @@ class SqliteStorage implements LocalStorage {
       final typeName = row['prayer_type'] as String;
       final matches = PrayerType.values.where((e) => e.name == typeName);
       if (matches.isEmpty) continue; // Skip unknown prayer types (enum drift).
+      final rawMinutesBefore = row['minutes_before'] as int;
+      if (rawMinutesBefore < 0) {
+        AppLogger().warning('Invalid notification minutes_before; row skipped');
+        continue;
+      }
       settings.add(
         NotificationSetting(
           prayerType: matches.first,
@@ -1022,7 +1027,7 @@ class SqliteStorage implements LocalStorage {
           derivedKind: DerivedTimeKindX.fromStorage(
             row['derived_kind'] as String?,
           ),
-          minutesBefore: row['minutes_before'] as int,
+          minutesBefore: rawMinutesBefore,
           soundId: row['sound_id'] as String?,
           weekdays: NotificationSetting.parseWeekdays(
             row['weekdays'] as String?,

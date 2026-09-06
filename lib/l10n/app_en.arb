@@ -356,7 +356,7 @@
   "remindersBeforeOption": "Before",
   "remindersPickMinutes": "Pick minutes",
   "remindersMinOffsetError": "Must be at least 1 min before",
-  "remindersMaxOffsetError": "You can add a notification at most {max} min before this prayer.",
+  "remindersMaxOffsetError": "You can add a notification at most {max} before this prayer.",
   "remindersSwipeToDelete": "Swipe a row to delete it.",
   "remindersIntro": "For each prayer you can be reminded on time or X minutes before.",
   "alarmsSwipeHint": "Touch and hold to duplicate; swipe left to delete. Use \"Undo\" to restore a deleted alarm.",
@@ -449,5 +449,12 @@
   "reminderReorderDone": "Finish ordering",
   "reminderReorderHint": "Drag the handle to change the order.",
   "reminderOrderSaveFailed": "Could not save the order. Try again.",
-  "reminderOrderLoadFailed": "Could not load your saved order. Reopen this screen."
+  "reminderOrderLoadFailed": "Could not load your saved order. Reopen this screen.",
+  "durationHoursShort": "{hours} h",
+  "durationDaysShort": "{days} d",
+  "reminderBeforeDuration": "{duration} before",
+  "reminderAfterDuration": "{duration} after",
+  "quietWindowDurationSummary": "{before} before – {after} after",
+  "durationAgo": "{duration} ago",
+  "notificationDurationLeft": "{duration} until {name}"
 }

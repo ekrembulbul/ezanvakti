@@ -4,6 +4,7 @@ import '../../../l10n/l10n_extensions.dart';
 import '../../../core/models/notification_setting.dart' show PrayerType;
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
+import '../../../core/utils/duration_formatter.dart';
 
 /// Vakit başına ± dakika düzeltmesi. Kullanıcı, hesaplanan vakitle elindeki
 /// takvim arasındaki 1–2 dakikalık farkı buradan kapatır.
@@ -79,7 +80,7 @@ class PrayerTuneSelector extends StatelessWidget {
             width: 64,
             child: Text(
               value == 0
-                  ? context.l10n.minutesShort(0)
+                  ? formatCompactMinutes(0, context.l10n)
                   : context.l10n.offsetMinutes(
                       value > 0 ? '+' : '−',
                       value.abs(),

@@ -29,7 +29,7 @@ void main() {
         offsetMinutes: -30,
       );
 
-      expect(alarmTimeLabel(alarm, l10n: l10n), 'İmsak −30 dk');
+      expect(alarmTimeLabel(alarm, l10n: l10n), 'İmsak · 30 dk önce');
     });
 
     test('Pozitif sapma arti isaretiyle yazilir', () {
@@ -40,7 +40,18 @@ void main() {
         offsetMinutes: 15,
       );
 
-      expect(alarmTimeLabel(alarm, l10n: l10n), 'Yatsı +15 dk');
+      expect(alarmTimeLabel(alarm, l10n: l10n), 'Yatsı · 15 dk sonra');
+    });
+
+    test('Altmış dakikayı geçen sapmayı saat ve dakika olarak yazar', () {
+      const alarm = Alarm(
+        id: '1',
+        kind: AlarmKind.anchored,
+        anchor: PrayerType.sunrise,
+        offsetMinutes: -75,
+      );
+
+      expect(alarmTimeLabel(alarm, l10n: l10n), 'Güneş · 1 sa 15 dk önce');
     });
 
     test('Sapma sifirsa yalnizca vakit adi', () {

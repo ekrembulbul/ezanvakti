@@ -9,6 +9,7 @@ import '../../core/theme/app_tokens.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/tokens_context.dart';
 import '../utils/alarm_labels.dart';
+import '../../core/utils/duration_formatter.dart';
 import '../widgets/missions/mission_metrics.dart';
 
 const Key kStopPrimaryKey = Key('stop_primary');
@@ -64,8 +65,10 @@ class AlarmStopScreen extends StatelessWidget {
       : DateFormat('HH:mm').format(firedAt); // ekran icinde sabit 24 saat
 
   String _detailText(AppLocalizations l10n) {
-    final ago = now.difference(stoppedAt).inMinutes;
-    final agoText = ago < 1 ? l10n.stopJustNow : l10n.stopMinutesAgo(ago);
+    final elapsed = now.difference(stoppedAt);
+    final agoText = elapsed.inMinutes < 1
+        ? l10n.stopJustNow
+        : l10n.durationAgo(formatCompactDuration(elapsed, l10n));
     final first = alarm.kind == AlarmKind.fixed
         ? weekdaysLabel(alarm.weekdays, l10n)
         : alarmTimeLabel(alarm, l10n: l10n);
@@ -95,7 +98,10 @@ class AlarmStopScreen extends StatelessWidget {
               ),
               const Spacer(),
               _header(tokens, l10n),
-              if (gated) ...[const SizedBox(height: 24), _missionCard(tokens, l10n)],
+              if (gated) ...[
+                const SizedBox(height: 24),
+                _missionCard(tokens, l10n),
+              ],
               const Spacer(),
               _primaryButton(tokens, l10n),
               if (onSnooze != null) ...[

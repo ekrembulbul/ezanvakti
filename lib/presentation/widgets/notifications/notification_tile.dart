@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../../l10n/l10n_extensions.dart';
 
 import '../../../core/models/notification_setting.dart';
-import '../../../core/utils/prayer_utils.dart';
 import '../../utils/alarm_labels.dart' show weekdaysLabel;
 import '../../utils/reminder_labels.dart';
 import '../../utils/time_format_context.dart';
@@ -71,27 +70,28 @@ class NotificationTile extends StatelessWidget {
     final l10n = context.l10n;
     final fireAt = setting.isActive ? nextFireAt : null;
     final referenceTime = now ?? DateTime.now();
+    final status = _skipping
+        ? l10n.reminderSkippedOnce
+        : !setting.isActive
+        ? l10n.reminderOff
+        : fireAt == null
+        ? l10n.reminderTimeUnavailable
+        : null;
+    final detail = <String>[
+      ?status,
+      if (fireAt != null)
+        '${reminderDayLabel(context, fireAt, referenceTime)} '
+            '${context.formatTime(fireAt)}',
+      if (setting.isDerived) l10n.derivedHint(setting.derivedKind!),
+    ];
     return ReminderRow(
-      icon: setting.isDerived
-          ? Icons.hourglass_bottom_rounded
-          : PrayerUtils.getPrayerIcon(setting.prayerType),
-      time: notificationRuleLabel(setting, l10n),
-      timing: fireAt != null
-          ? '${reminderDayLabel(context, fireAt, referenceTime)} '
-                '${context.formatTime(fireAt)}'
+      days: weekdaysLabel(setting.weekdays, l10n),
+      remaining: fireAt != null && !_skipping
+          ? reminderRemaining(fireAt.difference(referenceTime), l10n)
           : null,
-      name: notificationTitle(setting, l10n),
-      detail: [
-        weekdaysLabel(setting.weekdays, l10n),
-        if (fireAt != null && !_skipping)
-          reminderRemaining(fireAt.difference(referenceTime), l10n),
-        if (setting.isDerived) l10n.derivedHint(setting.derivedKind!),
-      ].join(' · '),
-      status: _skipping
-          ? l10n.reminderSkippedOnce
-          : !setting.isActive
-          ? l10n.reminderOff
-          : null,
+      primary: notificationRuleLabel(setting, l10n),
+      label: notificationCustomLabel(setting),
+      detail: detail.isEmpty ? null : detail.join(' · '),
       onTap: isReordering ? null : onTap,
       dimmed: !_isOn || !hasPermission,
       trailing: isReordering

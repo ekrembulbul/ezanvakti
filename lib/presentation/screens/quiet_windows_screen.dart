@@ -13,6 +13,7 @@ import '../widgets/common/grouped_list.dart';
 import '../widgets/common/option_picker.dart';
 import '../widgets/common/section_label.dart';
 import '../widgets/common/swipe_to_delete.dart';
+import '../../core/utils/duration_formatter.dart';
 
 /// Bildirimlerin susturulacağı zaman aralıkları.
 ///
@@ -209,9 +210,7 @@ class _QuietWindowsScreenState extends State<QuietWindowsScreen> {
 
   Widget _customRow(QuietWindow window) {
     final tokens = context.tokens;
-    final name = context.l10n.prayerName(
-      window.prayerType ?? PrayerType.dhuhr,
-    );
+    final name = context.l10n.prayerName(window.prayerType ?? PrayerType.dhuhr);
 
     return SwipeToDelete(
       itemKey: ValueKey(window.id),
@@ -220,7 +219,7 @@ class _QuietWindowsScreenState extends State<QuietWindowsScreen> {
         icon: Icons.notifications_off_rounded,
         title: Text(name),
         subtitle: Text(
-          '${context.l10n.quietWindowSummary(window.minutesBefore, window.minutesAfter)} · '
+          '${context.l10n.quietWindowDurationSummary(formatCompactMinutes(window.minutesBefore, context.l10n), formatCompactMinutes(window.minutesAfter, context.l10n))} · '
           '${window.mode == QuietMode.skip ? context.l10n.quietModeSkip : context.l10n.quietModeSilent}',
         ),
         dimmed: !window.isActive,
@@ -287,22 +286,18 @@ class _QuietWindowsScreenState extends State<QuietWindowsScreen> {
   Widget _rangeRow(QuietWindow window, {VoidCallback? onChanged}) {
     return Column(
       children: [
-        _stepperRow(
-          context.l10n.quietMinutesBefore,
-          window.minutesBefore,
-          (value) async {
-            await _updateWindow(window, window.copyWith(minutesBefore: value));
-            onChanged?.call();
-          },
-        ),
-        _stepperRow(
-          context.l10n.quietMinutesAfter,
-          window.minutesAfter,
-          (value) async {
-            await _updateWindow(window, window.copyWith(minutesAfter: value));
-            onChanged?.call();
-          },
-        ),
+        _stepperRow(context.l10n.quietMinutesBefore, window.minutesBefore, (
+          value,
+        ) async {
+          await _updateWindow(window, window.copyWith(minutesBefore: value));
+          onChanged?.call();
+        }),
+        _stepperRow(context.l10n.quietMinutesAfter, window.minutesAfter, (
+          value,
+        ) async {
+          await _updateWindow(window, window.copyWith(minutesAfter: value));
+          onChanged?.call();
+        }),
       ],
     );
   }
@@ -334,11 +329,17 @@ class _QuietWindowsScreenState extends State<QuietWindowsScreen> {
             visualDensity: VisualDensity.compact,
           ),
           SizedBox(
-            width: 56,
-            child: Text(
-              context.l10n.minutesShort(value),
-              textAlign: TextAlign.center,
-              style: AppTypography.rowTitle.copyWith(color: tokens.textPrimary),
+            width: 88,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                formatCompactMinutes(value, context.l10n),
+                maxLines: 1,
+                textAlign: TextAlign.center,
+                style: AppTypography.rowTitle.copyWith(
+                  color: tokens.textPrimary,
+                ),
+              ),
             ),
           ),
           IconButton(

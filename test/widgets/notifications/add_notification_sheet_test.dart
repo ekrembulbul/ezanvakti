@@ -19,6 +19,7 @@ void main() {
     WidgetTester tester, {
     void Function(PrayerType, int, Set<int>, String?, DerivedTimeKind?)? onAdd,
     Brightness brightness = Brightness.dark,
+    NotificationSetting? initialSetting,
   }) async {
     // Sayfa turetilmis vakit bolumuyle uzadi; dugme gorunur kalsin diye
     // uzun bir yuzey veriliyor.
@@ -27,7 +28,10 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       wrapWithTheme(
-        AddNotificationBottomSheet(onAdd: onAdd ?? (_, _, _, _, _) {}),
+        AddNotificationBottomSheet(
+          onAdd: onAdd ?? (_, _, _, _, _) {},
+          initialSetting: initialSetting,
+        ),
         brightness: brightness,
       ),
     );
@@ -92,6 +96,30 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(type, PrayerType.maghrib);
+  });
+
+  testWidgets('Vakit değişince aşan offset hatasını saat olarak gösterir', (
+    tester,
+  ) async {
+    await pumpSheet(
+      tester,
+      initialSetting: const NotificationSetting(
+        prayerType: PrayerType.fajr,
+        isActive: true,
+        minutesBefore: 240,
+      ),
+    );
+
+    await tester.tap(find.text('Yatsı'));
+    await tester.pump();
+    await tester.tap(find.text('Bildirim Ekle'));
+    await tester.pump();
+
+    expect(
+      find.text('Bu vakitten en fazla 1 sa önce bildirim ekleyebilirsin.'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('60 dk'), findsNothing);
   });
 
   testWidgets('Gunler ve etiket kaydedilir', (tester) async {

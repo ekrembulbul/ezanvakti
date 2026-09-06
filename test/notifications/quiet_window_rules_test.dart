@@ -52,16 +52,18 @@ void main() {
     });
 
     test('persembe ogle cuma penceresi degildir', () {
-      expect(
-        modeAt(windows, thursdayDhuhr, prayerAt: thursdayDhuhr),
-        isNull,
-      );
+      expect(modeAt(windows, thursdayDhuhr, prayerAt: thursdayDhuhr), isNull);
     });
 
     test('cuma ikindi cuma ogle penceresi degildir', () {
       final fridayAsr = DateTime(2026, 9, 4, 16, 30);
       expect(
-        modeAt(windows, fridayAsr, prayerType: PrayerType.asr, prayerAt: fridayAsr),
+        modeAt(
+          windows,
+          fridayAsr,
+          prayerType: PrayerType.asr,
+          prayerAt: fridayAsr,
+        ),
         isNull,
       );
     });
@@ -87,12 +89,22 @@ void main() {
 
     test('her gun gecerli', () {
       expect(
-        modeAt(windows, maghrib, prayerType: PrayerType.maghrib, prayerAt: maghrib),
+        modeAt(
+          windows,
+          maghrib,
+          prayerType: PrayerType.maghrib,
+          prayerAt: maghrib,
+        ),
         QuietMode.skip,
       );
       final monday = DateTime(2026, 9, 7, 19, 45);
       expect(
-        modeAt(windows, monday, prayerType: PrayerType.maghrib, prayerAt: monday),
+        modeAt(
+          windows,
+          monday,
+          prayerType: PrayerType.maghrib,
+          prayerAt: monday,
+        ),
         QuietMode.skip,
       );
     });
@@ -154,6 +166,16 @@ void main() {
 
     test('bozuk kayit varsayilana degil bosa duser', () {
       expect(decode('bozuk-json'), isEmpty);
+    });
+
+    test('negatif pencere sürelerini sıfıra çeker', () {
+      final windows = decode(
+        '[{"id":"bad","trigger":"prayer","prayerType":"dhuhr",'
+        '"minutesBefore":-15,"minutesAfter":-30,"mode":"silent"}]',
+      );
+
+      expect(windows.single.minutesBefore, 0);
+      expect(windows.single.minutesAfter, 0);
     });
   });
 

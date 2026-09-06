@@ -88,4 +88,14 @@ void main() {
     expect(updated.soundId, 'beep');
     expect(updated.minutesBefore, daily.minutesBefore);
   });
+
+  test('JSON içindeki negatif bildirim süresini güvenli varsayılana çeker', () {
+    final restored = NotificationSetting.fromJson({
+      'prayerType': PrayerType.dhuhr.name,
+      'isActive': true,
+      'minutesBefore': -30,
+    });
+
+    expect(restored.minutesBefore, 0);
+  });
 }

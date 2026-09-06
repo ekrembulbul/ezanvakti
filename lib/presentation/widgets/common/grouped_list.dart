@@ -55,8 +55,8 @@ class GroupedRow extends StatelessWidget {
   /// (ör. "SIRADAKİ" kartındaki alarm satırı) `accent` verilir.
   final Color? iconColor;
 
-  /// Satır yüksekliği. Varsayılan tam genişlikli listeler içindir; "SIRADAKİ"
-  /// kartı gibi sıkışık yerlerde spec §6.1/7'deki 62 kullanılır.
+  /// Satır yüksekliği. Varsayılan tam genişlikli listeler içindir; kompakt
+  /// kartlar içerik ve metin ölçeğine uygun yüksekliği çağrı noktasında verir.
   final double height;
 
   /// Pasif satırlar (kapalı bildirim gibi) söndürülür.

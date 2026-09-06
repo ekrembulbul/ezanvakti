@@ -37,7 +37,7 @@ class NotificationSetting {
     this.soundId,
     this.weekdays = const {},
     this.label,
-  });
+  }) : assert(minutesBefore >= 0);
 
   bool get isDerived => derivedKind != null;
 
@@ -78,16 +78,19 @@ class NotificationSetting {
       prayerType: PrayerType.values.firstWhere(
         (e) => e.name == json['prayerType'],
       ),
-      derivedKind: DerivedTimeKindX.fromStorage(
-        json['derivedKind'] as String?,
-      ),
+      derivedKind: DerivedTimeKindX.fromStorage(json['derivedKind'] as String?),
       isActive: json['isActive'] as bool,
-      minutesBefore: json['minutesBefore'] as int? ?? 0,
+      minutesBefore: normalizeMinutesBefore(json['minutesBefore']),
       soundId: json['soundId'] as String?,
       weekdays: parseWeekdays(json['weekdays'] as String?),
       label: json['label'] as String?,
     );
   }
+
+  /// Kalıcı veya dış kaynaktan gelen bozuk süre, güvenli "tam vaktinde"
+  /// değerine düşer. UI ve planlayıcı böylece aynı normalize değeri kullanır.
+  static int normalizeMinutesBefore(Object? value) =>
+      value is int && value >= 0 ? value : 0;
 
   NotificationSetting copyWith({
     PrayerType? prayerType,

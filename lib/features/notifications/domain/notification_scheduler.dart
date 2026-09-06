@@ -18,6 +18,7 @@ import '../../../core/models/location.dart';
 import '../../../core/models/skipped_occurrence.dart';
 import 'skip_rules.dart';
 import '../../../core/utils/app_logger.dart';
+import '../../../core/utils/duration_formatter.dart';
 
 class NotificationScheduler {
   final NotificationService notificationService;
@@ -382,19 +383,18 @@ class NotificationScheduler {
         '${prayerTime.hour.toString().padLeft(2, '0')}:${prayerTime.minute.toString().padLeft(2, '0')}';
 
     final derived = setting.derivedKind;
+    final duration = formatCompactMinutes(setting.minutesBefore, l10n);
     if (derived != null) {
       final name = l10n.derivedName(derived);
       return setting.minutesBefore == 0
           ? '$timeStr - ${l10n.derivedHint(derived)}'
-          : '$timeStr - '
-                '${l10n.notificationDerivedMinutesLeft(name, setting.minutesBefore)}';
+          : '$timeStr - ${l10n.notificationDurationLeft(name, duration)}';
     }
 
     final prayer = l10n.prayerName(setting.prayerType);
     return setting.minutesBefore == 0
         ? '$timeStr - ${l10n.notificationPrayerNow(prayer)}'
-        : '$timeStr - '
-              '${l10n.notificationMinutesLeft(prayer, setting.minutesBefore)}';
+        : '$timeStr - ${l10n.notificationDurationLeft(prayer, duration)}';
   }
 
   Future<List<ScheduledNotification>> getPendingNotifications() async {

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'package:ezanvakti/core/models/alarm.dart';
+import 'package:ezanvakti/core/models/alarm_mission.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart';
 import 'package:ezanvakti/core/models/skipped_occurrence.dart';
 import 'package:ezanvakti/features/notifications/domain/notification_scheduler.dart';
@@ -14,6 +15,7 @@ import '../theme_harness.dart';
 void main() {
   setUpAll(() async {
     await initializeDateFormatting('tr_TR', null);
+    await initializeDateFormatting('ar', null);
   });
 
   group('UpcomingCard', () {
@@ -60,20 +62,31 @@ void main() {
       VoidCallback? onSeeAll,
       Set<SkippedOccurrence> skips = const {},
       void Function(SkippedOccurrence, bool)? onSkipChanged,
+      double width = 360,
+      double textScale = 1,
+      Locale locale = const Locale('tr'),
     }) async {
       await tester.pumpWidget(
         wrapWithTheme(
-          SizedBox(
-            width: 360,
-            child: UpcomingCard(
-              now: now,
-              notification: notification,
-              alarm: alarm,
-              skips: skips,
-              onSkipChanged: onSkipChanged,
-              onSeeAll: onSeeAll ?? () {},
+          Builder(
+            builder: (context) => MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(textScaler: TextScaler.linear(textScale)),
+              child: SizedBox(
+                width: width,
+                child: UpcomingCard(
+                  now: now,
+                  notification: notification,
+                  alarm: alarm,
+                  skips: skips,
+                  onSkipChanged: onSkipChanged,
+                  onSeeAll: onSeeAll ?? () {},
+                ),
+              ),
             ),
           ),
+          locale: locale,
         ),
       );
     }
@@ -100,8 +113,8 @@ void main() {
       await pumpCard(tester, notification: notification);
 
       // Sag taraf tek islevli kaldi: kalan sure alt metne tasindi.
-      expect(find.text('Akşam'), findsOneWidget);
-      expect(find.text('10 dk önce · bugün 20:15 · 2s 33dk'), findsOneWidget);
+      expect(find.text('Akşam · 10 dk önce'), findsOneWidget);
+      expect(find.text('bugün 20:15 · 2 sa 33 dk'), findsOneWidget);
       expect(find.byType(Switch), findsOneWidget);
     });
 
@@ -118,7 +131,8 @@ void main() {
         ),
       );
 
-      expect(find.text('Tam vaktinde · bugün 22:01 · 4s 19dk'), findsOneWidget);
+      expect(find.text('Yatsı · Tam vaktinde'), findsOneWidget);
+      expect(find.text('bugün 22:01 · 4 sa 19 dk'), findsOneWidget);
     });
 
     testWidgets(
@@ -137,19 +151,59 @@ void main() {
             prayerDate: DateTime(2026, 8, 7),
             time: DateTime(2026, 8, 7, 12, 17),
           ),
+          width: 320,
+          textScale: 1.8,
         );
         expect(find.text('Cuma namazı'), findsOneWidget);
-        expect(find.text('Öğle bildirimi'), findsNothing);
-        expect(find.textContaining('12:17'), findsOneWidget);
+        expect(find.text('Öğle · 45 dk önce'), findsOneWidget);
+        expect(find.text('Cuma 12:17 · 3 gün 18 sa 35 dk'), findsOneWidget);
+        expect(tester.takeException(), isNull);
       },
     );
+
+    testWidgets('Arapça özel etiket dar ekranda ayrı ve görünür kalır', (
+      tester,
+    ) async {
+      await pumpCard(
+        tester,
+        notification: (
+          setting: const NotificationSetting(
+            prayerType: PrayerType.dhuhr,
+            isActive: true,
+            minutesBefore: 45,
+            label: 'صلاة الجمعة',
+          ),
+          prayerDate: DateTime(2026, 8, 7),
+          time: DateTime(2026, 8, 7, 12, 17),
+        ),
+        width: 320,
+        textScale: 1.8,
+        locale: const Locale('ar'),
+      );
+
+      expect(find.text('صلاة الجمعة'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
 
     testWidgets('Alarm satiri etiket, cipa ve gun yazar', (tester) async {
       await pumpCard(tester, alarm: (alarm: sahur, time: alarmAt));
 
+      expect(find.text('İmsak · 30 dk önce'), findsOneWidget);
+      expect(find.text('yarın 03:41 · 9 sa 59 dk'), findsOneWidget);
       expect(find.text('Sahur'), findsOneWidget);
-      expect(find.text('İmsak −30 dk · yarın 03:41'), findsOneWidget);
       expect(find.byType(Switch), findsOneWidget);
+    });
+
+    testWidgets('Görevli alarm ana zamanın yanında görev ikonunu gösterir', (
+      tester,
+    ) async {
+      await pumpCard(
+        tester,
+        alarm: (alarm: sahur.copyWith(mission: AlarmMission.qr), time: alarmAt),
+      );
+
+      expect(find.text('İmsak · 30 dk önce'), findsOneWidget);
+      expect(find.byIcon(Icons.qr_code_scanner_rounded), findsOneWidget);
     });
 
     testWidgets('Adsız sabit alarm saati bir kez gösterilir', (tester) async {
@@ -166,7 +220,7 @@ void main() {
         ),
       );
       expect(find.textContaining('19:42'), findsOneWidget);
-      expect(find.textContaining('2s 0dk'), findsOneWidget);
+      expect(find.text('bugün · 2 sa'), findsOneWidget);
     });
 
     testWidgets('Atlanmis bildirim satiri yerinde kalir ve aciklanir', (
@@ -179,7 +233,7 @@ void main() {
       );
 
       // D2: kart bir sonrakine gecmez; satir kapali cizilir ki geri acilabilsin.
-      expect(find.text('Akşam'), findsOneWidget);
+      expect(find.text('Akşam · 10 dk önce'), findsOneWidget);
       expect(find.text('Yalnızca bu sefer atlanacak · 20:15'), findsOneWidget);
       expect(tester.widget<Switch>(find.byType(Switch)).value, isFalse);
     });
@@ -193,11 +247,12 @@ void main() {
         skips: {alarmSkip()},
       );
 
-      expect(find.text('Sahur'), findsOneWidget);
+      expect(find.text('İmsak · 30 dk önce'), findsOneWidget);
       expect(
         find.text('Yalnızca bu sefer atlanacak · yarın 03:41'),
         findsOneWidget,
       );
+      expect(find.text('Sahur'), findsOneWidget);
       expect(tester.widget<Switch>(find.byType(Switch)).value, isFalse);
     });
 

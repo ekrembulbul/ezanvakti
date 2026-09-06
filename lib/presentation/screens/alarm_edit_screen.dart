@@ -1,6 +1,7 @@
 import '../widgets/missions/qr_payload_field.dart';
 import '../../l10n/l10n_extensions.dart';
 import '../utils/time_format_context.dart';
+import '../../core/utils/duration_formatter.dart';
 import '../widgets/common/option_picker.dart';
 import '../../core/models/alarm_mission.dart';
 import '../../features/alarms/domain/snooze_options.dart';
@@ -195,9 +196,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                 // AlarmKit seviye API'si vermiyor; ses her zaman sistemin
                 // "Zil Sesi ve Uyarılar" kaydırıcısıyla çalıyor.
                 context.l10n.alarmSoundVolumeNote,
-                style: AppTypography.hint.copyWith(
-                  color: tokens.textTertiary,
-                ),
+                style: AppTypography.hint.copyWith(color: tokens.textTertiary),
               ),
             ),
             const SizedBox(height: 4),
@@ -242,10 +241,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   Widget _kindToggle() {
     return SlidingSegment<AlarmKind>(
       items: [
-        SegmentItem(
-          value: AlarmKind.fixed,
-          label: context.l10n.alarmFixedTime,
-        ),
+        SegmentItem(value: AlarmKind.fixed, label: context.l10n.alarmFixedTime),
         SegmentItem(
           value: AlarmKind.anchored,
           label: context.l10n.alarmAnchored,
@@ -402,7 +398,9 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    isBefore ? context.l10n.alarmBeforePrayer : context.l10n.alarmAfterPrayer,
+                    isBefore
+                        ? context.l10n.alarmBeforePrayer
+                        : context.l10n.alarmAfterPrayer,
                     style: TextStyle(
                       color: tokens.textPrimary,
                       fontWeight: FontWeight.w600,
@@ -410,7 +408,8 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                     ),
                   ),
                   Text(
-                    context.l10n.offsetRangeHint(maxOffset),
+                    '${formatCompactMinutes(1, context.l10n)} – '
+                    '${formatCompactMinutes(maxOffset, context.l10n)}',
                     style: TextStyle(color: tokens.textSecondary, fontSize: 11),
                   ),
                 ],
@@ -441,7 +440,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                 maxOffset,
                 (i) => Center(
                   child: Text(
-                    context.l10n.minutesShort(i + 1),
+                    formatCompactMinutes(i + 1, context.l10n),
                     style: TextStyle(
                       color: tokens.textPrimary,
                       fontWeight: FontWeight.w600,

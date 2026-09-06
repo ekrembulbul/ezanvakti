@@ -74,6 +74,16 @@ class AppTypography {
     fontFeatures: _tabular,
   );
 
+  /// Hatırlatıcı listesindeki ana zaman veya vakit kuralı.
+  static const TextStyle reminderPrimary = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 20,
+    fontWeight: FontWeight.w700,
+    fontVariations: _w700,
+    letterSpacing: -0.3,
+    fontFeatures: _tabular,
+  );
+
   /// "Yarın" şeridindeki saat değeri.
   static const TextStyle tomorrowValue = TextStyle(
     fontFamily: fontFamily,
@@ -178,6 +188,7 @@ class AppTypography {
     rowTitle,
     rowSubtitle,
     gridValue,
+    reminderPrimary,
     tomorrowValue,
     counterLabel,
     sectionLabel,

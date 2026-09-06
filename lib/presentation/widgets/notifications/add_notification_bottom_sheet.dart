@@ -10,6 +10,7 @@ import '../../../core/models/notification_setting.dart';
 import '../../../core/utils/prayer_utils.dart';
 import '../common/section_label.dart';
 import '../../../core/constants/notification_constants.dart';
+import '../../../core/utils/duration_formatter.dart';
 
 class AddNotificationBottomSheet extends StatefulWidget {
   /// [weekdays] boş küme = her gün; [label] boşsa varsayılan başlık kullanılır.
@@ -90,8 +91,9 @@ class _AddNotificationBottomSheetState
 
       if (_selectedOffset > maxOffset) {
         setState(() {
-          _errorText =
-              context.l10n.remindersMaxOffsetError(maxOffset);
+          _errorText = context.l10n.remindersMaxOffsetError(
+            formatCompactMinutes(maxOffset, context.l10n),
+          );
         });
         return;
       }
@@ -479,7 +481,8 @@ class _AddNotificationBottomSheetState
                               ),
                             ),
                             Text(
-                              context.l10n.offsetRangeHint(maxOffset),
+                              '${formatCompactMinutes(1, context.l10n)} – '
+                              '${formatCompactMinutes(maxOffset, context.l10n)}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: AppTypography.sectionLabel.copyWith(
@@ -522,7 +525,7 @@ class _AddNotificationBottomSheetState
                         maxOffset,
                         (i) => Center(
                           child: Text(
-                            context.l10n.minutesShort(i + 1),
+                            formatCompactMinutes(i + 1, context.l10n),
                             style: TextStyle(
                               color: tokens.textPrimary,
                               fontWeight: FontWeight.w600,

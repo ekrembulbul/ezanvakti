@@ -317,16 +317,16 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('reminder-sort-name')));
       await tester.pumpAndSettle();
       expect(
-        tester.getTopLeft(find.text('A hazırlık')).dy,
-        lessThan(tester.getTopLeft(find.text('Z hazırlık')).dy),
+        tester.getTopLeft(find.textContaining('A hazırlık')).dy,
+        lessThan(tester.getTopLeft(find.textContaining('Z hazırlık')).dy),
       );
       await tester.tap(find.byKey(const Key('reminder_sort_menu')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const ValueKey('reminder-sort-custom')));
       await tester.pumpAndSettle();
       expect(
-        tester.getTopLeft(find.text('Z hazırlık')).dy,
-        lessThan(tester.getTopLeft(find.text('A hazırlık')).dy),
+        tester.getTopLeft(find.textContaining('Z hazırlık')).dy,
+        lessThan(tester.getTopLeft(find.textContaining('A hazırlık')).dy),
       );
     },
   );
@@ -438,7 +438,7 @@ void main() {
     await pump(tester);
 
     // Onay sorulmuyor; kaydirmak dogrudan siliyor.
-    await tester.drag(find.text('Öğle'), const Offset(-400, 0));
+    await tester.drag(find.text('Öğle · Tam vaktinde'), const Offset(-400, 0));
     await tester.pumpAndSettle();
 
     expect(
@@ -496,7 +496,7 @@ void main() {
       appState.setPrayerTimes([day]);
       appState.setSkips({skip});
       await pump(tester);
-      expect(find.text('Cuma namazı'), findsOneWidget);
+      expect(find.textContaining('Cuma namazı'), findsOneWidget);
       expect(find.textContaining('12:15'), findsOneWidget);
       expect(tester.widget<Switch>(find.byType(Switch)).value, isFalse);
       await tester.tap(find.byType(Switch));

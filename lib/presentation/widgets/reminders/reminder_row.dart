@@ -3,15 +3,15 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 
-/// Etiket, zaman özeti ve diğer bilgilerden oluşan üç satır.
-/// Metin ölçeği yüksekliği belirler; uzun metinler görsel olarak kısaltılır.
+/// Tekrar günleri, ana zaman ve ikincil bilgilerden oluşan hatırlatıcı satırı.
 class ReminderRow extends StatelessWidget {
-  final IconData icon;
-  final String time;
-  final String? timing;
-  final String name;
-  final String detail;
-  final String? status;
+  final String days;
+  final String? remaining;
+  final String primary;
+  final IconData? primaryIcon;
+  final String? primaryIconTooltip;
+  final String? label;
+  final String? detail;
   final Widget trailing;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
@@ -19,12 +19,13 @@ class ReminderRow extends StatelessWidget {
 
   const ReminderRow({
     super.key,
-    required this.icon,
-    required this.time,
-    this.timing,
-    required this.name,
-    required this.detail,
-    this.status,
+    required this.days,
+    this.remaining,
+    required this.primary,
+    this.primaryIcon,
+    this.primaryIconTooltip,
+    this.label,
+    this.detail,
     required this.trailing,
     this.onTap,
     this.onLongPress,
@@ -34,8 +35,6 @@ class ReminderRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
-    final schedule = [time, ?timing].join(' · ');
-    final metadata = [?status, detail].join(' · ');
     return Material(
       type: MaterialType.transparency,
       child: InkWell(
@@ -47,39 +46,89 @@ class ReminderRow extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(
               children: [
-                Icon(icon, size: 20, color: tokens.textSecondary),
-                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTypography.rowTitle.copyWith(
-                          color: tokens.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        schedule,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTypography.rowSubtitle.copyWith(
-                          color: tokens.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        metadata,
+                        days,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: AppTypography.hint.copyWith(
-                          color: tokens.textTertiary,
+                          color: tokens.accent,
+                          fontWeight: FontWeight.w700,
+                          fontVariations: const [FontVariation('wght', 700)],
                         ),
                       ),
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              primary,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.reminderPrimary.copyWith(
+                                color: tokens.textPrimary,
+                              ),
+                            ),
+                          ),
+                          if (primaryIcon != null) ...[
+                            const SizedBox(width: 8),
+                            Tooltip(
+                              message: primaryIconTooltip ?? '',
+                              child: Icon(
+                                primaryIcon,
+                                size: 19,
+                                color: tokens.accent,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                      if (label != null ||
+                          detail != null ||
+                          remaining != null) ...[
+                        const SizedBox(height: 3),
+                        Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 8,
+                          runSpacing: 3,
+                          children: [
+                            if (label != null)
+                              Text(
+                                label!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTypography.rowSubtitle.copyWith(
+                                  color: tokens.textSecondary,
+                                ),
+                              ),
+                            if (detail != null)
+                              Text(
+                                detail!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTypography.rowSubtitle.copyWith(
+                                  color: tokens.textSecondary,
+                                ),
+                              ),
+                            if (remaining != null)
+                              Text(
+                                remaining!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTypography.rowSubtitle.copyWith(
+                                  color: tokens.textSecondary,
+                                  fontFeatures: const [
+                                    FontFeature.tabularFigures(),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),

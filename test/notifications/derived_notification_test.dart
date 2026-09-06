@@ -49,8 +49,7 @@ void main() {
       notificationService: service,
       storage: storage,
       // Testler kaynak dilde (Turkce) kosuyor; cihaz diline bagli olmasin.
-      localizations: (_) =>
-          AppLocalizations.delegate.load(const Locale('tr')),
+      localizations: (_) => AppLocalizations.delegate.load(const Locale('tr')),
     );
   });
 
@@ -64,10 +63,8 @@ void main() {
     ];
   }
 
-  Future<void> schedule() => scheduler.scheduleNotifications(
-    location: location,
-    prayerTimes: days(),
-  );
+  Future<void> schedule() =>
+      scheduler.scheduleNotifications(location: location, prayerTimes: days());
 
   test('istiva bildirimi ogleden 10 dk once planlanir', () async {
     storage.settings = [
@@ -84,6 +81,37 @@ void main() {
     expect(call.scheduledTime.hour, 12);
     expect(call.scheduledTime.minute, 50);
     expect(call.title, l10n.derivedName(DerivedTimeKind.istiwa));
+  });
+
+  test('OS bildirim gövdesinde 60 dakika bir saat olarak gösterilir', () async {
+    storage.settings = const [
+      NotificationSetting(
+        prayerType: PrayerType.dhuhr,
+        isActive: true,
+        minutesBefore: 60,
+      ),
+    ];
+
+    await schedule();
+
+    expect(service.calls.first.body, contains('1 sa'));
+    expect(service.calls.first.body, isNot(contains('60 dakika')));
+  });
+
+  test('Türetilmiş bildirim gövdesinde karma süre birimleri korunur', () async {
+    storage.settings = const [
+      NotificationSetting(
+        prayerType: PrayerType.dhuhr,
+        derivedKind: DerivedTimeKind.istiwa,
+        isActive: true,
+        minutesBefore: 61,
+      ),
+    ];
+
+    await schedule();
+
+    expect(service.calls.first.body, contains('1 sa 1 dk'));
+    expect(service.calls.first.body, isNot(contains('61 dakika')));
   });
 
   test('israk bildirimi gunesten 45 dk sonra planlanir', () async {
@@ -114,11 +142,13 @@ void main() {
     // Gece vakitleri ertesi gunun imsagini gerektirir; son gun icin
     // hesaplanamaz.
     final scheduledDays = service.calls
-        .map((call) => DateTime(
-              call.scheduledTime.year,
-              call.scheduledTime.month,
-              call.scheduledTime.day,
-            ))
+        .map(
+          (call) => DateTime(
+            call.scheduledTime.year,
+            call.scheduledTime.month,
+            call.scheduledTime.day,
+          ),
+        )
         .toSet();
     expect(scheduledDays.length, lessThan(dayCount));
     expect(service.calls, isNotEmpty);
@@ -138,7 +168,9 @@ void main() {
     final ids = service.calls.map((call) => call.id).toSet();
     expect(ids.length, service.calls.length, reason: 'kimlikler cakismamali');
     expect(
-      service.calls.any((call) => call.title == l10n.derivedName(DerivedTimeKind.istiwa)),
+      service.calls.any(
+        (call) => call.title == l10n.derivedName(DerivedTimeKind.istiwa),
+      ),
       isTrue,
     );
     expect(service.calls.any((call) => call.title == 'Öğle'), isTrue);
@@ -187,7 +219,8 @@ void main() {
       await scheduleWindow();
 
       // Hedef gun 7 gunluk planlama penceresine giriyorsa bildirim olmali.
-      final withinWindow = target.date.difference(DateTime.now()).inDays <
+      final withinWindow =
+          target.date.difference(DateTime.now()).inDays <
           NotificationScheduler.scheduleDaysAhead;
       if (!withinWindow) return;
 

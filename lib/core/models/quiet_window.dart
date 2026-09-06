@@ -77,7 +77,8 @@ class QuietWindow {
     required this.minutesAfter,
     this.mode = QuietMode.silent,
     this.isActive = true,
-  });
+  }) : assert(minutesBefore >= 0),
+       assert(minutesAfter >= 0);
 
   /// Cuma namazı şablonu: öğleden 15 dk önce başlar, 60 dk sonra biter.
   factory QuietWindow.fridayDefault() => const QuietWindow(
@@ -143,8 +144,8 @@ class QuietWindow {
     prayerType: PrayerType.values
         .where((value) => value.name == json['prayerType'])
         .firstOrNull,
-    minutesBefore: json['minutesBefore'] as int? ?? 0,
-    minutesAfter: json['minutesAfter'] as int? ?? 0,
+    minutesBefore: _normalizeMinutes(json['minutesBefore']),
+    minutesAfter: _normalizeMinutes(json['minutesAfter']),
     mode: QuietMode.values.firstWhere(
       (value) => value.name == json['mode'],
       orElse: () => QuietMode.silent,
@@ -152,3 +153,5 @@ class QuietWindow {
     isActive: json['isActive'] as bool? ?? true,
   );
 }
+
+int _normalizeMinutes(Object? value) => value is int && value >= 0 ? value : 0;

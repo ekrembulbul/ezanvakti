@@ -42,9 +42,8 @@ void main() {
       ),
     );
 
-    expect(find.text('Öğle'), findsOneWidget);
-    expect(find.text('Tam vaktinde'), findsOneWidget);
     expect(find.text('Her gün'), findsOneWidget);
+    expect(find.text('Öğle · Tam vaktinde'), findsOneWidget);
   });
 
   testWidgets('X dakika once bildirim alt metni', (tester) async {
@@ -57,8 +56,8 @@ void main() {
       ),
     );
 
-    expect(find.text('30 dk önce'), findsOneWidget);
     expect(find.text('Her gün'), findsOneWidget);
+    expect(find.text('İmsak · 30 dk önce'), findsOneWidget);
   });
 
   testWidgets('Kapali bildirim sondurulmus cizilir', (tester) async {
@@ -138,13 +137,18 @@ void main() {
       nextFireAt: DateTime(2026, 9, 11, 12, 15),
     );
 
-    expect(find.text('Cuma namazı'), findsOneWidget);
-    final schedule = find.text('Öğle · 45 dk önce · yarın 12:15');
-    final details = find.text('Cum · 24s 0dk');
+    final days = find.text('Cum');
+    final schedule = find.text('Öğle · 45 dk önce');
+    final remaining = find.text('1 gün');
+    final label = find.text('Cuma namazı');
+    final details = find.text('yarın 12:15');
+    expect(days, findsOneWidget);
+    expect(remaining, findsOneWidget);
     expect(schedule, findsOneWidget);
+    expect(label, findsOneWidget);
     expect(details, findsOneWidget);
     expect(
-      tester.getTopLeft(find.text('Cuma namazı')).dy,
+      tester.getTopLeft(days).dy,
       lessThan(tester.getTopLeft(schedule).dy),
     );
     expect(

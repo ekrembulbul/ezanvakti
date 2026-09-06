@@ -44,6 +44,7 @@ void main() {
     int? snoozeRemaining = 1,
     VoidCallback? onPrimary,
     VoidCallback? onSnooze,
+    DateTime? currentTime,
   }) async {
     tester.view.physicalSize = const Size(1206, 2622);
     tester.view.devicePixelRatio = 3.0;
@@ -57,7 +58,7 @@ void main() {
           snoozeRemaining: snoozeRemaining,
           firedAt: firedAt,
           stoppedAt: stoppedAt,
-          now: now,
+          now: currentTime ?? now,
           onPrimary: onPrimary ?? () {},
           onSnooze: onSnooze,
         ),
@@ -79,6 +80,20 @@ void main() {
     expect(find.textContaining('Her gün'), findsOneWidget);
   });
 
+  testWidgets('Durdurulma üzerinden bir saat geçince süreyi saate çevirir', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      alarm: plain,
+      gated: false,
+      currentTime: stoppedAt.add(const Duration(minutes: 75)),
+    );
+
+    expect(find.textContaining('1 sa 15 dk önce'), findsOneWidget);
+    expect(find.textContaining('75 dk önce'), findsNothing);
+  });
+
   testWidgets('gorevli: Gorevi yap birincil, gorev karti ve uyari', (
     tester,
   ) async {
@@ -89,7 +104,7 @@ void main() {
     expect(find.textContaining('QR okutma'), findsOneWidget);
     expect(find.textContaining('90 sn'), findsOneWidget);
     expect(find.textContaining('alarm'), findsWidgets);
-    expect(find.textContaining('Güneş −60 dk'), findsOneWidget);
+    expect(find.textContaining('Güneş · 1 sa önce'), findsOneWidget);
     expect(find.text('Sabah Namazı'), findsOneWidget);
   });
 

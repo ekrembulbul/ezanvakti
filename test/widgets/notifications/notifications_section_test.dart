@@ -38,8 +38,8 @@ void main() {
   testWidgets('Ayarlar vakit sirasina gore cizilir', (tester) async {
     await tester.pumpWidget(build(settings: const [dhuhr, fajr]));
 
-    final fajrY = tester.getTopLeft(find.text('İmsak')).dy;
-    final dhuhrY = tester.getTopLeft(find.text('Öğle')).dy;
+    final fajrY = tester.getTopLeft(find.text('İmsak · 15 dk önce')).dy;
+    final dhuhrY = tester.getTopLeft(find.text('Öğle · Tam vaktinde')).dy;
 
     expect(fajrY, lessThan(dhuhrY));
   });

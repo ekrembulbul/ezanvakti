@@ -1,9 +1,12 @@
+import 'package:flutter/material.dart';
+
 import '../../core/models/alarm.dart';
 import '../../core/models/alarm_mission.dart';
+import '../../core/utils/duration_formatter.dart';
 import '../../l10n/app_localizations.dart';
 import '../../l10n/l10n_extensions.dart';
 
-/// "07:30" (sabit) veya "İmsak −30 dk" (çıpalı).
+/// "07:30" (sabit) veya "İmsak · 30 dk önce" (çıpalı).
 ///
 /// [formatHourMinute] verilmezse saat 24 saatlik biçimde basılır. [l10n]
 /// zorunlu: eskiden opsiyoneldi ve null dalı sabit Türkçe üretiyordu.
@@ -22,9 +25,11 @@ String alarmTimeLabel(
   }
   final name = l10n.prayerName(alarm.anchor);
   if (alarm.offsetMinutes == 0) return name;
-  final sign = alarm.offsetMinutes < 0 ? '−' : '+';
-  final minutes = l10n.minutesShort(alarm.offsetMinutes.abs());
-  return '$name $sign$minutes';
+  final duration = formatCompactMinutes(alarm.offsetMinutes.abs(), l10n);
+  final relative = alarm.offsetMinutes < 0
+      ? l10n.reminderBeforeDuration(duration)
+      : l10n.reminderAfterDuration(duration);
+  return '$name · $relative';
 }
 
 String alarmSubtitle(Alarm alarm, AppLocalizations l10n) {
@@ -71,3 +76,10 @@ String missionLabel(AlarmMission mission, AppLocalizations l10n) =>
       AlarmMission.shake => l10n.missionShake,
       AlarmMission.qr => l10n.missionQr,
     };
+
+IconData? missionIcon(AlarmMission mission) => switch (mission) {
+  AlarmMission.none => null,
+  AlarmMission.math => Icons.calculate_rounded,
+  AlarmMission.shake => Icons.vibration_rounded,
+  AlarmMission.qr => Icons.qr_code_scanner_rounded,
+};

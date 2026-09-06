@@ -8,6 +8,7 @@ import 'snooze_notice.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/models/alarm.dart';
+import '../../../core/models/alarm_mission.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 import '../../utils/alarm_labels.dart';
@@ -140,41 +141,47 @@ class AlarmsSection extends StatelessWidget {
 
     final displayTime = alarm.isActive ? snoozedUntil ?? fireAt : null;
     final referenceTime = now ?? DateTime.now();
-    final status = _status(alarm, snoozedUntil, skipped, context.l10n);
+    final status =
+        _status(alarm, snoozedUntil, skipped, context.l10n) ??
+        (alarm.isActive &&
+                displayTime == null &&
+                alarm.kind == AlarmKind.anchored
+            ? context.l10n.reminderTimeUnavailable
+            : null);
     final label = alarm.label.trim();
-    final repeatsAtSameTime =
-        alarm.kind == AlarmKind.fixed &&
-        displayTime?.hour == alarm.hour &&
-        displayTime?.minute == alarm.minute;
+    final detail = <String>[
+      ?status,
+      if (displayTime != null &&
+          snoozedUntil == null &&
+          !scheduleFailures.containsKey(alarm.id))
+        alarm.kind == AlarmKind.fixed
+            ? reminderDayLabel(context, displayTime, referenceTime)
+            : '${reminderDayLabel(context, displayTime, referenceTime)} '
+                  '${context.formatTime(displayTime)}',
+    ];
     final row = ReminderRow(
-      icon: Icons.alarm_rounded,
-      time: alarmTimeLabel(
+      days: weekdaysLabel(alarm.weekdays, context.l10n),
+      remaining: displayTime != null && (status == null || snoozedUntil != null)
+          ? reminderRemaining(
+              displayTime.difference(referenceTime),
+              context.l10n,
+            )
+          : null,
+      primary: alarmTimeLabel(
         alarm,
         l10n: context.l10n,
         formatHourMinute: context.formatHourMinute,
       ),
-      timing: displayTime != null
-          ? repeatsAtSameTime
-                ? reminderDayLabel(context, displayTime, referenceTime)
-                : '${reminderDayLabel(context, displayTime, referenceTime)} '
-                      '${context.formatTime(displayTime)}'
+      primaryIcon: missionIcon(alarm.mission),
+      primaryIconTooltip: alarm.mission.requiresGate
+          ? missionLabel(alarm.mission, context.l10n)
           : null,
-      name: label.isEmpty ? context.l10n.alarmDefaultLabel : label,
-      detail: [
-        weekdaysLabel(alarm.weekdays, context.l10n),
-        if (displayTime != null && status == null)
-          reminderRemaining(
-            displayTime.difference(referenceTime),
-            context.l10n,
-          ),
-      ].join(' · '),
-      status:
-          status ??
-          (alarm.isActive &&
-                  displayTime == null &&
-                  alarm.kind == AlarmKind.anchored
-              ? context.l10n.reminderTimeUnavailable
-              : null),
+      label: label.isNotEmpty
+          ? label
+          : detail.isEmpty
+          ? context.l10n.alarmDefaultLabel
+          : null,
+      detail: detail.isEmpty ? null : detail.join(' · '),
       onTap: isReordering ? null : () => onEdit(alarm),
       onLongPress: isReordering ? null : () => _showRowMenu(context, alarm),
       dimmed: !isOn,

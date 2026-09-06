@@ -1192,8 +1192,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get remindersMinOffsetError => 'En az 1 dk önce olabilir';
 
   @override
-  String remindersMaxOffsetError(Object max) {
-    return 'Bu vakitten en fazla $max dk önce bildirim ekleyebilirsin.';
+  String remindersMaxOffsetError(String max) {
+    return 'Bu vakitten en fazla $max önce bildirim ekleyebilirsin.';
   }
 
   @override
@@ -1528,4 +1528,39 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get reminderOrderLoadFailed =>
       'Kayıtlı sıralama yüklenemedi. Ekranı yeniden aç.';
+
+  @override
+  String durationHoursShort(int hours) {
+    return '$hours sa';
+  }
+
+  @override
+  String durationDaysShort(int days) {
+    return '$days gün';
+  }
+
+  @override
+  String reminderBeforeDuration(String duration) {
+    return '$duration önce';
+  }
+
+  @override
+  String reminderAfterDuration(String duration) {
+    return '$duration sonra';
+  }
+
+  @override
+  String quietWindowDurationSummary(String before, String after) {
+    return '$before önce – $after sonra';
+  }
+
+  @override
+  String durationAgo(String duration) {
+    return '$duration önce';
+  }
+
+  @override
+  String notificationDurationLeft(String name, String duration) {
+    return '$name vaktine $duration kaldı';
+  }
 }
