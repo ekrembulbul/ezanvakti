@@ -1,0 +1,291 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+  #ev-kerahat-design {
+    --ev-bg: light-dark(#fffafb, #15121a);
+    --ev-wash: light-dark(#f8edf2, #211923);
+    --ev-surface: light-dark(#ffffff, #241f2b);
+    --ev-ink: light-dark(#292229, #f3eef4);
+    --ev-muted: light-dark(#756770, #b5a7b5);
+    --ev-line: light-dark(#e8dfe4, #3b303e);
+    --ev-accent: light-dark(#a03e68, #e2a0bd);
+    --ev-accent-soft: light-dark(#f2e2e9, #3d2939);
+    --ev-danger: light-dark(#8d243b, #ed9aaa);
+    --ev-danger-fill: light-dark(#8d243b, #a14158);
+    --ev-danger-soft: light-dark(#f9e9ec, #3c1f2a);
+    --ev-track: light-dark(#c7bac2, #6a5b6a);
+    color: var(--ev-ink);
+    font: 500 14px/1.45 Manrope, -apple-system, BlinkMacSystemFont, sans-serif;
+    width: 100%;
+    padding: 4px 0;
+  }
+  #ev-kerahat-design * { box-sizing: border-box; }
+  #ev-kerahat-design [hidden] { display: none !important; }
+  #ev-kerahat-design button { font: inherit; cursor: pointer; color: inherit; }
+  #ev-kerahat-design button:focus-visible, #ev-kerahat-design a:focus-visible { outline: 2px solid var(--ev-accent); outline-offset: 3px; }
+  #ev-kerahat-design .ev-caption { max-width: 410px; margin: 0 auto 8px; color: var(--ev-muted); font-size: 11px; letter-spacing: .08em; }
+  #ev-kerahat-design .ev-phone { position: relative; overflow: hidden; max-width: 410px; margin: 0 auto; border: 1px solid var(--ev-line); border-radius: 26px; background: var(--ev-bg); }
+  #ev-kerahat-design .ev-screen { background: linear-gradient(165deg, var(--ev-wash), var(--ev-bg) 62%); padding: 18px 19px 22px; }
+  #ev-kerahat-design .ev-status { display: flex; justify-content: space-between; align-items: center; margin: 0 4px 22px; font-weight: 800; font-size: 13px; }
+  #ev-kerahat-design .ev-status-icons { display: flex; gap: 6px; align-items: center; }
+  #ev-kerahat-design .ev-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 26px; }
+  #ev-kerahat-design .ev-city { display: flex; align-items: center; gap: 8px; font-size: 20px; font-weight: 800; }
+  #ev-kerahat-design .ev-top-icon { color: var(--ev-muted); }
+  #ev-kerahat-design .ev-date { text-align: center; font-size: 12px; color: var(--ev-muted); margin-bottom: 23px; }
+  #ev-kerahat-design .ev-date span { color: var(--ev-accent); }
+  #ev-kerahat-design .ev-hero { text-align: center; }
+  #ev-kerahat-design .ev-eyebrow { color: var(--ev-muted); font-size: 11px; font-weight: 800; letter-spacing: .18em; }
+  #ev-kerahat-design .ev-eyebrow strong { color: var(--ev-accent); font-weight: 800; }
+  #ev-kerahat-design .ev-counter { color: var(--ev-accent); font-size: clamp(43px, 12vw, 58px); font-weight: 800; letter-spacing: -.05em; line-height: 1.18; font-variant-numeric: tabular-nums; margin-top: 9px; }
+  #ev-kerahat-design .ev-hero-note { color: var(--ev-muted); font-size: 13px; margin-top: 7px; }
+  #ev-kerahat-design .ev-ruler { margin-top: 29px; }
+  #ev-kerahat-design .ev-ruler-labels { position: relative; height: 19px; }
+  #ev-kerahat-design .ev-ruler-time { position: absolute; transform: translateX(-50%); font-size: 11px; font-weight: 800; color: var(--ev-accent); }
+  #ev-kerahat-design .ev-track { height: 7px; position: relative; background: var(--ev-track); border-radius: 4px; }
+  #ev-kerahat-design .ev-day { position: absolute; left: 19.9306%; width: 60.5555%; top: 0; height: 7px; background: var(--ev-accent); }
+  #ev-kerahat-design .ev-kerahat-zone { position: absolute; height: 7px; top: 0; min-width: 2px; background: var(--ev-danger-fill); }
+  #ev-kerahat-design .ev-kerahat-zone.ev-morning { left: 25.9722%; width: 3.125%; }
+  #ev-kerahat-design .ev-kerahat-zone.ev-noon { left: 52.9167%; width: .6944%; }
+  #ev-kerahat-design .ev-kerahat-zone.ev-evening { left: 77.3611%; width: 3.125%; }
+  #ev-kerahat-design[data-ruler="hatched"] .ev-kerahat-zone { background: repeating-linear-gradient(125deg, var(--ev-danger-fill) 0 3px, var(--ev-danger-soft) 3px 4px); }
+  #ev-kerahat-design .ev-now-dot { width: 14px; height: 14px; border-radius: 50%; position: absolute; top: -3.5px; transform: translateX(-50%); background: var(--ev-accent); border: 3px solid var(--ev-bg); }
+  #ev-kerahat-design[data-active="true"] .ev-now-dot { background: var(--ev-danger-fill); }
+  #ev-kerahat-design[data-active="true"] .ev-ruler-time { color: var(--ev-danger); }
+  #ev-kerahat-design .ev-ticks { height: 11px; position: relative; }
+  #ev-kerahat-design .ev-ticks span { position: absolute; width: 2px; height: 5px; top: 3px; border-radius: 1px; background: var(--ev-track); }
+  #ev-kerahat-design .ev-legend { display: flex; justify-content: flex-end; gap: 5px; align-items: center; font-size: 11px; color: var(--ev-muted); margin-top: 4px; }
+  #ev-kerahat-design .ev-swatch { width: 13px; height: 4px; background: var(--ev-danger-fill); border-radius: 2px; }
+  #ev-kerahat-design .ev-kerahat-card { width: 100%; display: flex; text-align: left; align-items: center; gap: 10px; border: 1px solid var(--ev-line); border-radius: 13px; padding: 12px; margin: 14px 0 22px; background: var(--ev-surface); }
+  #ev-kerahat-design .ev-card-copy { flex: 1; min-width: 0; }
+  #ev-kerahat-design .ev-card-top { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+  #ev-kerahat-design .ev-card-top strong { font-size: 13px; font-weight: 800; }
+  #ev-kerahat-design .ev-card-top span { font-size: 11px; color: var(--ev-muted); }
+  #ev-kerahat-design .ev-card-sub { font-size: 12px; margin-top: 3px; color: var(--ev-muted); font-variant-numeric: tabular-nums; }
+  #ev-kerahat-design .ev-kerahat-icon { flex: 0 0 22px; color: var(--ev-muted); }
+  #ev-kerahat-design[data-active="true"] .ev-kerahat-card { background: var(--ev-danger-soft); border-color: var(--ev-danger-fill); border-inline-start-width: 4px; }
+  #ev-kerahat-design[data-active="true"] .ev-card-top strong, #ev-kerahat-design[data-active="true"] .ev-kerahat-icon { color: var(--ev-danger); }
+  #ev-kerahat-design .ev-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 5px; border-bottom: 1px solid var(--ev-line); padding-bottom: 19px; }
+  #ev-kerahat-design .ev-prayer { text-align: center; border-top: 3px solid var(--ev-line); padding-top: 11px; }
+  #ev-kerahat-design .ev-prayer span { color: var(--ev-muted); font-size: 11px; font-weight: 800; display: block; white-space: nowrap; }
+  #ev-kerahat-design .ev-prayer strong { font-size: 15px; font-weight: 800; margin-top: 7px; display: block; font-variant-numeric: tabular-nums; }
+  #ev-kerahat-design .ev-prayer.ev-current { border-top-color: var(--ev-accent); }
+  #ev-kerahat-design .ev-prayer.ev-current span, #ev-kerahat-design .ev-prayer.ev-current strong { color: var(--ev-accent); }
+  #ev-kerahat-design .ev-upcoming-label { margin: 22px 0 10px; display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; letter-spacing: .14em; color: var(--ev-muted); }
+  #ev-kerahat-design .ev-upcoming-label span:last-child { color: var(--ev-accent); letter-spacing: normal; }
+  #ev-kerahat-design .ev-upcoming { background: var(--ev-surface); border: 1px solid var(--ev-line); border-radius: 15px; overflow: hidden; }
+  #ev-kerahat-design .ev-reminder { display: flex; gap: 11px; align-items: center; padding: 13px 14px; }
+  #ev-kerahat-design .ev-reminder + .ev-reminder { border-top: 1px solid var(--ev-line); }
+  #ev-kerahat-design .ev-reminder > i, #ev-kerahat-design .ev-reminder > svg { color: var(--ev-muted); flex-shrink: 0; }
+  #ev-kerahat-design .ev-reminder-copy { flex: 1; min-width: 0; }
+  #ev-kerahat-design .ev-reminder strong { display: block; font-size: 14px; font-weight: 800; }
+  #ev-kerahat-design .ev-reminder small { display: block; font-size: 11px; color: var(--ev-muted); margin-top: 3px; }
+  #ev-kerahat-design .ev-toggle { width: 41px; height: 25px; border-radius: 15px; background: var(--ev-accent-soft); padding: 3px; flex-shrink: 0; }
+  #ev-kerahat-design .ev-toggle::after { content: ''; display: block; width: 19px; height: 19px; border-radius: 50%; background: var(--ev-accent); margin-left: auto; }
+  #ev-kerahat-design .ev-nav { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 4px; padding: 9px 11px 15px; border-top: 1px solid var(--ev-line); background: var(--ev-bg); }
+  #ev-kerahat-design .ev-nav button, #ev-kerahat-design .ev-nav .ev-nav-static { border: 0; background: transparent; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px; padding: 8px 2px; border-radius: 15px; min-height: 54px; font-size: 11px; font-weight: 700; color: var(--ev-muted); }
+  #ev-kerahat-design .ev-nav [aria-current="page"] { background: var(--ev-accent-soft); color: var(--ev-accent); }
+  #ev-kerahat-design .ev-sheet-layer { position: absolute; inset: 0; z-index: 5; display: flex; align-items: flex-end; }
+  #ev-kerahat-design .ev-scrim { position: absolute; inset: 0; background: #0006; border: 0; width: 100%; }
+  #ev-kerahat-design .ev-sheet { position: relative; background: var(--ev-surface); width: 100%; border-radius: 23px 23px 0 0; padding: 14px 19px 25px; box-shadow: 0 -10px 40px #0002; }
+  #ev-kerahat-design .ev-handle { width: 38px; height: 4px; background: var(--ev-line); border-radius: 3px; margin: 0 auto 16px; }
+  #ev-kerahat-design .ev-sheet-heading { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  #ev-kerahat-design .ev-sheet-heading strong { font-size: 17px; font-weight: 800; }
+  #ev-kerahat-design .ev-close { border: 0; background: transparent; color: var(--ev-muted); min-width: 40px; min-height: 40px; display: grid; place-items: center; }
+  #ev-kerahat-design .ev-source-line { font-size: 11px; color: var(--ev-muted); margin: 0 0 15px; }
+  #ev-kerahat-design .ev-period { display: flex; justify-content: space-between; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--ev-line); }
+  #ev-kerahat-design .ev-period strong { display: block; font-size: 13px; font-weight: 800; }
+  #ev-kerahat-design .ev-period small { color: var(--ev-muted); font-size: 11px; }
+  #ev-kerahat-design .ev-period-time { text-align: right; font-variant-numeric: tabular-nums; font-size: 13px; }
+  #ev-kerahat-design .ev-period.ev-period-active { color: var(--ev-danger); }
+  #ev-kerahat-design .ev-period-note { display: block; font-size: 11px; margin-top: 2px; }
+  #ev-kerahat-design .ev-exception { font-size: 12px; color: var(--ev-muted); margin: 16px 0 12px; line-height: 1.6; }
+  #ev-kerahat-design .ev-source-link { font-size: 12px; color: var(--ev-accent); text-decoration: underline; }
+  #ev-kerahat-design .ev-calendar-heading { text-align: center; font-size: 18px; font-weight: 800; margin: 8px 0 4px; }
+  #ev-kerahat-design .ev-calendar-city { text-align: center; font-size: 12px; color: var(--ev-muted); margin-bottom: 24px; }
+  #ev-kerahat-design .ev-calendar-switch { display: flex; gap: 4px; background: var(--ev-accent-soft); border-radius: 14px; padding: 4px; }
+  #ev-kerahat-design .ev-calendar-switch button { flex: 1; min-height: 42px; border: 0; border-radius: 10px; background: transparent; font-size: 12px; font-weight: 700; }
+  #ev-kerahat-design .ev-calendar-switch [aria-pressed="true"] { background: var(--ev-surface); color: var(--ev-accent); }
+  #ev-kerahat-design .ev-year { display: flex; justify-content: space-between; align-items: center; margin: 24px 0 15px; font-size: 16px; font-weight: 800; }
+  #ev-kerahat-design .ev-year button { border: 0; background: var(--ev-surface); width: 40px; height: 40px; border-radius: 10px; display: grid; place-items: center; }
+  #ev-kerahat-design .ev-table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+  #ev-kerahat-design .ev-table th { text-align: right; color: var(--ev-muted); font-weight: 700; font-size: 11px; padding: 11px 8px; }
+  #ev-kerahat-design .ev-table td { text-align: right; padding: 15px 8px; border-bottom: 1px solid var(--ev-line); }
+  #ev-kerahat-design .ev-table th:first-child, #ev-kerahat-design .ev-table td:first-child { text-align: left; }
+  #ev-kerahat-design .ev-table td:nth-child(n+2) { color: var(--ev-accent); font-weight: 800; background: var(--ev-accent-soft); }
+  #ev-kerahat-design .ev-regular-table { font-size: 11px; }
+  #ev-kerahat-design .ev-regular-table th, #ev-kerahat-design .ev-regular-table td { padding: 12px 2px; }
+  #ev-kerahat-design .ev-regular-table td:nth-child(n+2) { color: var(--ev-ink); background: transparent; font-weight: 600; }
+  #ev-kerahat-design .ev-table-note { font-size: 11px; color: var(--ev-muted); margin: 15px 0 36px; }
+  @media (max-width: 350px) {
+    #ev-kerahat-design .ev-screen { padding-inline: 13px; }
+    #ev-kerahat-design .ev-prayer strong { font-size: 14px; }
+    #ev-kerahat-design .ev-grid { gap: 3px; }
+    #ev-kerahat-design .ev-card-top { gap: 4px; }
+  }
+</style>
+<section id="ev-kerahat-design" aria-label="Kerahat ve imsakiye tasarım seçenekleri" data-active="true" data-ruler="solid">
+  <div class="ev-caption">TASARIM ÖNERİSİ · SAATLER ÖRNEKTİR</div>
+  <div class="ev-phone">
+    <div class="ev-screen">
+      <div class="ev-status"><span data-status-time>18:55</span><span class="ev-status-icons"><i data-lucide="signal" aria-hidden="true"></i><i data-lucide="wifi" aria-hidden="true"></i><i data-lucide="battery-full" aria-hidden="true"></i></span></div>
+      <div data-view="home">
+        <div class="ev-top"><div class="ev-city">Ankara <i data-lucide="chevron-down" aria-hidden="true"></i></div><i class="ev-top-icon" data-lucide="settings" aria-hidden="true"></i></div>
+        <div class="ev-date">Pazar, 6 Eylül 2026 <span>· 24 Rebiülevvel 1448</span></div>
+        <div class="ev-hero">
+          <div class="ev-eyebrow">SONRAKİ · <strong data-next-prayer>AKŞAM</strong></div>
+          <div class="ev-counter" data-countdown>00:24:00</div>
+          <div class="ev-hero-note" data-hero-note>Akşam ezanı 19:19'da</div>
+        </div>
+        <div class="ev-ruler" role="img" aria-label="24 saatlik cetvelde üç yaklaşık kerahat aralığı bordo renkle gösteriliyor.">
+          <div class="ev-ruler-labels"><span class="ev-ruler-time" data-marker-label style="left:78.8194%">18:55</span></div>
+          <div class="ev-track">
+            <div class="ev-day"></div>
+            <div class="ev-kerahat-zone ev-morning"></div><div class="ev-kerahat-zone ev-noon"></div><div class="ev-kerahat-zone ev-evening"></div>
+            <span class="ev-now-dot" data-marker style="left:78.8194%"></span>
+          </div>
+          <div class="ev-ticks"><span style="left:19.9306%"></span><span style="left:25.9722%"></span><span style="left:53.6111%"></span><span style="left:68.6806%"></span><span style="left:80.4861%"></span><span style="left:86.1111%"></span></div>
+          <div class="ev-legend"><span class="ev-swatch"></span>Yaklaşık kerahat aralığı</div>
+        </div>
+        <button class="ev-kerahat-card" type="button" data-open-periods aria-expanded="false" aria-controls="ev-kerahat-sheet">
+          <i class="ev-kerahat-icon" data-lucide="sunset" aria-hidden="true"></i>
+          <span class="ev-card-copy" aria-live="polite"><span class="ev-card-top"><strong data-card-title>Kerahat vakti</strong><span data-card-kind>Gün batımı</span></span><span class="ev-card-sub" data-card-detail>18:34–19:19 · Bitmesine 24 dk</span></span>
+          <i data-lucide="chevron-right" aria-hidden="true"></i>
+        </button>
+        <div class="ev-grid">
+          <div class="ev-prayer"><span>İMSAK</span><strong>04:47</strong></div><div class="ev-prayer"><span>GÜNEŞ</span><strong>06:14</strong></div><div class="ev-prayer"><span>ÖĞLE</span><strong>12:52</strong></div><div class="ev-prayer ev-current" data-prayer-cell="asr"><span>İKİNDİ</span><strong>16:29</strong></div><div class="ev-prayer" data-prayer-cell="maghrib"><span>AKŞAM</span><strong>19:19</strong></div><div class="ev-prayer"><span>YATSI</span><strong>20:40</strong></div>
+        </div>
+        <div class="ev-upcoming-label"><span>SIRADAKİ</span><span>Tümü</span></div>
+        <div class="ev-upcoming">
+          <div class="ev-reminder"><i data-lucide="bell" aria-hidden="true"></i><div class="ev-reminder-copy"><strong>Yatsı · 15 dk önce</strong><small data-notification-countdown>bugün 20:25 · 1 sa 30 dk</small></div><span class="ev-toggle" role="img" aria-label="Bildirim açık"></span></div>
+          <div class="ev-reminder"><i data-lucide="alarm-clock" aria-hidden="true"></i><div class="ev-reminder-copy"><strong>Güneş · 30 dk önce</strong><small>Sabah hazırlığı · yarın 05:45</small></div><span class="ev-toggle" role="img" aria-label="Alarm açık"></span></div>
+        </div>
+      </div>
+      <div data-view="calendar" hidden>
+        <div class="ev-calendar-heading">Takvim</div><div class="ev-calendar-city">Ankara</div>
+        <div class="ev-calendar-switch" aria-label="Takvim türü"><button type="button" data-calendar-mode="regular" aria-pressed="false">Vakit takvimi</button><button type="button" data-calendar-mode="ramadan" aria-pressed="true">Ramazan İmsakiyesi</button></div>
+        <div class="ev-year"><button type="button" data-year-step="-1" aria-label="Önceki yıl"><i data-lucide="chevron-left" aria-hidden="true"></i></button><span data-calendar-title>Ramazan 1448</span><button type="button" data-year-step="1" aria-label="Sonraki yıl"><i data-lucide="chevron-right" aria-hidden="true"></i></button></div>
+        <table class="ev-table" data-ramadan-table aria-label="İmsak ve iftar sütunları vurgulanan örnek imsakiye"><thead><tr><th>RAMAZAN</th><th>İMSAK</th><th>İFTAR</th></tr></thead><tbody><tr><td>1. gün</td><td>05:42</td><td>18:21</td></tr><tr><td>2. gün</td><td>05:41</td><td>18:22</td></tr><tr><td>3. gün</td><td>05:39</td><td>18:23</td></tr><tr><td>4. gün</td><td>05:38</td><td>18:24</td></tr><tr><td>5. gün</td><td>05:36</td><td>18:25</td></tr></tbody></table>
+        <table class="ev-table ev-regular-table" data-regular-table aria-label="Altı vakti gösteren örnek takvim" hidden><thead><tr><th>GÜN</th><th>İMSAK</th><th>GÜNEŞ</th><th>ÖĞLE</th><th>İKİNDİ</th><th>AKŞAM</th><th>YATSI</th></tr></thead><tbody><tr><td>6 Eyl</td><td>04:47</td><td>06:14</td><td>12:52</td><td>16:29</td><td>19:19</td><td>20:40</td></tr><tr><td>7 Eyl</td><td>04:48</td><td>06:15</td><td>12:52</td><td>16:28</td><td>19:17</td><td>20:38</td></tr><tr><td>8 Eyl</td><td>04:49</td><td>06:16</td><td>12:51</td><td>16:27</td><td>19:16</td><td>20:37</td></tr></tbody></table>
+        <div class="ev-table-note">Örnek yerleşim · Saatler gerçek imsakiye verisi değildir.</div>
+      </div>
+    </div>
+    <nav class="ev-nav" aria-label="Ana gezinme">
+      <button type="button" data-page="home" aria-current="page"><i data-lucide="clock-3" aria-hidden="true"></i>Vakitler</button>
+      <button type="button" data-page="calendar"><i data-lucide="calendar-days" aria-hidden="true"></i>Takvim</button>
+      <span class="ev-nav-static"><i data-lucide="bell" aria-hidden="true"></i>Hatırlatıcılar</span>
+      <span class="ev-nav-static"><i data-lucide="wrench" aria-hidden="true"></i>Araçlar</span>
+    </nav>
+    <div class="ev-sheet-layer" id="ev-kerahat-sheet" hidden>
+      <button class="ev-scrim" type="button" data-close-periods aria-label="Kerahat ayrıntılarını kapat"></button>
+      <section class="ev-sheet" role="dialog" aria-modal="true" aria-labelledby="ev-sheet-title">
+        <div class="ev-handle"></div>
+        <div class="ev-sheet-heading"><strong id="ev-sheet-title">Bugünün kerahat aralıkları</strong><button class="ev-close" type="button" data-close-periods aria-label="Kapat"><i data-lucide="x" aria-hidden="true"></i></button></div>
+        <div class="ev-source-line">Yaklaşık gösterim · Diyanet rehberi</div>
+        <div class="ev-period"><div><strong>Gün doğumu</strong><small>Güneş doğduktan sonra</small></div><div class="ev-period-time">06:14–06:59<span class="ev-period-note">45 dk</span></div></div>
+        <div class="ev-period"><div><strong>Öğle öncesi · Zeval</strong><small>Öğle vaktinden önce</small></div><div class="ev-period-time">12:42–12:52<span class="ev-period-note">10 dk</span></div></div>
+        <div class="ev-period ev-period-active" data-evening-period><div><strong>Gün batımı</strong><small>Akşam vaktinden önce</small></div><div class="ev-period-time">18:34–19:19<span class="ev-period-note" data-evening-status>Şimdi · 45 dk</span></div></div>
+        <p class="ev-exception">Aralıklar yaklaşık hesaplanır. Namaz türü ve mezhebe göre istisnalar vardır; gün batımında o günün ikindi farzı kılınabilir.</p>
+        <a class="ev-source-link" href="https://kurul.diyanet.gov.tr/tr/fetva/mekruh-vakitler-hangileridir-hangi-vakitlerde-kaza-ve-hangi-vakitlerde-nafile-namaz-kilinmaz/0193c42d-52b7-7186-d5b4-f1d3c950ad73" target="_blank" rel="noopener noreferrer">Diyanet açıklamasını oku</a>
+      </section>
+    </div>
+  </div>
+</section>
+<script>
+(() => {
+  const root = document.getElementById('ev-kerahat-design');
+  const state = { phase: 'during', appearance: 'system', ruler: 'solid', page: 'home', calendar: 'ramadan', year: 1448 };
+  const scenarios = {
+    before: { time: '18:20', minutes: 1100, next: 'AKŞAM', countdown: '00:59:00', note: "Akşam ezanı 19:19'da", title: 'Sıradaki kerahat', kind: 'Gün batımı', detail: '18:34–19:19 · Başlamasına 14 dk', notification: 'bugün 20:25 · 2 sa 5 dk' },
+    during: { time: '18:55', minutes: 1135, next: 'AKŞAM', countdown: '00:24:00', note: "Akşam ezanı 19:19'da", title: 'Kerahat vakti', kind: 'Gün batımı', detail: '18:34–19:19 · Bitmesine 24 dk', notification: 'bugün 20:25 · 1 sa 30 dk' },
+    after: { time: '19:25', minutes: 1165, next: 'YATSI', countdown: '01:15:00', note: "Yatsı ezanı 20:40'ta", title: 'Bugünkü kerahat aralıkları', kind: '', detail: 'Üç aralık tamamlandı · Ayrıntıları gör', notification: 'bugün 20:25 · 1 sa' }
+  };
+  const setText = (selector, text) => { root.querySelector(selector).textContent = text; };
+  const sheetLayer = root.querySelector('.ev-sheet-layer');
+  const sheetTrigger = root.querySelector('[data-open-periods]');
+  const homeView = root.querySelector('[data-view="home"]');
+  const calendarView = root.querySelector('[data-view="calendar"]');
+  const nav = root.querySelector('.ev-nav');
+  let lastFocus = null;
+
+  function render() {
+    const scene = scenarios[state.phase];
+    root.dataset.active = String(state.phase === 'during');
+    root.dataset.ruler = state.ruler;
+    root.style.colorScheme = state.appearance === 'system' ? '' : state.appearance;
+    setText('[data-status-time]', scene.time);
+    setText('[data-marker-label]', scene.time);
+    setText('[data-next-prayer]', scene.next);
+    setText('[data-countdown]', scene.countdown);
+    setText('[data-hero-note]', scene.note);
+    setText('[data-card-title]', scene.title);
+    setText('[data-card-kind]', scene.kind);
+    setText('[data-card-detail]', scene.detail);
+    setText('[data-notification-countdown]', scene.notification);
+    setText('[data-evening-status]', state.phase === 'during' ? 'Şimdi · 45 dk' : state.phase === 'before' ? 'Yaklaşıyor · 45 dk' : 'Tamamlandı · 45 dk');
+    const progress = `${scene.minutes / 1440 * 100}%`;
+    root.querySelector('[data-marker]').style.left = progress;
+    root.querySelector('[data-marker-label]').style.left = progress;
+    root.querySelector('[data-prayer-cell="asr"]').classList.toggle('ev-current', state.phase !== 'after');
+    root.querySelector('[data-prayer-cell="maghrib"]').classList.toggle('ev-current', state.phase === 'after');
+    root.querySelector('[data-evening-period]').classList.toggle('ev-period-active', state.phase === 'during');
+    homeView.hidden = state.page !== 'home';
+    calendarView.hidden = state.page !== 'calendar';
+    root.querySelectorAll('[data-page]').forEach(button => {
+      if (button.dataset.page === state.page) button.setAttribute('aria-current', 'page');
+      else button.removeAttribute('aria-current');
+    });
+    root.querySelectorAll('[data-calendar-mode]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.calendarMode === state.calendar)));
+    setText('[data-calendar-title]', state.calendar === 'ramadan' ? `Ramazan ${state.year}` : 'Eylül 2026');
+    root.querySelector('[data-ramadan-table]').hidden = state.calendar !== 'ramadan';
+    root.querySelector('[data-regular-table]').hidden = state.calendar !== 'regular';
+    root.querySelectorAll('[data-year-step]').forEach(button => { button.disabled = state.calendar !== 'ramadan'; });
+  }
+
+  function openSheet() {
+    lastFocus = document.activeElement;
+    sheetLayer.hidden = false;
+    sheetTrigger.setAttribute('aria-expanded', 'true');
+    homeView.inert = true;
+    calendarView.inert = true;
+    nav.inert = true;
+    root.querySelector('.ev-close').focus();
+  }
+
+  function closeSheet() {
+    sheetLayer.hidden = true;
+    sheetTrigger.setAttribute('aria-expanded', 'false');
+    homeView.inert = false;
+    calendarView.inert = false;
+    nav.inert = false;
+    if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+  }
+
+  sheetTrigger.addEventListener('click', openSheet);
+  root.querySelectorAll('[data-close-periods]').forEach(button => button.addEventListener('click', closeSheet));
+  root.addEventListener('keydown', event => {
+    if (sheetLayer.hidden) return;
+    if (event.key === 'Escape') { event.preventDefault(); closeSheet(); }
+    if (event.key === 'Tab') {
+      const controls = Array.from(sheetLayer.querySelectorAll('.ev-sheet button, .ev-sheet a'));
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    }
+  });
+  root.querySelectorAll('[data-page]').forEach(button => button.addEventListener('click', () => { state.page = button.dataset.page; render(); }));
+  root.querySelectorAll('[data-calendar-mode]').forEach(button => button.addEventListener('click', () => { state.calendar = button.dataset.calendarMode; render(); }));
+  root.querySelectorAll('[data-year-step]').forEach(button => button.addEventListener('click', () => {
+    if (state.calendar !== 'ramadan') return;
+    state.year = Math.max(1440, Math.min(1460, state.year + Number(button.dataset.yearStep)));
+    render();
+  }));
+  render();
+  if (globalThis.Tweak) {
+    const tweaks = new Tweak({ container: root, onChange: render });
+    tweaks.addSelect(state, 'phase', { label: 'Kerahat durumu', options: [{ label: 'Öncesinde', value: 'before' }, { label: 'Sırasında', value: 'during' }, { label: 'Bittikten sonra', value: 'after' }] });
+    tweaks.addSelect(state, 'appearance', { label: 'Görünüm', options: [{ label: 'Sistem', value: 'system' }, { label: 'Açık', value: 'light' }, { label: 'Koyu', value: 'dark' }] });
+    tweaks.addSelect(state, 'ruler', { label: 'Cetvelde kerahat', options: [{ label: 'Bordo dolgu', value: 'solid' }, { label: 'Bordo tarama', value: 'hatched' }] });
+    tweaks.addSelect(state, 'page', { label: 'Önizleme ekranı', options: [{ label: 'Vakitler', value: 'home' }, { label: 'İmsakiye girişi', value: 'calendar' }] });
+  }
+})();
+</script>
