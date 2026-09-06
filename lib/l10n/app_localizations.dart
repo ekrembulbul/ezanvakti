@@ -2257,7 +2257,7 @@ abstract class AppLocalizations {
   /// İpucu
   ///
   /// In tr, this message translates to:
-  /// **'Silmek için satırı sola kaydırın; yanlışlıkla silersen alttaki \"Geri al\" ile dönersin. Alarmlar vakit güncellendiğinde otomatik yeniden planlanır.'**
+  /// **'Kopyalamak için basılı tut; silmek için sola kaydır. Silinen alarmı \"Geri al\" ile geri getirebilirsin.'**
   String get alarmsSwipeHint;
 
   /// Bilgi
@@ -2733,6 +2733,72 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Konum izni gerekli'**
   String get errorLocationPermission;
+
+  /// Hatırlatıcı listesi gösterimi ve sıralaması
+  ///
+  /// In tr, this message translates to:
+  /// **'{minutes} dk sonra'**
+  String reminderMinutesAfter(int minutes);
+
+  /// Hatırlatıcı listesi gösterimi ve sıralaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Çalma saati için vakit verisi gerekiyor'**
+  String get reminderTimeUnavailable;
+
+  /// Hatırlatıcı listesi gösterimi ve sıralaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Sırala'**
+  String get reminderSort;
+
+  /// Hatırlatıcı listesi gösterimi ve sıralaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Özel sıralama'**
+  String get reminderSortCustom;
+
+  /// Hatırlatıcı listesi gösterimi ve sıralaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Çalma zamanına göre'**
+  String get reminderSortNextFire;
+
+  /// Hatırlatıcı listesi gösterimi ve sıralaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Ada göre'**
+  String get reminderSortName;
+
+  /// Hatırlatıcı listesi gösterimi ve sıralaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Sırayı düzenle'**
+  String get reminderReorder;
+
+  /// Hatırlatıcı listesi gösterimi ve sıralaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıralamayı bitir'**
+  String get reminderReorderDone;
+
+  /// Hatırlatıcı listesi gösterimi ve sıralaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Sırayı değiştirmek için tutamacı sürükle.'**
+  String get reminderReorderHint;
+
+  /// Hatırlatıcı listesi gösterimi ve sıralaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıralama kaydedilemedi. Yeniden dene.'**
+  String get reminderOrderSaveFailed;
+
+  /// Hatırlatıcı listesi gösterimi ve sıralaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Kayıtlı sıralama yüklenemedi. Ekranı yeniden aç.'**
+  String get reminderOrderLoadFailed;
 }
 
 class _AppLocalizationsDelegate

@@ -1208,7 +1208,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get alarmsSwipeHint =>
-      'Swipe a row to delete; if it was a mistake, use \"Undo\" below. Alarms are rescheduled automatically when times update.';
+      'Touch and hold to duplicate; swipe left to delete. Use \"Undo\" to restore a deleted alarm.';
 
   @override
   String get alarmsRescheduleNote =>
@@ -1493,4 +1493,41 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorLocationPermission => 'Location permission is required';
+
+  @override
+  String reminderMinutesAfter(int minutes) {
+    return '$minutes min after';
+  }
+
+  @override
+  String get reminderTimeUnavailable =>
+      'Prayer times are needed to calculate the next alarm';
+
+  @override
+  String get reminderSort => 'Sort';
+
+  @override
+  String get reminderSortCustom => 'Custom order';
+
+  @override
+  String get reminderSortNextFire => 'Next scheduled time';
+
+  @override
+  String get reminderSortName => 'Name';
+
+  @override
+  String get reminderReorder => 'Edit order';
+
+  @override
+  String get reminderReorderDone => 'Finish ordering';
+
+  @override
+  String get reminderReorderHint => 'Drag the handle to change the order.';
+
+  @override
+  String get reminderOrderSaveFailed => 'Could not save the order. Try again.';
+
+  @override
+  String get reminderOrderLoadFailed =>
+      'Could not load your saved order. Reopen this screen.';
 }

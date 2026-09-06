@@ -39,7 +39,7 @@ void main() {
     );
 
     expect(find.text('Öğle'), findsOneWidget);
-    expect(find.text('Tam vaktinde'), findsOneWidget);
+    expect(find.text('Tam vaktinde · Her gün'), findsOneWidget);
   });
 
   testWidgets('X dakika once bildirim alt metni', (tester) async {
@@ -52,7 +52,7 @@ void main() {
       ),
     );
 
-    expect(find.text('30 dk önce'), findsOneWidget);
+    expect(find.text('30 dk önce · Her gün'), findsOneWidget);
   });
 
   testWidgets('Kapali bildirim sondurulmus cizilir', (tester) async {
@@ -116,15 +116,21 @@ void main() {
     expect(toggled, isTrue);
   });
 
-  testWidgets('Satir kendi kartini cizmez — grup icinde yasar', (tester) async {
+  testWidgets('Özel bildirim adı vakit ve tekrar bilgisini gizlemez', (
+    tester,
+  ) async {
     await pumpTile(
       tester,
       setting: const NotificationSetting(
-        prayerType: PrayerType.maghrib,
+        prayerType: PrayerType.dhuhr,
         isActive: true,
+        label: 'Cuma namazı',
+        minutesBefore: 45,
+        weekdays: {5},
       ),
     );
 
-    expect(find.byType(GroupedRow), findsOneWidget);
+    expect(find.text('Cuma namazı'), findsOneWidget);
+    expect(find.text('Öğle · 45 dk önce · Cum'), findsOneWidget);
   });
 }

@@ -8,7 +8,7 @@ import '../../../core/models/notification_setting.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 import '../../utils/prayer_name_helper.dart';
-import '../common/grouped_list.dart';
+import 'reminder_list.dart';
 import '../common/info_banner.dart';
 import '../common/section_label.dart';
 import '../common/state_widgets.dart';
@@ -42,6 +42,11 @@ class NotificationsSection extends StatelessWidget {
 
   /// "Cuma namazı" hazır şablonunu ekler; şablon zaten varsa düğme çıkmaz.
   final VoidCallback? onAddFridayReminder;
+  final Map<String, UpcomingNotification> nextOccurrenceByNotification;
+  final bool preserveOrder;
+  final bool isReordering;
+  final ReorderCallback? onReorder;
+  final DateTime? now;
 
   const NotificationsSection({
     this.nextFireByNotification = const {},
@@ -58,20 +63,31 @@ class NotificationsSection extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     this.onAddFridayReminder,
+    this.nextOccurrenceByNotification = const {},
+    this.preserveOrder = false,
+    this.isReordering = false,
+    this.onReorder,
+    this.now,
   });
 
   /// Cuma öğle vaktine kurulmuş, yalnızca Cuma çalan bir satır var mı.
   bool get _hasFridayReminder => settings.any(
     (setting) =>
-        setting.prayerType == PrayerType.dhuhr && setting.weekdays.contains(5),
+        setting.prayerType == PrayerType.dhuhr &&
+        !setting.isDerived &&
+        setting.weekdays.length == 1 &&
+        setting.weekdays.contains(5),
   );
 
-  SkippedOccurrence _occurrence(NotificationSetting setting) =>
-      SkippedOccurrence(
-        kind: SkipKind.notification,
-        reference: notificationKey(setting),
-        fireAt: nextFireByNotification[notificationKey(setting)]!,
-      );
+  SkippedOccurrence _occurrence(NotificationSetting setting) {
+    final item = nextOccurrenceByNotification[notificationKey(setting)];
+    if (item != null) return notificationOccurrence(item);
+    return SkippedOccurrence(
+      kind: SkipKind.notification,
+      reference: notificationKey(setting),
+      fireAt: nextFireByNotification[notificationKey(setting)]!,
+    );
+  }
 
   bool _isSkipped(NotificationSetting setting) {
     final fireAt = nextFireByNotification[notificationKey(setting)];
@@ -79,7 +95,7 @@ class NotificationsSection extends StatelessWidget {
     return isSkipped(
       skips,
       kind: SkipKind.notification,
-      reference: notificationKey(setting),
+      reference: _occurrence(setting).reference,
       fireAt: fireAt,
     );
   }
@@ -105,9 +121,7 @@ class NotificationsSection extends StatelessWidget {
           ),
           const SizedBox(height: 16),
         ],
-        Expanded(
-          child: settings.isEmpty ? _empty(context) : _list(context),
-        ),
+        Expanded(child: settings.isEmpty ? _empty(context) : _list(context)),
       ],
     );
   }
@@ -122,70 +136,86 @@ class NotificationsSection extends StatelessWidget {
     final tokens = context.tokens;
     final sorted = _sorted();
 
-    return ListView(
-      padding: const EdgeInsets.only(bottom: 24),
-      children: [
-        Text(
-          context.l10n.remindersIntro,
-          style: AppTypography.hint.copyWith(
-            color: tokens.textTertiary,
-            height: 1.5,
-          ),
+    return ReminderList(
+      isReordering: isReordering,
+      onReorder: onReorder,
+      footer: Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: Text(
+          isReordering
+              ? context.l10n.reminderReorderHint
+              : context.l10n.remindersSwipeToDelete,
+          style: AppTypography.hint.copyWith(color: tokens.textTertiary),
         ),
-        if (onAddFridayReminder != null && !_hasFridayReminder) ...[
-          const SizedBox(height: 12),
-          Align(
-            alignment: AlignmentDirectional.centerStart,
-            child: OutlinedButton.icon(
-              onPressed: onAddFridayReminder,
-              icon: const Icon(Icons.mosque_rounded, size: 18),
-              label: Text(context.l10n.remindersAddFriday),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: tokens.accent,
-                side: BorderSide(color: tokens.accent),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
+      ),
+      header: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            context.l10n.remindersIntro,
+            style: AppTypography.hint.copyWith(
+              color: tokens.textTertiary,
+              height: 1.5,
+            ),
+          ),
+          if (onAddFridayReminder != null && !_hasFridayReminder) ...[
+            const SizedBox(height: 12),
+            Align(
+              alignment: AlignmentDirectional.centerStart,
+              child: OutlinedButton.icon(
+                onPressed: onAddFridayReminder,
+                icon: const Icon(Icons.mosque_rounded, size: 18),
+                label: Text(context.l10n.remindersAddFriday),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: tokens.accent,
+                  side: BorderSide(color: tokens.accent),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
-        const SizedBox(height: 20),
-        SectionLabel(context.l10n.remindersCount(sorted.length)),
-        const SizedBox(height: 10),
-        GroupedList(
-          children: [
-            for (final setting in sorted)
-              SwipeToDelete(
-                itemKey: ValueKey(notificationKey(setting)),
-                onDelete: () => onDelete(setting),
-                child: NotificationTile(
-                  setting: setting,
-                  hasPermission: hasPermission,
-                  nextFireAt: nextFireByNotification[notificationKey(setting)],
-                  isSkipped: _isSkipped(setting),
-                  onSkipToggle: onSkipChanged == null
-                      ? null
-                      : () => onSkipChanged!(
-                          _occurrence(setting),
-                          !_isSkipped(setting),
-                        ),
-                  onToggle: () => onToggle(setting),
-                  onTap: () => onEdit(setting),
-                ),
-              ),
           ],
-        ),
-        const SizedBox(height: 12),
-        Text(
-          context.l10n.remindersSwipeToDelete,
-          style: AppTypography.hint.copyWith(color: tokens.textTertiary),
-        ),
+          const SizedBox(height: 20),
+          SectionLabel(context.l10n.remindersCount(sorted.length)),
+          const SizedBox(height: 10),
+        ],
+      ),
+      children: [
+        for (final setting in sorted)
+          KeyedSubtree(
+            key: ValueKey(notificationKey(setting)),
+            child: _row(setting),
+          ),
       ],
     );
   }
 
+  Widget _row(NotificationSetting setting) {
+    final tile = NotificationTile(
+      setting: setting,
+      hasPermission: hasPermission,
+      now: now,
+      isReordering: isReordering,
+      nextFireAt: nextFireByNotification[notificationKey(setting)],
+      isSkipped: _isSkipped(setting),
+      onSkipToggle: onSkipChanged == null
+          ? null
+          : () => onSkipChanged!(_occurrence(setting), !_isSkipped(setting)),
+      onToggle: () => onToggle(setting),
+      onTap: () => onEdit(setting),
+    );
+    return isReordering
+        ? tile
+        : SwipeToDelete(
+            itemKey: ValueKey(notificationKey(setting)),
+            onDelete: () => onDelete(setting),
+            child: tile,
+          );
+  }
+
   List<NotificationSetting> _sorted() {
+    if (preserveOrder) return settings;
     final sorted = [...settings];
     sorted.sort((a, b) {
       final orderCompare = PrayerNameHelper.getPrayerOrder(

@@ -1,4 +1,5 @@
 import 'package:ezanvakti/core/models/alarm.dart';
+import 'package:ezanvakti/core/models/notification_setting.dart';
 import 'package:ezanvakti/presentation/widgets/reminders/alarms_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -35,10 +36,48 @@ void main() {
     await tester.pumpWidget(build());
 
     expect(find.text('06:30'), findsOneWidget);
-    expect(find.text('Sahur · Her gün'), findsOneWidget);
+    expect(find.text('Sahur'), findsOneWidget);
+    expect(find.text('Her gün'), findsOneWidget);
     // SectionLabel metni kendisi buyutur.
     expect(find.text('1 ALARM'), findsOneWidget);
   });
+
+  testWidgets(
+    'Çıpalı alarm gerçek çalma saatini isim ve kuraldan önce gösterir',
+    (tester) async {
+      const alarm = Alarm(
+        id: 'sunrise',
+        kind: AlarmKind.anchored,
+        label: 'Güne hazırlık',
+        anchor: PrayerType.sunrise,
+        offsetMinutes: -30,
+        weekdays: {1, 2, 3, 4, 5},
+      );
+      await tester.pumpWidget(
+        wrapWithTheme(
+          AlarmsSection(
+            alarms: const [alarm],
+            isSupported: true,
+            isPermissionGranted: true,
+            onRequestPermission: () {},
+            onToggle: (_, _) {},
+            onEdit: (_) {},
+            onDelete: (_) async {},
+            nextFireByAlarm: {'sunrise': DateTime(2026, 9, 7, 6, 17)},
+          ),
+        ),
+      );
+      expect(find.text('06:17'), findsOneWidget);
+      expect(find.text('Güne hazırlık'), findsOneWidget);
+      expect(find.textContaining('Güneş'), findsOneWidget);
+      expect(find.textContaining('30 dk önce'), findsOneWidget);
+      expect(find.textContaining('Hafta içi'), findsOneWidget);
+      expect(
+        tester.getTopLeft(find.text('06:17')).dy,
+        lessThan(tester.getTopLeft(find.text('Güne hazırlık')).dy),
+      );
+    },
+  );
 
   testWidgets('Liste bossa bos durum cizilir', (tester) async {
     await tester.pumpWidget(build(alarms: const []));
@@ -55,7 +94,10 @@ void main() {
   testWidgets('Izin yoksa izin uyarisi cizilir', (tester) async {
     await tester.pumpWidget(build(isPermissionGranted: false));
 
-    expect(find.text('Alarmların çalması için izin gerekiyor.'), findsOneWidget);
+    expect(
+      find.text('Alarmların çalması için izin gerekiyor.'),
+      findsOneWidget,
+    );
     expect(find.text('İzin ver'), findsOneWidget);
   });
 

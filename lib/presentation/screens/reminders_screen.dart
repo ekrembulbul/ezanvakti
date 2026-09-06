@@ -23,7 +23,10 @@ import '../../core/theme/tokens_context.dart';
 import '../../features/alarms/domain/alarms_manager.dart';
 import '../../features/notifications/domain/notification_settings_manager.dart';
 import '../services/reminder_rescheduler.dart';
+import '../services/reminder_list_preferences.dart';
 import '../utils/alarm_labels.dart';
+import '../utils/reminder_labels.dart';
+import '../utils/prayer_name_helper.dart';
 import '../widgets/common/app_bar_widgets.dart';
 import '../widgets/common/app_surface.dart';
 import '../widgets/common/sliding_segment.dart';
@@ -33,6 +36,8 @@ import '../widgets/reminders/notifications_section.dart';
 import 'alarm_edit_screen.dart';
 
 enum ReminderTab { notifications, alarms }
+
+enum _OrderAction { custom, nextFire, name, reorder }
 
 /// Bildirimler ve alarmların tek ekranda birleşmiş hali.
 ///
@@ -53,6 +58,13 @@ class _RemindersScreenState extends State<RemindersScreen>
   late final AlarmsManager _alarmsManager;
   late final AlarmService _alarmService;
   late final ReminderRescheduler _rescheduler;
+  late final ReminderListPreferencesStore _orderStore;
+  final _orders = <ReminderListKind, ReminderListPreferences>{};
+  final _savedOrders = <ReminderListKind, ReminderListPreferences>{};
+  Future<void> _orderWrites = Future<void>.value();
+  bool _ordersLoaded = false;
+  bool _isReordering = false;
+  Timer? _clockTimer;
 
   ReminderTab _tab = ReminderTab.notifications;
   bool _hasPermission = false;
@@ -71,8 +83,16 @@ class _RemindersScreenState extends State<RemindersScreen>
     _alarmsManager = locator.get<AlarmsManager>();
     _alarmService = locator.get<AlarmService>();
     _rescheduler = locator.get<ReminderRescheduler>();
+    _orderStore = ReminderListPreferencesStore(
+      storage: locator.get<LocalStorage>(),
+    );
+    _loadOrders();
+    _clockTimer = Timer.periodic(const Duration(seconds: 10), (_) {
+      if (mounted && !_isReordering) setState(() {});
+    });
     _hasPermission = context.read<AppState>().hasNotificationPermission;
     _refreshPermissions();
+    _refreshScheduleFailures();
   }
 
   @override
@@ -80,6 +100,7 @@ class _RemindersScreenState extends State<RemindersScreen>
     // Ekrandan çıkmak planlamayı iptal etmemeli: kullanıcı bir kaydı silmiş
     // olabilir ve onun eski OS kopyası hâlâ kurulu.
     _flushReschedule();
+    _clockTimer?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -87,7 +108,150 @@ class _RemindersScreenState extends State<RemindersScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // Kullanıcı sistem ayarlarından dönünce izin durumunu tazele.
-    if (state == AppLifecycleState.resumed) _refreshPermissions();
+    if (state == AppLifecycleState.resumed) {
+      _refreshPermissions();
+      _refreshScheduleFailures();
+      setState(() {});
+    }
+  }
+
+  ReminderListPreferences _orderFor(ReminderListKind kind) =>
+      _orders[kind] ?? const ReminderListPreferences();
+
+  ReminderListKind get _selectedKind => _tab == ReminderTab.alarms
+      ? ReminderListKind.alarms
+      : ReminderListKind.notifications;
+
+  Future<void> _loadOrders() async {
+    try {
+      final values = await Future.wait([
+        for (final kind in ReminderListKind.values) _orderStore.load(kind),
+      ]);
+      if (!mounted) return;
+      setState(() {
+        for (final (index, kind) in ReminderListKind.values.indexed) {
+          _orders[kind] = values[index];
+          _savedOrders[kind] = values[index];
+        }
+        _ordersLoaded = true;
+      });
+    } catch (error, stackTrace) {
+      AppLogger().error('Loading reminder order failed', error, stackTrace);
+      if (mounted) _snack(context.l10n.reminderOrderLoadFailed, isError: true);
+    }
+  }
+
+  Future<void> _saveOrder(ReminderListKind kind, ReminderListPreferences next) {
+    if (mounted) {
+      setState(() => _orders[kind] = next);
+    } else {
+      _orders[kind] = next;
+    }
+    // Hızlı ardışık sürüklemelerde son tercih en son kalıcılaştırılır.
+    _orderWrites = _orderWrites.then((_) async {
+      try {
+        await _orderStore.save(kind, next);
+        _savedOrders[kind] = next;
+      } catch (error, stackTrace) {
+        AppLogger().error(
+          'Saving reminder order failed kind=${kind.name}',
+          error,
+          stackTrace,
+        );
+        if (!mounted) return;
+        if (identical(_orders[kind], next)) {
+          setState(
+            () => _orders[kind] =
+                _savedOrders[kind] ?? const ReminderListPreferences(),
+          );
+        }
+        _snack(context.l10n.reminderOrderSaveFailed, isError: true);
+      }
+    });
+    return _orderWrites;
+  }
+
+  void _changeOrder(_OrderAction action) {
+    if (action == _OrderAction.reorder) {
+      setState(() => _isReordering = true);
+      return;
+    }
+    final mode = switch (action) {
+      _OrderAction.custom => ReminderSortMode.custom,
+      _OrderAction.nextFire => ReminderSortMode.nextFire,
+      _OrderAction.name => ReminderSortMode.name,
+      _OrderAction.reorder => throw StateError('Reorder is handled above'),
+    };
+    _saveOrder(
+      _selectedKind,
+      _orderFor(_selectedKind).copyWith(sortMode: mode),
+    );
+  }
+
+  void _reorder(
+    ReminderListKind kind,
+    List<String> keys,
+    int oldIndex,
+    int newIndex,
+  ) {
+    if (oldIndex == newIndex) return;
+    final reordered = [...keys];
+    reordered.insert(newIndex, reordered.removeAt(oldIndex));
+    _saveOrder(
+      kind,
+      _orderFor(
+        kind,
+      ).copyWith(sortMode: ReminderSortMode.custom, customOrder: reordered),
+    );
+  }
+
+  Widget _sortAction() {
+    if (_isReordering) {
+      return AppBarActionButton(
+        key: const Key('reminder_reorder_done'),
+        icon: Icons.check_rounded,
+        tooltip: context.l10n.reminderReorderDone,
+        onTap: () => setState(() => _isReordering = false),
+      );
+    }
+    final mode = _orderFor(_selectedKind).sortMode;
+    return PopupMenuButton<_OrderAction>(
+      key: const Key('reminder_sort_menu'),
+      enabled: _ordersLoaded,
+      tooltip: context.l10n.reminderSort,
+      icon: const Icon(Icons.sort_rounded),
+      onSelected: _changeOrder,
+      itemBuilder: (_) => [
+        for (final (action, sortMode, label) in [
+          (
+            _OrderAction.custom,
+            ReminderSortMode.custom,
+            context.l10n.reminderSortCustom,
+          ),
+          (
+            _OrderAction.nextFire,
+            ReminderSortMode.nextFire,
+            context.l10n.reminderSortNextFire,
+          ),
+          (
+            _OrderAction.name,
+            ReminderSortMode.name,
+            context.l10n.reminderSortName,
+          ),
+        ])
+          CheckedPopupMenuItem(
+            key: ValueKey('reminder-sort-${sortMode.name}'),
+            value: action,
+            checked: mode == sortMode,
+            child: Text(label),
+          ),
+        const PopupMenuDivider(),
+        PopupMenuItem(
+          value: _OrderAction.reorder,
+          child: Text(context.l10n.reminderReorder),
+        ),
+      ],
+    );
   }
 
   Future<void> _refreshPermissions() async {
@@ -150,7 +314,7 @@ class _RemindersScreenState extends State<RemindersScreen>
 
     _syncQueue = _syncQueue
         .then((_) => _reschedule(appState))
-        .then((_) => _refreshScheduleFailures())
+        .whenComplete(_refreshScheduleFailures)
         .catchError((Object error, StackTrace stackTrace) {
           AppLogger().error(
             // Log; kullanıcıya gösterilmiyor, çevrilmiyor.
@@ -171,10 +335,18 @@ class _RemindersScreenState extends State<RemindersScreen>
   Map<String, String> _scheduleFailures = {};
 
   Future<void> _refreshScheduleFailures() async {
-    final failures = await ServiceLocator()
-        .get<LocalStorage>()
-        .getAlarmScheduleFailures();
-    if (mounted) setState(() => _scheduleFailures = failures);
+    try {
+      final failures = await ServiceLocator()
+          .get<LocalStorage>()
+          .getAlarmScheduleFailures();
+      if (mounted) setState(() => _scheduleFailures = failures);
+    } catch (error, stackTrace) {
+      AppLogger().warning(
+        'Loading alarm schedule status failed',
+        error,
+        stackTrace,
+      );
+    }
   }
 
   Future<void> _syncAlarms(AppState appState) async {
@@ -222,7 +394,9 @@ class _RemindersScreenState extends State<RemindersScreen>
   /// Hazır şablon: Cuma öğle vaktinden 45 dk önce, "Cuma namazı" etiketiyle.
   Future<void> _addFridayReminder() async {
     final l10n = context.l10n;
-    await _addNotification(PrayerType.dhuhr, 45, const {5}, l10n.reminderFridayLabel);
+    await _addNotification(PrayerType.dhuhr, 45, const {
+      5,
+    }, l10n.reminderFridayLabel);
   }
 
   Future<void> _updateNotification(
@@ -274,6 +448,14 @@ class _RemindersScreenState extends State<RemindersScreen>
         derivedKind: original.derivedKind?.storageValue ?? '',
       );
       await _settingsManager.addSetting(updated);
+      final order = _orderFor(ReminderListKind.notifications);
+      final moved = order.replaceKey(
+        notificationKey(original),
+        notificationKey(updated),
+      );
+      if (_ordersLoaded && !identical(order, moved)) {
+        unawaited(_saveOrder(ReminderListKind.notifications, moved));
+      }
     } else {
       await _settingsManager.updateSetting(updated);
     }
@@ -317,7 +499,7 @@ class _RemindersScreenState extends State<RemindersScreen>
     final turningOff = setting.isActive;
     // Sıradaki tetiklenme kapatmadan **önce** hesaplanmalı: kapalı kayıt
     // planlamada yer almıyor.
-    final fireAt = turningOff ? _nextFireOf(appState, setting) : null;
+    final occurrence = turningOff ? _nextOccurrenceOf(appState, setting) : null;
 
     await _settingsManager.updateSetting(
       setting.copyWith(isActive: !setting.isActive),
@@ -327,39 +509,34 @@ class _RemindersScreenState extends State<RemindersScreen>
 
     _snack(
       l10n.reminderOff,
-      action: fireAt == null
+      action: occurrence == null
           ? null
           : SnackBarAction(
               label: l10n.snackSkipOnce,
               textColor: Colors.white,
-              onPressed: () => _skipOnceNotification(setting, fireAt),
+              onPressed: () => _skipOnceNotification(setting, occurrence),
             ),
     );
   }
 
-  DateTime? _nextFireOf(AppState appState, NotificationSetting setting) =>
-      resolveNextFirePerNotification(
-        settings: appState.notificationSettings,
-        prayerTimes: appState.prayerTimes,
-        now: DateTime.now(),
-      )[notificationKey(setting)];
+  UpcomingNotification? _nextOccurrenceOf(
+    AppState appState,
+    NotificationSetting setting,
+  ) => resolveNextOccurrencePerNotification(
+    settings: appState.notificationSettings,
+    prayerTimes: appState.prayerTimes,
+    now: DateTime.now(),
+  )[notificationKey(setting)];
 
   /// Kapatılan bildirimi geri açar ve yalnızca sıradaki örneği atlar.
   Future<void> _skipOnceNotification(
     NotificationSetting setting,
-    DateTime fireAt,
+    UpcomingNotification occurrence,
   ) async {
     final appState = context.read<AppState>();
     await _settingsManager.updateSetting(setting.copyWith(isActive: true));
     await _syncNotifications(appState);
-    await _toggleSkip(
-      SkippedOccurrence(
-        kind: SkipKind.notification,
-        reference: notificationKey(setting),
-        fireAt: fireAt,
-      ),
-      true,
-    );
+    await _toggleSkip(notificationOccurrence(occurrence), true);
   }
 
   // --- Alarm mutasyonları ---
@@ -384,19 +561,27 @@ class _RemindersScreenState extends State<RemindersScreen>
     await _syncAlarms(appState);
   }
 
+  Future<void> _duplicateAlarm(Alarm source) => _addOrEditAlarm(
+    duplicateOf(
+      source,
+      newId: DateTime.now().microsecondsSinceEpoch.toString(),
+      copyLabel: context.l10n.alarmCopySuffix,
+    ),
+  );
+
   /// Her alarmın bir sonraki çalma anı. Atlama **uygulanmadan** hesaplanır:
   /// kullanıcı tam da bu örneği atlamak/geri almak istiyor.
-  Map<String, DateTime> _nextFireByAlarm(AppState appState) {
+  Map<String, DateTime> _nextFireByAlarm(AppState appState, {DateTime? now}) {
     final byDate = <DateTime, PrayerTime>{
       for (final pt in appState.prayerTimes)
         DateTime(pt.date.year, pt.date.month, pt.date.day): pt,
     };
-    final now = DateTime.now();
+    final referenceTime = now ?? DateTime.now();
     final result = <String, DateTime>{};
     for (final alarm in appState.alarms) {
       final fire = AlarmScheduler.computeNextFire(
         alarm: alarm,
-        now: now,
+        now: referenceTime,
         prayerTimesByDate: byDate,
       );
       if (fire != null) result[alarm.id] = fire;
@@ -570,14 +755,16 @@ class _RemindersScreenState extends State<RemindersScreen>
         showBack: false,
         // Tasarimda ekleme eylemi app bar'in saginda; FAB son satiri ortuyordu.
         actions: [
-          AppBarActionButton(
-            key: const Key('add_reminder_button'),
-            icon: Icons.add_rounded,
-            onTap: _add,
-            tooltip: _tab == ReminderTab.alarms
-                ? context.l10n.alarmAdd
-                : context.l10n.remindersAddButton,
-          ),
+          _sortAction(),
+          if (!_isReordering)
+            AppBarActionButton(
+              key: const Key('add_reminder_button'),
+              icon: Icons.add_rounded,
+              onTap: _add,
+              tooltip: _tab == ReminderTab.alarms
+                  ? context.l10n.alarmAdd
+                  : context.l10n.remindersAddButton,
+            ),
           const SizedBox(width: 8),
         ],
       ),
@@ -602,7 +789,10 @@ class _RemindersScreenState extends State<RemindersScreen>
                   ),
                 ],
                 selected: _tab,
-                onChanged: (value) => setState(() => _tab = value),
+                onChanged: (value) => setState(() {
+                  _tab = value;
+                  _isReordering = false;
+                }),
               ),
               const SizedBox(height: 12),
               Expanded(child: _buildBody()),
@@ -615,56 +805,108 @@ class _RemindersScreenState extends State<RemindersScreen>
 
   Widget _buildBody() {
     return Consumer<AppState>(
-      builder: (context, appState, _) => IndexedStack(
-        index: _tab.index,
-        children: [
-          NotificationsSection(
-            nextFireByNotification: resolveNextFirePerNotification(
-              settings: appState.notificationSettings,
-              prayerTimes: appState.prayerTimes,
-              now: DateTime.now(),
+      builder: (context, appState, _) {
+        final now = DateTime.now();
+        final occurrences = resolveNextOccurrencePerNotification(
+          settings: appState.notificationSettings,
+          prayerTimes: appState.prayerTimes,
+          now: now,
+        );
+        final nextAlarmTimes = _nextFireByAlarm(appState, now: now);
+        final alarms = sortReminderItems(
+          items: appState.alarms,
+          preferences: _orderFor(ReminderListKind.alarms),
+          idOf: (alarm) => alarm.id,
+          nameOf: (alarm) => alarm.label.trim().isEmpty
+              ? alarmTimeLabel(alarm, l10n: context.l10n)
+              : alarm.label.trim(),
+          nextFireOf: (alarm) =>
+              alarm.isActive ? nextAlarmTimes[alarm.id] : null,
+        );
+        final defaultNotifications = [...appState.notificationSettings]
+          ..sort((a, b) {
+            final point = PrayerNameHelper.getPrayerOrder(
+              a.prayerType,
+            ).compareTo(PrayerNameHelper.getPrayerOrder(b.prayerType));
+            return point != 0
+                ? point
+                : a.minutesBefore.compareTo(b.minutesBefore);
+          });
+        final notifications = sortReminderItems(
+          items: defaultNotifications,
+          preferences: _orderFor(ReminderListKind.notifications),
+          idOf: notificationKey,
+          nameOf: (setting) => notificationTitle(setting, context.l10n),
+          nextFireOf: (setting) => occurrences[notificationKey(setting)]?.time,
+        );
+        return IndexedStack(
+          index: _tab.index,
+          children: [
+            NotificationsSection(
+              now: now,
+              preserveOrder: true,
+              isReordering: _isReordering && _tab == ReminderTab.notifications,
+              onReorder: (oldIndex, newIndex) => _reorder(
+                ReminderListKind.notifications,
+                notifications.map(notificationKey).toList(),
+                oldIndex,
+                newIndex,
+              ),
+              nextOccurrenceByNotification: occurrences,
+              nextFireByNotification: occurrences.map(
+                (key, item) => MapEntry(key, item.time),
+              ),
+              skips: appState.skips,
+              onSkipChanged: _toggleSkip,
+              settings: notifications,
+              hasPermission: _hasPermission,
+              exactAlarmAllowed: _exactAlarmAllowed,
+              onRequestPermission: () async {
+                final granted = await _notificationService.requestPermission();
+                appState.setNotificationPermission(granted);
+                return granted;
+              },
+              onPermissionChanged: (granted) {
+                setState(() => _hasPermission = granted);
+                appState.setNotificationPermission(granted);
+              },
+              onOpenExactAlarmSettings:
+                  _notificationService.openExactAlarmSettings,
+              onToggle: _toggleNotification,
+              onEdit: (setting) => _showNotificationSheet(initial: setting),
+              onAddFridayReminder: _addFridayReminder,
+              onDelete: _deleteNotification,
             ),
-            skips: appState.skips,
-            onSkipChanged: _toggleSkip,
-            settings: appState.notificationSettings,
-            hasPermission: _hasPermission,
-            exactAlarmAllowed: _exactAlarmAllowed,
-            onRequestPermission: () async {
-              final granted = await _notificationService.requestPermission();
-              appState.setNotificationPermission(granted);
-              return granted;
-            },
-            onPermissionChanged: (granted) {
-              setState(() => _hasPermission = granted);
-              appState.setNotificationPermission(granted);
-            },
-            onOpenExactAlarmSettings:
-                _notificationService.openExactAlarmSettings,
-            onToggle: _toggleNotification,
-            onEdit: (setting) => _showNotificationSheet(initial: setting),
-            onAddFridayReminder: _addFridayReminder,
-            onDelete: _deleteNotification,
-          ),
-          AlarmsSection(
-            missionSession: appState.missionSession,
-            onDisableBlocked: _onDisableBlocked,
-            scheduleFailures: _scheduleFailures,
-            nextFireByAlarm: _nextFireByAlarm(appState),
-            skips: appState.skips,
-            onSkipChanged: _toggleSkip,
-            alarms: appState.alarms,
-            isSupported: _alarmSupported,
-            isPermissionGranted: _alarmGranted,
-            onRequestPermission: () async {
-              await _alarmService.requestPermission();
-              await _refreshPermissions();
-            },
-            onToggle: _toggleAlarm,
-            onEdit: _addOrEditAlarm,
-            onDelete: _deleteAlarm,
-          ),
-        ],
-      ),
+            AlarmsSection(
+              now: now,
+              isReordering: _isReordering && _tab == ReminderTab.alarms,
+              onReorder: (oldIndex, newIndex) => _reorder(
+                ReminderListKind.alarms,
+                alarms.map((alarm) => alarm.id).toList(),
+                oldIndex,
+                newIndex,
+              ),
+              missionSession: appState.missionSession,
+              onDisableBlocked: _onDisableBlocked,
+              scheduleFailures: _scheduleFailures,
+              nextFireByAlarm: nextAlarmTimes,
+              skips: appState.skips,
+              onSkipChanged: _toggleSkip,
+              alarms: alarms,
+              isSupported: _alarmSupported,
+              isPermissionGranted: _alarmGranted,
+              onRequestPermission: () async {
+                await _alarmService.requestPermission();
+                await _refreshPermissions();
+              },
+              onToggle: _toggleAlarm,
+              onEdit: _addOrEditAlarm,
+              onDuplicate: _duplicateAlarm,
+              onDelete: _deleteAlarm,
+            ),
+          ],
+        );
+      },
     );
   }
 }

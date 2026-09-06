@@ -11,7 +11,9 @@ import '../../../core/models/alarm.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 import '../../utils/alarm_labels.dart';
-import '../common/grouped_list.dart';
+import '../../utils/reminder_labels.dart';
+import 'reminder_list.dart';
+import 'reminder_row.dart';
 import '../common/info_banner.dart';
 import '../common/section_label.dart';
 import '../common/state_widgets.dart';
@@ -55,6 +57,9 @@ class AlarmsSection extends StatelessWidget {
 
   /// Uzun basma menüsünden "Kopyala"; null ise menü yalnızca silme sunar.
   final ValueChanged<Alarm>? onDuplicate;
+  final DateTime? now;
+  final bool isReordering;
+  final ReorderCallback? onReorder;
 
   const AlarmsSection({
     super.key,
@@ -72,6 +77,9 @@ class AlarmsSection extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     this.onDuplicate,
+    this.now,
+    this.isReordering = false,
+    this.onReorder,
   });
 
   @override
@@ -97,7 +105,7 @@ class AlarmsSection extends StatelessWidget {
   /// Tek seferlik atlama artık ayrı bir eylem değil: anahtar kapatılınca
   /// altta çıkan çubuktan seçiliyor. Burada yalnızca **hangi durumda**
   /// olduğu yazıyor.
-  String _subtitle(
+  String? _status(
     Alarm alarm,
     DateTime? snoozedUntil,
     bool skipped,
@@ -109,7 +117,7 @@ class AlarmsSection extends StatelessWidget {
     if (snoozedUntil != null) return SnoozeNotice.label(snoozedUntil, l10n);
     if (skipped) return l10n.reminderSkippedOnce;
     if (!alarm.isActive) return l10n.reminderOff;
-    return alarmSubtitle(alarm, l10n);
+    return null;
   }
 
   Widget _alarmRow(BuildContext context, Alarm alarm) {
@@ -130,60 +138,74 @@ class AlarmsSection extends StatelessWidget {
     // çalmayacak" demek. Atlanan örnek geçince satır kendiliğinden açılır.
     final isOn = alarm.isActive && !skipped;
 
-    return SwipeToDelete(
-      itemKey: ValueKey(alarm.id),
-      // Onay sorulmuyor: silme dogrudan uygulaniyor, geri alma altta
-      // "Geri al" ile veriliyor.
-      onDelete: () => onDelete(alarm),
-      // GroupedRow'un kendi onTap'i InkWell'de; uzun basma dıştan yakalanıyor
-      // ki satır API'sine dokunulmasın.
-      child: GestureDetector(
-        onLongPress: () => _showRowMenu(context, alarm),
-        child: GroupedRow(
-          icon: Icons.alarm_rounded,
-          title: Text(
-          alarmTimeLabel(
-            alarm,
-            l10n: context.l10n,
-            formatHourMinute: context.formatHourMinute,
-          ),
-        ),
-          subtitle: Text(
-            _subtitle(alarm, snoozedUntil, skipped, context.l10n),
-          ),
-          onTap: () => onEdit(alarm),
-          dimmed: !isOn,
-          trailing: Switch(
-            value: isOn,
-            onChanged: (value) {
-              if (!value) {
-                // Ertelenmis gorevli alarm kapatilamaz; gorev borcu duruyor.
-                if (!canDisable) {
-                  onDisableBlocked?.call(alarm);
+    final displayTime = snoozedUntil ?? fireAt;
+    final referenceTime = now ?? DateTime.now();
+    final rule = alarm.kind == AlarmKind.anchored
+        ? '${alarmRuleLabel(alarm, context.l10n)} · '
+              '${weekdaysLabel(alarm.weekdays, context.l10n)}'
+        : weekdaysLabel(alarm.weekdays, context.l10n);
+    final status = _status(alarm, snoozedUntil, skipped, context.l10n);
+    final row = ReminderRow(
+      icon: Icons.alarm_rounded,
+      time: displayTime != null
+          ? context.formatTime(displayTime)
+          : alarm.kind == AlarmKind.fixed
+          ? context.formatHourMinute(alarm.hour, alarm.minute)
+          : '—',
+      timing: displayTime != null && alarm.isActive && status == null
+          ? '${reminderDayLabel(context, displayTime, referenceTime)} · '
+                '${reminderRemaining(displayTime.difference(referenceTime), context.l10n)}'
+          : null,
+      name: alarm.label.trim(),
+      detail: rule,
+      status:
+          status ??
+          (alarm.isActive &&
+                  displayTime == null &&
+                  alarm.kind == AlarmKind.anchored
+              ? context.l10n.reminderTimeUnavailable
+              : null),
+      onTap: isReordering ? null : () => onEdit(alarm),
+      onLongPress: isReordering ? null : () => _showRowMenu(context, alarm),
+      dimmed: !isOn,
+      trailing: isReordering
+          ? const SizedBox.shrink()
+          : Switch(
+              value: isOn,
+              onChanged: (value) {
+                if (!value) {
+                  // Ertelenmis gorevli alarm kapatilamaz; gorev borcu duruyor.
+                  if (!canDisable) {
+                    onDisableBlocked?.call(alarm);
+                    return;
+                  }
+                  onToggle(alarm, false);
                   return;
                 }
-                onToggle(alarm, false);
-                return;
-              }
-              // Aciliyor: bekleyen tek seferlik atlama varsa once o kalkar,
-              // yoksa alarm kalici olarak acilir.
-              if (skipped && onSkipChanged != null) {
-                onSkipChanged!(
-                  SkippedOccurrence(
-                    kind: SkipKind.alarm,
-                    reference: alarm.id,
-                    fireAt: fireAt,
-                  ),
-                  false,
-                );
-                return;
-              }
-              onToggle(alarm, true);
-            },
-          ),
-        ),
-      ),
+                // Aciliyor: bekleyen tek seferlik atlama varsa once o kalkar,
+                // yoksa alarm kalici olarak acilir.
+                if (skipped && onSkipChanged != null) {
+                  onSkipChanged!(
+                    SkippedOccurrence(
+                      kind: SkipKind.alarm,
+                      reference: alarm.id,
+                      fireAt: fireAt,
+                    ),
+                    false,
+                  );
+                  return;
+                }
+                onToggle(alarm, true);
+              },
+            ),
     );
+    return isReordering
+        ? row
+        : SwipeToDelete(
+            itemKey: ValueKey(alarm.id),
+            onDelete: () => onDelete(alarm),
+            child: row,
+          );
   }
 
   /// Uzun basma menüsü: Kopyala / Sil. Silme swipe ile de yapılabiliyor;
@@ -221,25 +243,31 @@ class AlarmsSection extends StatelessWidget {
   Widget _list(BuildContext context) {
     final tokens = context.tokens;
 
-    return ListView(
-      padding: const EdgeInsets.only(top: 12, bottom: 24),
-      children: [
-        SectionLabel(context.l10n.remindersAlarmCount(alarms.length)),
-        const SizedBox(height: 10),
-        GroupedList(
-          children: [for (final alarm in alarms) _alarmRow(context, alarm)],
-        ),
-        const SizedBox(height: 12),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 2),
-          child: Text(
-            context.l10n.alarmsSwipeHint,
-            style: AppTypography.hint.copyWith(
-              color: tokens.textTertiary,
-              height: 1.5,
-            ),
+    return ReminderList(
+      isReordering: isReordering,
+      onReorder: onReorder,
+      header: Padding(
+        padding: const EdgeInsets.only(top: 12, bottom: 10),
+        child: SectionLabel(context.l10n.remindersAlarmCount(alarms.length)),
+      ),
+      footer: Padding(
+        padding: const EdgeInsets.only(top: 12),
+        child: Text(
+          isReordering
+              ? context.l10n.reminderReorderHint
+              : context.l10n.alarmsSwipeHint,
+          style: AppTypography.hint.copyWith(
+            color: tokens.textTertiary,
+            height: 1.5,
           ),
         ),
+      ),
+      children: [
+        for (final alarm in alarms)
+          KeyedSubtree(
+            key: ValueKey(alarm.id),
+            child: _alarmRow(context, alarm),
+          ),
       ],
     );
   }

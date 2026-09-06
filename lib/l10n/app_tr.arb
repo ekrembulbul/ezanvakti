@@ -1673,7 +1673,7 @@
   "@remindersIntro": {
     "description": "Bilgi"
   },
-  "alarmsSwipeHint": "Silmek için satırı sola kaydırın; yanlışlıkla silersen alttaki \"Geri al\" ile dönersin. Alarmlar vakit güncellendiğinde otomatik yeniden planlanır.",
+  "alarmsSwipeHint": "Kopyalamak için basılı tut; silmek için sola kaydır. Silinen alarmı \"Geri al\" ile geri getirebilirsin.",
   "@alarmsSwipeHint": {
     "description": "İpucu"
   },
@@ -2110,5 +2110,27 @@
   "errorLocationPermission": "Konum izni gerekli",
   "@errorLocationPermission": {
     "description": "GPS izni yokken gosterilen hata."
-  }
+  },
+  "reminderMinutesAfter": "{minutes} dk sonra",
+  "@reminderMinutesAfter": {"description": "Hatırlatıcı listesi gösterimi ve sıralaması", "placeholders": {"minutes": {"type": "int"}}},
+  "reminderTimeUnavailable": "Çalma saati için vakit verisi gerekiyor",
+  "@reminderTimeUnavailable": {"description": "Hatırlatıcı listesi gösterimi ve sıralaması"},
+  "reminderSort": "Sırala",
+  "@reminderSort": {"description": "Hatırlatıcı listesi gösterimi ve sıralaması"},
+  "reminderSortCustom": "Özel sıralama",
+  "@reminderSortCustom": {"description": "Hatırlatıcı listesi gösterimi ve sıralaması"},
+  "reminderSortNextFire": "Çalma zamanına göre",
+  "@reminderSortNextFire": {"description": "Hatırlatıcı listesi gösterimi ve sıralaması"},
+  "reminderSortName": "Ada göre",
+  "@reminderSortName": {"description": "Hatırlatıcı listesi gösterimi ve sıralaması"},
+  "reminderReorder": "Sırayı düzenle",
+  "@reminderReorder": {"description": "Hatırlatıcı listesi gösterimi ve sıralaması"},
+  "reminderReorderDone": "Sıralamayı bitir",
+  "@reminderReorderDone": {"description": "Hatırlatıcı listesi gösterimi ve sıralaması"},
+  "reminderReorderHint": "Sırayı değiştirmek için tutamacı sürükle.",
+  "@reminderReorderHint": {"description": "Hatırlatıcı listesi gösterimi ve sıralaması"},
+  "reminderOrderSaveFailed": "Sıralama kaydedilemedi. Yeniden dene.",
+  "@reminderOrderSaveFailed": {"description": "Hatırlatıcı listesi gösterimi ve sıralaması"},
+  "reminderOrderLoadFailed": "Kayıtlı sıralama yüklenemedi. Ekranı yeniden aç.",
+  "@reminderOrderLoadFailed": {"description": "Hatırlatıcı listesi gösterimi ve sıralaması"}
 }

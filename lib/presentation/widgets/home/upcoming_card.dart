@@ -1,18 +1,18 @@
 import '../../../core/models/mission_session.dart';
+import '../../../core/models/alarm.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../l10n/l10n_extensions.dart';
 import '../../utils/time_format_context.dart';
 import '../reminders/snooze_notice.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 import '../../../core/models/skipped_occurrence.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
-import '../../../features/notifications/domain/notification_scheduler.dart';
 import '../../../features/notifications/domain/skip_rules.dart';
 import '../../utils/alarm_labels.dart' show alarmTimeLabel;
+import '../../utils/reminder_labels.dart';
 import '../../services/upcoming_resolver.dart';
 import '../common/grouped_list.dart';
 import '../common/section_label.dart';
@@ -125,22 +125,8 @@ class UpcomingCard extends StatelessWidget {
 
   Widget _notificationRow(BuildContext context) {
     final item = notification!;
-    final prayerName = context.l10n.prayerName(item.setting.prayerType);
-    final offset = item.setting.minutesBefore == 0
-        ? context.l10n.reminderOnTime
-        : context.l10n.reminderMinutesBefore(item.setting.minutesBefore);
-
-    final occurrence = SkippedOccurrence(
-      kind: SkipKind.notification,
-      reference: NotificationScheduler.notificationIdFor(
-        // Planlayıcı da kimliği vaktin gününden üretir; ikisi aynı olmak
-        // zorunda, yoksa anahtar kapalı görünürken bildirim gelir.
-        date: item.prayerDate,
-        pointIndex: NotificationScheduler.pointIndexOf(item.setting),
-        minutesBefore: item.setting.minutesBefore,
-      ),
-      fireAt: item.time,
-    );
+    final offset = notificationRuleLabel(item.setting, context.l10n);
+    final occurrence = notificationOccurrence(item);
     final skipped = isSkipped(
       skips,
       kind: SkipKind.notification,
@@ -152,13 +138,14 @@ class UpcomingCard extends StatelessWidget {
       height: _kRowHeight,
       icon: Icons.notifications_rounded,
       title: Text(
-        context.l10n.upcomingNotification(prayerName),
+        notificationTitle(item.setting, context.l10n),
         style: AppTypography.upcomingRowTitle,
       ),
       subtitle: Text(
         skipped
             ? '${context.l10n.reminderSkippedOnce} · ${_clock(context, item.time)}'
-            : '$offset · ${_clock(context, item.time)} · '
+            : '$offset · ${reminderDayLabel(context, item.time, now)} '
+                  '${_clock(context, item.time)} · '
                   '${formatRemaining(item.time.difference(now), context.l10n)}',
       ),
       trailing: _skipSwitch(occurrence, skipped),
@@ -173,7 +160,13 @@ class UpcomingCard extends StatelessWidget {
       l10n: context.l10n,
       formatHourMinute: context.formatHourMinute,
     );
-    final title = item.alarm.label.isNotEmpty ? item.alarm.label : label;
+    final name = item.alarm.label.trim();
+    final title = name.isNotEmpty ? name : label;
+    final day = reminderDayLabel(context, item.time, now);
+    final schedule = item.alarm.kind == AlarmKind.fixed
+        ? '${name.isEmpty ? day : '$day ${_clock(context, item.time)}'} · '
+              '${formatRemaining(item.time.difference(now), context.l10n)}'
+        : '${name.isEmpty ? '' : '$label · '}$day ${_clock(context, item.time)}';
 
     final occurrence = SkippedOccurrence(
       kind: SkipKind.alarm,
@@ -197,17 +190,13 @@ class UpcomingCard extends StatelessWidget {
       icon: Icons.alarm_rounded,
       iconColor: tokens.accent,
       title: Text(title, style: AppTypography.upcomingRowTitle),
-      subtitle: Text(
-        switch ((snoozedUntil, skipped)) {
-          (final DateTime until, _) => SnoozeNotice.label(until, context.l10n),
-          (_, true) =>
-            '${context.l10n.reminderSkippedOnce} · '
-                '${_relativeDay(context, item.time)} ${_clock(context, item.time)}',
-          _ =>
-            '$label · ${_relativeDay(context, item.time)} '
-                '${_clock(context, item.time)}',
-        },
-      ),
+      subtitle: Text(switch ((snoozedUntil, skipped)) {
+        (final DateTime until, _) => SnoozeNotice.label(until, context.l10n),
+        (_, true) =>
+          '${context.l10n.reminderSkippedOnce} · '
+              '${reminderDayLabel(context, item.time, now)} ${_clock(context, item.time)}',
+        _ => schedule,
+      }),
       // Ertelenmis gorevli alarm atlanamaz: gorev borcu duruyor.
       trailing: SnoozeNotice.canDisable(missionSession, item.alarm)
           ? _skipSwitch(occurrence, skipped)
@@ -217,28 +206,9 @@ class UpcomingCard extends StatelessWidget {
 
   String _clock(BuildContext context, DateTime time) =>
       context.formatTime(time);
-
-  /// "bugün" / "yarın" / gün adı. Gün adı cihaz diline göre biçimlenir.
-  String _relativeDay(BuildContext context, DateTime time) {
-    final today = DateTime(now.year, now.month, now.day);
-    final target = DateTime(time.year, time.month, time.day);
-    final days = target.difference(today).inDays;
-
-    if (days == 0) return context.l10n.upcomingToday;
-    if (days == 1) return context.l10n.upcomingTomorrow;
-    return DateFormat(
-      'EEEE',
-      Localizations.localeOf(context).toLanguageTag(),
-    ).format(time);
-  }
 }
 
 /// Kalan süreyi tasarımın kısa biçimiyle yazar: "2s 43dk", "43dk", "<1dk".
 String formatRemaining(Duration remaining, AppLocalizations l10n) {
-  if (remaining.inMinutes < 1) return l10n.countdownLessThanMinute;
-
-  final hours = remaining.inHours;
-  final minutes = remaining.inMinutes % 60;
-  if (hours == 0) return l10n.countdownMinutesShort(minutes);
-  return l10n.countdownHourMinuteShort(hours, minutes);
+  return reminderRemaining(remaining, l10n);
 }

@@ -1205,7 +1205,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get alarmsSwipeHint =>
-      'Silmek için satırı sola kaydırın; yanlışlıkla silersen alttaki \"Geri al\" ile dönersin. Alarmlar vakit güncellendiğinde otomatik yeniden planlanır.';
+      'Kopyalamak için basılı tut; silmek için sola kaydır. Silinen alarmı \"Geri al\" ile geri getirebilirsin.';
 
   @override
   String get alarmsRescheduleNote =>
@@ -1491,4 +1491,41 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get errorLocationPermission => 'Konum izni gerekli';
+
+  @override
+  String reminderMinutesAfter(int minutes) {
+    return '$minutes dk sonra';
+  }
+
+  @override
+  String get reminderTimeUnavailable =>
+      'Çalma saati için vakit verisi gerekiyor';
+
+  @override
+  String get reminderSort => 'Sırala';
+
+  @override
+  String get reminderSortCustom => 'Özel sıralama';
+
+  @override
+  String get reminderSortNextFire => 'Çalma zamanına göre';
+
+  @override
+  String get reminderSortName => 'Ada göre';
+
+  @override
+  String get reminderReorder => 'Sırayı düzenle';
+
+  @override
+  String get reminderReorderDone => 'Sıralamayı bitir';
+
+  @override
+  String get reminderReorderHint => 'Sırayı değiştirmek için tutamacı sürükle.';
+
+  @override
+  String get reminderOrderSaveFailed => 'Sıralama kaydedilemedi. Yeniden dene.';
+
+  @override
+  String get reminderOrderLoadFailed =>
+      'Kayıtlı sıralama yüklenemedi. Ekranı yeniden aç.';
 }

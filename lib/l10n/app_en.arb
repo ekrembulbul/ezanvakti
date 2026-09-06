@@ -359,7 +359,7 @@
   "remindersMaxOffsetError": "You can add a notification at most {max} min before this prayer.",
   "remindersSwipeToDelete": "Swipe a row to delete it.",
   "remindersIntro": "For each prayer you can be reminded on time or X minutes before.",
-  "alarmsSwipeHint": "Swipe a row to delete; if it was a mistake, use \"Undo\" below. Alarms are rescheduled automatically when times update.",
+  "alarmsSwipeHint": "Touch and hold to duplicate; swipe left to delete. Use \"Undo\" to restore a deleted alarm.",
   "alarmsRescheduleNote": "Alarms are rescheduled as prayer data updates.",
   "alarmsUnsupported": "Audible alarms are not supported on this device (iOS 26 or later required). Alarms are saved but will not ring.",
   "alarmsNeedPermission": "Permission is needed for alarms to ring.",
@@ -438,5 +438,16 @@
   "locationSaveFailed": "Could not save: {error}",
   "locationGlobalCalculation": "Global setting: {method} · {school}",
   "versionUnknown": "Unknown",
-  "errorLocationPermission": "Location permission is required"
+  "errorLocationPermission": "Location permission is required",
+  "reminderMinutesAfter": "{minutes} min after",
+  "reminderTimeUnavailable": "Prayer times are needed to calculate the next alarm",
+  "reminderSort": "Sort",
+  "reminderSortCustom": "Custom order",
+  "reminderSortNextFire": "Next scheduled time",
+  "reminderSortName": "Name",
+  "reminderReorder": "Edit order",
+  "reminderReorderDone": "Finish ordering",
+  "reminderReorderHint": "Drag the handle to change the order.",
+  "reminderOrderSaveFailed": "Could not save the order. Try again.",
+  "reminderOrderLoadFailed": "Could not load your saved order. Reopen this screen."
 }

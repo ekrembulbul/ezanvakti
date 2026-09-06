@@ -100,8 +100,8 @@ void main() {
       await pumpCard(tester, notification: notification);
 
       // Sag taraf tek islevli kaldi: kalan sure alt metne tasindi.
-      expect(find.text('Akşam bildirimi'), findsOneWidget);
-      expect(find.text('10 dk önce · 20:15 · 2s 33dk'), findsOneWidget);
+      expect(find.text('Akşam'), findsOneWidget);
+      expect(find.text('10 dk önce · bugün 20:15 · 2s 33dk'), findsOneWidget);
       expect(find.byType(Switch), findsOneWidget);
     });
 
@@ -118,8 +118,31 @@ void main() {
         ),
       );
 
-      expect(find.text('Tam vaktinde · 22:01 · 4s 19dk'), findsOneWidget);
+      expect(find.text('Tam vaktinde · bugün 22:01 · 4s 19dk'), findsOneWidget);
     });
+
+    testWidgets(
+      'Cuma bildirimi kullanıcının verdiği adı ve gerçek saatini gösterir',
+      (tester) async {
+        await pumpCard(
+          tester,
+          notification: (
+            setting: const NotificationSetting(
+              prayerType: PrayerType.dhuhr,
+              isActive: true,
+              minutesBefore: 45,
+              weekdays: {5},
+              label: 'Cuma namazı',
+            ),
+            prayerDate: DateTime(2026, 8, 7),
+            time: DateTime(2026, 8, 7, 12, 17),
+          ),
+        );
+        expect(find.text('Cuma namazı'), findsOneWidget);
+        expect(find.text('Öğle bildirimi'), findsNothing);
+        expect(find.textContaining('12:17'), findsOneWidget);
+      },
+    );
 
     testWidgets('Alarm satiri etiket, cipa ve gun yazar', (tester) async {
       await pumpCard(tester, alarm: (alarm: sahur, time: alarmAt));
@@ -127,6 +150,23 @@ void main() {
       expect(find.text('Sahur'), findsOneWidget);
       expect(find.text('İmsak −30 dk · yarın 03:41'), findsOneWidget);
       expect(find.byType(Switch), findsOneWidget);
+    });
+
+    testWidgets('Adsız sabit alarm saati bir kez gösterilir', (tester) async {
+      await pumpCard(
+        tester,
+        alarm: (
+          alarm: const Alarm(
+            id: 'fixed',
+            kind: AlarmKind.fixed,
+            hour: 19,
+            minute: 42,
+          ),
+          time: DateTime(2026, 8, 3, 19, 42),
+        ),
+      );
+      expect(find.textContaining('19:42'), findsOneWidget);
+      expect(find.textContaining('2s 0dk'), findsOneWidget);
     });
 
     testWidgets('Atlanmis bildirim satiri yerinde kalir ve aciklanir', (
@@ -139,7 +179,7 @@ void main() {
       );
 
       // D2: kart bir sonrakine gecmez; satir kapali cizilir ki geri acilabilsin.
-      expect(find.text('Akşam bildirimi'), findsOneWidget);
+      expect(find.text('Akşam'), findsOneWidget);
       expect(find.text('Yalnızca bu sefer atlanacak · 20:15'), findsOneWidget);
       expect(tester.widget<Switch>(find.byType(Switch)).value, isFalse);
     });

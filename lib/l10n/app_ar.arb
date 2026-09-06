@@ -359,7 +359,7 @@
   "remindersMaxOffsetError": "يمكنك إضافة تنبيه قبل هذه الصلاة بحد أقصى {max} دقيقة.",
   "remindersSwipeToDelete": "اسحب الصف لحذفه.",
   "remindersIntro": "لكل صلاة يمكنك التذكير في وقتها أو قبلها بدقائق.",
-  "alarmsSwipeHint": "اسحب الصف للحذف؛ إن كان بالخطأ استخدم \"تراجع\" بالأسفل. تُعاد جدولة المنبهات تلقائيًا عند تحديث الأوقات.",
+  "alarmsSwipeHint": "اضغط مطولاً لنسخ المنبه، واسحب لليسار لحذفه. استخدم «تراجع» لاستعادة المنبه المحذوف.",
   "alarmsRescheduleNote": "تُعاد جدولة المنبهات مع تحديث بيانات الأوقات.",
   "alarmsUnsupported": "المنبهات الصوتية غير مدعومة على هذا الجهاز (يتطلب iOS 26 أو أحدث). تُحفظ المنبهات لكنها لن ترن.",
   "alarmsNeedPermission": "يلزم الإذن حتى ترن المنبهات.",
@@ -438,5 +438,16 @@
   "locationSaveFailed": "تعذّر الحفظ: {error}",
   "locationGlobalCalculation": "الإعداد العام: {method} · {school}",
   "versionUnknown": "غير معروف",
-  "errorLocationPermission": "إذن الموقع مطلوب"
+  "errorLocationPermission": "إذن الموقع مطلوب",
+  "reminderMinutesAfter": "بعد {minutes} دقيقة",
+  "reminderTimeUnavailable": "يلزم توفر أوقات الصلاة لحساب موعد المنبه",
+  "reminderSort": "ترتيب",
+  "reminderSortCustom": "ترتيب مخصص",
+  "reminderSortNextFire": "حسب الموعد القادم",
+  "reminderSortName": "حسب الاسم",
+  "reminderReorder": "تعديل الترتيب",
+  "reminderReorderDone": "إنهاء الترتيب",
+  "reminderReorderHint": "اسحب المقبض لتغيير الترتيب.",
+  "reminderOrderSaveFailed": "تعذر حفظ الترتيب. حاول مرة أخرى.",
+  "reminderOrderLoadFailed": "تعذر تحميل الترتيب المحفوظ. أعد فتح الشاشة."
 }

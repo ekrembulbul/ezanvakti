@@ -1197,7 +1197,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get alarmsSwipeHint =>
-      'اسحب الصف للحذف؛ إن كان بالخطأ استخدم \"تراجع\" بالأسفل. تُعاد جدولة المنبهات تلقائيًا عند تحديث الأوقات.';
+      'اضغط مطولاً لنسخ المنبه، واسحب لليسار لحذفه. استخدم «تراجع» لاستعادة المنبه المحذوف.';
 
   @override
   String get alarmsRescheduleNote =>
@@ -1479,4 +1479,41 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get errorLocationPermission => 'إذن الموقع مطلوب';
+
+  @override
+  String reminderMinutesAfter(int minutes) {
+    return 'بعد $minutes دقيقة';
+  }
+
+  @override
+  String get reminderTimeUnavailable =>
+      'يلزم توفر أوقات الصلاة لحساب موعد المنبه';
+
+  @override
+  String get reminderSort => 'ترتيب';
+
+  @override
+  String get reminderSortCustom => 'ترتيب مخصص';
+
+  @override
+  String get reminderSortNextFire => 'حسب الموعد القادم';
+
+  @override
+  String get reminderSortName => 'حسب الاسم';
+
+  @override
+  String get reminderReorder => 'تعديل الترتيب';
+
+  @override
+  String get reminderReorderDone => 'إنهاء الترتيب';
+
+  @override
+  String get reminderReorderHint => 'اسحب المقبض لتغيير الترتيب.';
+
+  @override
+  String get reminderOrderSaveFailed => 'تعذر حفظ الترتيب. حاول مرة أخرى.';
+
+  @override
+  String get reminderOrderLoadFailed =>
+      'تعذر تحميل الترتيب المحفوظ. أعد فتح الشاشة.';
 }
