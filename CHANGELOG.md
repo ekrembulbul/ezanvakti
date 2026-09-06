@@ -4,6 +4,15 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.13.0] - 2026-09-06
+
+### Eklendi
+- **Ana sekmeler arasında kaydırarak geçiş.** Vakitler, Takvim, Hatırlatıcılar ve Araçlar sekmeleri arasında yatay kaydırma yapılabilir; seçili sekme, geri tuşu ve kısayollar senkron kalır.
+
+### Düzeltildi
+- Hatırlatıcı satırları üç satırlı düzene alındı: etiket, sıradaki zaman ve tekrar/durum bilgisi daha okunaklı ayrıldı.
+- Satır silme ile sıralama hareketleri ayrıldı; RTL gezinme göstergesi düzeltildi.
+
 ## [0.12.0] - 2026-09-06
 
 ### Eklendi
