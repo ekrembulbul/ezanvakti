@@ -10,7 +10,7 @@ import '../reminders/reminder_row.dart';
 
 /// Bildirim listesindeki tek satır.
 ///
-/// Kendi kartını çizmez; grup içindeki bir [GroupedRow] olarak gelir. Silme,
+/// Kendi kartını çizmez; grup içindeki bir [ReminderRow] olarak gelir. Silme,
 /// satırı sola kaydırarak yapılır (bkz. `SwipeToDelete`), bu yüzden ayrı bir
 /// çöp kutusu düğmesi yoktur.
 class NotificationTile extends StatelessWidget {
@@ -75,21 +75,22 @@ class NotificationTile extends StatelessWidget {
       icon: setting.isDerived
           ? Icons.hourglass_bottom_rounded
           : PrayerUtils.getPrayerIcon(setting.prayerType),
-      time: fireAt == null ? null : context.formatTime(fireAt),
-      timing: fireAt != null && !_skipping
-          ? '${reminderDayLabel(context, fireAt, referenceTime)} · '
-                '${reminderRemaining(fireAt.difference(referenceTime), l10n)}'
+      time: notificationRuleLabel(setting, l10n),
+      timing: fireAt != null
+          ? '${reminderDayLabel(context, fireAt, referenceTime)} '
+                '${context.formatTime(fireAt)}'
           : null,
       name: notificationTitle(setting, l10n),
-      detail:
-          '${notificationRuleLabel(setting, l10n)} · '
-          '${weekdaysLabel(setting.weekdays, l10n)}',
+      detail: [
+        weekdaysLabel(setting.weekdays, l10n),
+        if (fireAt != null && !_skipping)
+          reminderRemaining(fireAt.difference(referenceTime), l10n),
+        if (setting.isDerived) l10n.derivedHint(setting.derivedKind!),
+      ].join(' · '),
       status: _skipping
           ? l10n.reminderSkippedOnce
           : !setting.isActive
           ? l10n.reminderOff
-          : setting.isDerived
-          ? l10n.derivedHint(setting.derivedKind!)
           : null,
       onTap: isReordering ? null : onTap,
       dimmed: !_isOn || !hasPermission,

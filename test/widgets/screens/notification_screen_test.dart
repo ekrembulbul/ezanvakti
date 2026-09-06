@@ -12,6 +12,8 @@ void main() {
     required NotificationSetting setting,
     bool hasPermission = true,
     VoidCallback? onToggle,
+    DateTime? now,
+    DateTime? nextFireAt,
   }) async {
     await tester.pumpWidget(
       wrapWithTheme(
@@ -22,6 +24,8 @@ void main() {
               hasPermission: hasPermission,
               onToggle: onToggle ?? () {},
               onTap: () {},
+              now: now,
+              nextFireAt: nextFireAt,
             ),
           ],
         ),
@@ -39,7 +43,8 @@ void main() {
     );
 
     expect(find.text('Öğle'), findsOneWidget);
-    expect(find.text('Tam vaktinde · Her gün'), findsOneWidget);
+    expect(find.text('Tam vaktinde'), findsOneWidget);
+    expect(find.text('Her gün'), findsOneWidget);
   });
 
   testWidgets('X dakika once bildirim alt metni', (tester) async {
@@ -52,7 +57,8 @@ void main() {
       ),
     );
 
-    expect(find.text('30 dk önce · Her gün'), findsOneWidget);
+    expect(find.text('30 dk önce'), findsOneWidget);
+    expect(find.text('Her gün'), findsOneWidget);
   });
 
   testWidgets('Kapali bildirim sondurulmus cizilir', (tester) async {
@@ -128,9 +134,22 @@ void main() {
         minutesBefore: 45,
         weekdays: {5},
       ),
+      now: DateTime(2026, 9, 10, 12, 15),
+      nextFireAt: DateTime(2026, 9, 11, 12, 15),
     );
 
     expect(find.text('Cuma namazı'), findsOneWidget);
-    expect(find.text('Öğle · 45 dk önce · Cum'), findsOneWidget);
+    final schedule = find.text('Öğle · 45 dk önce · yarın 12:15');
+    final details = find.text('Cum · 24s 0dk');
+    expect(schedule, findsOneWidget);
+    expect(details, findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('Cuma namazı')).dy,
+      lessThan(tester.getTopLeft(schedule).dy),
+    );
+    expect(
+      tester.getTopLeft(schedule).dy,
+      lessThan(tester.getTopLeft(details).dy),
+    );
   });
 }

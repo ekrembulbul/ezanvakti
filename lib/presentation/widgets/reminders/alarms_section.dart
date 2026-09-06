@@ -138,26 +138,36 @@ class AlarmsSection extends StatelessWidget {
     // çalmayacak" demek. Atlanan örnek geçince satır kendiliğinden açılır.
     final isOn = alarm.isActive && !skipped;
 
-    final displayTime = snoozedUntil ?? fireAt;
+    final displayTime = alarm.isActive ? snoozedUntil ?? fireAt : null;
     final referenceTime = now ?? DateTime.now();
-    final rule = alarm.kind == AlarmKind.anchored
-        ? '${alarmRuleLabel(alarm, context.l10n)} · '
-              '${weekdaysLabel(alarm.weekdays, context.l10n)}'
-        : weekdaysLabel(alarm.weekdays, context.l10n);
     final status = _status(alarm, snoozedUntil, skipped, context.l10n);
+    final label = alarm.label.trim();
+    final repeatsAtSameTime =
+        alarm.kind == AlarmKind.fixed &&
+        displayTime?.hour == alarm.hour &&
+        displayTime?.minute == alarm.minute;
     final row = ReminderRow(
       icon: Icons.alarm_rounded,
-      time: displayTime != null
-          ? context.formatTime(displayTime)
-          : alarm.kind == AlarmKind.fixed
-          ? context.formatHourMinute(alarm.hour, alarm.minute)
-          : '—',
-      timing: displayTime != null && alarm.isActive && status == null
-          ? '${reminderDayLabel(context, displayTime, referenceTime)} · '
-                '${reminderRemaining(displayTime.difference(referenceTime), context.l10n)}'
+      time: alarmTimeLabel(
+        alarm,
+        l10n: context.l10n,
+        formatHourMinute: context.formatHourMinute,
+      ),
+      timing: displayTime != null
+          ? repeatsAtSameTime
+                ? reminderDayLabel(context, displayTime, referenceTime)
+                : '${reminderDayLabel(context, displayTime, referenceTime)} '
+                      '${context.formatTime(displayTime)}'
           : null,
-      name: alarm.label.trim(),
-      detail: rule,
+      name: label.isEmpty ? context.l10n.alarmDefaultLabel : label,
+      detail: [
+        weekdaysLabel(alarm.weekdays, context.l10n),
+        if (displayTime != null && status == null)
+          reminderRemaining(
+            displayTime.difference(referenceTime),
+            context.l10n,
+          ),
+      ].join(' · '),
       status:
           status ??
           (alarm.isActive &&

@@ -74,14 +74,6 @@ class AppTypography {
     fontFeatures: _tabular,
   );
 
-  static const TextStyle reminderTime = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 24,
-    fontWeight: FontWeight.w700,
-    fontVariations: _w700,
-    fontFeatures: _tabular,
-  );
-
   /// "Yarın" şeridindeki saat değeri.
   static const TextStyle tomorrowValue = TextStyle(
     fontFamily: fontFamily,
@@ -186,7 +178,6 @@ class AppTypography {
     rowTitle,
     rowSubtitle,
     gridValue,
-    reminderTime,
     tomorrowValue,
     counterLabel,
     sectionLabel,

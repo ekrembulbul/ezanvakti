@@ -220,12 +220,12 @@ void main() {
     appState.setAlarms(const [sahur]);
     await pump(tester);
 
-    expect(find.text('06:30'), findsNothing);
+    expect(find.textContaining('06:30'), findsNothing);
 
     await tester.tap(find.text('Alarmlar'));
     await tester.pumpAndSettle();
 
-    expect(find.text('06:30'), findsOneWidget);
+    expect(find.textContaining('06:30'), findsOneWidget);
   });
 
   testWidgets(
@@ -257,8 +257,8 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(
-        tester.getTopLeft(find.text('08:15')).dy,
-        lessThan(tester.getTopLeft(find.text('06:30')).dy),
+        tester.getTopLeft(find.textContaining('08:15')).dy,
+        lessThan(tester.getTopLeft(find.textContaining('06:30')).dy),
       );
       final preferences = await ReminderListPreferencesStore(
         storage: storage,
@@ -271,8 +271,8 @@ void main() {
       await tester.tap(find.text('Alarmlar'));
       await tester.pumpAndSettle();
       expect(
-        tester.getTopLeft(find.text('08:15')).dy,
-        lessThan(tester.getTopLeft(find.text('06:30')).dy),
+        tester.getTopLeft(find.textContaining('08:15')).dy,
+        lessThan(tester.getTopLeft(find.textContaining('06:30')).dy),
       );
     },
   );
@@ -341,7 +341,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Alarm satirinda onay sorulmuyor; kaydirmak dogrudan siliyor.
-    await tester.drag(find.text('06:30'), const Offset(-400, 0));
+    await tester.drag(find.textContaining('06:30'), const Offset(-400, 0));
     await tester.pumpAndSettle();
 
     expect(
@@ -362,7 +362,7 @@ void main() {
       await tester.tap(find.text('Alarmlar'));
       await tester.pumpAndSettle();
 
-      await tester.longPress(find.text('06:30'));
+      await tester.longPress(find.textContaining('06:30'));
       await tester.pumpAndSettle();
       expect(find.text('Kopyala'), findsOneWidget);
       await tester.tap(find.text('Kopyala'));
@@ -392,7 +392,7 @@ void main() {
     await pump(tester);
     await tester.tap(find.text('Alarmlar'));
     await tester.pumpAndSettle();
-    await tester.longPress(find.text('06:30'));
+    await tester.longPress(find.textContaining('06:30'));
     await tester.pumpAndSettle();
     expect(find.text('Kopyala'), findsOneWidget);
     await tester.tap(find.text('Kopyala'));
@@ -417,7 +417,7 @@ void main() {
     await tester.tap(find.text('Alarmlar'));
     await tester.pumpAndSettle();
 
-    await tester.drag(find.text('06:30'), const Offset(-400, 0));
+    await tester.drag(find.textContaining('06:30'), const Offset(-400, 0));
     await tester.pumpAndSettle();
     expect(appState.alarms, isEmpty);
 
@@ -497,7 +497,7 @@ void main() {
       appState.setSkips({skip});
       await pump(tester);
       expect(find.text('Cuma namazı'), findsOneWidget);
-      expect(find.text('12:15'), findsOneWidget);
+      expect(find.textContaining('12:15'), findsOneWidget);
       expect(tester.widget<Switch>(find.byType(Switch)).value, isFalse);
       await tester.tap(find.byType(Switch));
       await tester.pumpAndSettle();
@@ -517,7 +517,7 @@ void main() {
     await tester.tap(find.text('Alarmlar'));
     await tester.pumpAndSettle();
 
-    await tester.drag(find.text('06:30'), const Offset(-400, 0));
+    await tester.drag(find.textContaining('06:30'), const Offset(-400, 0));
     await tester.pumpAndSettle();
 
     expect(

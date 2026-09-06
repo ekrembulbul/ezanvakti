@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 
-/// Yönetim listelerinde çalma saati, ad ve kural için ortak bilgi hiyerarşisi.
-/// İçerik yüksekliği metin ölçeğiyle büyür; durum bilgisi kırpılmaz.
+/// Etiket, zaman özeti ve diğer bilgilerden oluşan üç satır.
+/// Metin ölçeği yüksekliği belirler; uzun metinler görsel olarak kısaltılır.
 class ReminderRow extends StatelessWidget {
   final IconData icon;
-  final String? time;
+  final String time;
   final String? timing;
-  final String? name;
+  final String name;
   final String detail;
   final String? status;
   final Widget trailing;
@@ -20,9 +20,9 @@ class ReminderRow extends StatelessWidget {
   const ReminderRow({
     super.key,
     required this.icon,
-    this.time,
+    required this.time,
     this.timing,
-    this.name,
+    required this.name,
     required this.detail,
     this.status,
     required this.trailing,
@@ -34,6 +34,8 @@ class ReminderRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
+    final schedule = [time, ?timing].join(' · ');
+    final metadata = [?status, detail].join(' · ');
     return Material(
       type: MaterialType.transparency,
       child: InkWell(
@@ -52,45 +54,32 @@ class ReminderRow extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (time != null)
-                        Text(
-                          time!,
-                          style: AppTypography.reminderTime.copyWith(
-                            color: tokens.textPrimary,
-                          ),
+                      Text(
+                        name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.rowTitle.copyWith(
+                          color: tokens.textPrimary,
                         ),
-                      if (timing != null)
-                        Text(
-                          timing!,
-                          style: AppTypography.hint.copyWith(
-                            color: tokens.accent,
-                          ),
-                        ),
-                      if (name != null && name!.isNotEmpty) ...[
-                        if (time != null) const SizedBox(height: 4),
-                        Text(
-                          name!,
-                          style: AppTypography.rowTitle.copyWith(
-                            color: tokens.textPrimary,
-                          ),
-                        ),
-                      ],
+                      ),
                       const SizedBox(height: 3),
                       Text(
-                        detail,
+                        schedule,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: AppTypography.rowSubtitle.copyWith(
                           color: tokens.textSecondary,
                         ),
                       ),
-                      if (status != null) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                          status!,
-                          style: AppTypography.hint.copyWith(
-                            color: tokens.textSecondary,
-                          ),
+                      const SizedBox(height: 3),
+                      Text(
+                        metadata,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTypography.hint.copyWith(
+                          color: tokens.textTertiary,
                         ),
-                      ],
+                      ),
                     ],
                   ),
                 ),

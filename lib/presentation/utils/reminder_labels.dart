@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../core/models/alarm.dart';
 import '../../core/models/notification_setting.dart';
 import '../../l10n/app_localizations.dart';
 import '../../l10n/l10n_extensions.dart';
@@ -28,15 +27,6 @@ String notificationRuleLabel(
       ? l10n.prayerName(setting.prayerType)
       : l10n.derivedName(derived);
   return '$point · $offset';
-}
-
-String alarmRuleLabel(Alarm alarm, AppLocalizations l10n) {
-  final offset = switch (alarm.offsetMinutes) {
-    < 0 => l10n.reminderMinutesBefore(-alarm.offsetMinutes),
-    > 0 => l10n.reminderMinutesAfter(alarm.offsetMinutes),
-    _ => l10n.reminderOnTime,
-  };
-  return '${l10n.prayerName(alarm.anchor)} · $offset';
 }
 
 String reminderDayLabel(BuildContext context, DateTime time, DateTime now) {

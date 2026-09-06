@@ -38,12 +38,16 @@ void main() {
     expect(find.text('06:30'), findsOneWidget);
     expect(find.text('Sahur'), findsOneWidget);
     expect(find.text('Her gün'), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('Sahur')).dy,
+      lessThan(tester.getTopLeft(find.text('06:30')).dy),
+    );
     // SectionLabel metni kendisi buyutur.
     expect(find.text('1 ALARM'), findsOneWidget);
   });
 
   testWidgets(
-    'Çıpalı alarm gerçek çalma saatini isim ve kuraldan önce gösterir',
+    'Çıpalı alarm etiketi üstte, kural ve sonraki zamanı aynı satırda gösterir',
     (tester) async {
       const alarm = Alarm(
         id: 'sunrise',
@@ -63,18 +67,23 @@ void main() {
             onToggle: (_, _) {},
             onEdit: (_) {},
             onDelete: (_) async {},
+            now: DateTime(2026, 9, 6, 18),
             nextFireByAlarm: {'sunrise': DateTime(2026, 9, 7, 6, 17)},
           ),
         ),
       );
-      expect(find.text('06:17'), findsOneWidget);
       expect(find.text('Güne hazırlık'), findsOneWidget);
-      expect(find.textContaining('Güneş'), findsOneWidget);
-      expect(find.textContaining('30 dk önce'), findsOneWidget);
-      expect(find.textContaining('Hafta içi'), findsOneWidget);
+      final schedule = find.text('Güneş −30 dk · yarın 06:17');
+      final details = find.text('Hafta içi · 12s 17dk');
+      expect(schedule, findsOneWidget);
+      expect(details, findsOneWidget);
       expect(
-        tester.getTopLeft(find.text('06:17')).dy,
-        lessThan(tester.getTopLeft(find.text('Güne hazırlık')).dy),
+        tester.getTopLeft(find.text('Güne hazırlık')).dy,
+        lessThan(tester.getTopLeft(schedule).dy),
+      );
+      expect(
+        tester.getTopLeft(schedule).dy,
+        lessThan(tester.getTopLeft(details).dy),
       );
     },
   );

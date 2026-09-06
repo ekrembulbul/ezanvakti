@@ -60,7 +60,7 @@ void main() {
   testWidgets('Atlanan alarm kapali gorunur', (tester) async {
     await tester.pumpWidget(build(skips: skipOgle));
 
-    expect(find.text('Yalnızca bu sefer atlanacak'), findsOneWidget);
+    expect(find.textContaining('Yalnızca bu sefer atlanacak'), findsOneWidget);
     expect(
       switchValue(tester),
       isFalse,
@@ -76,7 +76,7 @@ void main() {
         ],
       ),
     );
-    expect(find.text('Kapalı'), findsOneWidget);
+    expect(find.textContaining('Kapalı'), findsOneWidget);
   });
 
   testWidgets('Atlanan alarmi acmak atlamayi kaldirir, alarmi acmaz', (
