@@ -1,13 +1,20 @@
+import 'dart:async';
+
+import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/core/models/mission_stop_event.dart';
 import 'package:ezanvakti/core/interfaces/alarm_service.dart';
 import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/core/models/skipped_occurrence.dart';
+import 'package:ezanvakti/features/alarms/data/native_alarm_service.dart';
 import 'package:ezanvakti/features/alarms/domain/alarm_scheduler.dart';
 import 'package:ezanvakti/features/notifications/domain/notification_scheduler.dart';
 import 'package:ezanvakti/presentation/services/reminder_rescheduler.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:logger/logger.dart';
 
 import '../support/fakes.dart';
 
@@ -39,7 +46,40 @@ class _MockAlarmService implements AlarmService {
   Future<void> abortMission(String alarmId) async {}
 }
 
+class _FailingNotificationService extends FakeNotificationService {
+  final Object failure;
+  final attempted = Completer<void>();
+
+  _FailingNotificationService(this.failure);
+
+  @override
+  Future<void> scheduleNotification({
+    required String id,
+    required DateTime scheduledTime,
+    required String title,
+    required String body,
+    String? soundId,
+    bool silent = false,
+    bool timeSensitive = true,
+  }) async {
+    attempted.complete();
+    throw failure;
+  }
+}
+
+class _DelayedNotificationService extends FakeNotificationService {
+  final release = Completer<void>();
+
+  @override
+  Future<void> cancelAllNotifications() async {
+    await release.future;
+    await super.cancelAllNotifications();
+  }
+}
+
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   const location = Location(
     id: 'loc-1',
     province: 'İstanbul',
@@ -155,5 +195,189 @@ void main() {
       notifications.scheduled.map((n) => n.id),
       isNot(contains(skip.reference)),
     );
+  });
+
+  group('Planlama hatalarının izolasyonu', () {
+    const channel = MethodChannel('com.ekrembulbul.ezanvakti/alarm');
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    final pendingAlarms = <String, int>{};
+
+    Future<Object?> handleAlarmCall(MethodCall call) async {
+      if (call.method == 'cancelAllAlarms') pendingAlarms.clear();
+      if (call.method == 'scheduleAlarm') {
+        final args = call.arguments as Map;
+        pendingAlarms[args['id'] as String] = args['timeMillis'] as int;
+      }
+      return null;
+    }
+
+    setUp(() {
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      pendingAlarms.clear();
+      messenger.setMockMethodCallHandler(channel, handleAlarmCall);
+    });
+
+    tearDown(() {
+      messenger.setMockMethodCallHandler(channel, null);
+      debugDefaultTargetPlatformOverride = null;
+    });
+
+    Future<ReminderRescheduler> buildNative(
+      FakeNotificationService notifications,
+    ) async {
+      final storage = FakeStorage();
+      await storage.init();
+      await storage.saveNotificationSettings([
+        const NotificationSetting(
+          prayerType: PrayerType.dhuhr,
+          isActive: true,
+          minutesBefore: 0,
+        ),
+      ]);
+      await storage.saveAlarm(
+        const Alarm(
+          id: 'sunrise',
+          kind: AlarmKind.anchored,
+          anchor: PrayerType.sunrise,
+          offsetMinutes: -30,
+        ),
+      );
+      return ReminderRescheduler(
+        notificationScheduler: NotificationScheduler(
+          notificationService: notifications,
+          storage: storage,
+        ),
+        alarmScheduler: AlarmScheduler(
+          alarmService: NativeAlarmService(),
+          storage: storage,
+        ),
+      );
+    }
+
+    test(
+      'Bildirim hatasına rağmen güneş alarmı güncel vakitle yeniden kurulur',
+      () async {
+        final failure = StateError('notification schedule failed');
+        final rescheduler = await buildNative(
+          _FailingNotificationService(failure),
+        );
+        pendingAlarms['sunrise'] = DateTime(
+          day.date.year,
+          day.date.month,
+          day.date.day,
+          6,
+          5,
+        ).millisecondsSinceEpoch;
+
+        await expectLater(
+          rescheduler.reschedule(
+            location: location,
+            prayerTimes: [day],
+            skips: const {},
+          ),
+          throwsA(same(failure)),
+        );
+
+        expect(
+          pendingAlarms['sunrise'],
+          DateTime(
+            day.date.year,
+            day.date.month,
+            day.date.day,
+            6,
+          ).millisecondsSinceEpoch,
+        );
+      },
+    );
+
+    test('Hata, diğer planlama tamamlanmadan çağırana dönmez', () async {
+      final failure = StateError('notification schedule failed');
+      final notifications = _FailingNotificationService(failure);
+      final rescheduler = await buildNative(notifications);
+      final releaseAlarm = Completer<void>();
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        if (call.method == 'scheduleAlarm') await releaseAlarm.future;
+        return handleAlarmCall(call);
+      });
+      var completed = false;
+      final outcome = expectLater(
+        rescheduler.reschedule(
+          location: location,
+          prayerTimes: [day],
+          skips: const {},
+        ),
+        throwsA(same(failure)),
+      ).whenComplete(() => completed = true);
+
+      try {
+        await notifications.attempted.future;
+        await pumpEventQueue();
+        expect(completed, isFalse);
+      } finally {
+        releaseAlarm.complete();
+        await outcome;
+      }
+      expect(pendingAlarms, contains('sunrise'));
+    });
+
+    test('Bekleyen bildirim planlaması alarmı geciktirmez', () async {
+      final notifications = _DelayedNotificationService();
+      final rescheduler = await buildNative(notifications);
+      var completed = false;
+      final outcome = rescheduler
+          .reschedule(location: location, prayerTimes: [day], skips: const {})
+          .whenComplete(() => completed = true);
+
+      try {
+        await pumpEventQueue();
+        expect(pendingAlarms, contains('sunrise'));
+        expect(completed, isFalse);
+      } finally {
+        notifications.release.complete();
+        await outcome;
+      }
+      expect(notifications.scheduled, hasLength(1));
+    });
+
+    test('İki planlamanın hatası da stack trace ile loglanır', () async {
+      final notificationFailure = StateError('notification schedule failed');
+      final rescheduler = await buildNative(
+        _FailingNotificationService(notificationFailure),
+      );
+      messenger.setMockMethodCallHandler(channel, (call) async {
+        if (call.method == 'cancelAllAlarms') {
+          throw PlatformException(code: 'alarm_cancel_failed');
+        }
+        return handleAlarmCall(call);
+      });
+      final events = <LogEvent>[];
+      void record(LogEvent event) {
+        if (event.error != null) events.add(event);
+      }
+
+      Logger.addLogListener(record);
+      addTearDown(() => Logger.removeLogListener(record));
+      final alarmFailure = isA<PlatformException>().having(
+        (error) => error.code,
+        'code',
+        'alarm_cancel_failed',
+      );
+
+      await expectLater(
+        rescheduler.reschedule(
+          location: location,
+          prayerTimes: [day],
+          skips: const {},
+        ),
+        throwsA(anyOf(same(notificationFailure), alarmFailure)),
+      );
+
+      expect(
+        events.map((event) => event.error),
+        unorderedMatches([same(notificationFailure), alarmFailure]),
+      );
+      expect(events.every((event) => event.stackTrace != null), isTrue);
+    });
   });
 }

@@ -1,7 +1,12 @@
+import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/core/models/alarm_mission.dart';
 import 'package:ezanvakti/core/models/alarm_theme.dart';
+import 'package:ezanvakti/core/models/notification_setting.dart';
+import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/core/theme/day_phase.dart';
 import 'package:ezanvakti/features/alarms/data/native_alarm_service.dart';
+import 'package:ezanvakti/features/alarms/domain/alarm_scheduler.dart';
+import 'package:ezanvakti/features/prayer_times/domain/prayer_time_tuner.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -35,6 +40,63 @@ void main() {
   });
 
   final theme = AlarmTheme.forPalette(DayPhase.night, Brightness.dark);
+
+  for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
+    for (final example in [(tune: 0, minute: 0), (tune: 5, minute: 5)]) {
+      test(
+        '${platform.name}: güneş -30 ve tune ${example.tune} doğru native zamanı üretir',
+        () async {
+          debugDefaultTargetPlatformOverride = platform;
+          final day = DateTime(2026, 9, 6);
+          final raw = PrayerTime(
+            date: day,
+            fajr: DateTime(2026, 9, 6, 5),
+            sunrise: DateTime(2026, 9, 6, 6, 30),
+            dhuhr: DateTime(2026, 9, 6, 13),
+            asr: DateTime(2026, 9, 6, 16, 30),
+            maghrib: DateTime(2026, 9, 6, 19, 45),
+            isha: DateTime(2026, 9, 6, 21, 15),
+          );
+          final tuned = PrayerTimeTuner.applyOne(raw, {
+            PrayerType.sunrise: example.tune,
+          });
+          const alarm = Alarm(
+            id: 'sunrise',
+            kind: AlarmKind.anchored,
+            anchor: PrayerType.sunrise,
+            offsetMinutes: -30,
+          );
+          final fire = AlarmScheduler.computeNextFire(
+            alarm: alarm,
+            now: day,
+            prayerTimesByDate: {day: tuned},
+          )!;
+
+          await NativeAlarmService().scheduleAlarm(
+            id: alarm.id,
+            scheduledTime: fire,
+            label: alarm.label,
+            soundId: alarm.soundId,
+            vibrate: alarm.vibrate,
+            snoozeEnabled: alarm.snoozeEnabled,
+            snoozeMinutes: alarm.snoozeMinutes,
+            theme: theme,
+            mission: alarm.mission,
+            missionLevel: alarm.missionLevel,
+            chainConfig: const {},
+          );
+
+          final args = calls.single.arguments as Map;
+          expect(calls.single.method, 'scheduleAlarm');
+          expect(
+            args['timeMillis'],
+            DateTime(2026, 9, 6, 6, example.minute).millisecondsSinceEpoch,
+          );
+          expect(tuned.sunrise.difference(fire), const Duration(minutes: 30));
+        },
+      );
+    }
+  }
 
   test(
     'scheduleAlarm gorev alanlarini ve zincir yapilandirmasini gecirir',

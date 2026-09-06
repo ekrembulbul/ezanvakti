@@ -1,6 +1,7 @@
 import '../../core/models/location.dart';
 import '../../core/models/prayer_time.dart';
 import '../../core/models/skipped_occurrence.dart';
+import '../../core/utils/app_logger.dart';
 import '../../features/alarms/domain/alarm_scheduler.dart';
 import '../../features/notifications/domain/notification_scheduler.dart';
 
@@ -23,6 +24,9 @@ class ReminderRescheduler {
   /// **hiçbir şeye dokunmaz** — geçici bir ağ hatası yüzünden kullanıcının
   /// mevcut bildirimlerini silmemek için. Silinen/kapatılan bir kaydın eski OS
   /// kopyasını iptal etmek çağıranın işidir.
+  ///
+  /// İki planlama bağımsız tamamlanır; hatalar ayrı ayrı loglanır ve ilk hata
+  /// ancak ikisi de tamamlandıktan sonra çağırana iletilir.
   Future<bool> reschedule({
     required Location? location,
     required List<PrayerTime> prayerTimes,
@@ -30,12 +34,39 @@ class ReminderRescheduler {
   }) async {
     if (location == null || prayerTimes.isEmpty) return false;
 
-    await notificationScheduler.scheduleNotifications(
-      location: location,
-      prayerTimes: prayerTimes,
-      skips: skips,
-    );
-    await alarmScheduler.scheduleAlarms(prayerTimes: prayerTimes, skips: skips);
+    await Future.wait<void>([
+      _runSchedule(
+        'notifications',
+        () => notificationScheduler.scheduleNotifications(
+          location: location,
+          prayerTimes: prayerTimes,
+          skips: skips,
+        ),
+      ),
+      _runSchedule(
+        'alarms',
+        () => alarmScheduler.scheduleAlarms(
+          prayerTimes: prayerTimes,
+          skips: skips,
+        ),
+      ),
+    ], eagerError: false);
     return true;
+  }
+
+  Future<void> _runSchedule(
+    String kind,
+    Future<void> Function() schedule,
+  ) async {
+    try {
+      await schedule();
+    } catch (error, stackTrace) {
+      AppLogger().error(
+        'Reminder scheduling failed (kind=$kind)',
+        error,
+        stackTrace,
+      );
+      rethrow;
+    }
   }
 }
