@@ -46,6 +46,7 @@ import '../controllers/location_monitor_controller.dart';
 import '../../core/theme/theme_controller.dart';
 import '../widgets/common/app_nav_bar.dart';
 import '../widgets/common/main_tab_scaffold.dart';
+import '../../features/ramadan/domain/imsakiye_repository.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -62,6 +63,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   DateTime? _lastResumeReschedule;
   late final GpsLocationService _locationService;
   late final DataLoaderService _dataLoaderService;
+  late final ImsakiyeLoader _imsakiyeLoader;
+  int _calendarRevision = 0;
 
   @override
   void initState() {
@@ -86,6 +89,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   void _initializeServices() {
+    _imsakiyeLoader = ImsakiyeRepository(
+      ServiceLocator().get<PrayerTimesRepository>(),
+    ).load;
     _locationService = GpsLocationService();
     _dataLoaderService = DataLoaderService(
       prayerTimesRepository: ServiceLocator().get<PrayerTimesRepository>(),
@@ -518,6 +524,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// Düzeltme değişti: veri aynı, yalnızca okunuşu değişti. Ekran, bildirim,
   /// alarm ve widget güncel değeri alsın diye yeniden yüklenir.
   Future<void> _reloadAfterTuneChange() async {
+    if (mounted) setState(() => _calendarRevision++);
     await _loadPrayerData();
   }
 
@@ -525,6 +532,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     final appState = context.read<AppState>();
     // Global ayar değişti: tüm "inherit" konumların önbelleği geçersiz.
     await ServiceLocator().get<PrayerTimesRepository>().clearAllCache();
+    if (mounted) setState(() => _calendarRevision++);
     await ServiceLocator().get<NotificationService>().cancelAllNotifications();
 
     appState.clearPrayerTimes();
@@ -635,6 +643,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         Consumer<AppState>(
           builder: (context, appState, child) {
             return CalendarScreen(
+              imsakiyeLoader: _imsakiyeLoader,
+              calculationRevision: _calendarRevision,
               location: appState.activeLocation!,
               prayerTimes: appState.prayerTimes,
               onRefresh: _refreshData,

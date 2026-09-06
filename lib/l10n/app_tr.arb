@@ -1,4 +1,11 @@
 {
+  "imsakiyeTitle": "İmsakiye",
+  "imsakiyeSources": "Ay tarihleri: Diyanet • Vakitler: Aladhan (seçili yöntem ve düzeltmeler)",
+  "imsakiyeIncomplete": "Ayın tüm vakitleri yüklenemedi. İnternet bağlantınızı kontrol edip yeniden deneyin.",
+  "imsakiyeLoadFailed": "İmsakiye yüklenemedi. İnternet bağlantınızı kontrol edip yeniden deneyin.",
+  "imsakiyeRefreshFailed": "Yenileme başarısız. Aynı konum ve ayarın önceki tam ay verisi gösteriliyor.",
+  "imsakiyeIftar": "İftar",
+  "imsakiyePeriod": "Ramazan dönemi",
   "@@locale": "tr",
   "prayerFajr": "İmsak",
   "@prayerFajr": {

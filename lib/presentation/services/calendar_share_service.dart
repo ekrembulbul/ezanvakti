@@ -18,6 +18,44 @@ class CalendarShareService {
 
   CalendarShareService({AppLogger? logger}) : _logger = logger ?? AppLogger();
 
+  static void logRenderFailure(Object error, StackTrace stack) =>
+      AppLogger().error('Calendar image render failed', error, stack);
+
+  Future<bool> sharePng({
+    required Uint8List bytes,
+    required Location location,
+    required DateTime date,
+    required String caption,
+    Rect? originRect,
+  }) async {
+    Directory? directory;
+    try {
+      directory = await Directory.systemTemp.createTemp('ezan-vakti-share-');
+      final file = await File(
+        p.join(directory.path, fileNameFor(location, date)),
+      ).writeAsBytes(bytes, flush: true);
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path)],
+          text: caption,
+          sharePositionOrigin: originRect,
+        ),
+      );
+      return true;
+    } catch (error, stack) {
+      _logger.error('Calendar share failed', error, stack);
+      return false;
+    } finally {
+      if (directory != null) {
+        try {
+          await directory.delete(recursive: true);
+        } catch (error, stack) {
+          _logger.warning('Calendar share cleanup failed', error, stack);
+        }
+      }
+    }
+  }
+
   /// Paylaşılan dosyanın adı: konum ve tarih taşır, dosya sisteminde güvenli.
   static String fileNameFor(Location location, DateTime date) {
     final label = _slug(location.displayName);
@@ -38,8 +76,18 @@ class CalendarShareService {
   /// Türkçe karakterleri ve boşlukları dosya adına uygun hale getirir.
   static String _slug(String value) {
     const map = {
-      'ç': 'c', 'ğ': 'g', 'ı': 'i', 'İ': 'i', 'ö': 'o', 'ş': 's', 'ü': 'u',
-      'Ç': 'c', 'Ğ': 'g', 'Ö': 'o', 'Ş': 's', 'Ü': 'u',
+      'ç': 'c',
+      'ğ': 'g',
+      'ı': 'i',
+      'İ': 'i',
+      'ö': 'o',
+      'ş': 's',
+      'ü': 'u',
+      'Ç': 'c',
+      'Ğ': 'g',
+      'Ö': 'o',
+      'Ş': 's',
+      'Ü': 'u',
     };
     final buffer = StringBuffer();
     for (final char in value.toLowerCase().split('')) {
@@ -67,35 +115,28 @@ class CalendarShareService {
       _logger.warning('Takvim paylasimi: cizim alani bulunamadi');
       return false;
     }
+    ui.Image? image;
     try {
       // 2.5x: paylaşılan görüntü telefon ekranından büyük yerlerde de okunur
       // kalsın, ama dosya boyutu makul olsun.
-      final image = await boundary.toImage(pixelRatio: 2.5);
+      image = await boundary.toImage(pixelRatio: 2.5);
       final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
       if (bytes == null) {
         _logger.warning('Takvim paylasimi: PNG kodlanamadi');
         return false;
       }
-      final file = await _writeTempFile(
-        bytes.buffer.asUint8List(),
-        fileNameFor(location, date),
+      return sharePng(
+        bytes: bytes.buffer.asUint8List(),
+        location: location,
+        date: date,
+        caption: captionFor(location, date, format: captionFormat),
+        originRect: originRect,
       );
-      await SharePlus.instance.share(
-        ShareParams(
-          files: [XFile(file.path)],
-          text: captionFor(location, date, format: captionFormat),
-          sharePositionOrigin: originRect,
-        ),
-      );
-      return true;
     } catch (e, stackTrace) {
       _logger.error('Takvim paylasilamadi', e, stackTrace);
       return false;
+    } finally {
+      image?.dispose();
     }
-  }
-
-  Future<File> _writeTempFile(Uint8List bytes, String name) async {
-    final file = File(p.join(Directory.systemTemp.path, name));
-    return file.writeAsBytes(bytes, flush: true);
   }
 }

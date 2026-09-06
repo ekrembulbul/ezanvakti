@@ -100,6 +100,48 @@ abstract class AppLocalizations {
     Locale('tr'),
   ];
 
+  /// No description provided for @imsakiyeTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'İmsakiye'**
+  String get imsakiyeTitle;
+
+  /// No description provided for @imsakiyeSources.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ay tarihleri: Diyanet • Vakitler: Aladhan (seçili yöntem ve düzeltmeler)'**
+  String get imsakiyeSources;
+
+  /// No description provided for @imsakiyeIncomplete.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ayın tüm vakitleri yüklenemedi. İnternet bağlantınızı kontrol edip yeniden deneyin.'**
+  String get imsakiyeIncomplete;
+
+  /// No description provided for @imsakiyeLoadFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'İmsakiye yüklenemedi. İnternet bağlantınızı kontrol edip yeniden deneyin.'**
+  String get imsakiyeLoadFailed;
+
+  /// No description provided for @imsakiyeRefreshFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yenileme başarısız. Aynı konum ve ayarın önceki tam ay verisi gösteriliyor.'**
+  String get imsakiyeRefreshFailed;
+
+  /// No description provided for @imsakiyeIftar.
+  ///
+  /// In tr, this message translates to:
+  /// **'İftar'**
+  String get imsakiyeIftar;
+
+  /// No description provided for @imsakiyePeriod.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ramazan dönemi'**
+  String get imsakiyePeriod;
+
   /// Namaz vakti adı
   ///
   /// In tr, this message translates to:

@@ -9,6 +9,31 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get imsakiyeTitle => 'Ramadan timetable';
+
+  @override
+  String get imsakiyeSources =>
+      'Month dates: Diyanet • Prayer times: Aladhan (selected method and adjustments)';
+
+  @override
+  String get imsakiyeIncomplete =>
+      'The full month could not be loaded. Check your internet connection and retry.';
+
+  @override
+  String get imsakiyeLoadFailed =>
+      'The Ramadan timetable could not be loaded. Check your internet connection and retry.';
+
+  @override
+  String get imsakiyeRefreshFailed =>
+      'Refresh failed. The previous complete month for the same location and settings is shown.';
+
+  @override
+  String get imsakiyeIftar => 'Iftar';
+
+  @override
+  String get imsakiyePeriod => 'Ramadan period';
+
+  @override
   String get prayerFajr => 'Fajr';
 
   @override

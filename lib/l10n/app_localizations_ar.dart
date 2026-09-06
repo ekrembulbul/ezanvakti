@@ -9,6 +9,31 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
+  String get imsakiyeTitle => 'إمساكية رمضان';
+
+  @override
+  String get imsakiyeSources =>
+      'تواريخ الشهر: ديانت • أوقات الصلاة: Aladhan (الطريقة والتعديلات المختارة)';
+
+  @override
+  String get imsakiyeIncomplete =>
+      'تعذر تحميل أوقات الشهر كاملة. تحقق من اتصال الإنترنت وأعد المحاولة.';
+
+  @override
+  String get imsakiyeLoadFailed =>
+      'تعذر تحميل الإمساكية. تحقق من اتصال الإنترنت وأعد المحاولة.';
+
+  @override
+  String get imsakiyeRefreshFailed =>
+      'فشل التحديث. تُعرض بيانات الشهر السابقة الكاملة للموقع والإعدادات نفسها.';
+
+  @override
+  String get imsakiyeIftar => 'الإفطار';
+
+  @override
+  String get imsakiyePeriod => 'فترة رمضان';
+
+  @override
   String get prayerFajr => 'الفجر';
 
   @override

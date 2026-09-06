@@ -1,46 +1,25 @@
-# Kerahat ve Ramazan imsakiyesi — tasarım önerisi
+# Kerahat ve Ramazan imsakiyesi
 
-Durum: araştırma ve tasarım; uygulama koduna alınmadı. Kullanıcının yerleşim ve hesap yaklaşımı kararı bekleniyor. Önizlemedeki tüm saatler örnektir; canlı namaz vakti veya gerçek imsakiye verisi değildir.
+Durum: onaylanan tasarım uygulandı. [HTML önizlemesi](kerahat-imsakiye.html) örnek saatler içeren tasarım kaydıdır; canlı veri değildir.
 
-## Mevcut durum
+## Kerahat
 
-- [Takvim](../../lib/presentation/screens/calendar_screen.dart) başlığı yalnızca bugünün hicri ayı Ramazan ise “Ramazan İmsakiyesi” oluyor. Yıl boyunca erişilen bağımsız imsakiye ve ay/yıl seçimi yok.
-- [Veri yükleyici](../../lib/presentation/services/data_loader_service.dart) bugünden iki gün önce ile on gün sonrasını istiyor. Mevcut tablo tam Ramazan ayını göstermiyor.
-- Ramazan sayacı ve oruç takibi var. Tasarım belgesindeki İmsak/Akşam sütunu vurgusu ve tam imsakiye paylaşımı mevcut takvimde tamamlanmış değil.
-- [Türetilmiş vakitler](../../lib/features/prayer_times/domain/derived_times.dart) güneş +45 dk, öğle −10 dk ve akşam −45 dk noktalarını hesaplıyor. Bunlara Hatırlatıcılar → Bildirimler → + → Türetilmiş Vakitler yolundan bildirim eklenebiliyor. Ana ekranda sürekli kerahat aralığı gösterimi yok.
+Ana sayaç sıradaki namaz vaktini göstermeye devam eder. Cetveldeki üç bordo aralık ve altındaki durum satırı aynı domain hesabını kullanır. Ayrıntı panelinde yaklaşık hesap ve kaynak açıklanır. Mevcut 45/10/45 dakika değerleri, her enlem ve mevsim için kesin astronomik sınır olarak sunulmaz.
 
-## Araştırma ve önerilen hesap
+[Diyanet Din İşleri Yüksek Kurulu](https://kurul.diyanet.gov.tr/tr/fetva/mekruh-vakitler-hangileridir-hangi-vakitlerde-kaza-ve-hangi-vakitlerde-nafile-namaz-kilinmaz/0193c42d-52b7-7186-d5b4-f1d3c950ad73), mutedil bölgelerde doğuştan sonra 40–50 dakika, öğle öncesinde yaklaşık 10 dakika ve batıştan önce 40–50 dakika açıklar. Namaz türü ve mezhep istisnaları nedeniyle genel bir yasak metni kullanılmaz. Görsel gösterim alarm ve bildirim planlamasını değiştirmez.
 
-[Diyanet Din İşleri Yüksek Kurulu](https://kurul.diyanet.gov.tr/tr/fetva/mekruh-vakitler-hangileridir-hangi-vakitlerde-kaza-ve-hangi-vakitlerde-nafile-namaz-kilinmaz/0193c42d-52b7-7186-d5b4-f1d3c950ad73), mutedil bölgelerde doğuştan sonra 40–50 dakika, öğle öncesinde yaklaşık 10 dakika ve batıştan önce 40–50 dakika açıklıyor. Bu kaynak, genel bir 30 dakika kuralını doğrulamıyor.
+## Tam ay imsakiyesi
 
-Öneri: mevcut **45/10/45 dakika** değerlerini yaklaşık gösterim olarak kullanmak. Bunlar her enlem ve mevsim için kesin astronomik sınır diye sunulmamalı. Namaz türü ve mezhebe göre istisnalar olduğu için “hiçbir namaz kılınamaz” gibi genel bir yasak metni kullanılmamalı.
+[Takvim](../../lib/presentation/screens/calendar_screen.dart) yıl boyunca Vakit Takvimi / İmsakiye seçimi sunar. Normal görünüm Home'un mevcut 13 günlük aralığını kullanır; imsakiye bağımsız repository ve controller ile seçilen Ramazan ayının tamamını yükler. Yalnızca kaynakla doğrulanmış 1445–1452 dönemleri seçilebilir. 2030'da başlayan iki ay hicri yıl kimliğiyle ayrıdır.
 
-## Vakitler ekranı
+[Dönem kataloğu](../../lib/core/data/ramadan_periods.dart) başlangıç ve bayramın ilk gününü kaynak URL'leriyle saklar. Aralık başlangıç dahil, bayram hariçtir. 1447 dönemi 19 Şubat–19 Mart 2026, 1448 dönemi 8 Şubat–8 Mart 2027'dir; ikisi de 29 gündür. Katalog dışındaki dönemler için tarih tahmini yapılmaz.
 
-1. Mevcut ana sayaç sıradaki namaz vaktini göstermeye devam eder.
-2. 24 saatlik cetvel üzerinde üç yaklaşık kerahat aralığı bordo olur. Dolgu ve tarama önizlemede karşılaştırılabilir.
-3. Cetvelin altında tek kompakt durum satırı bulunur:
-   - Öncesinde: “Sıradaki kerahat · Gün batımı”, başlangıç/bitiş ve başlamasına kalan süre.
-   - Sırasında: koyu kırmızı kenarlı, hafif kırmızı yüzeyli “Kerahat vakti”; bitiş ve kalan süre.
-   - Sonrasında: nötr renkte günlük aralıklara erişim.
-4. Satıra dokununca üç aralığın saatlerini, yaklaşık hesap bilgisini ve Diyanet kaynağını gösteren panel açılır.
-5. Altı namaz vaktinin tamamı veya İkindi aralığının tamamı kerahat rengine boyanmaz. Renk, yalnızca hesaplanan kerahat aralıklarını işaret eder.
+Ay tarihleri Diyanet'in yayımladığı takvime; saatler mevcut Aladhan provider, seçili hesap yöntemi ve kullanıcı düzeltmelerine dayanır. Bu ayrım ekran ve paylaşımda belirtilir. İmsak ve İftar sütunları belirgindir. Dar ekranlarda tablo yatay kaydırılır; kaynak ve tarih aralığı kaydırma dışında da okunur.
 
-Kırmızı bilgi tek başına kullanılmaz: başlık, aralık ve süre metinleri de bulunur. Bildirim/alarmlar ve tek seferlik atlama kontrolleri bu gösterimden bağımsızdır.
+Eksik, yinelenen veya aralık dışındaki günler tam ay olarak gösterilmez ve paylaşılamaz. Aynı kaynakla yenileme hatasında önceki tam ay korunur; konum/hesap ayarı değiştiğinde eski tablo kaldırılır. Request generation geciken cevapları; cache generation ve kısa yazma/silme kuyruğu eski fetch/save işlemlerinin temizlenmiş cache'i yeniden doldurmasını engeller. GPS koordinat değişimi aynı id'nin gelecekteki ay cache'ini de geçersizleştirir.
 
-## İmsakiyenin bulunabilirliği
+## Paylaşım ve doğrulama
 
-Takvim ekranının üstünde **Vakit takvimi / Ramazan İmsakiyesi** seçimi yıl boyunca görünür olsun. İmsakiye görünümü seçilen Ramazan ayının tüm günlerini yüklesin; İmsak ve İftar odaklı sunum ve yıl seçimi bulunsun. Ayın resmi başlangıcı/bitişi veri kaynağıyla doğrulanmalı. Mevcut sezonluk başlık değişikliği bu özelliğin tamamlandığı anlamına gelmemeli.
+İmsakiye paylaşımı, bütün satırları içeren ayrı bir widget ağacını PNG olarak render eder. Ekrandaki scroll konumu paylaşımı etkilemez. Görsel seçilen ay, tarih aralığı, konum ve kaynak ayrımını içerir. Image ve render kaynakları temizlenir, geçici paylaşım dosyaları işlem sonunda kaldırılır; iPad origin ve yinelenen paylaşım koruması bulunur.
 
-Önizlemede gezinmenin ve sütun vurgusunun anlaşılması için beş örnek satır var; gerçek tam ay yükleme veya paylaşım uygulanmış değil.
-
-## Uygulamaya geçildiğinde
-
-- Kerahat başlangıç/bitişleri tek domain hesabından üretilmeli; metin, cetvel ve mevcut türetilmiş bildirim noktaları aynı sınırları kullanmalı.
-- [DayRuler](../../lib/presentation/widgets/home/day_ruler.dart) yeni kerahat sınırlarında mevcut 3 px vakit boşluğunu uygulamamalı. 10 dk, 360 px cetvelde yalnızca 2,5 px: aksi hâlde öğle aralığı kaybolur. Görsel genişlik saat oranını izlemeli, dokunma alanı ayrıca genişletilmeli.
-- Bitiş anında aktif durum kapanmalı; gece yarısı, eksik vakit verisi, DST ve RTL kontrol edilmeli. Veri yokken aralık uydurulmamalı.
-- İmsakiye, ana ekranın 13 günlük penceresinden ayrı olarak seçilen ayın tamamını istemeli. Tam ay paylaşımı mevcut ekran görüntüsü paylaşımından ayrıca doğrulanmalı.
-
-## Önizleme
-
-[Etkileşimli tasarım](kerahat-imsakiye.html) uygulamanın görsel dilini taklit eden yerel bir tasarım fragmanıdır. Durum, görünüm, cetvel dolgusu ve ekran seçimleri destekleyen görüntüleyicide değiştirilebilir. Kerahat satırı ayrıntı panelini; Takvim düğmesi imsakiye girişini açar.
+Testler 29/30 gün, yıl geçişi, DST cache tamamlığı, eksik cache, tune, ters async cevaplar, kaynak/revision değişimi, GPS cache invalidation, dönem seçimi, dar ekran, büyük metin ve RTL davranışını kapsar. Gerçek fontla son günün İftar saatini değiştirmek üretilen PNG'yi değiştirir; tam ay görseli viewport yüksekliğini aşar. Unit/widget testleri native alarmın cihazda zamanında çalmasını kanıtlamaz. Platform build ve simulator smoke sonuçları teslim raporunda ayrıca belirtilir.

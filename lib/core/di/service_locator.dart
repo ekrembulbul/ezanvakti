@@ -84,7 +84,10 @@ class ServiceLocator {
     final offlineStateManager = OfflineStateManager(storage: localStorage);
     register<OfflineStateManager>(offlineStateManager);
 
-    final locationRepository = LocationRepository(storage: localStorage);
+    final locationRepository = LocationRepository(
+      storage: localStorage,
+      clearPrayerCache: prayerTimesRepository.clearCacheForLocation,
+    );
     register<LocationRepository>(locationRepository);
 
     final notificationService = FlutterLocalNotificationService();

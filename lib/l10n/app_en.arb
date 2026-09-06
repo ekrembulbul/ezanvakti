@@ -1,4 +1,11 @@
 {
+  "imsakiyeTitle": "Ramadan timetable",
+  "imsakiyeSources": "Month dates: Diyanet • Prayer times: Aladhan (selected method and adjustments)",
+  "imsakiyeIncomplete": "The full month could not be loaded. Check your internet connection and retry.",
+  "imsakiyeLoadFailed": "The Ramadan timetable could not be loaded. Check your internet connection and retry.",
+  "imsakiyeRefreshFailed": "Refresh failed. The previous complete month for the same location and settings is shown.",
+  "imsakiyeIftar": "Iftar",
+  "imsakiyePeriod": "Ramadan period",
   "@@locale": "en",
   "prayerFajr": "Fajr",
   "prayerSunrise": "Sunrise",

@@ -4,8 +4,12 @@ import '../../../core/models/calculation_settings.dart';
 
 class LocationRepository {
   final LocalStorage storage;
+  final Future<void> Function(String)? _clearPrayerCache;
 
-  LocationRepository({required this.storage});
+  LocationRepository({
+    required this.storage,
+    Future<void> Function(String)? clearPrayerCache,
+  }) : _clearPrayerCache = clearPrayerCache;
 
   Future<Location?> getActiveLocation() async {
     return await storage.getActiveLocation();
@@ -31,7 +35,8 @@ class LocationRepository {
   /// hesaplama parametreleri değişirken çağrılır; bir sonraki yükleme güncel
   /// parametrelerle yeniden çeker.
   Future<void> clearPrayerTimeCache(String locationId) async {
-    await storage.deletePrayerTimesForLocation(locationId);
+    await (_clearPrayerCache?.call(locationId) ??
+        storage.deletePrayerTimesForLocation(locationId));
   }
 
   /// Uygulama genelindeki varsayılan hesaplama ayarını döner. Konum düzenleme
@@ -59,6 +64,14 @@ class LocationRepository {
     final existingGps = await getGpsLocation();
     if (existingGps != null) {
       final updatedLocation = location.copyWith(id: existingGps.id);
+      if (existingGps.latitude != updatedLocation.latitude ||
+          existingGps.longitude != updatedLocation.longitude ||
+          existingGps.method != updatedLocation.method ||
+          existingGps.school != updatedLocation.school ||
+          existingGps.latitudeAdjustmentMethod !=
+              updatedLocation.latitudeAdjustmentMethod) {
+        await clearPrayerTimeCache(existingGps.id);
+      }
       await storage.updateLocation(updatedLocation);
       return updatedLocation;
     } else {

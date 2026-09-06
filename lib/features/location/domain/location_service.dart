@@ -30,7 +30,7 @@ class LocationService {
       return;
     }
 
-    // Aynı konum ama farklı method/school: önbellekteki vakitler geçersizdir.
+    // Aynı id'nin koordinat veya hesap girdileri değişince tüm cache geçersizdir.
     if (sameLocation && calcParamsChanged) {
       await prayerTimesRepository.clearCacheForLocation(newLocation.id);
     }
@@ -47,6 +47,8 @@ class LocationService {
 
   bool _calcParamsChanged(Location a, Location b) {
     return a.method != b.method ||
+        a.latitude != b.latitude ||
+        a.longitude != b.longitude ||
         a.school != b.school ||
         a.latitudeAdjustmentMethod != b.latitudeAdjustmentMethod;
   }

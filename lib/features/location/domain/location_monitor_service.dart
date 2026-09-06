@@ -161,10 +161,9 @@ class LocationMonitorService {
         _lastCoordinates = current;
         _lastUpdateTime = DateTime.now();
 
-        // Önbellek burada SİLİNMEZ. Dinleyen taraf (HomePage) yüklemeyi
-        // `forceRefresh` ile yapar: yeni veri başarıyla gelirse aynı günlerin
-        // üzerine yazılır, ağ yoksa eski veri yerinde kalır. Önce silmek, ağ
-        // hatasında kullanıcıyı verisiz bırakıyordu.
+        // Repository, koordinat değişiminde tüm dönemlerin cache'ini yeni
+        // konum yayımlanmadan önce geçersizleştirir. Home'un kısa yükleme
+        // penceresi gelecekteki imsakiye aylarını tek başına yenileyemez.
         _locationChangeController.add(saved);
 
         logger.debug('GPS location updated: ${saved.displayName}');

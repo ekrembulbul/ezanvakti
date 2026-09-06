@@ -8,6 +8,29 @@ import 'prayer_time_tuner.dart';
 class PrayerTimesRepository {
   final PrayerTimeProvider provider;
   final LocalStorage storage;
+  int _cacheGeneration = 0;
+  Future<void> _cacheQueue = Future.value();
+
+  Future<void> _enqueueCache(Future<void> Function() action) {
+    final operation = _cacheQueue.then((_) => action());
+    _cacheQueue = operation.then<void>(
+      (_) {},
+      onError: (Object error, StackTrace stack) {
+        AppLogger().error('Prayer cache mutation failed', error, stack);
+      },
+    );
+    return operation;
+  }
+
+  Future<void> _saveCache(
+    List<PrayerTime> times,
+    String locationId,
+    int generation,
+  ) => _enqueueCache(() async {
+    if (generation != _cacheGeneration) return;
+    await storage.savePrayerTimes(times, locationId);
+    await storage.saveLastUpdateTime(DateTime.now());
+  });
 
   static const int cacheDaysForward = 30;
   static const int cacheCleanupDaysOld = 90;
@@ -20,6 +43,7 @@ class PrayerTimesRepository {
     required DateTime endDate,
     bool forceRefresh = false,
   }) async {
+    final generation = _cacheGeneration;
     final logger = AppLogger();
     final dayCount = endDate.difference(startDate).inDays + 1;
     logger.debug(
@@ -57,8 +81,7 @@ class PrayerTimesRepository {
       if (remoteTimes.isNotEmpty) {
         // Önbelleğe **ham** veri yazılır; düzeltme okurken uygulanır.
         logger.debug('Saving ${remoteTimes.length} days to cache');
-        await storage.savePrayerTimes(remoteTimes, location.id);
-        await storage.saveLastUpdateTime(DateTime.now());
+        await _saveCache(remoteTimes, location.id, generation);
       }
 
       return await _tuned(remoteTimes);
@@ -100,6 +123,7 @@ class PrayerTimesRepository {
     required DateTime date,
     bool forceRefresh = false,
   }) async {
+    final generation = _cacheGeneration;
     final logger = AppLogger();
     final normalizedDate = DateTime(date.year, date.month, date.day);
     logger.debug(
@@ -129,8 +153,7 @@ class PrayerTimesRepository {
 
       if (remoteTime != null) {
         logger.debug('Saving single day to cache');
-        await storage.savePrayerTimes([remoteTime], location.id);
-        await storage.saveLastUpdateTime(DateTime.now());
+        await _saveCache([remoteTime], location.id, generation);
       }
 
       return await _tunedOne(remoteTime);
@@ -175,13 +198,15 @@ class PrayerTimesRepository {
   /// (method/school) değişince eski vakitler geçersiz olur; bir sonraki okuma
   /// güncel parametrelerle yeniden çeker.
   Future<void> clearCacheForLocation(String locationId) async {
-    await storage.deletePrayerTimesForLocation(locationId);
+    _cacheGeneration++;
+    await _enqueueCache(() => storage.deletePrayerTimesForLocation(locationId));
   }
 
   /// Tüm konumların önbelleğini siler. Global hesaplama ayarı değişince
   /// (tüm "inherit" konumları etkilediği için) kullanılır.
   Future<void> clearAllCache() async {
-    await storage.deleteAllPrayerTimes();
+    _cacheGeneration++;
+    await _enqueueCache(storage.deleteAllPrayerTimes);
   }
 
   /// Konumun override'larını global ayarla birleştirip somut parametreli bir
@@ -219,14 +244,20 @@ class PrayerTimesRepository {
     );
     final normalizedEnd = DateTime(endDate.year, endDate.month, endDate.day);
 
-    final expectedDays = normalizedEnd.difference(normalizedStart).inDays + 1;
+    final expectedDays =
+        DateTime.utc(endDate.year, endDate.month, endDate.day)
+            .difference(
+              DateTime.utc(startDate.year, startDate.month, startDate.day),
+            )
+            .inDays +
+        1;
 
-    if (cachedTimes.length < expectedDays) return false;
+    if (cachedTimes.length != expectedDays) return false;
 
     DateTime currentDate = normalizedStart;
     int index = 0;
 
-    while (currentDate.isBefore(normalizedEnd.add(const Duration(days: 1)))) {
+    while (!currentDate.isAfter(normalizedEnd)) {
       if (index >= cachedTimes.length) return false;
 
       final cachedDate = cachedTimes[index].date;
@@ -240,7 +271,11 @@ class PrayerTimesRepository {
         return false;
       }
 
-      currentDate = currentDate.add(const Duration(days: 1));
+      currentDate = DateTime(
+        currentDate.year,
+        currentDate.month,
+        currentDate.day + 1,
+      );
       index++;
     }
 

@@ -9,6 +9,31 @@ class AppLocalizationsTr extends AppLocalizations {
   AppLocalizationsTr([String locale = 'tr']) : super(locale);
 
   @override
+  String get imsakiyeTitle => 'İmsakiye';
+
+  @override
+  String get imsakiyeSources =>
+      'Ay tarihleri: Diyanet • Vakitler: Aladhan (seçili yöntem ve düzeltmeler)';
+
+  @override
+  String get imsakiyeIncomplete =>
+      'Ayın tüm vakitleri yüklenemedi. İnternet bağlantınızı kontrol edip yeniden deneyin.';
+
+  @override
+  String get imsakiyeLoadFailed =>
+      'İmsakiye yüklenemedi. İnternet bağlantınızı kontrol edip yeniden deneyin.';
+
+  @override
+  String get imsakiyeRefreshFailed =>
+      'Yenileme başarısız. Aynı konum ve ayarın önceki tam ay verisi gösteriliyor.';
+
+  @override
+  String get imsakiyeIftar => 'İftar';
+
+  @override
+  String get imsakiyePeriod => 'Ramazan dönemi';
+
+  @override
   String get prayerFajr => 'İmsak';
 
   @override
