@@ -4,6 +4,16 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.14.0] - 2026-09-06
+
+### Değişti
+- **Alarm ve bildirim zamanları daha görünür.** Hatırlatıcı satırlarında günler, ana zaman kuralı, görev ve ikincil bilgiler önem sırasına göre gösterilir.
+- Ana ekranda zaman kuralı öne çıkarıldı; özel etiket ayrı ve daha küçük gösterilir.
+- Dakika süreleri saat ve gün birimleriyle yerelleştirilmiş biçimde gösterilir.
+
+### Düzeltildi
+- Bozuk ya da negatif kalıcı süre değerleri güvenli varsayılana düşürülür; bildirim payload'ları ve ekranlar aynı süre kuralını kullanır.
+
 ## [0.13.0] - 2026-09-06
 
 ### Eklendi
