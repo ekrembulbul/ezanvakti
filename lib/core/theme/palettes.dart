@@ -40,6 +40,13 @@ const double _controlShadowDarkAlpha = 0.35;
 /// Koyu temada mürekkep her palette beyazdır.
 const Color _darkInk = Color(0xFFFFFFFF);
 
+const Color _kerahatLineLight = Color(0xFF8D243B);
+const Color _kerahatSurfaceLight = Color(0xFFF9E9EC);
+const Color _kerahatTextLight = Color(0xFF8D243B);
+const Color _kerahatLineDark = Color(0xFFA14158);
+const Color _kerahatSurfaceDark = Color(0xFF3C1F2A);
+const Color _kerahatTextDark = Color(0xFFED9AAA);
+
 /// Açık temada mürekkep = paletin Metin1 rengi. [ink] bu yüzden ayrı bir
 /// parametre değil, [textPrimary]'den türetilir.
 AppTokens _palette({
@@ -67,6 +74,9 @@ AppTokens _palette({
     textSecondary: textSecondary,
     textTertiary: textTertiary,
     textValue: textValue,
+    kerahatLine: isDark ? _kerahatLineDark : _kerahatLineLight,
+    kerahatSurface: isDark ? _kerahatSurfaceDark : _kerahatSurfaceLight,
+    kerahatText: isDark ? _kerahatTextDark : _kerahatTextLight,
     selectedControl: accent.withValues(
       alpha: isDark ? _selectedControlDarkAlpha : _selectedControlLightAlpha,
     ),

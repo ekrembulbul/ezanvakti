@@ -2173,5 +2173,42 @@
       "name": {"type": "String"},
       "duration": {"type": "String"}
     }
-  }
+  },
+  "kerahatNextTitle": "Sıradaki kerahat",
+  "@kerahatNextTitle": {"description": "Ana ekrandaki yaklaşan kerahat durumu."},
+  "kerahatActiveTitle": "Kerahat vakti",
+  "@kerahatActiveTitle": {"description": "Ana ekrandaki aktif kerahat durumu."},
+  "kerahatCompletedTitle": "Bugünün kerahat vakitleri",
+  "@kerahatCompletedTitle": {"description": "Günün kerahat aralıkları tamamlandığında gösterilen başlık."},
+  "kerahatCompletedHint": "Üç yaklaşık aralığı görüntüle",
+  "@kerahatCompletedHint": {"description": "Tamamlanan kerahat kartının açıklaması."},
+  "kerahatAfterSunrise": "Güneş sonrası",
+  "@kerahatAfterSunrise": {"description": "Güneş doğduktan sonraki kerahat aralığı."},
+  "kerahatBeforeDhuhr": "Öğle öncesi",
+  "@kerahatBeforeDhuhr": {"description": "Öğle öncesindeki istiva kerahat aralığı."},
+  "kerahatBeforeMaghrib": "Akşam öncesi",
+  "@kerahatBeforeMaghrib": {"description": "Güneş batmadan önceki kerahat aralığı."},
+  "kerahatTimeRange": "{start}–{end}",
+  "@kerahatTimeRange": {
+    "description": "Kerahat aralığının başlangıç ve bitiş saati.",
+    "placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}
+  },
+  "kerahatStartsIn": "{duration} sonra başlar",
+  "@kerahatStartsIn": {
+    "description": "Yaklaşan kerahat aralığına kalan süre.",
+    "placeholders": {"duration": {"type": "String"}}
+  },
+  "kerahatEndsIn": "{duration} sonra biter",
+  "@kerahatEndsIn": {
+    "description": "Aktif kerahat aralığının bitmesine kalan süre.",
+    "placeholders": {"duration": {"type": "String"}}
+  },
+  "kerahatSheetTitle": "Kerahat vakitleri",
+  "@kerahatSheetTitle": {"description": "Kerahat bilgi panelinin başlığı."},
+  "kerahatApproximation": "Bu aralıklar mutedil bölgeler için yaklaşık 45/10/45 dakika olarak hesaplanır.",
+  "@kerahatApproximation": {"description": "Kerahat hesabının yaklaşık olduğunu açıklayan bilgi."},
+  "kerahatExceptions": "Hükümler namaz türüne ve mezhebe göre değişebilir. Güneş batarken o günün İkindi farzı kılınabilir.",
+  "@kerahatExceptions": {"description": "Kerahat hükümlerindeki temel fark ve İkindi istisnası."},
+  "kerahatSourceName": "Kaynak: Diyanet Din İşleri Yüksek Kurulu",
+  "@kerahatSourceName": {"description": "Kerahat açıklamasının kaynak adı."}
 }

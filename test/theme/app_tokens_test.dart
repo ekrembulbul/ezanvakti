@@ -157,6 +157,31 @@ void main() {
     });
   });
 
+  group('Kerahat tokenlari', () {
+    test('Acik ve koyu temada anlamsal renkler sabit ve okunabilir', () {
+      for (final phase in DayPhase.values) {
+        final light = paletteFor(phase, Brightness.light);
+        final dark = paletteFor(phase, Brightness.dark);
+
+        expect(light.kerahatLine, const Color(0xFF8D243B));
+        expect(light.kerahatSurface, const Color(0xFFF9E9EC));
+        expect(light.kerahatText, const Color(0xFF8D243B));
+        expect(dark.kerahatLine, const Color(0xFFA14158));
+        expect(dark.kerahatSurface, const Color(0xFF3C1F2A));
+        expect(dark.kerahatText, const Color(0xFFED9AAA));
+      }
+    });
+
+    test('Kerahat renkleri copyWith ve lerp ile korunur', () {
+      final light = paletteFor(DayPhase.morning, Brightness.light);
+      final dark = paletteFor(DayPhase.night, Brightness.dark);
+
+      expect(light.copyWith().kerahatLine, light.kerahatLine);
+      expect(light.lerp(dark, 0).kerahatSurface, light.kerahatSurface);
+      expect(light.lerp(dark, 1).kerahatText, dark.kerahatText);
+    });
+  });
+
   group('AppTokens.backgroundGradient', () {
     test('Uc durak ve sabit geometri', () {
       final tokens = paletteFor(DayPhase.night, Brightness.dark);

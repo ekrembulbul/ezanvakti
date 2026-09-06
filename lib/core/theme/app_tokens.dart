@@ -46,6 +46,15 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Liste ve ızgaradaki saat değerleri.
   final Color textValue;
 
+  /// Yaklaşık kerahat aralıklarının bordo çizgisi ve cetvel dolgusu.
+  final Color kerahatLine;
+
+  /// Aktif kerahat kartının hafif bordo yüzeyi.
+  final Color kerahatSurface;
+
+  /// Kerahat başlıklarının yüzey üzerinde okunabilir metin rengi.
+  final Color kerahatText;
+
   /// Kayan segmentteki seçili hap'ın dolgusu.
   final Color selectedControl;
 
@@ -72,6 +81,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
     required this.textSecondary,
     required this.textTertiary,
     required this.textValue,
+    required this.kerahatLine,
+    required this.kerahatSurface,
+    required this.kerahatText,
     required this.selectedControl,
     required this.controlShadow,
     required this.backgroundStops,
@@ -100,6 +112,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
     Color? textSecondary,
     Color? textTertiary,
     Color? textValue,
+    Color? kerahatLine,
+    Color? kerahatSurface,
+    Color? kerahatText,
     Color? selectedControl,
     Color? controlShadow,
     List<Color>? backgroundStops,
@@ -117,6 +132,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
       textSecondary: textSecondary ?? this.textSecondary,
       textTertiary: textTertiary ?? this.textTertiary,
       textValue: textValue ?? this.textValue,
+      kerahatLine: kerahatLine ?? this.kerahatLine,
+      kerahatSurface: kerahatSurface ?? this.kerahatSurface,
+      kerahatText: kerahatText ?? this.kerahatText,
       selectedControl: selectedControl ?? this.selectedControl,
       controlShadow: controlShadow ?? this.controlShadow,
       backgroundStops: backgroundStops ?? this.backgroundStops,
@@ -143,6 +161,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
       textSecondary: Color.lerp(textSecondary, other.textSecondary, t)!,
       textTertiary: Color.lerp(textTertiary, other.textTertiary, t)!,
       textValue: Color.lerp(textValue, other.textValue, t)!,
+      kerahatLine: Color.lerp(kerahatLine, other.kerahatLine, t)!,
+      kerahatSurface: Color.lerp(kerahatSurface, other.kerahatSurface, t)!,
+      kerahatText: Color.lerp(kerahatText, other.kerahatText, t)!,
       selectedControl: Color.lerp(selectedControl, other.selectedControl, t)!,
       controlShadow: Color.lerp(controlShadow, other.controlShadow, t)!,
       backgroundStops: [

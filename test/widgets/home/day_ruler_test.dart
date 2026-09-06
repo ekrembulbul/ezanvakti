@@ -1,4 +1,5 @@
 import 'package:ezanvakti/core/models/prayer_time.dart';
+import 'package:ezanvakti/features/prayer_times/domain/kerahat_times.dart';
 import 'package:ezanvakti/presentation/widgets/home/day_ruler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -66,6 +67,33 @@ void main() {
     test('Gun disi degerler kirpilir', () {
       expect(dayProgress(_times(), DateTime(2026, 8, 1, 23, 0)), 0.0);
       expect(dayProgress(_times(), DateTime(2026, 8, 3, 1, 0)), 1.0);
+    });
+
+    test('Berlin DST gunlerinde gercek 23/25 saatlik gun oranini kullanir', () {
+      final springDate = DateTime(2026, 3, 29);
+      final springEnd = DateTime(2026, 3, 30);
+      final autumnDate = DateTime(2026, 10, 25);
+      final autumnEnd = DateTime(2026, 10, 26);
+      if (springEnd.difference(springDate).inHours != 23 ||
+          autumnEnd.difference(autumnDate).inHours != 25) {
+        markTestSkipped('TZ=Europe/Berlin gerektirir');
+        return;
+      }
+
+      expect(
+        dayProgress(
+          _times().copyWith(date: springDate),
+          DateTime(2026, 3, 29, 12),
+        ),
+        closeTo(11 / 23, 0.0001),
+      );
+      expect(
+        dayProgress(
+          _times().copyWith(date: autumnDate),
+          DateTime(2026, 10, 25, 12),
+        ),
+        closeTo(13 / 25, 0.0001),
+      );
     });
   });
 
@@ -143,6 +171,46 @@ void main() {
 
     test('Alti vakit siniri yedi parca uretir', () {
       expect(build(), hasLength(7));
+    });
+
+    test(
+      'Kerahat sinirlari orantili parcalar uretir ve vakit boslugu acmaz',
+      () {
+        final segments = buildRulerSegments(
+          prayerFractions: fractions,
+          dayStart: fractions[0],
+          dayEnd: fractions[4],
+          kerahatRanges: const [
+            (start: 6 / 24, end: 6.75 / 24),
+            (start: (13 * 60 - 10) / (24 * 60), end: 13 / 24),
+            (start: 19.25 / 24, end: 20 / 24),
+          ],
+        );
+        final kerahat = segments
+            .where((segment) => segment.kind == RulerSegmentKind.kerahat)
+            .toList();
+
+        expect(kerahat, hasLength(3));
+        expect(kerahat[0].gapAfter, isFalse);
+        expect(kerahat[1].gapBefore, isFalse);
+        expect(kerahat[1].gapAfter, isTrue);
+      },
+    );
+
+    test('On dakikalik ogle parcasi 360 px cetvelde gorunur kalir', () {
+      final segments = buildRulerSegments(
+        prayerFractions: fractions,
+        dayStart: fractions[0],
+        dayEnd: fractions[4],
+        kerahatRanges: const [
+          (start: (13 * 60 - 10) / (24 * 60), end: 13 / 24),
+        ],
+      );
+      final noon = segments.singleWhere(
+        (segment) => segment.kind == RulerSegmentKind.kerahat,
+      );
+
+      expect(paintedRulerSegmentWidth(noon, 360), greaterThan(0.9));
     });
   });
 
@@ -232,5 +300,42 @@ void main() {
 
       expect(gradients, isEmpty);
     });
+
+    testWidgets(
+      'Kerahat araliklari RTL yonunde de ayni zaman eksenini kullanir',
+      (tester) async {
+        final intervals = KerahatTimes.forDay(_times());
+        Future<List<double>> tickCenters(TextDirection direction) async {
+          await tester.pumpWidget(
+            wrapWithTheme(
+              Directionality(
+                textDirection: direction,
+                child: SizedBox(
+                  width: 360,
+                  child: DayRuler(
+                    prayerTime: _times(),
+                    now: DateTime(2026, 8, 2, 12),
+                    kerahatIntervals: intervals,
+                  ),
+                ),
+              ),
+            ),
+          );
+          return find
+              .byKey(const Key('ruler_tick'))
+              .evaluate()
+              .map(
+                (element) => tester.getCenter(find.byWidget(element.widget)).dx,
+              )
+              .toList();
+        }
+
+        final ltr = await tickCenters(TextDirection.ltr);
+        final rtl = await tickCenters(TextDirection.rtl);
+
+        expect(ltr, orderedEquals(rtl));
+        expect(rtl, orderedEquals(rtl.toList()..sort()));
+      },
+    );
   });
 }

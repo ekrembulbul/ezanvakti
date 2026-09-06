@@ -1551,4 +1551,55 @@ class AppLocalizationsAr extends AppLocalizations {
   String notificationDurationLeft(String name, String duration) {
     return 'متبقي $duration على $name';
   }
+
+  @override
+  String get kerahatNextTitle => 'وقت الكراهة التالي';
+
+  @override
+  String get kerahatActiveTitle => 'وقت الكراهة';
+
+  @override
+  String get kerahatCompletedTitle => 'أوقات الكراهة اليوم';
+
+  @override
+  String get kerahatCompletedHint => 'اعرض الفترات التقريبية الثلاث';
+
+  @override
+  String get kerahatAfterSunrise => 'بعد الشروق';
+
+  @override
+  String get kerahatBeforeDhuhr => 'قبل الظهر';
+
+  @override
+  String get kerahatBeforeMaghrib => 'قبل الغروب';
+
+  @override
+  String kerahatTimeRange(String start, String end) {
+    return '$start–$end';
+  }
+
+  @override
+  String kerahatStartsIn(String duration) {
+    return 'يبدأ بعد $duration';
+  }
+
+  @override
+  String kerahatEndsIn(String duration) {
+    return 'ينتهي بعد $duration';
+  }
+
+  @override
+  String get kerahatSheetTitle => 'أوقات الكراهة';
+
+  @override
+  String get kerahatApproximation =>
+      'تُحسب هذه الفترات في المناطق المعتدلة تقريبًا بـ 45/10/45 دقيقة.';
+
+  @override
+  String get kerahatExceptions =>
+      'قد تختلف الأحكام حسب نوع الصلاة والمذهب. يجوز أداء فرض عصر ذلك اليوم أثناء غروب الشمس.';
+
+  @override
+  String get kerahatSourceName =>
+      'المصدر: المجلس الأعلى للشؤون الدينية في ديانت';
 }

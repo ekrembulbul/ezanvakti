@@ -13,10 +13,12 @@ import '../services/upcoming_resolver.dart';
 import '../widgets/common/app_surface.dart';
 import '../widgets/common/state_widgets.dart';
 import '../../features/ramadan/domain/ramadan_countdown.dart';
+import '../../features/prayer_times/domain/kerahat_times.dart';
 import '../../l10n/l10n_extensions.dart';
 import '../widgets/home/countdown_hero.dart';
 import '../widgets/home/day_ruler.dart';
 import '../widgets/home/home_top_bar.dart';
+import '../widgets/home/kerahat_card.dart';
 import '../widgets/home/prayer_grid.dart';
 import '../widgets/home/upcoming_card.dart';
 
@@ -151,6 +153,13 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     final now = DateTime.now();
+    final isCurrentDay =
+        today.date.year == now.year &&
+        today.date.month == now.month &&
+        today.date.day == now.day;
+    final kerahatIntervals = isCurrentDay
+        ? KerahatTimes.forDay(today)
+        : const <KerahatInterval>[];
 
     // Ramazan'da sayaç sıradaki vakte değil iftara/sahura sayar: kullanıcının
     // o ay boyunca beklediği bilgi bu.
@@ -172,42 +181,51 @@ class _HomeScreenState extends State<HomeScreen> {
               ? context.l10n.ramadanIftarCountdown
               : context.l10n.ramadanSuhoorCountdown);
 
-    return Column(
-      children: [
-        const SizedBox(height: 8),
-        HomeDateLine(date: today.date),
-        const SizedBox(height: 20),
-        if (nextTime != null && nextName != null)
-          CountdownHero(nextPrayerTime: nextTime, nextPrayerName: nextName),
-        const SizedBox(height: 26),
-        DayRuler(prayerTime: today, now: now),
-        const SizedBox(height: 24),
-        PrayerGrid(
-          prayerTime: today,
-          now: now,
-          currentPrayer: PrayerUtils.getCurrentPrayer(today),
-        ),
-        const SizedBox(height: 24),
-        UpcomingCard(
-          missionSession: widget.missionSession,
-          now: now,
-          notification: resolveNextNotification(
-            settings: widget.notificationSettings,
-            prayerTimes: widget.prayerTimes,
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          const SizedBox(height: 8),
+          HomeDateLine(date: today.date),
+          const SizedBox(height: 20),
+          if (nextTime != null && nextName != null)
+            CountdownHero(nextPrayerTime: nextTime, nextPrayerName: nextName),
+          const SizedBox(height: 26),
+          DayRuler(
+            prayerTime: today,
             now: now,
+            kerahatIntervals: kerahatIntervals,
           ),
-          alarm: resolveNextAlarm(
-            alarms: widget.alarms,
-            prayerTimes: widget.prayerTimes,
+          if (kerahatIntervals.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            KerahatCard(intervals: kerahatIntervals, now: now),
+          ],
+          const SizedBox(height: 24),
+          PrayerGrid(
+            prayerTime: today,
             now: now,
+            currentPrayer: PrayerUtils.getCurrentPrayer(today),
           ),
-          skips: widget.skips,
-          onSkipChanged: widget.onSkipChanged,
-          onSeeAll: widget.onSeeReminders ?? () {},
-        ),
-        // Artan boşluk altta toplanır; içerik yukarı yaslı kalır.
-        const Spacer(),
-      ],
+          const SizedBox(height: 24),
+          UpcomingCard(
+            missionSession: widget.missionSession,
+            now: now,
+            notification: resolveNextNotification(
+              settings: widget.notificationSettings,
+              prayerTimes: widget.prayerTimes,
+              now: now,
+            ),
+            alarm: resolveNextAlarm(
+              alarms: widget.alarms,
+              prayerTimes: widget.prayerTimes,
+              now: now,
+            ),
+            skips: widget.skips,
+            onSkipChanged: widget.onSkipChanged,
+            onSeeAll: widget.onSeeReminders ?? () {},
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
     );
   }
 }

@@ -1563,4 +1563,54 @@ class AppLocalizationsTr extends AppLocalizations {
   String notificationDurationLeft(String name, String duration) {
     return '$name vaktine $duration kaldı';
   }
+
+  @override
+  String get kerahatNextTitle => 'Sıradaki kerahat';
+
+  @override
+  String get kerahatActiveTitle => 'Kerahat vakti';
+
+  @override
+  String get kerahatCompletedTitle => 'Bugünün kerahat vakitleri';
+
+  @override
+  String get kerahatCompletedHint => 'Üç yaklaşık aralığı görüntüle';
+
+  @override
+  String get kerahatAfterSunrise => 'Güneş sonrası';
+
+  @override
+  String get kerahatBeforeDhuhr => 'Öğle öncesi';
+
+  @override
+  String get kerahatBeforeMaghrib => 'Akşam öncesi';
+
+  @override
+  String kerahatTimeRange(String start, String end) {
+    return '$start–$end';
+  }
+
+  @override
+  String kerahatStartsIn(String duration) {
+    return '$duration sonra başlar';
+  }
+
+  @override
+  String kerahatEndsIn(String duration) {
+    return '$duration sonra biter';
+  }
+
+  @override
+  String get kerahatSheetTitle => 'Kerahat vakitleri';
+
+  @override
+  String get kerahatApproximation =>
+      'Bu aralıklar mutedil bölgeler için yaklaşık 45/10/45 dakika olarak hesaplanır.';
+
+  @override
+  String get kerahatExceptions =>
+      'Hükümler namaz türüne ve mezhebe göre değişebilir. Güneş batarken o günün İkindi farzı kılınabilir.';
+
+  @override
+  String get kerahatSourceName => 'Kaynak: Diyanet Din İşleri Yüksek Kurulu';
 }

@@ -5,6 +5,7 @@ import '../../../core/models/prayer_time.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
+import '../../../features/prayer_times/domain/kerahat_times.dart';
 
 // ── Yatak ve çentik tonları ────────────────────────────────────────────────
 // Üç rol, üç ağırlık. Gündüz vurgu rengini taşır; gece ve çentikler nötr
@@ -49,10 +50,21 @@ enum RulerSegmentKind {
 
   /// Akşam → ertesi İmsak. Yatsı bu aralığın içindedir.
   night,
+
+  /// Yaklaşık kerahat aralığı.
+  kerahat,
 }
 
+typedef RulerRange = ({double start, double end});
+
 /// Şeridin oran uzayındaki (0..1) bir parçası.
-typedef RulerSegment = ({double start, double end, RulerSegmentKind kind});
+typedef RulerSegment = ({
+  double start,
+  double end,
+  RulerSegmentKind kind,
+  bool gapBefore,
+  bool gapAfter,
+});
 
 /// Şeridi vakit sınırlarından bölerek parçalara ayırır.
 ///
@@ -68,9 +80,28 @@ List<RulerSegment> buildRulerSegments({
   required List<double> prayerFractions,
   required double dayStart,
   required double dayEnd,
+  List<RulerRange> kerahatRanges = const [],
 }) {
-  // Sınırlar: gün başı · altı vakit · gün sonu.
-  final bounds = <double>[0, ...prayerFractions, 1];
+  final validPrayerFractions = prayerFractions
+      .where((fraction) => fraction.isFinite && fraction >= 0 && fraction <= 1)
+      .toSet();
+  final validKerahatRanges = kerahatRanges
+      .where(
+        (range) =>
+            range.start.isFinite &&
+            range.end.isFinite &&
+            range.start >= 0 &&
+            range.end <= 1 &&
+            range.end > range.start,
+      )
+      .toList();
+  final bounds = <double>{
+    0,
+    ...validPrayerFractions,
+    for (final range in validKerahatRanges) range.start,
+    for (final range in validKerahatRanges) range.end,
+    1,
+  }.toList()..sort();
 
   final segments = <RulerSegment>[];
   for (var i = 0; i < bounds.length - 1; i++) {
@@ -78,14 +109,32 @@ List<RulerSegment> buildRulerSegments({
     final end = bounds[i + 1];
     if (end <= start) continue;
 
+    final midpoint = start + (end - start) / 2;
+    final isKerahat = validKerahatRanges.any(
+      (range) => midpoint >= range.start && midpoint < range.end,
+    );
     final isNight = end <= dayStart || start >= dayEnd;
     segments.add((
       start: start,
       end: end,
-      kind: isNight ? RulerSegmentKind.night : RulerSegmentKind.day,
+      kind: isKerahat
+          ? RulerSegmentKind.kerahat
+          : isNight
+          ? RulerSegmentKind.night
+          : RulerSegmentKind.day,
+      gapBefore: validPrayerFractions.contains(start),
+      gapAfter: validPrayerFractions.contains(end),
     ));
   }
   return segments;
+}
+
+/// Bir parçanın vakit sınırı boşlukları çıktıktan sonra kalan çizim genişliği.
+double paintedRulerSegmentWidth(RulerSegment segment, double rulerWidth) {
+  final gapBefore = segment.gapBefore ? _kMarkGap / 2 : 0.0;
+  final gapAfter = segment.gapAfter ? _kMarkGap / 2 : 0.0;
+  return ((segment.end - segment.start) * rulerWidth - gapBefore - gapAfter)
+      .clamp(0.0, rulerWidth);
 }
 
 /// [now] anının **takvim gününün** (00:00–24:00) içindeki oranı (0..1).
@@ -120,8 +169,14 @@ class DayRuler extends StatelessWidget {
 
   final PrayerTime prayerTime;
   final DateTime now;
+  final List<KerahatInterval> kerahatIntervals;
 
-  const DayRuler({super.key, required this.prayerTime, required this.now});
+  const DayRuler({
+    super.key,
+    required this.prayerTime,
+    required this.now,
+    this.kerahatIntervals = const [],
+  });
 
   /// Yatağın **altındaki** vakit çentiği.
   ///
@@ -165,6 +220,13 @@ class DayRuler extends StatelessWidget {
       prayerTime.isha,
     ];
     final fractions = [for (final mark in marks) dayProgress(prayerTime, mark)];
+    final kerahatRanges = [
+      for (final interval in kerahatIntervals)
+        (
+          start: dayProgress(prayerTime, interval.start),
+          end: dayProgress(prayerTime, interval.end),
+        ),
+    ];
 
     return SizedBox(
       height: height,
@@ -193,11 +255,13 @@ class DayRuler extends StatelessWidget {
                       // sonu değil, gecenin içindeki bir sınır.
                       dayStart: fractions[0],
                       dayEnd: fractions[4],
+                      kerahatRanges: kerahatRanges,
                     ),
                     dayColor: tokens.accent,
                     nightColor: tokens.textTertiary.withValues(
                       alpha: _kNightOpacity,
                     ),
+                    kerahatColor: tokens.kerahatLine,
                   ),
                 ),
               ),
@@ -256,16 +320,19 @@ class _RulerPainter extends CustomPainter {
   final List<RulerSegment> segments;
   final Color dayColor;
   final Color nightColor;
+  final Color kerahatColor;
 
   const _RulerPainter({
     required this.segments,
     required this.dayColor,
     required this.nightColor,
+    required this.kerahatColor,
   });
 
   Color _colorFor(RulerSegmentKind kind) => switch (kind) {
     RulerSegmentKind.day => dayColor,
     RulerSegmentKind.night => nightColor,
+    RulerSegmentKind.kerahat => kerahatColor,
   };
 
   @override
@@ -276,23 +343,12 @@ class _RulerPainter extends CustomPainter {
     for (var i = 0; i < segments.length; i++) {
       final segment = segments[i];
 
-      // Boşluk yalnızca vakit sınırlarında; "şu an" bölünmesinin iki yakası
-      // bitişik kalır, aksi halde içinde bulunduğumuz aralık ikiye ayrılmış
-      // gibi görünürdü.
-      final splitsHere = i > 0 && segments[i - 1].kind != RulerSegmentKind.night
-          ? segments[i - 1].end != segment.start
-          : true;
-      final gapBefore = i == 0
-          ? 0.0
-          : (_isPrayerBoundary(i) ? _kMarkGap / 2 : 0.0);
-      final gapAfter = i == segments.length - 1
-          ? 0.0
-          : (_isPrayerBoundary(i + 1) ? _kMarkGap / 2 : 0.0);
-      // `splitsHere` yalnızca okunabilirlik için hesaplandı; kullanılmıyor.
-      assert(splitsHere || true);
+      // Kerahat başlangıç/bitişlerinde boşluk yoktur. Yalnızca altı gerçek
+      // vakit sınırı yatağı böler; böylece 10 dakikalık öğle parçası kaybolmaz.
+      final gapBefore = segment.gapBefore ? _kMarkGap / 2 : 0.0;
 
       final left = segment.start * size.width + gapBefore;
-      final right = segment.end * size.width - gapAfter;
+      final right = left + paintedRulerSegmentWidth(segment, size.width);
       if (right <= left) continue;
 
       paint.color = _colorFor(segment.kind);
@@ -312,12 +368,10 @@ class _RulerPainter extends CustomPainter {
     }
   }
 
-  /// [index] numaralı parçanın başlangıcı bir vakit sınırı mı?
-  bool _isPrayerBoundary(int index) => index > 0 && index < segments.length;
-
   @override
   bool shouldRepaint(_RulerPainter old) =>
       old.segments != segments ||
       old.dayColor != dayColor ||
-      old.nightColor != nightColor;
+      old.nightColor != nightColor ||
+      old.kerahatColor != kerahatColor;
 }

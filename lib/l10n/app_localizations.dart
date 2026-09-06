@@ -2841,6 +2841,90 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{name} vaktine {duration} kaldı'**
   String notificationDurationLeft(String name, String duration);
+
+  /// Ana ekrandaki yaklaşan kerahat durumu.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıradaki kerahat'**
+  String get kerahatNextTitle;
+
+  /// Ana ekrandaki aktif kerahat durumu.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kerahat vakti'**
+  String get kerahatActiveTitle;
+
+  /// Günün kerahat aralıkları tamamlandığında gösterilen başlık.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bugünün kerahat vakitleri'**
+  String get kerahatCompletedTitle;
+
+  /// Tamamlanan kerahat kartının açıklaması.
+  ///
+  /// In tr, this message translates to:
+  /// **'Üç yaklaşık aralığı görüntüle'**
+  String get kerahatCompletedHint;
+
+  /// Güneş doğduktan sonraki kerahat aralığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güneş sonrası'**
+  String get kerahatAfterSunrise;
+
+  /// Öğle öncesindeki istiva kerahat aralığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Öğle öncesi'**
+  String get kerahatBeforeDhuhr;
+
+  /// Güneş batmadan önceki kerahat aralığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Akşam öncesi'**
+  String get kerahatBeforeMaghrib;
+
+  /// Kerahat aralığının başlangıç ve bitiş saati.
+  ///
+  /// In tr, this message translates to:
+  /// **'{start}–{end}'**
+  String kerahatTimeRange(String start, String end);
+
+  /// Yaklaşan kerahat aralığına kalan süre.
+  ///
+  /// In tr, this message translates to:
+  /// **'{duration} sonra başlar'**
+  String kerahatStartsIn(String duration);
+
+  /// Aktif kerahat aralığının bitmesine kalan süre.
+  ///
+  /// In tr, this message translates to:
+  /// **'{duration} sonra biter'**
+  String kerahatEndsIn(String duration);
+
+  /// Kerahat bilgi panelinin başlığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kerahat vakitleri'**
+  String get kerahatSheetTitle;
+
+  /// Kerahat hesabının yaklaşık olduğunu açıklayan bilgi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu aralıklar mutedil bölgeler için yaklaşık 45/10/45 dakika olarak hesaplanır.'**
+  String get kerahatApproximation;
+
+  /// Kerahat hükümlerindeki temel fark ve İkindi istisnası.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hükümler namaz türüne ve mezhebe göre değişebilir. Güneş batarken o günün İkindi farzı kılınabilir.'**
+  String get kerahatExceptions;
+
+  /// Kerahat açıklamasının kaynak adı.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaynak: Diyanet Din İşleri Yüksek Kurulu'**
+  String get kerahatSourceName;
 }
 
 class _AppLocalizationsDelegate

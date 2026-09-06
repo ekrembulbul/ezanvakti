@@ -1,6 +1,7 @@
 import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/presentation/screens/home_screen.dart';
+import 'package:ezanvakti/presentation/widgets/home/kerahat_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -17,6 +18,20 @@ PrayerTime _day(int day) {
     maghrib: at(20, 27),
     isha: at(22, 4),
     date: DateTime(2026, 8, day),
+  );
+}
+
+PrayerTime _dayForDate(DateTime date) {
+  DateTime at(int hour, int minute) =>
+      DateTime(date.year, date.month, date.day, hour, minute);
+  return PrayerTime(
+    fajr: at(4, 8),
+    sunrise: at(5, 53),
+    dhuhr: at(13, 15),
+    asr: at(17, 10),
+    maghrib: at(20, 27),
+    isha: at(22, 4),
+    date: DateTime(date.year, date.month, date.day),
   );
 }
 
@@ -149,5 +164,78 @@ void main() {
     );
 
     expect(find.byType(LinearProgressIndicator), findsNothing);
+  });
+
+  testWidgets('bugunun verisinde cetvel altinda kerahat karti gorunur', (
+    tester,
+  ) async {
+    final today = _dayForDate(DateTime.now());
+    await pumpHome(
+      tester,
+      HomeScreen(
+        location: _location,
+        todaysPrayerTime: today,
+        lastUpdateTime: today.date,
+      ),
+    );
+
+    expect(find.byType(KerahatCard), findsOneWidget);
+  });
+
+  testWidgets('eski gunun verisinden kerahat karti uydurmaz', (tester) async {
+    await pumpHome(
+      tester,
+      HomeScreen(
+        location: _location,
+        todaysPrayerTime: _day(2),
+        lastUpdateTime: DateTime(2026, 8, 2),
+      ),
+    );
+
+    expect(find.byType(KerahatCard), findsNothing);
+  });
+
+  testWidgets('dar ekranda buyuk metinle Home kaydirilir ve tasmaz', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 520);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final today = _dayForDate(DateTime.now());
+
+    await tester.pumpWidget(
+      wrapWithTheme(
+        MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(1.3)),
+          child: HomeScreen(
+            location: _location,
+            todaysPrayerTime: today,
+            lastUpdateTime: today.date,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byType(SingleChildScrollView), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Arapca RTL Home kerahat kartini tasmadan cizer', (tester) async {
+    final today = _dayForDate(DateTime.now());
+    await tester.pumpWidget(
+      wrapWithTheme(
+        HomeScreen(
+          location: _location,
+          todaysPrayerTime: today,
+          lastUpdateTime: today.date,
+        ),
+        locale: const Locale('ar'),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byType(KerahatCard), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

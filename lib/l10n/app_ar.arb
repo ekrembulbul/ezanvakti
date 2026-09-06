@@ -456,5 +456,19 @@
   "reminderAfterDuration": "بعد {duration}",
   "quietWindowDurationSummary": "قبل {before} – بعد {after}",
   "durationAgo": "منذ {duration}",
-  "notificationDurationLeft": "متبقي {duration} على {name}"
+  "notificationDurationLeft": "متبقي {duration} على {name}",
+  "kerahatNextTitle": "وقت الكراهة التالي",
+  "kerahatActiveTitle": "وقت الكراهة",
+  "kerahatCompletedTitle": "أوقات الكراهة اليوم",
+  "kerahatCompletedHint": "اعرض الفترات التقريبية الثلاث",
+  "kerahatAfterSunrise": "بعد الشروق",
+  "kerahatBeforeDhuhr": "قبل الظهر",
+  "kerahatBeforeMaghrib": "قبل الغروب",
+  "kerahatTimeRange": "{start}–{end}",
+  "kerahatStartsIn": "يبدأ بعد {duration}",
+  "kerahatEndsIn": "ينتهي بعد {duration}",
+  "kerahatSheetTitle": "أوقات الكراهة",
+  "kerahatApproximation": "تُحسب هذه الفترات في المناطق المعتدلة تقريبًا بـ 45/10/45 دقيقة.",
+  "kerahatExceptions": "قد تختلف الأحكام حسب نوع الصلاة والمذهب. يجوز أداء فرض عصر ذلك اليوم أثناء غروب الشمس.",
+  "kerahatSourceName": "المصدر: المجلس الأعلى للشؤون الدينية في ديانت"
 }

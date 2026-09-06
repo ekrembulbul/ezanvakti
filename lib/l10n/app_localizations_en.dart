@@ -1565,4 +1565,55 @@ class AppLocalizationsEn extends AppLocalizations {
   String notificationDurationLeft(String name, String duration) {
     return '$duration until $name';
   }
+
+  @override
+  String get kerahatNextTitle => 'Next disliked time';
+
+  @override
+  String get kerahatActiveTitle => 'Disliked time';
+
+  @override
+  String get kerahatCompletedTitle => 'Today\'s disliked times';
+
+  @override
+  String get kerahatCompletedHint => 'View the three approximate intervals';
+
+  @override
+  String get kerahatAfterSunrise => 'After sunrise';
+
+  @override
+  String get kerahatBeforeDhuhr => 'Before Dhuhr';
+
+  @override
+  String get kerahatBeforeMaghrib => 'Before sunset';
+
+  @override
+  String kerahatTimeRange(String start, String end) {
+    return '$start–$end';
+  }
+
+  @override
+  String kerahatStartsIn(String duration) {
+    return 'Starts in $duration';
+  }
+
+  @override
+  String kerahatEndsIn(String duration) {
+    return 'Ends in $duration';
+  }
+
+  @override
+  String get kerahatSheetTitle => 'Disliked prayer times';
+
+  @override
+  String get kerahatApproximation =>
+      'For temperate regions, these intervals are calculated as approximately 45/10/45 minutes.';
+
+  @override
+  String get kerahatExceptions =>
+      'Rulings may differ by prayer type and school of law. The obligatory Asr prayer of that day may be performed while the sun is setting.';
+
+  @override
+  String get kerahatSourceName =>
+      'Source: Diyanet High Council of Religious Affairs';
 }
