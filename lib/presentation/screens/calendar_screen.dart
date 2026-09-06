@@ -200,10 +200,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 child: _showImsakiye
                     ? (_imsakiye == null
                           ? ErrorState(message: context.l10n.imsakiyeLoadFailed)
-                          : ImsakiyeView(
-                              controller: _imsakiye!,
-                              location: widget.location,
-                            ))
+                          : ImsakiyeView(controller: _imsakiye!))
                     : _buildBody(),
               ),
             ],

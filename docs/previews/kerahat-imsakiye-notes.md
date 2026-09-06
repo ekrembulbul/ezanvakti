@@ -14,7 +14,7 @@ Ana sayaç sıradaki namaz vaktini göstermeye devam eder. Cetveldeki üç bordo
 
 [Dönem kataloğu](../../lib/core/data/ramadan_periods.dart) başlangıç ve bayramın ilk gününü kaynak URL'leriyle saklar. Aralık başlangıç dahil, bayram hariçtir. 1447 dönemi 19 Şubat–19 Mart 2026, 1448 dönemi 8 Şubat–8 Mart 2027'dir; ikisi de 29 gündür. Katalog dışındaki dönemler için tarih tahmini yapılmaz.
 
-Ay tarihleri Diyanet'in yayımladığı takvime; saatler mevcut Aladhan provider, seçili hesap yöntemi ve kullanıcı düzeltmelerine dayanır. Bu ayrım ekran ve paylaşımda belirtilir. İmsak ve İftar sütunları belirgindir. Dar ekranlarda tablo yatay kaydırılır; kaynak ve tarih aralığı kaydırma dışında da okunur.
+Ay tarihleri Diyanet'in yayımladığı takvime; saatler mevcut Aladhan provider, seçili hesap yöntemi ve kullanıcı düzeltmelerine dayanır. Bu ayrım ekran ve paylaşımda belirtilir. İmsak ve İftar sütunları belirgindir. Normal metin boyutunda altı sütun telefon genişliğine sığar; büyük metinde gerektiğinde yatay kaydırılır. Kaynak ve tarih aralığı ekranda bir kez, tablonun üzerinde gösterilir; paylaşım kendi başlığını ve kaynak bilgisini içerir.
 
 Eksik, yinelenen veya aralık dışındaki günler tam ay olarak gösterilmez ve paylaşılamaz. Aynı kaynakla yenileme hatasında önceki tam ay korunur; konum/hesap ayarı değiştiğinde eski tablo kaldırılır. Request generation geciken cevapları; cache generation ve kısa yazma/silme kuyruğu eski fetch/save işlemlerinin temizlenmiş cache'i yeniden doldurmasını engeller. GPS koordinat değişimi aynı id'nin gelecekteki ay cache'ini de geçersizleştirir.
 

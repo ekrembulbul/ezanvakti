@@ -13,6 +13,39 @@ import '../../support/fakes.dart';
 
 const location = Location(id: 'test', province: 'İstanbul', district: 'Fatih');
 void main() {
+  testWidgets('phone shows Imsak and Iftar together without repeated source', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      wrapWithTheme(
+        CalendarScreen(
+          location: location,
+          prayerTimes: const [],
+          imsakiyeLoader:
+              ({
+                required location,
+                required period,
+                forceRefresh = false,
+              }) async => period.days.map(prayerTimeFor).toList(),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('İmsakiye'));
+    await tester.pumpAndSettle();
+
+    for (final label in ['İmsak', 'İftar', 'Yatsı']) {
+      final bounds = tester.getRect(find.text(label));
+      expect(bounds.left, greaterThanOrEqualTo(0), reason: label);
+      expect(bounds.right, lessThanOrEqualTo(390), reason: label);
+    }
+    expect(find.textContaining('Ay tarihleri: Diyanet'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets(
     'full month is accessible year round and period selection reloads',
     (tester) async {

@@ -150,7 +150,7 @@ class KerahatCard extends StatelessWidget {
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: tokens.surface,
+      backgroundColor: tokens.backgroundStops.last,
       builder: (sheetContext) => FractionallySizedBox(
         heightFactor: 0.8,
         child: SafeArea(

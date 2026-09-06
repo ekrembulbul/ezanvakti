@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../../core/data/ramadan_periods.dart';
-import '../../../core/models/location.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 import '../../../features/ramadan/domain/imsakiye_repository.dart';
@@ -10,15 +9,13 @@ import '../../../l10n/l10n_extensions.dart';
 import '../../controllers/imsakiye_controller.dart';
 import '../common/state_widgets.dart';
 import 'imsakiye_share_table.dart';
+import 'imsakiye_table.dart';
 
 class ImsakiyeView extends StatelessWidget {
+  static const double _minimumTableWidth = 280;
+
   final ImsakiyeController controller;
-  final Location location;
-  const ImsakiyeView({
-    super.key,
-    required this.controller,
-    required this.location,
-  });
+  const ImsakiyeView({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) => Column(
@@ -68,6 +65,9 @@ class ImsakiyeView extends StatelessWidget {
         onRetry: controller.refresh,
       );
     }
+    final fontSize = AppTypography.rowSubtitle.fontSize!;
+    final textScale =
+        MediaQuery.textScalerOf(context).scale(fontSize) / fontSize;
     return RefreshIndicator(
       onRefresh: controller.refresh,
       child: LayoutBuilder(
@@ -76,12 +76,13 @@ class ImsakiyeView extends StatelessWidget {
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: SizedBox(
-              width: math.max(760, constraints.maxWidth),
-              child: ImsakiyeShareTable(
-                location: location,
-                period: controller.period,
-                days: controller.days,
+              width: math.max(
+                // Keep all six columns visible at the normal text size;
+                // larger accessibility text can use horizontal scrolling.
+                _minimumTableWidth * textScale,
+                constraints.maxWidth,
               ),
+              child: ImsakiyeTable(days: controller.days, compact: true),
             ),
           ),
         ),
