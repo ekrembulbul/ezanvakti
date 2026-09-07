@@ -4,6 +4,18 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.17.0] - 2026-09-08
+
+### Değişti
+- **Kerahat durumu ilk bakışta görünür.** Aktif kerahatte ana sayaç bordo bir alanda, büyük başlık ve yaklaşık bitiş saatiyle gösterilir. Ayrıntılar üst çubuktaki kısayoldan açılır.
+- **Alt navigasyon yenilendi.** Sekme adları kesilmeden gösterilir; seçili alan hafif kenarlıklı, renkli bir vurguyla kayar. Büyük metinde iki sıralı düzen kullanılır.
+- Alarm ve bildirim listelerinde sıralama değişince satırlar yeni konumlarına kayarak geçer; hareket sırasında satır kimliği ve düzenleme durumu korunur.
+- Sayaç altındaki bilgiler tüm vakitlerde “İmsak vakti”, “Güneş vakti” gibi ifadelerle gösterilir. Ramazan alt bilgileri iftar ve imsak hedeflerini doğru adlandırır.
+
+### Düzeltildi
+- Ana ekranda kaydırma sınırındaki geri sekme ve büyük metin taşmaları giderildi.
+- Navigasyon düğmelerinde üst üste çalışan dokunma ve seçim animasyonları sadeleştirildi.
+
 ## [0.16.0] - 2026-09-07
 
 ### Eklendi
