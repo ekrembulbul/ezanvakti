@@ -1,59 +1,19 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 
-/// Gösterge geçişinin süresi. `SlidingSegment` ile aynı sabit: biçimleri
-/// farklı, hareket dilleri ortak.
 const Duration _kNavAnimation = Duration(milliseconds: 220);
-
-// Dikey yerleşim; toplam [AppNavBar.height] bunların toplamıdır.
-const double _kTopPadding = 8;
-const double _kIconSize = 26;
-const double _kIconLabelGap = 6;
-
-/// Etiketin punto ve satır kutusu birlikte değişir: `height: 1.0` verildiği için
-/// satır yüksekliği puntoya eşittir, [_kLabelHeight] ondan küçük olamaz.
-const double _kLabelFontSize = 13;
-const double _kLabelHeight = 14;
-const double _kLabelIndicatorGap = 3;
-const double _kIndicatorHeight = 3;
-const double _kBottomPadding = 6;
-
-const double _kIndicatorWidth = 26;
-
-/// Seçili öğenin arkasındaki yumuşak zemin; ikonu **ve** etiketi sarar.
-///
-/// Rengin ve göstergenin tek başına yetmediği görüldü: açık temada vurgu ile
-/// pasif gri yakın tonlar, gösterge de etiketin altında küçük kalıyordu.
-const double _kPillRadius = 14;
-const double _kPillOpacity = 0.14;
-const double _kPillPaddingH = 14;
-const double _kPillPaddingV = 4;
-
-/// Göstergenin konumu spec'e bağlı olduğu için test edilebilir.
-const Key kNavIndicatorKey = Key('nav_indicator');
-
-/// Kenar boşluğunun iç boşluğa oranı.
-///
-/// `1` tam eşit aralık (`|---o---o---o---|`) demek; kenardakiler o zaman
-/// biraz fazla içeri kaçıyor. `0.5` ise dilimleri eşit bölmenin sonucu
-/// (`|-o---o---o-|`), bu sefer kenara fazla yapışıyorlar. Aradaki 2/3
-/// ikisinin ortası: `|--o---o---o--|`.
-const double _kEdgeGapRatio = 2 / 3;
-
-/// İçeriğin kendi diliminin ortasından ne kadar kaydırılacağı.
-///
-/// Dilimler genişliği eşit böler, yani merkezler dilim ortalarına çakılı
-/// kalır. İstenen yerleşim [_kEdgeGapRatio] ile tanımlanıyor. Kaydırma
-/// yalnızca **görsel**; dokunma hedefi dilimin tamamı olarak kalıyor.
-double navContentDx(int index, int count, double width) {
-  final r = _kEdgeGapRatio;
-  // Toplam genislik = 2·kenar + (n-1)·ic. Merkez_i = (r + i) / (2r + n - 1).
-  final desired = (r + index) / (2 * r + count - 1);
-  final slotCenter = (2 * index + 1) / (2 * count);
-  return width * (desired - slotCenter);
-}
+const double _kMaxWidth = 600;
+const double _kDockRadius = 24;
+const double _kItemRadius = 18;
+const double _kItemGap = 4;
+const double _kItemPadding = 6;
+const double _kIconSize = 24;
+const double _kLabelGap = 6;
+const double _kMinimumTarget = 48;
 
 /// Alt gezinme çubuğundaki tek bir hedef.
 class NavItem {
@@ -63,23 +23,9 @@ class NavItem {
   const NavItem({required this.label, required this.icon});
 }
 
-/// Alt gezinme çubuğu: ikon üstte, etiket altta, seçili öğenin altında kayan
-/// ince bir çizgi.
-///
-/// `SlidingSegment`'ten kasten ayrıdır: o ekran içi bir filtre, bu gezinme.
-/// İkisi aynı görünseydi kullanıcı hangisinin "neredeyim" hangisinin "ne
-/// gösteriyorum" olduğunu ayırt edemezdi.
+/// İsimlerin tamamını gösteren alt gezinme çubuğu.
+/// Büyük metinde iki sütuna geçer; yüksekliğini içerikten alır.
 class AppNavBar extends StatelessWidget {
-  static const double height =
-      _kTopPadding +
-      _kPillPaddingV * 2 +
-      _kIconSize +
-      _kIconLabelGap +
-      _kLabelHeight +
-      _kLabelIndicatorGap +
-      _kIndicatorHeight +
-      _kBottomPadding;
-
   final List<NavItem> items;
   final int selected;
   final ValueChanged<int> onChanged;
@@ -89,80 +35,199 @@ class AppNavBar extends StatelessWidget {
     required this.items,
     required this.selected,
     required this.onChanged,
+  }) : assert(items.length > 0),
+       assert(selected >= 0 && selected < items.length);
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+
+    return SafeArea(
+      top: false,
+      minimum: const EdgeInsets.only(bottom: 8),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+        child: Align(
+          heightFactor: 1,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: _kMaxWidth),
+            child: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: tokens.surface,
+                borderRadius: BorderRadius.circular(_kDockRadius),
+                border: Border.all(color: tokens.border),
+                boxShadow: [
+                  BoxShadow(
+                    color: tokens.controlShadow,
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: LayoutBuilder(
+                builder: (context, constraints) =>
+                    _buildItems(context, constraints.maxWidth),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildItems(BuildContext context, double width) {
+    final widths = _minimumWidths(context);
+    final available = width - _kItemGap * (items.length - 1);
+    final minimum = widths.fold<double>(0, (sum, width) => sum + width);
+
+    if (minimum <= available) {
+      final extra = (available - minimum) / items.length;
+      return IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var i = 0; i < items.length; i++) ...[
+              if (i > 0) const SizedBox(width: _kItemGap),
+              SizedBox(width: widths[i] + extra, child: _button(i)),
+            ],
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var row = 0; row < items.length; row += 2) ...[
+          if (row > 0) const SizedBox(height: _kItemGap),
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(child: _button(row, horizontal: true)),
+                const SizedBox(width: _kItemGap),
+                if (row + 1 < items.length)
+                  Expanded(child: _button(row + 1, horizontal: true))
+                else
+                  const Spacer(),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  List<double> _minimumWidths(BuildContext context) {
+    // En kalın etiketi ölç: seçim değiştiğinde hedefler yer değiştirmesin.
+    final style = _labelStyle(context, selected: true);
+    final painter = TextPainter(
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+      locale: Localizations.localeOf(context),
+      maxLines: 1,
+    );
+    try {
+      return [
+        for (final item in items) _measureItem(painter, item.label, style),
+      ];
+    } finally {
+      painter.dispose();
+    }
+  }
+
+  double _measureItem(TextPainter painter, String label, TextStyle style) {
+    painter.text = TextSpan(text: label, style: style);
+    painter.layout();
+    return math.max(
+      _kMinimumTarget,
+      painter.width.ceilToDouble() + _kItemPadding * 2,
+    );
+  }
+
+  Widget _button(int index, {bool horizontal = false}) => _NavButton(
+    item: items[index],
+    isSelected: index == selected,
+    horizontal: horizontal,
+    onTap: () => onChanged(index),
+  );
+}
+
+class _NavButton extends StatelessWidget {
+  final NavItem item;
+  final bool isSelected;
+  final bool horizontal;
+  final VoidCallback onTap;
+
+  const _NavButton({
+    required this.item,
+    required this.isSelected,
+    required this.horizontal,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
-    final directionSign = Directionality.of(context) == TextDirection.rtl
-        ? -1.0
-        : 1.0;
+    final icon = Icon(
+      item.icon,
+      size: _kIconSize,
+      color: isSelected ? tokens.accent : tokens.textSecondary,
+    );
+    final label = Text(
+      item.label,
+      textAlign: horizontal ? TextAlign.start : TextAlign.center,
+      style: _labelStyle(context, selected: isSelected),
+    );
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: tokens.divider)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: height,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final slotWidth = constraints.maxWidth / items.length;
-
-              return Stack(
-                fit: StackFit.expand,
-                children: [
-                  Row(
-                    children: [
-                      for (var i = 0; i < items.length; i++)
-                        Expanded(
-                          child: Transform.translate(
-                            offset: Offset(
-                              navContentDx(
-                                    i,
-                                    items.length,
-                                    constraints.maxWidth,
-                                  ) *
-                                  directionSign,
-                              0,
-                            ),
-                            child: _NavButton(
-                              item: items[i],
-                              isSelected: i == selected,
-                              onTap: () => onChanged(i),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  AnimatedPositionedDirectional(
-                    duration: _kNavAnimation,
-                    curve: Curves.easeOutCubic,
-                    start:
-                        slotWidth * selected +
-                        (slotWidth - _kIndicatorWidth) / 2 +
-                        navContentDx(
-                          selected,
-                          items.length,
-                          constraints.maxWidth,
-                        ),
-                    bottom: _kBottomPadding,
-                    width: _kIndicatorWidth,
-                    height: _kIndicatorHeight,
-                    child: DecoratedBox(
-                      key: kNavIndicatorKey,
-                      decoration: BoxDecoration(
-                        color: tokens.accent,
-                        borderRadius: BorderRadius.circular(
-                          _kIndicatorHeight / 2,
-                        ),
+    return Semantics(
+      container: true,
+      button: true,
+      selected: isSelected,
+      label: item.label,
+      onTap: onTap,
+      child: ExcludeSemantics(
+        child: AnimatedContainer(
+          duration: _kNavAnimation,
+          curve: Curves.easeOutCubic,
+          constraints: const BoxConstraints(minHeight: _kMinimumTarget),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? tokens.accent.withValues(alpha: 0.14)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(_kItemRadius),
+          ),
+          child: Material(
+            type: MaterialType.transparency,
+            borderRadius: BorderRadius.circular(_kItemRadius),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: onTap,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: _kItemPadding,
+                  vertical: 8,
+                ),
+                child: horizontal
+                    ? Row(
+                        children: [
+                          icon,
+                          const SizedBox(width: _kLabelGap),
+                          Expanded(child: label),
+                        ],
+                      )
+                    : Column(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          icon,
+                          const SizedBox(height: _kLabelGap),
+                          label,
+                        ],
                       ),
-                    ),
-                  ),
-                ],
-              );
-            },
+              ),
+            ),
           ),
         ),
       ),
@@ -170,73 +235,11 @@ class AppNavBar extends StatelessWidget {
   }
 }
 
-class _NavButton extends StatelessWidget {
-  final NavItem item;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _NavButton({
-    required this.item,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final tokens = context.tokens;
-    final color = isSelected ? tokens.accent : tokens.textTertiary;
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.only(top: _kTopPadding),
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            AnimatedContainer(
-              duration: _kNavAnimation,
-              curve: Curves.easeOutCubic,
-              padding: const EdgeInsets.symmetric(
-                horizontal: _kPillPaddingH,
-                vertical: _kPillPaddingV,
-              ),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? tokens.accent.withValues(alpha: _kPillOpacity)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(_kPillRadius),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(item.icon, size: _kIconSize, color: color),
-                  const SizedBox(height: _kIconLabelGap),
-                  SizedBox(
-                    height: _kLabelHeight,
-                    child: Text(
-                      item.label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTypography.tabLabel.copyWith(
-                        fontSize: _kLabelFontSize,
-                        height: 1.0,
-                        color: color,
-                        fontWeight: isSelected
-                            ? FontWeight.w700
-                            : FontWeight.w600,
-                        fontVariations: [
-                          FontVariation('wght', isSelected ? 700 : 600),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+TextStyle _labelStyle(BuildContext context, {required bool selected}) =>
+    AppTypography.tabLabel.copyWith(
+      fontSize: 13,
+      height: 1.2,
+      color: selected ? context.tokens.accent : context.tokens.textSecondary,
+      fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+      fontVariations: [FontVariation('wght', selected ? 700 : 600)],
     );
-  }
-}
