@@ -8,9 +8,9 @@ import '../../../core/models/alarm_mission.dart';
 import '../../../core/models/alarm_theme.dart';
 import '../../../core/models/mission_stop_event.dart';
 
-/// Native alarm modülüyle (Android: AlarmManager + tam ekran çalar; iOS 26+:
+/// Native alarm modülüyle (Android: AlarmManager + tam ekran çalar; iOS 26.1+:
 /// AlarmKit) tek bir platform channel üzerinden konuşan [AlarmService].
-/// Desteklenmeyen platformlarda (web/masaüstü, iOS < 26) güvenle no-op döner.
+/// Desteklenmeyen platformlarda destek sorgusu false döner.
 class NativeAlarmService implements AlarmService {
   static const _channel = MethodChannel('com.ekrembulbul.ezanvakti/alarm');
 
@@ -114,10 +114,11 @@ class NativeAlarmService implements AlarmService {
   }
 
   @override
-  Future<List<MissionStopEvent>> consumeMissionEvents() async {
+  Future<List<MissionStopEvent>> consumeMissionEvents({String? alarmId}) async {
     if (!_hasNative) return const [];
     final raw = await _channel.invokeMethod<List<Object?>>(
       'consumeMissionEvents',
+      alarmId == null ? null : {'alarmId': alarmId},
     );
     if (raw == null) return const [];
     return [

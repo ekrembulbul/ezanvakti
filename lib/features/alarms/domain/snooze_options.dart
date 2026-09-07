@@ -8,6 +8,10 @@ const List<int> kSnoozeMinuteOptions = [5, 10, 15, 20];
 /// "Sınırsız" (`null`) eklenir.
 const List<int> kMaxSnoozeOptions = [1, 2, 3, 5];
 
+int? effectiveSnoozeLimit(Alarm alarm) => alarm.mission.requiresGate
+    ? alarm.maxSnoozes ?? kMaxSnoozeOptions.last
+    : alarm.maxSnoozes;
+
 /// Erteleme limitini kurallara uydurur.
 ///
 /// - Erteleme kapalıysa limit anlamsız: `null`.
@@ -34,6 +38,7 @@ Alarm normalizeAlarmSnoozeLimit(Alarm alarm) {
       snoozeMinutes: alarm.snoozeMinutes,
       mission: alarm.mission,
       missionLevel: alarm.missionLevel,
+      qrPayload: alarm.qrPayload,
     );
   }
   if (alarm.mission.requiresGate && alarm.maxSnoozes == null) {

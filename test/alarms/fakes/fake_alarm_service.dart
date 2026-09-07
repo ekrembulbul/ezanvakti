@@ -24,9 +24,14 @@ class FakeAlarmService implements AlarmService {
   int cancelAllCount = 0;
 
   @override
-  Future<List<MissionStopEvent>> consumeMissionEvents() async {
-    final events = pendingEvents;
-    pendingEvents = [];
+  Future<List<MissionStopEvent>> consumeMissionEvents({String? alarmId}) async {
+    final selected = alarmId ?? pendingEvents.firstOrNull?.alarmId;
+    final events = pendingEvents
+        .where((event) => event.alarmId == selected)
+        .toList();
+    pendingEvents = pendingEvents
+        .where((event) => event.alarmId != selected)
+        .toList();
     return events;
   }
 
@@ -34,10 +39,13 @@ class FakeAlarmService implements AlarmService {
   Future<void> beginMission(String alarmId) async => begun.add(alarmId);
 
   final List<({String id, int minutes})> snoozed = [];
+  Object? snoozeError;
 
   @override
-  Future<void> snoozeMission(String alarmId, int minutes) async =>
-      snoozed.add((id: alarmId, minutes: minutes));
+  Future<void> snoozeMission(String alarmId, int minutes) async {
+    if (snoozeError != null) throw snoozeError!;
+    snoozed.add((id: alarmId, minutes: minutes));
+  }
 
   @override
   Future<void> completeMission(String alarmId) async => completed.add(alarmId);

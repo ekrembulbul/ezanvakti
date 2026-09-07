@@ -2311,7 +2311,7 @@ abstract class AppLocalizations {
   /// Uyarı
   ///
   /// In tr, this message translates to:
-  /// **'Sesli alarm bu cihazda desteklenmiyor (iOS 26 ve üzeri gerekir). Alarmlar kaydedilir ancak çalmaz.'**
+  /// **'Sesli alarm bu cihazda desteklenmiyor (iOS 26.1 ve üzeri gerekir). Alarmlar kaydedilir ancak çalmaz.'**
   String get alarmsUnsupported;
 
   /// Uyarı

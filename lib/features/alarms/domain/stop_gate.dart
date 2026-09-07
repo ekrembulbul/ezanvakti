@@ -2,6 +2,7 @@ import '../../../core/config/mission_tuning.dart';
 import '../../../core/models/alarm.dart';
 import '../../../core/models/alarm_mission.dart';
 import '../../../core/models/mission_session.dart';
+import 'snooze_options.dart';
 
 /// Alarm durdurulduktan sonra ne olacağı.
 enum StopDecision {
@@ -64,7 +65,7 @@ class StopGate {
   /// Kalan erteleme hakkı. `null` = sınırsız; erteleme kapalıysa 0.
   static int? snoozeRemaining(Alarm alarm, MissionSession session) {
     if (!alarm.snoozeEnabled) return 0;
-    final limit = alarm.maxSnoozes;
+    final limit = effectiveSnoozeLimit(alarm);
     if (limit == null) return null;
     final left = limit - session.snoozeUsed;
     return left < 0 ? 0 : left;

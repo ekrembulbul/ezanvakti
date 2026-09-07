@@ -9,9 +9,8 @@ import Foundation
 /// bunu defterdeki anahtarlara uygular.
 enum MissionChainKeys {
     static func select(alarmId: String, from keys: [String]) -> [String] {
-        let prefix = "\(alarmId)#"
-        return keys.filter {
-            $0.hasPrefix(prefix) && !$0.hasPrefix("\(prefix)d")
+        keys.filter {
+            $0.hasPrefix("\(alarmId)#w") || $0.hasPrefix("\(alarmId)#ladder")
         }
     }
 }

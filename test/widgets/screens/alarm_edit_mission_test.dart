@@ -5,6 +5,17 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('Gorev ve erteleme kurallari', () {
+    test('erteleme kapatılınca QR içeriği korunur', () {
+      const alarm = Alarm(
+        id: 'qr',
+        kind: AlarmKind.fixed,
+        mission: AlarmMission.qr,
+        qrPayload: 'test-code',
+        snoozeEnabled: false,
+        maxSnoozes: 3,
+      );
+      expect(normalizeAlarmSnoozeLimit(alarm).qrPayload, 'test-code');
+    });
     test('Gorev acikken sinirsiz erteleme kaydedilemez', () {
       // Gorev acikken Sinirsiz listelenmez; kayitta da en buyuk sonlu
       // secenege duser.

@@ -368,7 +368,7 @@
   "remindersIntro": "For each prayer you can be reminded on time or X minutes before.",
   "alarmsSwipeHint": "Touch and hold to duplicate; swipe left to delete. Use \"Undo\" to restore a deleted alarm.",
   "alarmsRescheduleNote": "Alarms are rescheduled as prayer data updates.",
-  "alarmsUnsupported": "Audible alarms are not supported on this device (iOS 26 or later required). Alarms are saved but will not ring.",
+  "alarmsUnsupported": "Audible alarms are not supported on this device (iOS 26.1 or later required). Alarms are saved but will not ring.",
   "alarmsNeedPermission": "Permission is needed for alarms to ring.",
   "permissionGrant": "Grant",
   "notificationsNeedPermission": "You need to grant permission to receive notifications.",

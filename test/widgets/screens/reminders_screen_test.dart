@@ -50,7 +50,9 @@ class _StubAlarmService implements AlarmService {
   Stream<MissionStopEvent> get missionStops => const Stream.empty();
 
   @override
-  Future<List<MissionStopEvent>> consumeMissionEvents() async => const [];
+  Future<List<MissionStopEvent>> consumeMissionEvents({
+    String? alarmId,
+  }) async => const [];
 
   @override
   Future<void> beginMission(String alarmId) async {}

@@ -7,7 +7,8 @@ import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/core/models/alarm_mission.dart';
 import 'package:ezanvakti/core/models/alarm_theme.dart';
 import 'package:ezanvakti/core/models/mission_stop_event.dart';
-import 'package:ezanvakti/core/models/notification_setting.dart' show PrayerType;
+import 'package:ezanvakti/core/models/notification_setting.dart'
+    show PrayerType;
 import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/core/models/skipped_occurrence.dart';
 import 'package:ezanvakti/features/alarms/domain/alarm_scheduler.dart';
@@ -15,7 +16,15 @@ import 'package:flutter_test/flutter_test.dart';
 
 /// scheduleAlarm cagrilarini butun argumanlariyla kaydeden servis.
 class _RecordingAlarmService implements AlarmService {
-  final List<({String id, DateTime time, List<int> repeatWeekdays, bool missionEnabled})>
+  final List<
+    ({
+      String id,
+      DateTime time,
+      List<int> repeatWeekdays,
+      bool missionEnabled,
+      Map<String, dynamic> chainConfig,
+    })
+  >
   calls = [];
 
   @override
@@ -38,6 +47,7 @@ class _RecordingAlarmService implements AlarmService {
       time: scheduledTime,
       repeatWeekdays: repeatWeekdays,
       missionEnabled: mission.requiresGate,
+      chainConfig: chainConfig,
     ));
   }
 
@@ -48,14 +58,15 @@ class _RecordingAlarmService implements AlarmService {
   Stream<MissionStopEvent> get missionStops => const Stream.empty();
 
   @override
-  Future<List<MissionStopEvent>> consumeMissionEvents() async => const [];
+  Future<List<MissionStopEvent>> consumeMissionEvents({
+    String? alarmId,
+  }) async => const [];
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _StorageWithAlarms implements LocalStorage {
-
   final Map<String, String> _rawSettings = {};
 
   @override
@@ -149,8 +160,13 @@ class _StorageWithAlarms implements LocalStorage {
 }
 
 void main() {
-  AlarmScheduler schedulerWith(_RecordingAlarmService service, List<Alarm> alarms) =>
-      AlarmScheduler(alarmService: service, storage: _StorageWithAlarms(alarms));
+  AlarmScheduler schedulerWith(
+    _RecordingAlarmService service,
+    List<Alarm> alarms,
+  ) => AlarmScheduler(
+    alarmService: service,
+    storage: _StorageWithAlarms(alarms),
+  );
 
   PrayerTime prayerTimeFor(DateTime day) {
     DateTime at(int hour, int minute) =>
@@ -167,7 +183,9 @@ void main() {
   }
 
   final now = DateTime.now();
-  final week = [for (var i = 0; i < 9; i++) prayerTimeFor(now.add(Duration(days: i)))];
+  final week = [
+    for (var i = 0; i < 9; i++) prayerTimeFor(now.add(Duration(days: i))),
+  ];
 
   test('sabit tekrarli alarm secili gunlerle native tekrara gecer', () async {
     final service = _RecordingAlarmService();
@@ -189,22 +207,33 @@ void main() {
     expect(service.calls.single.repeatWeekdays, [1, 2, 3, 4, 5, 6, 7]);
   });
 
-  test('tek seferlik atlama varken sabit alarm tek seferlik yola duser', () async {
-    final service = _RecordingAlarmService();
-    const alarm = Alarm(id: 'a1', kind: AlarmKind.fixed, hour: 6, minute: 30);
-    final fire = AlarmScheduler.computeNextFire(
-      alarm: alarm,
-      now: now,
-      prayerTimesByDate: const {},
-    )!;
-    await schedulerWith(service, [alarm]).scheduleAlarms(
-      prayerTimes: const [],
-      skips: {
-        SkippedOccurrence(kind: SkipKind.alarm, reference: 'a1', fireAt: fire),
-      },
-    );
-    expect(service.calls.single.repeatWeekdays, isEmpty);
-  });
+  test(
+    'tek seferlik atlama varken sabit alarm tek seferlik yola duser',
+    () async {
+      final service = _RecordingAlarmService();
+      const alarm = Alarm(id: 'a1', kind: AlarmKind.fixed, hour: 6, minute: 30);
+      final fire = AlarmScheduler.computeNextFire(
+        alarm: alarm,
+        now: now,
+        prayerTimesByDate: const {},
+      )!;
+      await schedulerWith(service, [alarm]).scheduleAlarms(
+        prayerTimes: const [],
+        skips: {
+          SkippedOccurrence(
+            kind: SkipKind.alarm,
+            reference: 'a1',
+            fireAt: fire,
+          ),
+        },
+      );
+      expect(service.calls.single.repeatWeekdays, isEmpty);
+      expect(
+        service.calls.single.id,
+        'a1#at${service.calls.single.time.millisecondsSinceEpoch}',
+      );
+    },
+  );
 
   test('cipali tekrarli alarm 7 gunluk dizi olarak kurulur', () async {
     final service = _RecordingAlarmService();
@@ -216,16 +245,20 @@ void main() {
       mission: AlarmMission.math,
     );
     await schedulerWith(service, [alarm]).scheduleAlarms(prayerTimes: week);
-    // Birincil calis eksiz: gorev oturumu ve skip kayitlari alarm.id ile
-    // eslesiyor; ek tasisaydi gorev ekrani alarmi bulamazdi.
-    expect(
-      service.calls.map((c) => c.id).toList(),
-      ['a1', 'a1#d1', 'a1#d2', 'a1#d3', 'a1#d4', 'a1#d5', 'a1#d6'],
-    );
-    // Gorev zinciri yalnizca en yakin calisa kurulur; sonraki gunler her
-    // yeniden planlamada birincillesir.
-    expect(service.calls.first.missionEnabled, isTrue);
-    expect(service.calls.skip(1).every((c) => !c.missionEnabled), isTrue);
+    // Native kayıt gün kayınca kimlik değiştirmez; asıl alarm kimliği ayrıca taşınır.
+    expect(service.calls.map((c) => c.id).toList(), [
+      for (final call in service.calls)
+        'a1#at${call.time.millisecondsSinceEpoch}',
+    ]);
+    expect(service.calls.every((c) => c.missionEnabled), isTrue);
+    for (final call in service.calls) {
+      expect(call.chainConfig['alarmId'], 'a1');
+      expect(
+        call.chainConfig['fireAtMillis'],
+        call.time.millisecondsSinceEpoch,
+      );
+      expect(call.chainConfig['missionTimeoutSeconds'], greaterThan(0));
+    }
     final times = service.calls.map((c) => c.time).toList();
     expect(times, orderedEquals([...times]..sort()));
   });
@@ -238,7 +271,8 @@ void main() {
       offsetMinutes: 0,
     );
     final byDate = {
-      for (final pt in week) DateTime(pt.date.year, pt.date.month, pt.date.day): pt,
+      for (final pt in week)
+        DateTime(pt.date.year, pt.date.month, pt.date.day): pt,
     };
     final all = AlarmScheduler.computeNextFires(
       alarm: alarm,
@@ -251,7 +285,11 @@ void main() {
       now: now,
       prayerTimesByDate: byDate,
       skips: {
-        SkippedOccurrence(kind: SkipKind.alarm, reference: 'a1', fireAt: all[1]),
+        SkippedOccurrence(
+          kind: SkipKind.alarm,
+          reference: 'a1',
+          fireAt: all[1],
+        ),
       },
     );
     expect(skipped, isNot(contains(all[1])));

@@ -26,8 +26,6 @@ class AlarmRingActivity : Activity() {
         /** Flutter varlıkları APK içinde bu önek altında paketlenir. */
         const val MANROPE_ASSET = "flutter_assets/assets/fonts/Manrope-Variable.ttf"
 
-        const val SNOOZE_RADIUS_DP = 50f
-
         /** Açık zeminde koyu durum çubuğu simgeleri gerekir. */
         const val LIGHT_BACKGROUND_LUMINANCE = 0.5
     }
@@ -37,6 +35,15 @@ class AlarmRingActivity : Activity() {
         showOverLockscreen()
         setContentView(R.layout.activity_alarm_ring)
 
+        val args = AlarmArgs.readFrom(intent)
+        paint(args)
+        bindActions(args)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        setContentView(R.layout.activity_alarm_ring)
         val args = AlarmArgs.readFrom(intent)
         paint(args)
         bindActions(args)
@@ -69,15 +76,6 @@ class AlarmRingActivity : Activity() {
         val appName = findViewById<TextView>(R.id.alarm_app_name)
         appName.visibility = if (args.label.isBlank()) View.GONE else View.VISIBLE
         style(appName, manrope, 500, theme.textSecondary)
-
-        val snooze = findViewById<TextView>(R.id.alarm_snooze)
-        snooze.background = GradientDrawable().apply {
-            shape = GradientDrawable.RECTANGLE
-            cornerRadius = dp(SNOOZE_RADIUS_DP)
-            setColor(theme.accent)
-        }
-        // Dolgu vurgu rengi olduğu için üzerindeki yazı zeminin en koyu durağı.
-        style(snooze, manrope, 700, theme.backgroundStops.last())
 
         findViewById<SlideToStopView>(R.id.alarm_dismiss).applyTheme(
             theme,
@@ -125,26 +123,20 @@ class AlarmRingActivity : Activity() {
         return SimpleDateFormat("HH:mm", Locale("tr", "TR")).format(Date(millis))
     }
 
-    private fun dp(value: Float): Float = value * resources.displayMetrics.density
-
     // ── Davranış ─────────────────────────────────────────────────────────────
 
     private fun bindActions(args: AlarmArgs) {
         findViewById<SlideToStopView>(R.id.alarm_dismiss).onCompleted = {
             sendToService(AlarmRingService.ACTION_STOP, args)
+            if (args.opensApp) {
+                startActivity(Intent(this, MainActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                })
+            }
             finish()
         }
-
-        val snooze = findViewById<TextView>(R.id.alarm_snooze)
-        if (args.snoozeEnabled) {
-            snooze.text = getString(R.string.alarm_snooze_minutes, args.snoozeMinutes)
-            snooze.setOnClickListener {
-                sendToService(AlarmRingService.ACTION_SNOOZE, args)
-                finish()
-            }
-        } else {
-            snooze.visibility = View.GONE
-        }
+        // The Flutter stop screen owns snooze counts and the mission gate.
+        findViewById<View>(R.id.alarm_snooze).visibility = View.GONE
     }
 
     private fun showOverLockscreen() {

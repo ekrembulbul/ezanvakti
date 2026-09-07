@@ -8,13 +8,14 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
+    private var alarmChannel: AlarmChannel? = null
     private val channelName = "com.ekrembulbul.ezanvakti/exact_alarm"
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
         // Sesli/kalıcı alarm köprüsü.
-        AlarmChannel(this).register(flutterEngine)
+        alarmChannel = AlarmChannel(this).also { it.register(flutterEngine) }
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channelName)
             .setMethodCallHandler { call, result ->
@@ -25,6 +26,12 @@ class MainActivity : FlutterActivity() {
                     else -> result.notImplemented()
                 }
             }
+    }
+
+    override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
+        alarmChannel?.dispose()
+        alarmChannel = null
+        super.cleanUpFlutterEngine(flutterEngine)
     }
 
     private fun isExactAlarmAllowed(): Boolean {

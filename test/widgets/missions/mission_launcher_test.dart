@@ -150,6 +150,65 @@ void main() {
   }
 
   group('Ekran ne zaman acilir', () {
+    testWidgets(
+      'native erteleme hatası görevi kapatmaz ve yeniden denemeye izin verir',
+      (tester) async {
+        await storage.saveAlarm(mathAlarm);
+        alarmService.pendingEvents = [
+          MissionStopEvent(alarmId: mathAlarm.id, stoppedAt: DateTime.now()),
+        ];
+        await open(tester);
+        alarmService.snoozeError = StateError('test failure');
+        await tester.tap(find.byKey(kStopSnoozeKey));
+        await settle(tester);
+        expect(find.byType(AlarmStopScreen), findsOneWidget);
+        expect((await storage.getMissionSession())!.snoozeUsed, 0);
+        alarmService.snoozeError = null;
+        await tester.tap(find.text('Yeniden Dene'));
+        await settle(tester);
+        expect(alarmService.snoozed, [(id: mathAlarm.id, minutes: 5)]);
+      },
+    );
+    testWidgets(
+      'ilk görev bitince kuyruktaki diğer alarm kendi etiketiyle açılır',
+      (tester) async {
+        final backup = mathAlarm.copyWith(id: 'yedek', label: 'Yedek');
+        await storage.saveAlarm(mathAlarm);
+        await storage.saveAlarm(backup);
+        alarmService.pendingEvents = [
+          MissionStopEvent(alarmId: mathAlarm.id, stoppedAt: DateTime.now()),
+          MissionStopEvent(alarmId: backup.id, stoppedAt: DateTime.now()),
+        ];
+        await open(tester);
+        expect(
+          tester.widget<AlarmStopScreen>(find.byType(AlarmStopScreen)).alarm.id,
+          mathAlarm.id,
+        );
+        await enterMission(tester);
+        await solveMath(tester);
+        await settle(tester);
+        expect(
+          tester.widget<AlarmStopScreen>(find.byType(AlarmStopScreen)).alarm.id,
+          backup.id,
+        );
+        expect(alarmService.completed, [mathAlarm.id]);
+      },
+    );
+
+    testWidgets('eşzamanlı açma çağrıları iki görev ekranı oluşturmaz', (
+      tester,
+    ) async {
+      await storage.saveAlarm(mathAlarm);
+      alarmService.pendingEvents = [
+        MissionStopEvent(alarmId: mathAlarm.id, stoppedAt: DateTime.now()),
+      ];
+      await pumpLauncher(tester);
+      unawaited(openMissionIfPending(hostContext));
+      unawaited(openMissionIfPending(hostContext));
+      await settle(tester);
+      expect(find.byType(AlarmStopScreen, skipOffstage: false), findsOneWidget);
+    });
+
     testWidgets('Bekleyen durdurma olayi gorev ekranini acar', (tester) async {
       await storage.saveAlarm(mathAlarm);
       alarmService.pendingEvents = [

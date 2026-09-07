@@ -1,7 +1,8 @@
 /// Çalan bir alarmın görev oturumu. `Alarm` kullanıcı tercihidir, bu geçici
 /// durumdur — bu yüzden ayrı saklanır.
 ///
-/// Aynı anda en fazla bir aktif oturum olur.
+/// Flutter aynı anda bir oturum gösterir; diğer alarmların olayları native
+/// kalıcı kuyrukta ve alarm bazındaki görev kayıtlarında korunur.
 class MissionSession {
   final String alarmId;
   final DateTime firedAt;

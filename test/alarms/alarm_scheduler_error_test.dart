@@ -1,6 +1,7 @@
 import 'package:ezanvakti/core/models/alarm_mission.dart';
 import 'package:ezanvakti/core/models/fasting_log.dart';
-import 'package:ezanvakti/core/models/notification_setting.dart' show PrayerType;
+import 'package:ezanvakti/core/models/notification_setting.dart'
+    show PrayerType;
 import 'package:ezanvakti/core/models/prayer_log.dart';
 import 'package:ezanvakti/core/models/quiet_window.dart';
 import 'package:ezanvakti/core/models/mission_stop_event.dart';
@@ -49,7 +50,9 @@ class _FlakyAlarmService implements AlarmService {
   Stream<MissionStopEvent> get missionStops => const Stream.empty();
 
   @override
-  Future<List<MissionStopEvent>> consumeMissionEvents() async => const [];
+  Future<List<MissionStopEvent>> consumeMissionEvents({
+    String? alarmId,
+  }) async => const [];
 
   @override
   Future<void> beginMission(String alarmId) async {}
@@ -65,7 +68,6 @@ class _FlakyAlarmService implements AlarmService {
 }
 
 class _StorageWithAlarms implements LocalStorage {
-
   final Map<String, String> _rawSettings = {};
 
   @override
@@ -184,19 +186,25 @@ void main() {
     expect(service.scheduled, ['saglam']);
   });
 
-  test('Planlanamayan alarm kalici kayda dusuyor, duzelince temizleniyor', () async {
-    final service = _FlakyAlarmService();
-    final storage = _StorageWithAlarms([fixed('patlayan', 6), fixed('saglam', 7)]);
-    final scheduler = AlarmScheduler(alarmService: service, storage: storage);
+  test(
+    'Planlanamayan alarm kalici kayda dusuyor, duzelince temizleniyor',
+    () async {
+      final service = _FlakyAlarmService();
+      final storage = _StorageWithAlarms([
+        fixed('patlayan', 6),
+        fixed('saglam', 7),
+      ]);
+      final scheduler = AlarmScheduler(alarmService: service, storage: storage);
 
-    await scheduler.scheduleAlarms(prayerTimes: const []);
-    expect(storage.failures.keys.toList(), ['patlayan']);
+      await scheduler.scheduleAlarms(prayerTimes: const []);
+      expect(storage.failures.keys.toList(), ['patlayan']);
 
-    // Sonraki planlamada hata kalmadiysa kayit da kalmamali.
-    service.failingId = null;
-    await scheduler.scheduleAlarms(prayerTimes: const []);
-    expect(storage.failures, isEmpty);
-  });
+      // Sonraki planlamada hata kalmadiysa kayit da kalmamali.
+      service.failingId = null;
+      await scheduler.scheduleAlarms(prayerTimes: const []);
+      expect(storage.failures, isEmpty);
+    },
+  );
 
   test('Alarm listesi bos olsa da mevcut planlar temizlenir', () async {
     final service = _FlakyAlarmService();

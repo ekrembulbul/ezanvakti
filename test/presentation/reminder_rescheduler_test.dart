@@ -31,7 +31,9 @@ class _MockAlarmService implements AlarmService {
   Stream<MissionStopEvent> get missionStops => const Stream.empty();
 
   @override
-  Future<List<MissionStopEvent>> consumeMissionEvents() async => const [];
+  Future<List<MissionStopEvent>> consumeMissionEvents({
+    String? alarmId,
+  }) async => const [];
 
   @override
   Future<void> beginMission(String alarmId) async {}
@@ -202,6 +204,13 @@ void main() {
     final messenger =
         TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
     final pendingAlarms = <String, int>{};
+    final expectedFire = DateTime(
+      day.date.year,
+      day.date.month,
+      day.date.day,
+      6,
+    ).millisecondsSinceEpoch;
+    final expectedScheduleId = 'sunrise#at$expectedFire';
 
     Future<Object?> handleAlarmCall(MethodCall call) async {
       if (call.method == 'cancelAllAlarms') pendingAlarms.clear();
@@ -280,7 +289,7 @@ void main() {
         );
 
         expect(
-          pendingAlarms['sunrise'],
+          pendingAlarms[expectedScheduleId],
           DateTime(
             day.date.year,
             day.date.month,
@@ -318,7 +327,7 @@ void main() {
         releaseAlarm.complete();
         await outcome;
       }
-      expect(pendingAlarms, contains('sunrise'));
+      expect(pendingAlarms, contains(expectedScheduleId));
     });
 
     test('Bekleyen bildirim planlaması alarmı geciktirmez', () async {
@@ -331,7 +340,7 @@ void main() {
 
       try {
         await pumpEventQueue();
-        expect(pendingAlarms, contains('sunrise'));
+        expect(pendingAlarms, contains(expectedScheduleId));
         expect(completed, isFalse);
       } finally {
         notifications.release.complete();

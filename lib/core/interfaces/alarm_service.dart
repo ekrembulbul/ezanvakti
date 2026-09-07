@@ -6,10 +6,10 @@ import '../models/mission_stop_event.dart';
 ///
 /// Bildirimlerden ayrıdır: alarm kapatılana kadar çalar, (platform destekliyorsa)
 /// sessiz modu deler, ertelenebilir. Android'de AlarmManager + tam ekran intent,
-/// iOS 26+'da AlarmKit ile gerçeklenir.
+/// iOS 26.1+'da AlarmKit ile gerçeklenir.
 abstract class AlarmService {
   /// Bu platform/sürüm gerçek alarmı destekliyor mu?
-  /// (Android: evet; iOS: yalnızca 26+.)
+  /// (Android: evet; iOS: yalnızca 26.1+.)
   Future<bool> isSupported();
 
   /// Alarm için gereken izinleri ister (Android: tam ekran/exact alarm; iOS:
@@ -44,6 +44,8 @@ abstract class AlarmService {
 
   Future<void> cancelAlarm(String id);
 
+  /// Rutin plan yenilemesi için normal kayıtları temizler. Canlı görev
+  /// nöbetçileri korunur; belirli alarmı tamamen silmek için cancelAlarm kullanılır.
   Future<void> cancelAllAlarms();
 
   /// Kullanıcının seçtiği ses dosyasını ([sourcePath]) uygulamanın kalıcı alanına
@@ -60,8 +62,9 @@ abstract class AlarmService {
   /// olayı tetiklenmediği için görev ekranı hiç açılmıyordu.
   Stream<MissionStopEvent> get missionStops;
 
-  /// `stopIntent` tarafından biriktirilen olayları okur ve kuyruğu boşaltır.
-  Future<List<MissionStopEvent>> consumeMissionEvents();
+  /// Yalnız [alarmId]'nin olaylarını tüketir. Null ise ilk bekleyen alarmı
+  /// seçer; diğer alarmlar native kalıcı kuyrukta kalır.
+  Future<List<MissionStopEvent>> consumeMissionEvents({String? alarmId});
 
   /// Görev ekranı açıldı: nöbetçinin son tarihi `grace`ten görev süresine
   /// taşınır.

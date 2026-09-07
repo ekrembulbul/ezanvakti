@@ -1238,7 +1238,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get alarmsUnsupported =>
-      'Sesli alarm bu cihazda desteklenmiyor (iOS 26 ve üzeri gerekir). Alarmlar kaydedilir ancak çalmaz.';
+      'Sesli alarm bu cihazda desteklenmiyor (iOS 26.1 ve üzeri gerekir). Alarmlar kaydedilir ancak çalmaz.';
 
   @override
   String get alarmsNeedPermission => 'Alarmların çalması için izin gerekiyor.';

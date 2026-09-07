@@ -10,6 +10,7 @@ import '../../../core/models/skipped_occurrence.dart';
 import '../../../core/theme/day_phase.dart';
 import '../../notifications/domain/skip_rules.dart';
 import 'mission_chain.dart';
+import 'snooze_options.dart';
 import '../../../core/utils/app_logger.dart';
 
 /// Alarmların bir sonraki tetiklenme anını hesaplar ve native [AlarmService] ile
@@ -24,6 +25,7 @@ class AlarmScheduler {
   final AlarmAppearance Function() appearance;
 
   final AppLogger _logger;
+  Future<void>? _scheduleQueue;
 
   AlarmScheduler({
     required this.alarmService,
@@ -38,6 +40,29 @@ class AlarmScheduler {
   Future<void> scheduleAlarms({
     required List<PrayerTime> prayerTimes,
     Set<SkippedOccurrence> skips = const {},
+  }) {
+    final times = List<PrayerTime>.unmodifiable(prayerTimes);
+    final skipped = Set<SkippedOccurrence>.unmodifiable(skips);
+    final previous = _scheduleQueue;
+    final operation = previous == null
+        ? Future<void>.sync(
+            () => _scheduleAlarms(prayerTimes: times, skips: skipped),
+          )
+        : previous.then(
+            (_) => _scheduleAlarms(prayerTimes: times, skips: skipped),
+          );
+    _scheduleQueue = operation.then<void>(
+      (_) {},
+      // Only recover the sequencing tail. The caller receives the original
+      // failing operation below, so its error and stack remain intact.
+      onError: (Object error, StackTrace stack) {},
+    );
+    return operation;
+  }
+
+  Future<void> _scheduleAlarms({
+    required List<PrayerTime> prayerTimes,
+    required Set<SkippedOccurrence> skips,
   }) async {
     final alarms = await storage.getAlarms();
 
@@ -73,13 +98,20 @@ class AlarmScheduler {
         skips: skips,
       );
       if (fire == null) continue;
+      final repeatWeekdays = _relativeWeekdaysFor(
+        alarm,
+        now: now,
+        skips: skips,
+      );
       // Tek bir alarm planlanamazsa (ör. kullanıcı alarm iznini reddetti)
       // diğerleri etkilenmemeli. Hata yutulmaz, uyarı olarak loglanır: sessiz
       // başarısızlık hata ayıklamayı imkânsız kılar.
       try {
         await alarmService.scheduleAlarm(
-          repeatWeekdays: _relativeWeekdaysFor(alarm, now: now, skips: skips),
-          id: alarm.id,
+          repeatWeekdays: repeatWeekdays,
+          id: repeatWeekdays.isEmpty
+              ? '${alarm.id}#at${fire.millisecondsSinceEpoch}'
+              : alarm.id,
           scheduledTime: fire,
           label: alarm.label,
           soundId: alarm.soundId,
@@ -89,19 +121,7 @@ class AlarmScheduler {
           theme: themeForFire(fire, byDate, currentAppearance),
           mission: alarm.mission,
           missionLevel: alarm.missionLevel,
-          chainConfig: {
-            'graceSeconds': MissionTuning.graceSeconds,
-            'maxRearms': MissionTuning.maxRearms,
-            'chainDeadlineMillis':
-                MissionChain.chainDeadline(fire).millisecondsSinceEpoch,
-            'missionTimeoutSeconds': MissionTuning.timeoutSecondsFor(
-              alarm.mission,
-            ),
-            'ladderMillis': [
-              for (final t in MissionChain.ladder(fire))
-                t.millisecondsSinceEpoch,
-            ],
-          },
+          chainConfig: _chainConfig(alarm, fire),
         );
       } catch (e) {
         // Log; kullanıcıya gösterilmiyor, çevrilmiyor.
@@ -125,12 +145,8 @@ class AlarmScheduler {
     return text.length <= 120 ? text : text.substring(0, 120);
   }
 
-  /// Çıpalı alarmın önümüzdeki çalışlarını önden dizer (K1/F1b): saat her
-  /// gün kaydığı için native tekrar kurulamaz; bunun yerine 7 güne kadar ayrı
-  /// kayıt kurulur. Birincil çalış `alarm.id` ile (görev oturumu ve skip
-  /// kayıtları bu id ile eşleşiyor), ileri günler `<id>#d<N>` ile ve görevsiz/
-  /// ertelemesiz kurulur — degrade: uygulama günlerce açılmazsa alarm yine
-  /// çalar ama durdurulduğunda görev ekranı açılmaz; ilk açılış diziyi tazeler.
+  /// Çıpalı çalışlar kararlı tarih kimlikleriyle kurulur. Her kayıt ana alarm
+  /// kimliğini ve görevi taşır; günler ilerleyince başka çalışın kimliğini almaz.
   Future<void> _scheduleAnchoredSeries({
     required Alarm alarm,
     required DateTime now,
@@ -150,41 +166,48 @@ class AlarmScheduler {
       final primary = i == 0;
       try {
         await alarmService.scheduleAlarm(
-          id: primary ? alarm.id : '${alarm.id}#d$i',
+          id: '${alarm.id}#at${fire.millisecondsSinceEpoch}',
           scheduledTime: fire,
           label: alarm.label,
           soundId: alarm.soundId,
           vibrate: alarm.vibrate,
-          snoozeEnabled: primary && alarm.snoozeEnabled,
+          snoozeEnabled: alarm.snoozeEnabled,
           snoozeMinutes: alarm.snoozeMinutes,
           theme: themeForFire(fire, byDate, currentAppearance),
-          mission: primary ? alarm.mission : AlarmMission.none,
+          mission: alarm.mission,
           missionLevel: alarm.missionLevel,
-          chainConfig: primary
-              ? {
-                  'graceSeconds': MissionTuning.graceSeconds,
-                  'maxRearms': MissionTuning.maxRearms,
-                  'chainDeadlineMillis':
-                      MissionChain.chainDeadline(fire).millisecondsSinceEpoch,
-                  'missionTimeoutSeconds': MissionTuning.timeoutSecondsFor(
-                    alarm.mission,
-                  ),
-                  'ladderMillis': [
-                    for (final t in MissionChain.ladder(fire))
-                      t.millisecondsSinceEpoch,
-                  ],
-                }
-              : const <String, dynamic>{},
+          chainConfig: _chainConfig(alarm, fire, includeLadder: primary),
         );
       } catch (e) {
-        _logger.warning(
-          'Alarm scheduling failed (id: ${alarm.id}, day $i)',
-          e,
-        );
+        _logger.warning('Alarm scheduling failed (id: ${alarm.id}, day $i)', e);
         failures[alarm.id] = _shortMessage(e);
       }
     }
   }
+
+  Map<String, dynamic> _chainConfig(
+    Alarm alarm,
+    DateTime fire, {
+    bool includeLadder = true,
+  }) => {
+    'alarmId': alarm.id,
+    'fireAtMillis': fire.millisecondsSinceEpoch,
+    if (alarm.kind == AlarmKind.fixed) 'repeatHour': alarm.hour,
+    if (alarm.kind == AlarmKind.fixed) 'repeatMinute': alarm.minute,
+    'graceSeconds': MissionTuning.graceSeconds,
+    'maxRearms': MissionTuning.maxRearms,
+    'maxSnoozes': effectiveSnoozeLimit(alarm),
+    'chainDurationMillis': const Duration(
+      minutes: MissionTuning.chainDeadlineMinutes,
+    ).inMilliseconds,
+    'chainDeadlineMillis': MissionChain.chainDeadline(
+      fire,
+    ).millisecondsSinceEpoch,
+    'missionTimeoutSeconds': MissionTuning.timeoutSecondsFor(alarm.mission),
+    'ladderMillis': includeLadder && alarm.mission.requiresGate
+        ? [for (final t in MissionChain.ladder(fire)) t.millisecondsSinceEpoch]
+        : <int>[],
+  };
 
   /// Çalar ekranın paleti.
   ///
@@ -272,7 +295,7 @@ class AlarmScheduler {
     final fires = <DateTime>[];
     final today = _dateKey(now);
     for (var i = 0; i < searchDays && fires.length < limit; i++) {
-      final day = today.add(Duration(days: i));
+      final day = DateTime(today.year, today.month, today.day + i);
       if (!alarm.firesOnWeekday(day.weekday)) continue;
 
       DateTime? candidate;

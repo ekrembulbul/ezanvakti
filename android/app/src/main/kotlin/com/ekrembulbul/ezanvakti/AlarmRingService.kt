@@ -15,6 +15,7 @@ import android.os.Build
 import android.os.IBinder
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import java.io.File
 
@@ -25,9 +26,18 @@ class AlarmRingService : Service() {
     companion object {
         const val ACTION_START = "com.ekrembulbul.ezanvakti.RING_START"
         const val ACTION_STOP = "com.ekrembulbul.ezanvakti.RING_STOP"
-        const val ACTION_SNOOZE = "com.ekrembulbul.ezanvakti.RING_SNOOZE"
+        const val ACTION_CANCEL = "com.ekrembulbul.ezanvakti.RING_CANCEL"
         const val CHANNEL_ID = "ezan_vakti_alarm_channel"
         const val NOTIF_ID = 9911
+        @Volatile private var ringingAlarmId: String? = null
+
+        fun cancelForAlarm(context: Context, alarmId: String) {
+            if (ringingAlarmId != alarmId) return
+            context.startService(Intent(context, AlarmRingService::class.java).apply {
+                action = ACTION_CANCEL
+                putExtra("alarmId", alarmId)
+            })
+        }
     }
 
     private var player: MediaPlayer? = null
@@ -39,17 +49,49 @@ class AlarmRingService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_STOP -> {
-                stopRinging()
-                stopSelf()
-                return START_NOT_STICKY
+                val requested = AlarmArgs.readFrom(intent)
+                val active = current
+                if (active == null) {
+                    stopSelf()
+                    return START_NOT_STICKY
+                }
+                if (requested.id == active.id && requested.timeMillis == active.timeMillis) {
+                    if (recordStop(active)) {
+                        stopRinging()
+                        current = null
+                        ringingAlarmId = null
+                        stopSelf()
+                        return START_NOT_STICKY
+                    }
+                }
+                return START_STICKY
             }
-            ACTION_SNOOZE -> {
-                snooze()
-                return START_NOT_STICKY
+            ACTION_CANCEL -> {
+                if (current == null) {
+                    stopSelf()
+                    return START_NOT_STICKY
+                }
+                if (current?.alarmId == intent.getStringExtra("alarmId")) {
+                    stopRinging()
+                    current = null
+                    ringingAlarmId = null
+                    stopSelf()
+                    return START_NOT_STICKY
+                }
+                return START_STICKY
             }
             else -> {
-                val args = AlarmArgs.readFrom(intent ?: Intent())
+                val missions = AndroidMissionStore.missions(this)
+                val args = if (intent == null) missions.ringing() else AlarmArgs.readFrom(intent)
+                val receivedAt = intent?.getLongExtra("receivedAtMillis", System.currentTimeMillis()) ?: System.currentTimeMillis()
+                if (args == null || !missions.fired(args, receivedAt)) {
+                    if (current == null) stopSelf()
+                    return if (current == null) START_NOT_STICKY else START_STICKY
+                }
+                current?.takeIf { it.id != args.id }?.let { recordStop(it) }
+                stopRinging()
                 current = args
+                ringingAlarmId = args.alarmId
                 startForeground(NOTIF_ID, buildNotification(args))
                 startRinging(args)
             }
@@ -61,6 +103,7 @@ class AlarmRingService : Service() {
         createChannel()
         val fullScreen = Intent(this, AlarmRingActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            data = AlarmScheduling.intentData(args.id, "ring")
             args.writeTo(this)
         }
         val fsPending = PendingIntent.getActivity(
@@ -86,7 +129,9 @@ class AlarmRingService : Service() {
     private fun startRinging(args: AlarmArgs) {
         val uri = soundUriFor(args.soundId)
         if (uri != null) try {
-            player = MediaPlayer().apply {
+            val playback = MediaPlayer()
+            player = playback
+            playback.apply {
                 setAudioAttributes(
                     AudioAttributes.Builder()
                         .setUsage(AudioAttributes.USAGE_ALARM)
@@ -98,8 +143,10 @@ class AlarmRingService : Service() {
                 prepare()
                 start()
             }
-        } catch (_: Exception) {
+            Log.i("EzanAlarm", "event=audio_started id=" + args.id + " audio_ms=" + System.currentTimeMillis())
+        } catch (error: Exception) {
             // Ses çalınamazsa alarm yine de görünür kalır.
+            Log.e("EzanAlarm", "event=audio_failed id=" + args.id + " type=" + error.javaClass.simpleName)
         }
         if (args.vibrate) startVibrate()
     }
@@ -153,14 +200,25 @@ class AlarmRingService : Service() {
         }
     }
 
-    private fun snooze() {
-        val args = current
-        if (args != null && args.snoozeEnabled) {
-            val next = System.currentTimeMillis() + args.snoozeMinutes * 60_000L
-            AlarmScheduling.schedule(this, args.copy(timeMillis = next))
+    private fun recordStop(args: AlarmArgs): Boolean {
+        return try {
+            val missions = AndroidMissionStore.missions(this)
+            val stopped = missions.stop(args, System.currentTimeMillis()) ?: return false
+            var armed = true
+            if (stopped.rearmAtMillis != null) {
+                try { AlarmScheduling.rearm(this, stopped.session, stopped.rearmAtMillis) }
+                catch (error: Exception) {
+                    armed = false
+                    Log.e("EzanAlarm", "event=watchdog_failed id=" + args.alarmId + " type=" + error.javaClass.simpleName)
+                }
+            }
+            if (args.opensApp) AlarmChannel.notifyStopped(stopped.event)
+            // If rearming fails, keep the sound until the task is completed.
+            armed || !args.missionEnabled
+        } catch (error: Exception) {
+            Log.e("EzanAlarm", "event=stop_failed id=" + args.alarmId + " type=" + error.javaClass.simpleName)
+            false
         }
-        stopRinging()
-        stopSelf()
     }
 
     private fun createChannel() {
@@ -185,6 +243,8 @@ class AlarmRingService : Service() {
 
     override fun onDestroy() {
         stopRinging()
+        current = null
+        ringingAlarmId = null
         super.onDestroy()
     }
 }

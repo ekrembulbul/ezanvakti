@@ -18,6 +18,8 @@ import '../../features/alarms/domain/alarm_scheduler.dart';
 import '../../features/alarms/domain/alarms_manager.dart';
 import '../../features/alarms/domain/mission_coordinator.dart';
 import '../../features/alarms/domain/stop_gate.dart';
+import '../../features/alarms/domain/snooze_options.dart';
+import '../../l10n/l10n_extensions.dart';
 import '../widgets/missions/abort_dialog.dart';
 import '../widgets/missions/math_mission.dart';
 import '../widgets/missions/qr_mission.dart';
@@ -32,11 +34,33 @@ import 'mission_screen.dart';
 /// Düz bir bool yerine Navigator tutuluyor: rota pop edilmeden ağaç ölürse
 /// (testte yeni ağaç, üretimde kök değişimi) bayrak takılı kalmasın.
 NavigatorState? _openScreenNavigator;
+bool _needsMissionCheck = false;
 
 bool get _missionScreenOpen => _openScreenNavigator?.mounted ?? false;
 
 /// Ara ekranın nasıl kapandığı.
 enum StopScreenResult { done, mission }
+
+void _showMissionFailure(
+  BuildContext context,
+  Object error,
+  StackTrace stack,
+  Future<void> Function() retry,
+) {
+  AppLogger().warning('Mission action failed', error, stack);
+  if (!context.mounted) return;
+  ScaffoldMessenger.of(context)
+    ..clearSnackBars()
+    ..showSnackBar(
+      SnackBar(
+        content: Text(context.l10n.errorGeneric),
+        action: SnackBarAction(
+          label: context.l10n.actionRetry,
+          onPressed: () => unawaited(retry()),
+        ),
+      ),
+    );
+}
 
 /// Bekleyen bir oturum varsa uygun ekranı açar.
 ///
@@ -44,7 +68,28 @@ enum StopScreenResult { done, mission }
 /// buraya hem soğuk açılışta hem de ön plana dönüşte uğranır. Karar
 /// [StopGate]'te; burada yalnızca sonuç uygulanır.
 Future<void> openMissionIfPending(BuildContext context) async {
-  if (_missionScreenOpen) return;
+  if (!context.mounted) return;
+  if (_missionScreenOpen) {
+    _needsMissionCheck = true;
+    return;
+  }
+  final navigator = Navigator.of(context);
+  _openScreenNavigator = navigator;
+  final coordinator = ServiceLocator().get<MissionCoordinator>();
+  try {
+    bool checkNext;
+    do {
+      _needsMissionCheck = false;
+      checkNext = await _openNextMission(context);
+    } while (context.mounted && (checkNext || _needsMissionCheck));
+  } finally {
+    if (identical(_openScreenNavigator, navigator)) _openScreenNavigator = null;
+    final session = await coordinator.currentSession();
+    if (context.mounted) context.read<AppState>().setMissionSession(session);
+  }
+}
+
+Future<bool> _openNextMission(BuildContext context) async {
   final coordinator = ServiceLocator().get<MissionCoordinator>();
   final result = await coordinator.resume();
   if (result.chainStoppedAlarmId != null) {
@@ -55,11 +100,11 @@ Future<void> openMissionIfPending(BuildContext context) async {
       context.read<AppState>().setMissionSession(null);
       await rearmAlarms(context);
     }
-    return;
+    return true;
   }
   final session = result.session;
   if (context.mounted) context.read<AppState>().setMissionSession(session);
-  if (session == null || !session.isPending) return;
+  if (session == null || !session.isPending) return false;
 
   final alarms = await ServiceLocator().get<AlarmsManager>().getAlarms();
   final alarm = alarms.where((a) => a.id == session.alarmId).firstOrNull;
@@ -71,55 +116,46 @@ Future<void> openMissionIfPending(BuildContext context) async {
 
   switch (decision) {
     case StopDecision.none:
-      return;
+      return false;
     case StopDecision.closeAndRearm:
       // Alarm silinmis, secim yok ya da bayat: zinciri kapat ki telefon
       // olmayan bir gorevi beklemesin; ertesi gunu kur.
       await coordinator.complete(session.alarmId);
       if (context.mounted) await rearmAlarms(context);
-      return;
+      return true;
     case StopDecision.openMission:
     case StopDecision.showStopScreen:
       break;
   }
 
-  if (!context.mounted) return;
-  _openScreenNavigator = Navigator.of(context);
-  try {
-    // Bayrak ara ekran ve gorev ekrani boyunca true kalir: pushReplacement
-    // yerine sirali iki push, cunku pushReplacement ilk rotanin Future'ini
-    // erken tamamlayip bayragi dusururdu.
-    var openMission = decision == StopDecision.openMission;
-    if (!openMission) {
-      final result = await Navigator.of(context).push<StopScreenResult>(
-        MaterialPageRoute(
-          fullscreenDialog: true,
-          builder: (_) => _StopHost(alarm: alarm!, session: session),
-        ),
-      );
-      openMission = result == StopScreenResult.mission;
-    }
-    if (openMission && context.mounted) {
-      final current = await coordinator.currentSession();
-      if (!context.mounted) return;
-      await Navigator.of(context).push(
-        MaterialPageRoute(
-          fullscreenDialog: true,
-          builder: (_) => _MissionHost(
-            alarm: alarm!,
-            snoozeUsed: current?.snoozeUsed ?? session.snoozeUsed,
-          ),
-        ),
-      );
-    }
-  } finally {
-    _openScreenNavigator = null;
-    if (context.mounted) {
-      context.read<AppState>().setMissionSession(
-        await coordinator.currentSession(),
-      );
-    }
+  if (!context.mounted) return false;
+  // Bayrak ara ekran ve gorev ekrani boyunca true kalir: pushReplacement
+  // yerine sirali iki push, cunku pushReplacement ilk rotanin Future'ini
+  // erken tamamlayip bayragi dusururdu.
+  var openMission = decision == StopDecision.openMission;
+  if (!openMission) {
+    final result = await Navigator.of(context).push<StopScreenResult>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => _StopHost(alarm: alarm!, session: session),
+      ),
+    );
+    openMission = result == StopScreenResult.mission;
   }
+  if (openMission && context.mounted) {
+    final current = await coordinator.currentSession();
+    if (!context.mounted) return false;
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => _MissionHost(
+          alarm: alarm!,
+          snoozeUsed: current?.snoozeUsed ?? session.snoozeUsed,
+        ),
+      ),
+    );
+  }
+  return true;
 }
 
 /// Ara ekranı sayaçla çalıştıran kabuk.
@@ -163,14 +199,27 @@ class _StopHostState extends State<_StopHost> {
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
     // Gorevlide sure dolup alarm donerse ve yine durdurulursa geri sayim
     // yeni stoppedAt ile tazelenir; ikinci ekran acilmaz.
-    _stops = ServiceLocator().get<AlarmService>().missionStops.listen((_) {
-      _refresh();
-    });
+    _stops = ServiceLocator()
+        .get<AlarmService>()
+        .missionStops
+        .where((event) => event.alarmId == widget.alarm.id)
+        .listen((_) => _refresh());
   }
 
   Future<void> _refresh() async {
-    final session = (await _coordinator.resume()).session;
-    if (!mounted || session == null) return;
+    final result = await _coordinator.resume(alarmId: widget.alarm.id);
+    if (result.chainStoppedAlarmId != null) {
+      await _coordinator.complete(widget.alarm.id);
+      if (mounted) {
+        await rearmAlarms(context);
+        if (mounted) Navigator.of(context).pop(StopScreenResult.done);
+      }
+      return;
+    }
+    final session = result.session;
+    if (!mounted || session == null || session.alarmId != widget.alarm.id) {
+      return;
+    }
     setState(() => _session = session);
   }
 
@@ -187,18 +236,32 @@ class _StopHostState extends State<_StopHost> {
       Navigator.of(context).pop(StopScreenResult.mission);
       return;
     }
-    await _coordinator.complete(widget.alarm.id);
-    if (!mounted) return;
-    await rearmAlarms(context);
-    if (mounted) Navigator.of(context).pop(StopScreenResult.done);
+    try {
+      await _coordinator.complete(widget.alarm.id);
+      if (!mounted) return;
+      await rearmAlarms(context);
+      if (mounted) Navigator.of(context).pop(StopScreenResult.done);
+    } catch (error, stack) {
+      _closing = false;
+      _ticker?.cancel();
+      if (mounted) _showMissionFailure(context, error, stack, _primary);
+    }
   }
 
   Future<void> _snooze() async {
     if (_closing) return;
-    final ok = await _coordinator.snooze(widget.alarm);
-    if (!ok || !mounted) return;
     _closing = true;
-    Navigator.of(context).pop(StopScreenResult.done);
+    try {
+      final ok = await _coordinator.snooze(widget.alarm);
+      if (!ok || !mounted) {
+        _closing = false;
+        return;
+      }
+      Navigator.of(context).pop(StopScreenResult.done);
+    } catch (error, stack) {
+      _closing = false;
+      if (mounted) _showMissionFailure(context, error, stack, _snooze);
+    }
   }
 
   @override
@@ -241,6 +304,7 @@ class _MissionHost extends StatefulWidget {
 }
 
 class _MissionHostState extends State<_MissionHost> {
+  bool _closing = false;
 
   /// Görev süresinin mutlak bitişi. Geri sayım bundan hesaplanır; ekran
   /// yeniden açılsa da baştan başlamaz, arka planda da işlemeye devam eder.
@@ -265,22 +329,38 @@ class _MissionHostState extends State<_MissionHost> {
   void initState() {
     super.initState();
     // Native tarafa haber ver: nobetci `grace`ten gorev suresine tasinsin.
-    _coordinator.begin(widget.alarm.id, widget.alarm.mission).then((deadline) {
-      if (mounted) setState(() => _deadline = deadline);
-    });
+    unawaited(_begin());
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
       if (mounted) setState(() {});
     });
 
     // Sure dolup alarm tekrar caldiginda ekran zaten acik oluyor; yeni turun
     // suresini almazsak sayac 0'da cakili kalir.
-    _stops = ServiceLocator().get<AlarmService>().missionStops.listen((_) {
-      _refreshDeadline();
-    });
+    _stops = ServiceLocator()
+        .get<AlarmService>()
+        .missionStops
+        .where((event) => event.alarmId == widget.alarm.id)
+        .listen((_) => _refreshDeadline());
+  }
+
+  Future<void> _begin() async {
+    try {
+      final deadline = await _coordinator.begin(
+        widget.alarm.id,
+        widget.alarm.mission,
+      );
+      if (mounted) setState(() => _deadline = deadline);
+    } catch (error, stack) {
+      if (mounted) _showMissionFailure(context, error, stack, _begin);
+    }
   }
 
   Future<void> _refreshDeadline() async {
-    await _coordinator.resume();
+    final result = await _coordinator.resume(alarmId: widget.alarm.id);
+    if (result.chainStoppedAlarmId != null) {
+      await _complete();
+      return;
+    }
     final deadline = await _coordinator.begin(
       widget.alarm.id,
       widget.alarm.mission,
@@ -299,25 +379,42 @@ class _MissionHostState extends State<_MissionHost> {
   }
 
   int get _snoozeRemaining {
-    final limit = widget.alarm.maxSnoozes;
+    final limit = effectiveSnoozeLimit(widget.alarm);
     if (!widget.alarm.snoozeEnabled || limit == null) return 0;
     final left = limit - widget.snoozeUsed;
     return left < 0 ? 0 : left;
   }
 
   Future<void> _complete() async {
-    await _coordinator.complete(widget.alarm.id);
-    if (!mounted) return;
-    await rearmAlarms(context);
-    if (mounted) Navigator.of(context).pop();
+    if (_closing) return;
+    _closing = true;
+    try {
+      await _coordinator.complete(widget.alarm.id);
+      if (!mounted) return;
+      await rearmAlarms(context);
+      if (mounted) Navigator.of(context).pop();
+    } catch (error, stack) {
+      _closing = false;
+      if (mounted) _showMissionFailure(context, error, stack, _complete);
+    }
   }
 
   Future<void> _snooze() async {
-    final ok = await _coordinator.snooze(widget.alarm);
-    if (!ok || !mounted) return;
-    // Erteleme bilgisi alarm satirinda ve ana ekranda gosteriliyor; burada
-    // ayrica bir onay ekrani tutmuyoruz.
-    Navigator.of(context).pop();
+    if (_closing) return;
+    _closing = true;
+    try {
+      final ok = await _coordinator.snooze(widget.alarm);
+      if (!ok || !mounted) {
+        _closing = false;
+        return;
+      }
+      // Erteleme bilgisi alarm satirinda ve ana ekranda gosteriliyor; burada
+      // ayrica bir onay ekrani tutmuyoruz.
+      Navigator.of(context).pop();
+    } catch (error, stack) {
+      _closing = false;
+      if (mounted) _showMissionFailure(context, error, stack, _snooze);
+    }
   }
 
   Future<void> _abort() async {
@@ -395,6 +492,10 @@ Future<void> rearmAlarms(BuildContext context) async {
       skips: appState.skips,
     );
   } catch (e, stackTrace) {
-    AppLogger().warning('Gorev sonrasi alarm yeniden kurulamadi', e, stackTrace);
+    AppLogger().warning(
+      'Gorev sonrasi alarm yeniden kurulamadi',
+      e,
+      stackTrace,
+    );
   }
 }
