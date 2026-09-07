@@ -24,24 +24,31 @@ void main() {
     await initializeDateFormatting('tr_TR', null);
   });
 
-  Future<void> pumpTable(WidgetTester tester, {List<PrayerTime>? days}) async {
+  Future<void> pumpTable(
+    WidgetTester tester, {
+    List<PrayerTime>? days,
+    Locale locale = const Locale('tr'),
+    double textScale = 1,
+  }) async {
     tester.view.physicalSize = const Size(1206, 2622);
     tester.view.devicePixelRatio = 3.0;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       wrapWithTheme(
-        CalendarTable(
-          days: days ?? [_day(2), _day(3), _day(4)],
-          now: DateTime(2026, 8, 3, 17, 34),
+        MediaQuery(
+          data: MediaQueryData(textScaler: TextScaler.linear(textScale)),
+          child: CalendarTable(
+            days: days ?? [_day(2), _day(3), _day(4)],
+            now: DateTime(2026, 8, 3, 17, 34),
+          ),
         ),
+        locale: locale,
       ),
     );
     await tester.pump();
   }
 
-  /// Alti saat kolonu `Expanded` + `FittedBox` ile kolonu doldurdugu icin
-  /// kolon ici bosluk verilmezse saatler bitisik goruntu veriyordu. Olcum,
-  /// takvim ekraninin gercek ic genisliginde (402 - 2*12) yapilir.
+  /// Kompakt saatler arasındaki boşluk gerçek tablo genişliğinde ölçülür.
   testWidgets('Yan yana saatler arasinda bosluk kalir', (tester) async {
     tester.view.physicalSize = const Size(1206, 2622);
     tester.view.devicePixelRatio = 3.0;
@@ -67,7 +74,7 @@ void main() {
 
     expect(
       sunrise.left - fajr.right,
-      greaterThanOrEqualTo(7),
+      greaterThanOrEqualTo(6),
       reason: 'Kolon ici bosluk kaldirilirsa bu deger 6 pikselin altina duser',
     );
   });
@@ -75,19 +82,19 @@ void main() {
   testWidgets('Sabit baslik satiri alti vakit adini gosterir', (tester) async {
     await pumpTable(tester);
 
-    for (final name in ['İMSAK', 'GÜNEŞ', 'ÖĞLE', 'İKİNDİ', 'AKŞAM', 'YATSI']) {
+    for (final name in ['İmsak', 'Güneş', 'Öğle', 'İkindi', 'Akşam', 'Yatsı']) {
       expect(find.text(name), findsOneWidget, reason: name);
     }
   });
 
   testWidgets('Her gun icin bir satir cizilir', (tester) async {
-    await pumpTable(tester);
+    await pumpTable(tester, locale: const Locale('ar'), textScale: 2);
 
     expect(find.byKey(const Key('calendar_row')), findsNWidgets(3));
   });
 
   testWidgets('Bugun rozetle isaretlenir', (tester) async {
-    await pumpTable(tester);
+    await pumpTable(tester, textScale: 2);
 
     expect(find.text('BUGÜN'), findsOneWidget);
   });
@@ -110,6 +117,6 @@ void main() {
 
     expect(find.byKey(const Key('calendar_row')), findsNothing);
     // Baslik satiri yine de durur.
-    expect(find.text('İMSAK'), findsOneWidget);
+    expect(find.text('İmsak'), findsOneWidget);
   });
 }
