@@ -2,6 +2,7 @@ import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/presentation/screens/home_screen.dart';
 import 'package:ezanvakti/presentation/widgets/home/kerahat_card.dart';
+import 'package:ezanvakti/presentation/widgets/home/prayer_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -133,7 +134,13 @@ void main() {
     );
 
     // Vakitler yerinde; yenileme tam ekran yukleme ile degistirmiyor.
-    expect(find.text('13:15'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(PrayerGrid),
+        matching: find.text('13:15'),
+      ),
+      findsOneWidget,
+    );
     expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 
