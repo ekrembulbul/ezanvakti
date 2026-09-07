@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
+import 'animated_reorder_column.dart';
 
 /// Ayıraçlı satır grubu.
 ///
@@ -10,35 +11,47 @@ import '../../../core/theme/tokens_context.dart';
 class GroupedList extends StatelessWidget {
   final List<Widget> children;
 
-  const GroupedList({super.key, required this.children});
+  /// Key'li satırların yeni sıralarına kayarak geçmesini sağlar.
+  final bool animateOrder;
+
+  const GroupedList({
+    super.key,
+    required this.children,
+    this.animateOrder = false,
+  });
 
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
+    // Kayarken üst üste gelen satırların metinleri birbirine karışmasın.
+    final surface = animateOrder
+        ? Color.alphaBlend(tokens.surface, tokens.backgroundStops.last)
+        : tokens.surface;
+    final rows = <Widget>[
+      for (var i = 0; i < children.length; i++) ...[
+        if (i > 0)
+          Divider(height: 1, thickness: 1, indent: 52, color: tokens.divider),
+        if (animateOrder)
+          ColoredBox(
+            key: children[i].key == null ? null : ValueKey(children[i].key),
+            color: surface,
+            child: children[i],
+          )
+        else
+          children[i],
+      ],
+    ];
 
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: tokens.surface,
+        color: surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: tokens.border),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (var i = 0; i < children.length; i++) ...[
-            if (i > 0)
-              Divider(
-                height: 1,
-                thickness: 1,
-                // Ayıraç satırın ikon hizasından başlar.
-                indent: 52,
-                color: tokens.divider,
-              ),
-            children[i],
-          ],
-        ],
-      ),
+      child: animateOrder
+          ? AnimatedReorderColumn(children: rows)
+          : Column(mainAxisSize: MainAxisSize.min, children: rows),
     );
   }
 }

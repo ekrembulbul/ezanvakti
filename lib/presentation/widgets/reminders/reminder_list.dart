@@ -27,7 +27,7 @@ class ReminderList extends StatelessWidget {
         padding: const EdgeInsets.only(bottom: 24),
         children: [
           header,
-          GroupedList(children: children),
+          GroupedList(animateOrder: true, children: children),
           footer,
         ],
       );
