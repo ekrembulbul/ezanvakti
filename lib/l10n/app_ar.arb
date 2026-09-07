@@ -299,7 +299,7 @@
   "loading": "جارٍ التحميل…",
   "today": "اليوم",
   "nextLabel": "التالي",
-  "adhanAt": "أذان {prayer} في {time}",
+  "prayerTimeAt": "وقت {prayer} عند {time}",
   "upcomingTitle": "التالي",
   "upcomingAll": "الكل",
   "upcomingEmpty": "لا توجد تنبيهات أو منبهات قادمة",

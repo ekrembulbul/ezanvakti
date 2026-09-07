@@ -1004,8 +1004,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get nextLabel => 'SONRAKİ';
 
   @override
-  String adhanAt(Object prayer, Object time) {
-    return '$prayer ezanı $time\'de';
+  String prayerTimeAt(String prayer, String time) {
+    return '$prayer vakti $time';
   }
 
   @override

@@ -1894,11 +1894,11 @@ abstract class AppLocalizations {
   /// **'SONRAKİ'**
   String get nextLabel;
 
-  /// Sayaç alt bilgisi
+  /// Sayaç altındaki vakit adı ve saati; ezan okunmasını ima etmez.
   ///
   /// In tr, this message translates to:
-  /// **'{prayer} ezanı {time}\'de'**
-  String adhanAt(Object prayer, Object time);
+  /// **'{prayer} vakti {time}'**
+  String prayerTimeAt(String prayer, String time);
 
   /// Kart başlığı
   ///
@@ -2890,7 +2890,7 @@ abstract class AppLocalizations {
   /// **'Kerahat vakti'**
   String get kerahatActiveTitle;
 
-  /// Aktif kerahat aralığının yaklaşık bitiş saati; ana geri sayım ezana kalan süreyi göstermeye devam eder.
+  /// Aktif kerahat aralığının yaklaşık bitiş saati; ana geri sayım sıradaki vakte kalan süreyi gösterir.
   ///
   /// In tr, this message translates to:
   /// **'Yaklaşık bitiş: {time}'**

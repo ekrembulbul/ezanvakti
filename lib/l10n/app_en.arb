@@ -299,7 +299,7 @@
   "loading": "Loading…",
   "today": "TODAY",
   "nextLabel": "NEXT",
-  "adhanAt": "Adhan for {prayer} at {time}",
+  "prayerTimeAt": "{prayer} time: {time}",
   "upcomingTitle": "Upcoming",
   "upcomingAll": "All",
   "upcomingEmpty": "No upcoming notification or alarm",

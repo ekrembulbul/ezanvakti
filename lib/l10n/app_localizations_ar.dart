@@ -999,8 +999,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nextLabel => 'التالي';
 
   @override
-  String adhanAt(Object prayer, Object time) {
-    return 'أذان $prayer في $time';
+  String prayerTimeAt(String prayer, String time) {
+    return 'وقت $prayer عند $time';
   }
 
   @override

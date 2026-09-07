@@ -62,6 +62,7 @@ void main() {
             ),
           );
           expect(find.text('Yaklaşık bitiş: 07:00'), findsOneWidget);
+          expect(find.byIcon(Icons.warning_amber_rounded), findsNothing);
           expect(find.text('SONRAKİ'), findsOneWidget);
           expect(find.text('ÖĞLE'), findsOneWidget);
           expect(find.text('06:17:00'), findsOneWidget);
@@ -164,7 +165,7 @@ void main() {
         tokensFor().kerahatText,
       );
       expect(find.byKey(const Key('countdown_value')), findsOneWidget);
-      expect(find.text("Öğle ezanı 13:00'de"), findsOneWidget);
+      expect(find.text('Öğle vakti 13:00'), findsOneWidget);
       expect(
         tester
             .widget<Text>(find.byKey(const Key('countdown_value')))
@@ -266,16 +267,32 @@ void main() {
       expect(find.text('00:00:00'), findsOneWidget);
     });
 
-    testWidgets('Alt bilgi vaktin saatini yazar', (tester) async {
+    testWidgets('Alt bilgi bütün vakitlerde ezan yerine vakit ve saati yazar', (
+      tester,
+    ) async {
       final target = DateTime(2026, 8, 2, 20, 27);
-
-      await tester.pumpWidget(
-        wrapWithTheme(
-          CountdownHero(nextPrayerTime: target, nextPrayerName: 'Akşam'),
-        ),
-      );
-
-      expect(find.text("Akşam ezanı 20:27'de"), findsOneWidget);
+      for (final (heading, caption) in [
+        ('İmsak', null),
+        ('Güneş', null),
+        ('Öğle', null),
+        ('İkindi', null),
+        ('Akşam', null),
+        ('Yatsı', null),
+        ('İftara', 'İftar'),
+        ('Sahurun bitişine', 'İmsak'),
+      ]) {
+        await tester.pumpWidget(
+          wrapWithTheme(
+            CountdownHero(
+              nextPrayerTime: target,
+              nextPrayerName: heading,
+              timeCaptionName: caption,
+            ),
+          ),
+        );
+        expect(find.text('${caption ?? heading} vakti 20:27'), findsOneWidget);
+        expect(find.textContaining('ezanı'), findsNothing);
+      }
     });
   });
 

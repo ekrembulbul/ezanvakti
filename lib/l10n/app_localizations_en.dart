@@ -1006,8 +1006,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nextLabel => 'NEXT';
 
   @override
-  String adhanAt(Object prayer, Object time) {
-    return 'Adhan for $prayer at $time';
+  String prayerTimeAt(String prayer, String time) {
+    return '$prayer time: $time';
   }
 
   @override

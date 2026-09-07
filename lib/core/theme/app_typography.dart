@@ -164,7 +164,7 @@ class AppTypography {
     fontFeatures: _tabular,
   );
 
-  /// Sayacın altındaki "Akşam ezanı 20:27'de" satırı (markup 14 w500).
+  /// Sayacın altındaki "Akşam vakti 20:27" satırı (markup 14 w500).
   static const TextStyle heroSubtitle = TextStyle(
     fontFamily: fontFamily,
     fontSize: 14,

@@ -199,6 +199,11 @@ class _HomeScreenState extends State<HomeScreen> {
             CountdownHero(
               nextPrayerTime: nextTime,
               nextPrayerName: nextName,
+              timeCaptionName: ramadan == null
+                  ? null
+                  : ramadan.kind == RamadanCountdownKind.iftar
+                  ? context.l10n.ramadanIftarLabel
+                  : context.l10n.prayerName(PrayerType.fajr),
               kerahatIntervals: kerahatIntervals,
             ),
           const SizedBox(height: 26),

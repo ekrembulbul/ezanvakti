@@ -1369,15 +1369,15 @@
   "@nextLabel": {
     "description": "Sayaç etiketi"
   },
-  "adhanAt": "{prayer} ezanı {time}'de",
-  "@adhanAt": {
-    "description": "Sayaç alt bilgisi",
+  "prayerTimeAt": "{prayer} vakti {time}",
+  "@prayerTimeAt": {
+    "description": "Sayaç altındaki vakit adı ve saati; ezan okunmasını ima etmez.",
     "placeholders": {
       "prayer": {
-        "type": "Object"
+        "type": "String"
       },
       "time": {
-        "type": "Object"
+        "type": "String"
       }
     }
   },
@@ -2185,7 +2185,7 @@
   "@kerahatActiveTitle": {"description": "Ana ekrandaki aktif kerahat durumu."},
   "kerahatEndsAt": "Yaklaşık bitiş: {time}",
   "@kerahatEndsAt": {
-    "description": "Aktif kerahat aralığının yaklaşık bitiş saati; ana geri sayım ezana kalan süreyi göstermeye devam eder.",
+    "description": "Aktif kerahat aralığının yaklaşık bitiş saati; ana geri sayım sıradaki vakte kalan süreyi gösterir.",
     "placeholders": {"time": {"type": "String"}}
   },
   "kerahatAfterSunrise": "Güneş sonrası",

@@ -29,10 +29,13 @@ Duration delayToNextSecond(DateTime now) {
 /// Ana ekranın ortalanmış geri sayım bloğu.
 ///
 /// Aktif kerahatte başlık, bitiş saati ve kırmızı yüzeyle vurgulanır.
-/// Büyük sayaç, `SONRAKİ · VAKİT` etiketinin gösterdiği ezana sayar.
+/// Büyük sayaç, `SONRAKİ · VAKİT` etiketinin gösterdiği zamana sayar.
 class CountdownHero extends StatefulWidget {
   final DateTime nextPrayerTime;
   final String nextPrayerName;
+
+  /// Başlık "İftara" gibi bir ifade olduğunda alt bilgideki vakit adı.
+  final String? timeCaptionName;
   final List<KerahatInterval> kerahatIntervals;
 
   /// Sayaç ve kerahat durumu için ortak zaman kaynağı; varsayılan cihaz saati.
@@ -42,6 +45,7 @@ class CountdownHero extends StatefulWidget {
     super.key,
     required this.nextPrayerTime,
     required this.nextPrayerName,
+    this.timeCaptionName,
     this.kerahatIntervals = const [],
     this.clock,
   });
@@ -134,25 +138,12 @@ class _CountdownHeroState extends State<CountdownHero> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.warning_amber_rounded,
-                      size: 24,
-                      color: tokens.kerahatText,
-                    ),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        context.l10n.kerahatActiveTitle,
-                        textAlign: TextAlign.center,
-                        style: AppTypography.reminderPrimary.copyWith(
-                          color: tokens.kerahatText,
-                        ),
-                      ),
-                    ),
-                  ],
+                Text(
+                  context.l10n.kerahatActiveTitle,
+                  textAlign: TextAlign.center,
+                  style: AppTypography.reminderPrimary.copyWith(
+                    color: tokens.kerahatText,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -211,8 +202,8 @@ class _CountdownHeroState extends State<CountdownHero> {
         ),
         const SizedBox(height: 10),
         Text(
-          context.l10n.adhanAt(
-            widget.nextPrayerName,
+          context.l10n.prayerTimeAt(
+            widget.timeCaptionName ?? widget.nextPrayerName,
             context.formatTime(widget.nextPrayerTime),
           ),
           textAlign: TextAlign.center,
