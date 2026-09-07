@@ -4,6 +4,16 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.16.0] - 2026-09-07
+
+### Eklendi
+- **Görevli alarmlar için native görev zinciri.** Alarm çalıştığında görev durumu ve durdurma akışı iOS AlarmKit ve Android native katmanında korunur.
+- Alarm kimliği, tekrar bilgisi ve görev zinciri uygulama yeniden açıldığında ve sistem yeniden başlatıldığında korunur.
+
+### Düzeltildi
+- Alarm kimliği her çalıştırmada aynı kaynağı korur; erteleme ve durdurma akışlarında görev oturumu kopmaz.
+- Geçersiz vakit saati girdileri yalnızca ilgili ızgara aralığında değerlendirilir.
+
 ## [0.15.0] - 2026-09-07
 
 ### Eklendi
