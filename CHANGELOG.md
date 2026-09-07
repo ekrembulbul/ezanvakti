@@ -4,6 +4,16 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.15.0] - 2026-09-07
+
+### Eklendi
+- **Ramazan imsakiye görünümü.** Takvim sekmesi Ramazan boyunca tam ayın imsak ve iftar çizelgesini gösterir; tablo paylaşılabilir.
+- **Kerahat vakitleri.** Ana ekranda güneş doğuşu, zeval ve akşam öncesi kerahat aralıkları açıkça gösterilir.
+- İmsakiye ve kerahat verileri konuma göre yenilenir, cache ile çevrimdışı kullanımda korunur.
+
+### Değişti
+- Vakit takvimi, imsakiye görünümünde daha kompakt ve okunabilir bir düzene alındı.
+
 ## [0.14.0] - 2026-09-06
 
 ### Değişti
