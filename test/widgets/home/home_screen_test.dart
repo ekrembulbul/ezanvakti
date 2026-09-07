@@ -1,7 +1,6 @@
 import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/presentation/screens/home_screen.dart';
-import 'package:ezanvakti/presentation/widgets/home/kerahat_card.dart';
 import 'package:ezanvakti/presentation/widgets/home/prayer_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -43,7 +42,7 @@ void main() {
     await initializeDateFormatting('tr_TR', null);
   });
 
-  /// Ana ekran kaydirilmaz; gercek telefon boyutunda olculur.
+  /// Ana ekran gerçek telefon boyutunda ölçülür.
   Future<void> pumpHome(WidgetTester tester, Widget screen) async {
     tester.view.physicalSize = const Size(1206, 2622);
     tester.view.devicePixelRatio = 3.0;
@@ -173,7 +172,7 @@ void main() {
     expect(find.byType(LinearProgressIndicator), findsNothing);
   });
 
-  testWidgets('bugunun verisinde cetvel altinda kerahat karti gorunur', (
+  testWidgets('kerahat ayrıntıları yalnızca üst çubuktan açılınca görünür', (
     tester,
   ) async {
     final today = _dayForDate(DateTime.now());
@@ -186,10 +185,19 @@ void main() {
       ),
     );
 
-    expect(find.byType(KerahatCard), findsOneWidget);
+    expect(find.text('Sıradaki kerahat'), findsNothing);
+    expect(find.text('Bugünün kerahat vakitleri'), findsNothing);
+    expect(find.text('Öğle öncesi'), findsNothing);
+    await tester.tap(find.byTooltip('Kerahat vakitleri'));
+    await tester.pumpAndSettle();
+    expect(find.text('Güneş sonrası'), findsOneWidget);
+    expect(find.text('Öğle öncesi'), findsOneWidget);
+    expect(find.text('Akşam öncesi'), findsOneWidget);
   });
 
-  testWidgets('eski gunun verisinden kerahat karti uydurmaz', (tester) async {
+  testWidgets('eski günün verisinden kerahat ayrıntısı uydurmaz', (
+    tester,
+  ) async {
     await pumpHome(
       tester,
       HomeScreen(
@@ -199,7 +207,7 @@ void main() {
       ),
     );
 
-    expect(find.byType(KerahatCard), findsNothing);
+    expect(find.byTooltip('Kerahat vakitleri'), findsNothing);
   });
 
   testWidgets('dar ekranda buyuk metinle Home kaydirilir ve tasmaz', (
@@ -228,7 +236,9 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Arapca RTL Home kerahat kartini tasmadan cizer', (tester) async {
+  testWidgets('Arapça RTL Home kerahat erişimini taşmadan çizer', (
+    tester,
+  ) async {
     final today = _dayForDate(DateTime.now());
     await tester.pumpWidget(
       wrapWithTheme(
@@ -242,7 +252,7 @@ void main() {
     );
     await tester.pump();
 
-    expect(find.byType(KerahatCard), findsOneWidget);
+    expect(find.byTooltip('أوقات الكراهة'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

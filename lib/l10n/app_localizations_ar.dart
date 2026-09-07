@@ -1578,16 +1578,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get kerahatNextTitle => 'وقت الكراهة التالي';
-
-  @override
   String get kerahatActiveTitle => 'وقت الكراهة';
-
-  @override
-  String get kerahatCompletedTitle => 'أوقات الكراهة اليوم';
-
-  @override
-  String get kerahatCompletedHint => 'اعرض الفترات التقريبية الثلاث';
 
   @override
   String get kerahatAfterSunrise => 'بعد الشروق';
@@ -1601,16 +1592,6 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String kerahatTimeRange(String start, String end) {
     return '$start–$end';
-  }
-
-  @override
-  String kerahatStartsIn(String duration) {
-    return 'يبدأ بعد $duration';
-  }
-
-  @override
-  String kerahatEndsIn(String duration) {
-    return 'ينتهي بعد $duration';
   }
 
   @override

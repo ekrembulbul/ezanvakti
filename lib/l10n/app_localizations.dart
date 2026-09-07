@@ -2884,29 +2884,11 @@ abstract class AppLocalizations {
   /// **'{name} vaktine {duration} kaldı'**
   String notificationDurationLeft(String name, String duration);
 
-  /// Ana ekrandaki yaklaşan kerahat durumu.
-  ///
-  /// In tr, this message translates to:
-  /// **'Sıradaki kerahat'**
-  String get kerahatNextTitle;
-
   /// Ana ekrandaki aktif kerahat durumu.
   ///
   /// In tr, this message translates to:
   /// **'Kerahat vakti'**
   String get kerahatActiveTitle;
-
-  /// Günün kerahat aralıkları tamamlandığında gösterilen başlık.
-  ///
-  /// In tr, this message translates to:
-  /// **'Bugünün kerahat vakitleri'**
-  String get kerahatCompletedTitle;
-
-  /// Tamamlanan kerahat kartının açıklaması.
-  ///
-  /// In tr, this message translates to:
-  /// **'Üç yaklaşık aralığı görüntüle'**
-  String get kerahatCompletedHint;
 
   /// Güneş doğduktan sonraki kerahat aralığı.
   ///
@@ -2931,18 +2913,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{start}–{end}'**
   String kerahatTimeRange(String start, String end);
-
-  /// Yaklaşan kerahat aralığına kalan süre.
-  ///
-  /// In tr, this message translates to:
-  /// **'{duration} sonra başlar'**
-  String kerahatStartsIn(String duration);
-
-  /// Aktif kerahat aralığının bitmesine kalan süre.
-  ///
-  /// In tr, this message translates to:
-  /// **'{duration} sonra biter'**
-  String kerahatEndsIn(String duration);
 
   /// Kerahat bilgi panelinin başlığı.
   ///

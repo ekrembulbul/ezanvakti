@@ -18,7 +18,7 @@ import '../../l10n/l10n_extensions.dart';
 import '../widgets/home/countdown_hero.dart';
 import '../widgets/home/day_ruler.dart';
 import '../widgets/home/home_top_bar.dart';
-import '../widgets/home/kerahat_card.dart';
+import '../widgets/home/kerahat_details_sheet.dart';
 import '../widgets/home/prayer_grid.dart';
 import '../widgets/home/upcoming_card.dart';
 
@@ -111,6 +111,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final today = widget.todaysPrayerTime;
+    final kerahatIntervals =
+        today != null && DateUtils.isSameDay(today.date, now)
+        ? KerahatTimes.forDay(today)
+        : const <KerahatInterval>[];
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: AppSurface(
@@ -122,9 +129,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 locationName: widget.location.displayName,
                 onLocationTap: widget.onLocationTap,
                 onSettingsTap: widget.onSettingsTap ?? () {},
+                onKerahatTap:
+                    kerahatIntervals.isEmpty ||
+                        widget.isLoading ||
+                        widget.errorMessage != null
+                    ? null
+                    : () => showKerahatDetails(
+                        context,
+                        intervals: kerahatIntervals,
+                      ),
                 isRefreshing: widget.isRefreshing,
               ),
-              Expanded(child: _buildBody()),
+              Expanded(child: _buildBody(now, kerahatIntervals)),
             ],
           ),
         ),
@@ -132,7 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(DateTime now, List<KerahatInterval> kerahatIntervals) {
     if (widget.isLoading) return const LoadingState();
 
     if (widget.errorMessage != null) {
@@ -151,15 +167,6 @@ class _HomeScreenState extends State<HomeScreen> {
         message: context.l10n.offlineNoData,
       );
     }
-
-    final now = DateTime.now();
-    final isCurrentDay =
-        today.date.year == now.year &&
-        today.date.month == now.month &&
-        today.date.day == now.day;
-    final kerahatIntervals = isCurrentDay
-        ? KerahatTimes.forDay(today)
-        : const <KerahatInterval>[];
 
     // Ramazan'da sayaç sıradaki vakte değil iftara/sahura sayar: kullanıcının
     // o ay boyunca beklediği bilgi bu.
@@ -182,23 +189,24 @@ class _HomeScreenState extends State<HomeScreen> {
               : context.l10n.ramadanSuhoorCountdown);
 
     return SingleChildScrollView(
+      physics: const ClampingScrollPhysics(),
       child: Column(
         children: [
           const SizedBox(height: 8),
           HomeDateLine(date: today.date),
           const SizedBox(height: 20),
           if (nextTime != null && nextName != null)
-            CountdownHero(nextPrayerTime: nextTime, nextPrayerName: nextName),
+            CountdownHero(
+              nextPrayerTime: nextTime,
+              nextPrayerName: nextName,
+              kerahatIntervals: kerahatIntervals,
+            ),
           const SizedBox(height: 26),
           DayRuler(
             prayerTime: today,
             now: now,
             kerahatIntervals: kerahatIntervals,
           ),
-          if (kerahatIntervals.isNotEmpty) ...[
-            const SizedBox(height: 14),
-            KerahatCard(intervals: kerahatIntervals, now: now),
-          ],
           const SizedBox(height: 24),
           PrayerGrid(
             prayerTime: today,

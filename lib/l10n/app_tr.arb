@@ -2181,14 +2181,8 @@
       "duration": {"type": "String"}
     }
   },
-  "kerahatNextTitle": "Sıradaki kerahat",
-  "@kerahatNextTitle": {"description": "Ana ekrandaki yaklaşan kerahat durumu."},
   "kerahatActiveTitle": "Kerahat vakti",
   "@kerahatActiveTitle": {"description": "Ana ekrandaki aktif kerahat durumu."},
-  "kerahatCompletedTitle": "Bugünün kerahat vakitleri",
-  "@kerahatCompletedTitle": {"description": "Günün kerahat aralıkları tamamlandığında gösterilen başlık."},
-  "kerahatCompletedHint": "Üç yaklaşık aralığı görüntüle",
-  "@kerahatCompletedHint": {"description": "Tamamlanan kerahat kartının açıklaması."},
   "kerahatAfterSunrise": "Güneş sonrası",
   "@kerahatAfterSunrise": {"description": "Güneş doğduktan sonraki kerahat aralığı."},
   "kerahatBeforeDhuhr": "Öğle öncesi",
@@ -2199,16 +2193,6 @@
   "@kerahatTimeRange": {
     "description": "Kerahat aralığının başlangıç ve bitiş saati.",
     "placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}
-  },
-  "kerahatStartsIn": "{duration} sonra başlar",
-  "@kerahatStartsIn": {
-    "description": "Yaklaşan kerahat aralığına kalan süre.",
-    "placeholders": {"duration": {"type": "String"}}
-  },
-  "kerahatEndsIn": "{duration} sonra biter",
-  "@kerahatEndsIn": {
-    "description": "Aktif kerahat aralığının bitmesine kalan süre.",
-    "placeholders": {"duration": {"type": "String"}}
   },
   "kerahatSheetTitle": "Kerahat vakitleri",
   "@kerahatSheetTitle": {"description": "Kerahat bilgi panelinin başlığı."},

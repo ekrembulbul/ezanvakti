@@ -1592,16 +1592,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get kerahatNextTitle => 'Next disliked time';
-
-  @override
   String get kerahatActiveTitle => 'Disliked time';
-
-  @override
-  String get kerahatCompletedTitle => 'Today\'s disliked times';
-
-  @override
-  String get kerahatCompletedHint => 'View the three approximate intervals';
 
   @override
   String get kerahatAfterSunrise => 'After sunrise';
@@ -1615,16 +1606,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String kerahatTimeRange(String start, String end) {
     return '$start–$end';
-  }
-
-  @override
-  String kerahatStartsIn(String duration) {
-    return 'Starts in $duration';
-  }
-
-  @override
-  String kerahatEndsIn(String duration) {
-    return 'Ends in $duration';
   }
 
   @override

@@ -6,7 +6,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 import '../../../core/utils/hijri_formatter.dart';
 
-/// Ana ekranın üst çubuğu: konum · ayarlar.
+/// Ana ekranın üst çubuğu: konum · kerahat ayrıntıları · ayarlar.
 ///
 /// Uygulama ikonu ekranda gösterilmez; yalnızca launcher ve açılış ekranında
 /// kullanılır. Ayarlar girişi yalnızca burada; Takvim ve Hatırlatıcılar
@@ -15,6 +15,7 @@ class HomeTopBar extends StatelessWidget {
   final String locationName;
   final VoidCallback? onLocationTap;
   final VoidCallback onSettingsTap;
+  final VoidCallback? onKerahatTap;
 
   /// Arka planda vakit yenilemesi sürerken ince bir gösterge çizilir.
   final bool isRefreshing;
@@ -24,6 +25,7 @@ class HomeTopBar extends StatelessWidget {
     required this.locationName,
     required this.onLocationTap,
     required this.onSettingsTap,
+    this.onKerahatTap,
     this.isRefreshing = false,
   });
 
@@ -70,14 +72,27 @@ class HomeTopBar extends StatelessWidget {
                   ),
                 ),
               ),
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: onSettingsTap,
-                child: Icon(
-                  Icons.settings_rounded,
-                  size: 22,
-                  color: tokens.textSecondary,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (onKerahatTap != null)
+                    IconButton(
+                      tooltip: context.l10n.kerahatSheetTitle,
+                      onPressed: onKerahatTap,
+                      icon: const Icon(Icons.wb_twilight_rounded),
+                      iconSize: 22,
+                      color: tokens.textSecondary,
+                    ),
+                  IconButton(
+                    tooltip: context.l10n.settingsTitle,
+                    onPressed: onSettingsTap,
+                    padding: EdgeInsets.zero,
+                    alignment: AlignmentDirectional.centerEnd,
+                    icon: const Icon(Icons.settings_rounded),
+                    iconSize: 22,
+                    color: tokens.textSecondary,
+                  ),
+                ],
               ),
             ],
           ),
@@ -114,36 +129,24 @@ class HomeDateLine extends StatelessWidget {
       Localizations.localeOf(context).toLanguageTag(),
     ).format(date);
 
-    return SizedBox(
-      height: 20,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Flexible(
-            child: Text(
-              gregorian,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppTypography.dateLine.copyWith(
-                color: tokens.textSecondary,
-              ),
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 20),
+      child: Text.rich(
+        TextSpan(
+          style: AppTypography.dateLine.copyWith(color: tokens.textSecondary),
+          children: [
+            TextSpan(text: gregorian),
+            TextSpan(
+              text: '  ·  ',
+              style: TextStyle(color: tokens.textTertiary),
             ),
-          ),
-          const SizedBox(width: 9),
-          Container(
-            width: 3,
-            height: 3,
-            decoration: BoxDecoration(
-              color: tokens.textTertiary,
-              shape: BoxShape.circle,
+            TextSpan(
+              text: HijriFormatter.format(date, context.l10n),
+              style: TextStyle(color: tokens.accent),
             ),
-          ),
-          const SizedBox(width: 9),
-          Text(
-            HijriFormatter.format(date, context.l10n),
-            style: AppTypography.dateLine.copyWith(color: tokens.accent),
-          ),
-        ],
+          ],
+        ),
+        textAlign: TextAlign.center,
       ),
     );
   }

@@ -25,9 +25,11 @@ class SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.baseline,
-      textBaseline: TextBaseline.alphabetic,
+    return Wrap(
+      alignment: WrapAlignment.spaceBetween,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 12,
+      runSpacing: 4,
       children: [
         Text(
           toTurkishUpperCase(text),
@@ -35,7 +37,7 @@ class SectionLabel extends StatelessWidget {
             color: tokens.textTertiary,
           ),
         ),
-        if (trailing != null) ...[const Spacer(), trailing!],
+        ?trailing,
       ],
     );
   }

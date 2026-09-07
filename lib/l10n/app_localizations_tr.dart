@@ -1590,16 +1590,7 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get kerahatNextTitle => 'Sıradaki kerahat';
-
-  @override
   String get kerahatActiveTitle => 'Kerahat vakti';
-
-  @override
-  String get kerahatCompletedTitle => 'Bugünün kerahat vakitleri';
-
-  @override
-  String get kerahatCompletedHint => 'Üç yaklaşık aralığı görüntüle';
 
   @override
   String get kerahatAfterSunrise => 'Güneş sonrası';
@@ -1613,16 +1604,6 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String kerahatTimeRange(String start, String end) {
     return '$start–$end';
-  }
-
-  @override
-  String kerahatStartsIn(String duration) {
-    return '$duration sonra başlar';
-  }
-
-  @override
-  String kerahatEndsIn(String duration) {
-    return '$duration sonra biter';
   }
 
   @override

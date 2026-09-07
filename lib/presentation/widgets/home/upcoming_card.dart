@@ -17,9 +17,9 @@ import '../../services/upcoming_resolver.dart';
 import '../common/grouped_list.dart';
 import '../common/section_label.dart';
 
-/// Etiketsiz kart satırı ve boş durumun ortak taban yüksekliği. Özel etiketli
-/// satırlar, etiketi kesmemek için metin ölçeğine göre kontrollü büyür.
+/// Etiketsiz kart satırı ve boş durumun ortak taban yüksekliği.
 const double _kRowHeight = 70;
+const double _kLabeledRowHeight = 84;
 
 /// Sıradaki bildirim ve alarmı gösteren grup.
 ///
@@ -29,8 +29,8 @@ class UpcomingCard extends StatelessWidget {
   final UpcomingNotification? notification;
   final UpcomingAlarm? alarm;
 
-  /// Kalan sürenin hesaplandığı an. Ana ekran saniyede bir yeniden çizildiği
-  /// için dışarıdan verilir; widget kendi saatini tutmaz.
+  /// Kalan sürenin hesaplandığı an. Ana ekranın yenilemesiyle güncellenir;
+  /// widget kendi saatini tutmaz.
   final DateTime now;
 
   final VoidCallback onSeeAll;
@@ -136,7 +136,8 @@ class UpcomingCard extends StatelessWidget {
     );
 
     return GroupedRow(
-      height: _rowHeight(context, hasLabel: customLabel != null),
+      height: customLabel == null ? _kRowHeight : _kLabeledRowHeight,
+      growWithContent: true,
       icon: Icons.notifications_rounded,
       title: Text(primary, style: AppTypography.gridValue),
       subtitle: _details(
@@ -181,7 +182,8 @@ class UpcomingCard extends StatelessWidget {
     );
 
     return GroupedRow(
-      height: _rowHeight(context, hasLabel: customLabel.isNotEmpty),
+      height: customLabel.isEmpty ? _kRowHeight : _kLabeledRowHeight,
+      growWithContent: true,
       icon: Icons.alarm_rounded,
       iconColor: tokens.accent,
       title: Row(
@@ -221,12 +223,6 @@ class UpcomingCard extends StatelessWidget {
 
   String _clock(BuildContext context, DateTime time) =>
       context.formatTime(time);
-
-  double _rowHeight(BuildContext context, {required bool hasLabel}) {
-    if (!hasLabel) return _kRowHeight;
-    final scale = MediaQuery.textScalerOf(context).scale(14) / 14;
-    return 84 + (scale - 1).clamp(0, 1) * 40;
-  }
 
   Widget _details(
     BuildContext context, {

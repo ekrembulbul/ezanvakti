@@ -57,7 +57,11 @@ class GroupedRow extends StatelessWidget {
 
   /// Satır yüksekliği. Varsayılan tam genişlikli listeler içindir; kompakt
   /// kartlar içerik ve metin ölçeğine uygun yüksekliği çağrı noktasında verir.
+  /// [growWithContent] açıksa minimum yükseklik olarak kullanılır.
   final double height;
+
+  /// Büyük metinde satırın bu yüksekliği aşmasına izin verir.
+  final bool growWithContent;
 
   /// Pasif satırlar (kapalı bildirim gibi) söndürülür.
   final bool dimmed;
@@ -71,6 +75,7 @@ class GroupedRow extends StatelessWidget {
     this.onTap,
     this.iconColor,
     this.height = 74,
+    this.growWithContent = false,
     this.dimmed = false,
   });
 
@@ -78,10 +83,16 @@ class GroupedRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
 
-    final row = SizedBox(
-      height: height,
+    final row = ConstrainedBox(
+      constraints: BoxConstraints(
+        minHeight: height,
+        maxHeight: growWithContent ? double.infinity : height,
+      ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
+        padding: EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: growWithContent ? 12 : 0,
+        ),
         child: Row(
           children: [
             if (icon != null) ...[
@@ -101,8 +112,7 @@ class GroupedRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   DefaultTextStyle.merge(
-                    // Satır sabit yükseklikte; uzun metin taşmak yerine
-                    // kırpılır.
+                    // Uzun başlık satırın genişliğinde kırpılır.
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: AppTypography.rowTitle.copyWith(

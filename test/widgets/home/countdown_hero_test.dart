@@ -1,4 +1,5 @@
 import 'package:ezanvakti/core/theme/app_typography.dart';
+import 'package:ezanvakti/features/prayer_times/domain/kerahat_times.dart';
 import 'package:ezanvakti/presentation/widgets/home/countdown_hero.dart';
 import 'package:ezanvakti/presentation/widgets/home/home_top_bar.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +15,88 @@ void main() {
   });
 
   group('CountdownHero', () {
+    for (final locale in [const Locale('tr'), const Locale('ar')]) {
+      testWidgets(
+        '${locale.languageCode} aktif kerahat uyarısı büyük metinde taşmaz',
+        (tester) async {
+          final now = DateTime(2026, 9, 7, 6, 15);
+          await tester.pumpWidget(
+            wrapWithTheme(
+              MediaQuery(
+                data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+                child: Center(
+                  child: SizedBox(
+                    width: 280,
+                    child: CountdownHero(
+                      nextPrayerTime: DateTime(2026, 9, 7, 13),
+                      nextPrayerName: locale.languageCode == 'ar'
+                          ? 'الظهر'
+                          : 'Öğle',
+                      clock: () => now,
+                      kerahatIntervals: [
+                        KerahatInterval(
+                          kind: KerahatKind.afterSunrise,
+                          start: DateTime(2026, 9, 7, 6),
+                          end: DateTime(2026, 9, 7, 6, 45),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              locale: locale,
+            ),
+          );
+          expect(
+            find.text(
+              locale.languageCode == 'ar' ? 'وقت الكراهة' : 'Kerahat vakti',
+            ),
+            findsOneWidget,
+          );
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
+
+    testWidgets('kerahat uyarısı saniye tikinde başlar ve bitişte kaybolur', (
+      tester,
+    ) async {
+      final start = DateTime(2026, 9, 7, 6);
+      final end = start.add(const Duration(minutes: 45));
+      var now = start.subtract(const Duration(seconds: 1));
+      await tester.pumpWidget(
+        wrapWithTheme(
+          CountdownHero(
+            nextPrayerTime: DateTime(2026, 9, 7, 13),
+            nextPrayerName: 'Öğle',
+            clock: () => now,
+            kerahatIntervals: [
+              KerahatInterval(
+                kind: KerahatKind.afterSunrise,
+                start: start,
+                end: end,
+              ),
+            ],
+          ),
+        ),
+      );
+      expect(find.text('Kerahat vakti'), findsNothing);
+
+      now = start;
+      await tester.pump(const Duration(seconds: 2));
+      expect(find.text('Kerahat vakti'), findsOneWidget);
+      expect(
+        tester.widget<Text>(find.text('Kerahat vakti')).style?.color,
+        tokensFor().kerahatText,
+      );
+      expect(find.byKey(const Key('countdown_value')), findsOneWidget);
+      expect(find.text("Öğle ezanı 13:00'de"), findsOneWidget);
+
+      now = end;
+      await tester.pump(const Duration(seconds: 2));
+      expect(find.text('Kerahat vakti'), findsNothing);
+    });
+
     testWidgets('Kalan sureyi SS:DD:SS olarak tek satirda gosterir', (
       tester,
     ) async {
@@ -146,7 +229,9 @@ void main() {
       expect(opened, isTrue);
     });
 
-    testWidgets('Ayarlar ikonu cubugun sag kenarina yaslanir', (tester) async {
+    testWidgets('Ayarlar düğmesi çubuğun sağ kenarına yaslanır', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         wrapWithTheme(
           const HomeTopBar(
@@ -158,7 +243,9 @@ void main() {
       );
 
       final bar = tester.getRect(find.byType(HomeTopBar));
-      final gear = tester.getRect(find.byIcon(Icons.settings_rounded));
+      final gear = tester.getRect(
+        find.widgetWithIcon(IconButton, Icons.settings_rounded),
+      );
 
       expect(gear.right, moreOrLessEquals(bar.right, epsilon: 0.5));
     });
