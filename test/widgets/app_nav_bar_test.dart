@@ -78,6 +78,121 @@ void main() {
     )..addFont(rootBundle.load('assets/fonts/Manrope-Variable.ttf'))).load();
   });
 
+  testWidgets('seçili vurgu tek parça halinde yeni sekmeye kayar', (
+    tester,
+  ) async {
+    var selected = 0;
+    await tester.pumpWidget(
+      wrapWithTheme(
+        Align(
+          alignment: Alignment.bottomCenter,
+          child: StatefulBuilder(
+            builder: (context, setState) => AppNavBar(
+              items: _items,
+              selected: selected,
+              onChanged: (value) => setState(() => selected = value),
+            ),
+          ),
+        ),
+      ),
+    );
+    final pill = find.byKey(const Key('nav_selection'));
+    expect(pill, findsOneWidget);
+    final start = tester.getCenter(pill).dx;
+    final target = tester.getCenter(find.text('Hatırlatıcılar')).dx;
+    await tester.tap(find.text('Hatırlatıcılar'));
+    await tester.pump();
+    expect(tester.getCenter(pill).dx, closeTo(start, 0.5));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(tester.getCenter(pill).dx, greaterThan(start));
+    expect(tester.getCenter(pill).dx, lessThan(target));
+    await tester.pumpAndSettle();
+    expect(tester.getCenter(pill).dx, closeTo(target, 0.5));
+    expect(pill, findsOneWidget);
+  });
+
+  testWidgets('dokunma dalgası seçili vurgunun üzerine binmez', (tester) async {
+    await _pumpBar(tester);
+    for (final ink in tester.widgetList<InkWell>(
+      find.descendant(
+        of: find.byType(AppNavBar),
+        matching: find.byType(InkWell),
+      ),
+    )) {
+      expect(ink.splashFactory, NoSplash.splashFactory);
+      expect(ink.highlightColor, Colors.transparent);
+    }
+  });
+
+  testWidgets('büyük RTL düzende hızlı seçim son sekmeye tek vurguyla ulaşır', (
+    tester,
+  ) async {
+    var selected = 0;
+    await tester.pumpWidget(
+      wrapWithTheme(
+        MediaQuery(
+          data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: SizedBox(
+              width: 320,
+              child: StatefulBuilder(
+                builder: (context, setState) => AppNavBar(
+                  items: _arabicItems,
+                  selected: selected,
+                  onChanged: (value) => setState(() => selected = value),
+                ),
+              ),
+            ),
+          ),
+        ),
+        locale: const Locale('ar'),
+      ),
+    );
+    await tester.tap(find.text(_arabicItems[2].label));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 70));
+    final pill = find.byKey(const Key('nav_selection'));
+    final during = tester.getCenter(pill);
+    await tester.tap(find.text(_arabicItems[3].label));
+    await tester.pump();
+    expect((tester.getCenter(pill) - during).distance, lessThan(0.5));
+    await tester.pumpAndSettle();
+    expect(pill, findsOneWidget);
+    final label = tester.getRect(find.text(_arabicItems[3].label));
+    expect(tester.getRect(pill).contains(label.center), isTrue);
+    _expectCompleteLabels(tester, _arabicItems);
+  });
+
+  testWidgets('hareket azaltma açıkken navigasyon vurgusu doğrudan seçilir', (
+    tester,
+  ) async {
+    var selected = 0;
+    await tester.pumpWidget(
+      wrapWithTheme(
+        MediaQuery(
+          data: const MediaQueryData(disableAnimations: true),
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: StatefulBuilder(
+              builder: (context, setState) => AppNavBar(
+                items: _items,
+                selected: selected,
+                onChanged: (value) => setState(() => selected = value),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Hatırlatıcılar'));
+    await tester.pump();
+    expect(
+      tester.getCenter(find.byKey(const Key('nav_selection'))).dx,
+      closeTo(tester.getCenter(find.text('Hatırlatıcılar')).dx, 0.5),
+    );
+  });
+
   for (final width in [320.0, 402.0]) {
     testWidgets('$width genişlikte dört isim tek sırada eksiksiz görünür', (
       tester,

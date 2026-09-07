@@ -11,6 +11,7 @@ const double _kDockRadius = 24;
 const double _kItemRadius = 18;
 const double _kItemGap = 4;
 const double _kItemPadding = 6;
+const double _kVerticalPadding = 8;
 const double _kIconSize = 24;
 const double _kLabelGap = 6;
 const double _kMinimumTarget = 48;
@@ -54,16 +55,9 @@ class AppNavBar extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: tokens.surface,
+                color: tokens.trackSurface,
                 borderRadius: BorderRadius.circular(_kDockRadius),
-                border: Border.all(color: tokens.border),
-                boxShadow: [
-                  BoxShadow(
-                    color: tokens.controlShadow,
-                    blurRadius: 16,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
+                border: Border.all(color: tokens.trackBorder),
               ),
               child: LayoutBuilder(
                 builder: (context, constraints) =>
@@ -77,73 +71,136 @@ class AppNavBar extends StatelessWidget {
   }
 
   Widget _buildItems(BuildContext context, double width) {
-    final widths = _minimumWidths(context);
-    final available = width - _kItemGap * (items.length - 1);
-    final minimum = widths.fold<double>(0, (sum, width) => sum + width);
-
-    if (minimum <= available) {
-      final extra = (available - minimum) / items.length;
-      return IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            for (var i = 0; i < items.length; i++) ...[
-              if (i > 0) const SizedBox(width: _kItemGap),
-              SizedBox(width: widths[i] + extra, child: _button(i)),
-            ],
-          ],
-        ),
-      );
-    }
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        for (var row = 0; row < items.length; row += 2) ...[
-          if (row > 0) const SizedBox(height: _kItemGap),
-          IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(child: _button(row, horizontal: true)),
-                const SizedBox(width: _kItemGap),
-                if (row + 1 < items.length)
-                  Expanded(child: _button(row + 1, horizontal: true))
-                else
-                  const Spacer(),
-              ],
+    final layout = _layout(context, width);
+    final selectedRect = layout.slots[selected];
+    final tokens = context.tokens;
+    return SizedBox(
+      height: layout.height,
+      child: Stack(
+        children: [
+          AnimatedPositionedDirectional(
+            duration: MediaQuery.disableAnimationsOf(context)
+                ? Duration.zero
+                : _kNavAnimation,
+            curve: Curves.easeOutCubic,
+            start: selectedRect.left,
+            top: selectedRect.top,
+            width: selectedRect.width,
+            height: selectedRect.height,
+            child: DecoratedBox(
+              key: const Key('nav_selection'),
+              decoration: BoxDecoration(
+                color: tokens.selectedControl,
+                borderRadius: BorderRadius.circular(_kItemRadius),
+                border: Border.all(
+                  color: tokens.accent.withValues(alpha: 0.30),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: tokens.controlShadow,
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
             ),
           ),
+          for (var i = 0; i < items.length; i++)
+            PositionedDirectional(
+              start: layout.slots[i].left,
+              top: layout.slots[i].top,
+              width: layout.slots[i].width,
+              height: layout.slots[i].height,
+              child: _button(i, horizontal: layout.horizontal),
+            ),
         ],
-      ],
+      ),
     );
   }
 
-  List<double> _minimumWidths(BuildContext context) {
+  ({List<Rect> slots, bool horizontal, double height}) _layout(
+    BuildContext context,
+    double width,
+  ) {
     // En kalın etiketi ölç: seçim değiştiğinde hedefler yer değiştirmesin.
     final style = _labelStyle(context, selected: true);
     final painter = TextPainter(
       textDirection: Directionality.of(context),
       textScaler: MediaQuery.textScalerOf(context),
       locale: Localizations.localeOf(context),
-      maxLines: 1,
     );
+    Size measure(String label, {double maxWidth = double.infinity}) {
+      painter.text = TextSpan(text: label, style: style);
+      painter.layout(maxWidth: maxWidth);
+      return painter.size;
+    }
+
     try {
-      return [
-        for (final item in items) _measureItem(painter, item.label, style),
+      final labels = [for (final item in items) measure(item.label)];
+      final widths = [
+        for (final label in labels)
+          math.max(
+            _kMinimumTarget,
+            label.width.ceilToDouble() + _kItemPadding * 2,
+          ),
       ];
+      final available = width - _kItemGap * (items.length - 1);
+      final minimum = widths.fold<double>(
+        0,
+        (sum, itemWidth) => sum + itemWidth,
+      );
+      final slots = <Rect>[];
+      if (minimum <= available) {
+        final extra = (available - minimum) / items.length;
+        final labelHeight = labels
+            .map((label) => label.height)
+            .reduce(math.max)
+            .ceilToDouble();
+        final height =
+            _kIconSize + _kLabelGap + labelHeight + _kVerticalPadding * 2;
+        var start = 0.0;
+        for (final itemWidth in widths) {
+          slots.add(Rect.fromLTWH(start, 0, itemWidth + extra, height));
+          start += itemWidth + extra + _kItemGap;
+        }
+        return (slots: slots, horizontal: false, height: height);
+      }
+
+      final slotWidth = (width - _kItemGap) / 2;
+      final labelWidth = math.max(
+        1.0,
+        slotWidth - _kItemPadding * 2 - _kIconSize - _kLabelGap,
+      );
+      var top = 0.0;
+      for (var row = 0; row < items.length; row += 2) {
+        var contentHeight = _kIconSize;
+        final end = math.min(row + 2, items.length);
+        for (var i = row; i < end; i++) {
+          contentHeight = math.max(
+            contentHeight,
+            measure(items[i].label, maxWidth: labelWidth).height.ceilToDouble(),
+          );
+        }
+        final height = math.max(
+          _kMinimumTarget,
+          contentHeight + _kVerticalPadding * 2,
+        );
+        for (var i = row; i < end; i++) {
+          slots.add(
+            Rect.fromLTWH(
+              (i - row) * (slotWidth + _kItemGap),
+              top,
+              slotWidth,
+              height,
+            ),
+          );
+        }
+        top += height + _kItemGap;
+      }
+      return (slots: slots, horizontal: true, height: top - _kItemGap);
     } finally {
       painter.dispose();
     }
-  }
-
-  double _measureItem(TextPainter painter, String label, TextStyle style) {
-    painter.text = TextSpan(text: label, style: style);
-    painter.layout();
-    return math.max(
-      _kMinimumTarget,
-      painter.width.ceilToDouble() + _kItemPadding * 2,
-    );
   }
 
   Widget _button(int index, {bool horizontal = false}) => _NavButton(
@@ -188,26 +245,22 @@ class _NavButton extends StatelessWidget {
       label: item.label,
       onTap: onTap,
       child: ExcludeSemantics(
-        child: AnimatedContainer(
-          duration: _kNavAnimation,
-          curve: Curves.easeOutCubic,
+        child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: _kMinimumTarget),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? tokens.accent.withValues(alpha: 0.14)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(_kItemRadius),
-          ),
           child: Material(
             type: MaterialType.transparency,
             borderRadius: BorderRadius.circular(_kItemRadius),
             clipBehavior: Clip.antiAlias,
             child: InkWell(
               onTap: onTap,
+              splashFactory: NoSplash.splashFactory,
+              highlightColor: Colors.transparent,
+              hoverColor: Colors.transparent,
+              focusColor: tokens.accent.withValues(alpha: 0.10),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: _kItemPadding,
-                  vertical: 8,
+                  vertical: _kVerticalPadding,
                 ),
                 child: horizontal
                     ? Row(
