@@ -45,7 +45,7 @@ const Color _kerahatSurfaceLight = Color(0xFFF9E9EC);
 const Color _kerahatTextLight = Color(0xFF8D243B);
 const Color _kerahatLineDark = Color(0xFFA14158);
 const Color _kerahatSurfaceDark = Color(0xFF3C1F2A);
-const Color _kerahatTextDark = Color(0xFFED9AAA);
+const Color _kerahatTextDark = Color(0xFFFF9292);
 
 /// Açık temada mürekkep = paletin Metin1 rengi. [ink] bu yüzden ayrı bir
 /// parametre değil, [textPrimary]'den türetilir.

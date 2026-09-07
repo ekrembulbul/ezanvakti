@@ -1595,6 +1595,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kerahatActiveTitle => 'Disliked time';
 
   @override
+  String kerahatEndsAt(String time) {
+    return 'Ends around $time';
+  }
+
+  @override
   String get kerahatAfterSunrise => 'After sunrise';
 
   @override

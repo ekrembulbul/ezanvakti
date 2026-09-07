@@ -28,8 +28,8 @@ Duration delayToNextSecond(DateTime now) {
 
 /// Ana ekranın ortalanmış geri sayım bloğu.
 ///
-/// Eski üç kutulu tasarımın yerini alır: tek satır `SS:DD:SS`, üstünde
-/// `SONRAKİ · VAKİT` etiketi, altında vaktin saati.
+/// Aktif kerahatte başlık, bitiş saati ve kırmızı yüzeyle vurgulanır.
+/// Büyük sayaç, `SONRAKİ · VAKİT` etiketinin gösterdiği ezana sayar.
 class CountdownHero extends StatefulWidget {
   final DateTime nextPrayerTime;
   final String nextPrayerName;
@@ -91,15 +91,93 @@ class _CountdownHeroState extends State<CountdownHero> {
         '${two(left.inSeconds.remainder(60))}';
   }
 
+  KerahatInterval? _activeKerahat(DateTime now) {
+    for (final interval in widget.kerahatIntervals) {
+      if (interval.contains(now)) return interval;
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
-    final time = context.formatTime(widget.nextPrayerTime);
     final now = _now();
-    final isKerahat = widget.kerahatIntervals.any(
-      (interval) => interval.contains(now),
+    final active = _activeKerahat(now);
+    final countdown = _countdown(
+      context,
+      now: now,
+      color: active == null ? tokens.accent : tokens.kerahatText,
     );
+    if (active == null) return countdown;
 
+    return Container(
+      key: const Key('kerahat_active_hero'),
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+      decoration: BoxDecoration(
+        color: tokens.kerahatSurface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: tokens.kerahatLine),
+        boxShadow: [
+          BoxShadow(
+            color: tokens.kerahatLine.withValues(alpha: 0.12),
+            blurRadius: 24,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Semantics(
+            liveRegion: true,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      size: 24,
+                      color: tokens.kerahatText,
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        context.l10n.kerahatActiveTitle,
+                        textAlign: TextAlign.center,
+                        style: AppTypography.reminderPrimary.copyWith(
+                          color: tokens.kerahatText,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  context.l10n.kerahatEndsAt(context.formatTime(active.end)),
+                  textAlign: TextAlign.center,
+                  style: AppTypography.rowSubtitle.copyWith(
+                    color: tokens.kerahatText,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 18),
+          countdown,
+        ],
+      ),
+    );
+  }
+
+  Widget _countdown(
+    BuildContext context, {
+    required DateTime now,
+    required Color color,
+  }) {
+    final tokens = context.tokens;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -118,7 +196,7 @@ class _CountdownHeroState extends State<CountdownHero> {
             Text(
               widget.nextPrayerName.replaceAll('i', 'İ').toUpperCase(),
               textAlign: TextAlign.center,
-              style: AppTypography.counterLabel.copyWith(color: tokens.accent),
+              style: AppTypography.counterLabel.copyWith(color: color),
             ),
           ],
         ),
@@ -128,48 +206,19 @@ class _CountdownHeroState extends State<CountdownHero> {
           child: Text(
             _remaining(now),
             key: const Key('countdown_value'),
-            style: AppTypography.counter.copyWith(color: tokens.accent),
+            style: AppTypography.counter.copyWith(color: color),
           ),
         ),
         const SizedBox(height: 10),
-        Wrap(
-          alignment: WrapAlignment.center,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 12,
-          runSpacing: 6,
-          children: [
-            Text(
-              context.l10n.adhanAt(widget.nextPrayerName, time),
-              textAlign: TextAlign.center,
-              style: AppTypography.heroSubtitle.copyWith(
-                color: tokens.textSecondary,
-              ),
-            ),
-            if (isKerahat)
-              Semantics(
-                liveRegion: true,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.info_outline_rounded,
-                      size: 16,
-                      color: tokens.kerahatText,
-                    ),
-                    const SizedBox(width: 5),
-                    Flexible(
-                      child: Text(
-                        context.l10n.kerahatActiveTitle,
-                        textAlign: TextAlign.center,
-                        style: AppTypography.heroSubtitle.copyWith(
-                          color: tokens.kerahatText,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-          ],
+        Text(
+          context.l10n.adhanAt(
+            widget.nextPrayerName,
+            context.formatTime(widget.nextPrayerTime),
+          ),
+          textAlign: TextAlign.center,
+          style: AppTypography.heroSubtitle.copyWith(
+            color: tokens.textSecondary,
+          ),
         ),
       ],
     );

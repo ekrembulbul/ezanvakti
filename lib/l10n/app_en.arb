@@ -465,6 +465,7 @@
   "durationAgo": "{duration} ago",
   "notificationDurationLeft": "{duration} until {name}",
   "kerahatActiveTitle": "Disliked time",
+  "kerahatEndsAt": "Ends around {time}",
   "kerahatAfterSunrise": "After sunrise",
   "kerahatBeforeDhuhr": "Before Dhuhr",
   "kerahatBeforeMaghrib": "Before sunset",

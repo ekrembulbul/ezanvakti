@@ -465,6 +465,7 @@
   "durationAgo": "منذ {duration}",
   "notificationDurationLeft": "متبقي {duration} على {name}",
   "kerahatActiveTitle": "وقت الكراهة",
+  "kerahatEndsAt": "ينتهي تقريبًا عند {time}",
   "kerahatAfterSunrise": "بعد الشروق",
   "kerahatBeforeDhuhr": "قبل الظهر",
   "kerahatBeforeMaghrib": "قبل الغروب",

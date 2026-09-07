@@ -168,7 +168,7 @@ void main() {
         expect(light.kerahatText, const Color(0xFF8D243B));
         expect(dark.kerahatLine, const Color(0xFFA14158));
         expect(dark.kerahatSurface, const Color(0xFF3C1F2A));
-        expect(dark.kerahatText, const Color(0xFFED9AAA));
+        expect(dark.kerahatText, const Color(0xFFFF9292));
       }
     });
 

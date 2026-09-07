@@ -2890,6 +2890,12 @@ abstract class AppLocalizations {
   /// **'Kerahat vakti'**
   String get kerahatActiveTitle;
 
+  /// Aktif kerahat aralığının yaklaşık bitiş saati; ana geri sayım ezana kalan süreyi göstermeye devam eder.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yaklaşık bitiş: {time}'**
+  String kerahatEndsAt(String time);
+
   /// Güneş doğduktan sonraki kerahat aralığı.
   ///
   /// In tr, this message translates to:

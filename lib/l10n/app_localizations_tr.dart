@@ -1593,6 +1593,11 @@ class AppLocalizationsTr extends AppLocalizations {
   String get kerahatActiveTitle => 'Kerahat vakti';
 
   @override
+  String kerahatEndsAt(String time) {
+    return 'Yaklaşık bitiş: $time';
+  }
+
+  @override
   String get kerahatAfterSunrise => 'Güneş sonrası';
 
   @override

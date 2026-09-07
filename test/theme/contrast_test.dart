@@ -93,6 +93,14 @@ void main() {
           reason: '$label accent orani ${ratio.toStringAsFixed(2)}:1',
         );
       });
+      test('$label kerahat alanında başlık ve alt bilgi okunabilir', () {
+        for (final color in [tokens.kerahatText, tokens.textSecondary]) {
+          expect(
+            _contrastRatio(color, tokens.kerahatSurface),
+            greaterThanOrEqualTo(_minTextRatio),
+          );
+        }
+      });
     }
   }
 
