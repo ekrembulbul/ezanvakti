@@ -18,9 +18,13 @@ class AlarmReceiver : BroadcastReceiver() {
         }
         Log.i("EzanAlarm", "event=received id=" + args.id + " expected_ms=" + args.timeMillis +
             " received_ms=" + receivedAt + " lateness_ms=" + (receivedAt - args.timeMillis))
+        AlarmJournal(context).record("received", args)
         // Tek seferlik tetiklendi; planlanan id listesinden çıkar (tekrar planlama
         // Flutter tarafında / snooze ile yapılır).
-        AlarmScheduling.removeId(context, args.id)
+        try { AlarmScheduling.removeId(context, args.id) }
+        catch (error: Exception) {
+            AlarmJournal(context).record("delivery_cleanup", args, result = "failed", error = error)
+        }
         try {
             AlarmRepeats.next(args, receivedAt)?.let { AlarmScheduling.schedule(context, it) }
         } catch (error: Exception) {

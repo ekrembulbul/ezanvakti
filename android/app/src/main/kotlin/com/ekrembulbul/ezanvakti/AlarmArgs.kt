@@ -30,12 +30,18 @@ data class AlarmArgs(
     val repeatWeekdays: List<Int> = emptyList(),
     val repeatHour: Int? = null,
     val repeatMinute: Int? = null,
+    val templateWeekdays: List<Int>? = null,
 ) {
     val opensApp get() = missionEnabled || snoozeEnabled
     val isWatchdog get() = originalFireAtMillis != null
-    val isValid get() = id.isNotBlank() && alarmId.isNotBlank() && timeMillis > 0 &&
-        snoozeMinutes > 0 && graceSeconds > 0 && maxRearms > 0 && chainDurationMillis > 0 &&
-        (!missionEnabled || missionTimeoutSeconds > 0) && repeatWeekdays.all { it in 1..7 } &&
+    val isValid get() = id.isNotBlank() && id.length <= 256 && alarmId.isNotBlank() && alarmId.length <= 256 &&
+        timeMillis in 1..8_640_000_000_000_000L &&
+        snoozeMinutes in 1..1440 && graceSeconds in 1..3600 && maxRearms in 1..1000 &&
+        chainDurationMillis in 1..(7 * 86_400_000L) &&
+        (maxSnoozes == null || maxSnoozes in 0..1000) &&
+        (originalFireAtMillis == null || originalFireAtMillis in 1..timeMillis) &&
+        (!missionEnabled || missionTimeoutSeconds in 1..3600) && repeatWeekdays.all { it in 1..7 } &&
+        (templateWeekdays?.all { it in 1..7 } ?: true) &&
         (repeatHour == null || repeatHour in 0..23) && (repeatMinute == null || repeatMinute in 0..59)
 
     fun writeTo(intent: Intent) {
@@ -64,6 +70,7 @@ data class AlarmArgs(
         put("repeatWeekdays", JSONArray(repeatWeekdays))
         put("repeatHour", repeatHour ?: JSONObject.NULL)
         put("repeatMinute", repeatMinute ?: JSONObject.NULL)
+        put("templateWeekdays", templateWeekdays?.let { JSONArray(it) } ?: JSONObject.NULL)
     }.toString()
 
     companion object {
@@ -93,6 +100,7 @@ data class AlarmArgs(
                     ?.map { (it as Number).toInt() } ?: emptyList(),
                 repeatHour = (chain["repeatHour"] as? Number)?.toInt(),
                 repeatMinute = (chain["repeatMinute"] as? Number)?.toInt(),
+                templateWeekdays = (chain["templateWeekdays"] as? List<*>)?.map { (it as Number).toInt() },
             ).also { require(it.isValid) { "Invalid alarm arguments" } }
         }
 
@@ -137,6 +145,9 @@ data class AlarmArgs(
                 } ?: emptyList(),
                 repeatHour = if (o.isNull("repeatHour")) null else o.getInt("repeatHour"),
                 repeatMinute = if (o.isNull("repeatMinute")) null else o.getInt("repeatMinute"),
+                templateWeekdays = o.optJSONArray("templateWeekdays")?.let { array ->
+                    (0 until array.length()).map { array.getInt(it) }
+                },
             )
         } catch (error: Exception) {
             Logger.getLogger("EzanAlarm").warning("event=args_decode_failed type=" + error.javaClass.simpleName)

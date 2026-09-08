@@ -129,7 +129,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
     // Uygulama on plandayken alarm durdurulursa hicbir yasam dongusu olayi
     // tetiklenmiyor; native bildirimi dinlemezsek gorev ekrani hic acilmaz.
-    _missionStops = ServiceLocator().get<AlarmService>().missionStops.listen((
+    _missionStops ??= ServiceLocator().get<AlarmService>().missionStops.listen((
       _,
     ) {
       if (mounted) openMissionIfPending(context);
@@ -618,7 +618,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         Consumer<AppState>(
           builder: (context, appState, child) {
             return HomeScreen(
-              missionSession: appState.missionSession,
+              missionSessions: appState.missionSessions,
               ramadanActive: _ramadanActive,
               location: appState.activeLocation!,
               todaysPrayerTime: appState.todaysPrayerTime,

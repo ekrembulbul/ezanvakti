@@ -21,16 +21,17 @@ void main() {
 
   final firedAt = DateTime(2026, 8, 17, 5, 0);
 
-  test('açık ekran yalnız kendi alarmını tüketir, diğer olay kalır', () async {
-    await storage.saveMissionSession(
-      MissionSession(alarmId: 'is', firedAt: firedAt),
-    );
+  test('açık ekran kendi snapshotını seçer, diğer oturum korunur', () async {
+    await service.seedSession(MissionSession(alarmId: 'is', firedAt: firedAt));
     service.pendingEvents = [
       MissionStopEvent(alarmId: 'yedek', stoppedAt: firedAt),
       MissionStopEvent(alarmId: 'is', stoppedAt: firedAt),
     ];
     expect((await coordinator.resume(alarmId: 'is')).session!.alarmId, 'is');
-    expect(service.pendingEvents.single.alarmId, 'yedek');
+    expect(
+      (await service.getMissionSessions()).map((s) => s.alarmId),
+      containsAll(['is', 'yedek']),
+    );
     await coordinator.complete('is');
     expect((await coordinator.resume()).session!.alarmId, 'yedek');
   });
@@ -38,7 +39,7 @@ void main() {
   test(
     'yanlış alarm kimliği erteleme sayacını veya native alarmı değiştirmez',
     () async {
-      await storage.saveMissionSession(
+      await service.seedSession(
         MissionSession(alarmId: 'yedek', firedAt: firedAt),
       );
       const other = Alarm(
@@ -49,24 +50,25 @@ void main() {
       );
       expect(await coordinator.snooze(other), isFalse);
       expect(service.snoozed, isEmpty);
-      expect((await storage.getMissionSession())!.snoozeUsed, 0);
+      expect(((await service.getMissionSessions()).firstOrNull)!.snoozeUsed, 0);
       expect(await coordinator.begin('is', AlarmMission.qr), isNull);
       expect(service.begun, isEmpty);
     },
   );
 
   test('bir alarmı tamamlamak başka alarmın oturumunu silmez', () async {
-    await storage.saveMissionSession(
+    await service.seedSession(
       MissionSession(alarmId: 'yedek', firedAt: firedAt),
     );
     await coordinator.complete('is');
-    expect((await storage.getMissionSession())!.alarmId, 'yedek');
+    expect(
+      ((await service.getMissionSessions()).firstOrNull)!.alarmId,
+      'yedek',
+    );
   });
 
   test('erteleme kapalıysa coordinator native erteleme yapmaz', () async {
-    await storage.saveMissionSession(
-      MissionSession(alarmId: 'is', firedAt: firedAt),
-    );
+    await service.seedSession(MissionSession(alarmId: 'is', firedAt: firedAt));
     const alarm = Alarm(
       id: 'is',
       kind: AlarmKind.fixed,
@@ -97,7 +99,7 @@ void main() {
   });
 
   test('aynı alarmın yeni günü önceki erteleme sayacını taşımaz', () async {
-    await storage.saveMissionSession(
+    await service.seedSession(
       MissionSession(alarmId: 'is', firedAt: firedAt, snoozeUsed: 2),
     );
     final nextDay = firedAt.add(const Duration(days: 1));
@@ -114,20 +116,20 @@ void main() {
     expect(session.snoozeUsed, 0);
   });
 
-  test('resume: kuyruktaki durdurma olayi oturum acar', () async {
+  test('resume: native durdurma snapshotı oturum açar', () async {
     service.pendingEvents = [
       MissionStopEvent(alarmId: 'sahur', stoppedAt: firedAt),
     ];
     final session = (await coordinator.resume()).session;
     expect(session, isNotNull);
     expect(session!.alarmId, 'sahur');
-    expect(await storage.getMissionSession(), isNotNull);
+    expect((await service.getMissionSessions()).firstOrNull, isNotNull);
   });
 
   /// Erteleme sonrasi ikinci durdurma: ara ekranin geri sayimi ve bayatlik
   /// kontrolu son durdurma anina bagli, ilk calisa degil.
   test('resume: yeni durdurma olayi stoppedAt i gunceller', () async {
-    await storage.saveMissionSession(
+    await service.seedSession(
       MissionSession(alarmId: 'sahur', firedAt: firedAt),
     );
     final again = firedAt.add(const Duration(minutes: 5));
@@ -142,7 +144,7 @@ void main() {
   });
 
   test('resume: olay yoksa mevcut oturum korunur', () async {
-    await storage.saveMissionSession(
+    await service.seedSession(
       MissionSession(alarmId: 'sahur', firedAt: firedAt),
     );
     final session = (await coordinator.resume()).session;
@@ -151,7 +153,7 @@ void main() {
 
   /// Zincir tavana carpti (K3): oturum kapanmali, gorev ekrani acilmamali.
   test('resume: chainStopped olayi oturumu kapatir', () async {
-    await storage.saveMissionSession(
+    await service.seedSession(
       MissionSession(alarmId: 'sahur', firedAt: firedAt),
     );
     service.pendingEvents = [
@@ -162,13 +164,13 @@ void main() {
       ),
     ];
     final result = await coordinator.resume();
-    expect(result.chainStoppedAlarmId, 'sahur');
+    expect(result.chainStoppedAlarmId, isNull);
     expect(result.session, isNull);
-    expect(await storage.getMissionSession(), isNull);
+    expect((await service.getMissionSessions()).firstOrNull, isNull);
   });
 
   test('begin native tarafa haber verir', () async {
-    await storage.saveMissionSession(
+    await service.seedSession(
       MissionSession(alarmId: 'sahur', firedAt: firedAt),
     );
     await coordinator.begin('sahur', AlarmMission.math);
@@ -176,7 +178,7 @@ void main() {
   });
 
   test('begin son tarihi bir kez koyar, tekrar acilista degistirmez', () async {
-    await storage.saveMissionSession(
+    await service.seedSession(
       MissionSession(alarmId: 'sahur', firedAt: firedAt),
     );
     final first = await coordinator.begin('sahur', AlarmMission.math);
@@ -187,7 +189,7 @@ void main() {
   });
 
   test('snooze alarmi gercekten erteler ve son tarihi siler', () async {
-    await storage.saveMissionSession(
+    await service.seedSession(
       MissionSession(
         alarmId: 'sahur',
         firedAt: firedAt,
@@ -204,11 +206,14 @@ void main() {
     expect(await coordinator.snooze(alarm), isTrue);
     expect(service.snoozed.single.id, 'sahur');
     expect(service.snoozed.single.minutes, 10);
-    expect((await storage.getMissionSession())!.deadlineAt, isNull);
+    expect(
+      ((await service.getMissionSessions()).firstOrNull)!.deadlineAt,
+      isNull,
+    );
   });
 
   test('Hak bitince erteleme native tarafa hic gitmez', () async {
-    await storage.saveMissionSession(
+    await service.seedSession(
       MissionSession(alarmId: 'sahur', firedAt: firedAt, snoozeUsed: 1),
     );
     const alarm = Alarm(
@@ -222,38 +227,52 @@ void main() {
   });
 
   test('complete oturumu silip native temizler', () async {
-    await storage.saveMissionSession(
+    await service.seedSession(
       MissionSession(alarmId: 'sahur', firedAt: firedAt),
     );
     await coordinator.complete('sahur');
     expect(service.completed, ['sahur']);
-    expect(await storage.getMissionSession(), isNull);
+    expect((await service.getMissionSessions()).firstOrNull, isNull);
   });
 
-  test('snooze limiti asilmadikca sayaci artirir', () async {
-    await storage.saveMissionSession(
-      MissionSession(alarmId: 'sahur', firedAt: firedAt),
-    );
-    const alarm = Alarm(
-      id: 'sahur',
-      kind: AlarmKind.fixed,
-      mission: AlarmMission.math,
-      maxSnoozes: 2,
-    );
-    expect(await coordinator.snooze(alarm), isTrue);
-    expect((await storage.getMissionSession())!.snoozeUsed, 1);
-    expect(await coordinator.snooze(alarm), isTrue);
-    expect(await coordinator.snooze(alarm), isFalse);
-    expect((await storage.getMissionSession())!.snoozeUsed, 2);
-  });
+  test(
+    'snooze tekrarı hak tüketmez, yeni durdurma sonraki hakkı kullanır',
+    () async {
+      await service.seedSession(
+        MissionSession(alarmId: 'sahur', firedAt: firedAt),
+      );
+      const alarm = Alarm(
+        id: 'sahur',
+        kind: AlarmKind.fixed,
+        mission: AlarmMission.math,
+        maxSnoozes: 2,
+      );
+      expect(await coordinator.snooze(alarm), isTrue);
+      expect(((await service.getMissionSessions()).firstOrNull)!.snoozeUsed, 1);
+      expect(await coordinator.snooze(alarm), isTrue);
+      expect((await service.getMissionSessions()).single.snoozeUsed, 1);
+      service.pendingEvents = [
+        MissionStopEvent(alarmId: alarm.id, stoppedAt: DateTime.now()),
+      ];
+      expect(await coordinator.snooze(alarm), isTrue);
+      service.pendingEvents = [
+        MissionStopEvent(
+          alarmId: alarm.id,
+          stoppedAt: DateTime.now().add(const Duration(minutes: 10)),
+        ),
+      ];
+      expect(await coordinator.snooze(alarm), isFalse);
+      expect(((await service.getMissionSessions()).firstOrNull)!.snoozeUsed, 2);
+    },
+  );
 
   test('abort kademeyi yukseltir ve zinciri temizler', () async {
-    await storage.saveMissionSession(
+    await service.seedSession(
       MissionSession(alarmId: 'sahur', firedAt: firedAt),
     );
     await coordinator.abort('sahur', firedAt);
     expect(service.aborted, ['sahur']);
-    expect(await storage.getMissionSession(), isNull);
+    expect((await service.getMissionSessions()).firstOrNull, isNull);
     final state = await storage.getAbortState();
     expect(state.level, 1);
     expect(state.lastUsedAt, firedAt);

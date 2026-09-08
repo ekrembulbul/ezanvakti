@@ -40,14 +40,14 @@ class UpcomingCard extends StatelessWidget {
   final Set<SkippedOccurrence> skips;
 
   /// Bekleyen görev oturumu; ertelenmiş alarmı buradan okuyoruz.
-  final MissionSession? missionSession;
+  final List<MissionSession> missionSessions;
 
   /// Anahtar değişince çağrılır. `skipped` true ise atlanacak.
   final void Function(SkippedOccurrence occurrence, bool skipped)?
   onSkipChanged;
 
   const UpcomingCard({
-    this.missionSession,
+    this.missionSessions = const [],
     super.key,
     required this.now,
     required this.onSeeAll,
@@ -157,6 +157,10 @@ class UpcomingCard extends StatelessWidget {
   Widget _alarmRow(BuildContext context) {
     final tokens = context.tokens;
     final item = alarm!;
+    final missionSession = MissionSession.pendingForAlarm(
+      missionSessions,
+      item.alarm.id,
+    );
     final label = alarmTimeLabel(
       item.alarm,
       l10n: context.l10n,
@@ -167,13 +171,15 @@ class UpcomingCard extends StatelessWidget {
     final occurrence = SkippedOccurrence(
       kind: SkipKind.alarm,
       reference: item.alarm.id,
-      fireAt: item.time,
+      fireAt: missionSession?.snoozedUntil?.isAfter(now) == true
+          ? missionSession!.firedAt
+          : item.time,
     );
     final skipped = isSkipped(
       skips,
       kind: SkipKind.alarm,
       reference: item.alarm.id,
-      fireAt: item.time,
+      fireAt: occurrence.fireAt,
     );
 
     final snoozedUntil = SnoozeNotice.snoozedUntilFor(

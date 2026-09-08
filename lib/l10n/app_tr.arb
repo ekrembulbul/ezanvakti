@@ -2206,5 +2206,7 @@
   "kerahatExceptions": "Hükümler namaz türüne ve mezhebe göre değişebilir. Güneş batarken o günün İkindi farzı kılınabilir.",
   "@kerahatExceptions": {"description": "Kerahat hükümlerindeki temel fark ve İkindi istisnası."},
   "kerahatSourceName": "Kaynak: Diyanet Din İşleri Yüksek Kurulu",
-  "@kerahatSourceName": {"description": "Kerahat açıklamasının kaynak adı."}
+  "@kerahatSourceName": {"description": "Kerahat açıklamasının kaynak adı."},
+  "alarmChangeFailed": "Alarm değişikliği tamamlanamadı. Yeniden dene.",
+  "alarmCancellationPending": "Cihazdaki alarm kaydı kaldırılamadı"
 }

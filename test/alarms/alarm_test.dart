@@ -1,3 +1,4 @@
+import 'fakes/fake_alarm_service.dart';
 import 'package:ezanvakti/core/models/alarm_mission.dart';
 import 'package:ezanvakti/core/models/fasting_log.dart';
 import 'package:ezanvakti/core/models/prayer_log.dart';
@@ -10,7 +11,6 @@ import 'package:ezanvakti/core/models/skipped_occurrence.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart'
     show PrayerType;
 import 'package:ezanvakti/core/models/prayer_time.dart';
-import 'package:ezanvakti/core/interfaces/alarm_service.dart';
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
 import 'package:ezanvakti/features/alarms/domain/alarm_scheduler.dart';
 
@@ -160,7 +160,7 @@ void main() {
   });
 
   group('AlarmScheduler.scheduleAlarms', () {
-    test('cancels all then schedules only active alarms', () async {
+    test('reconciles only active alarms without bulk cancellation', () async {
       final storage = _FakeStorage([
         const Alarm(id: 'on', kind: AlarmKind.fixed, hour: 23, isActive: true),
         const Alarm(
@@ -175,20 +175,28 @@ void main() {
 
       await scheduler.scheduleAlarms(prayerTimes: const []);
 
-      expect(service.cancelAllCount, equals(1));
+      expect(service.cancelAllCount, equals(0));
+      expect(service.plans, hasLength(1));
       expect(service.scheduled, equals(['on']));
     });
 
-    test('empty alarms still cancels all (clears stale)', () async {
-      final storage = _FakeStorage([]);
-      final service = _MockAlarmService();
-      final scheduler = AlarmScheduler(alarmService: service, storage: storage);
+    test(
+      'empty alarm list sends empty native plan to retire stale alarms',
+      () async {
+        final storage = _FakeStorage([]);
+        final service = _MockAlarmService();
+        final scheduler = AlarmScheduler(
+          alarmService: service,
+          storage: storage,
+        );
 
-      await scheduler.scheduleAlarms(prayerTimes: const []);
+        await scheduler.scheduleAlarms(prayerTimes: const []);
 
-      expect(service.cancelAllCount, equals(1));
-      expect(service.scheduled, isEmpty);
-    });
+        expect(service.cancelAllCount, equals(0));
+        expect(service.plans, hasLength(1));
+        expect(service.scheduled, isEmpty);
+      },
+    );
   });
 
   group('AlarmScheduler.computeNextFire — atlama', () {
@@ -360,10 +368,7 @@ class _FakeStorage implements LocalStorage {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-class _MockAlarmService implements AlarmService {
-  int cancelAllCount = 0;
-  final List<String> scheduled = [];
-
+class _MockAlarmService extends FakeAlarmService {
   @override
   Future<void> cancelAllAlarms() async => cancelAllCount++;
 
@@ -397,14 +402,18 @@ class _MockAlarmService implements AlarmService {
   }) async => const [];
 
   @override
-  Future<void> beginMission(String alarmId) async {}
+  Future<void> beginMission(String alarmId, {DateTime? firedAt}) async {}
 
   @override
-  Future<void> snoozeMission(String alarmId, int minutes) async {}
+  Future<void> snoozeMission(
+    String alarmId,
+    int minutes, {
+    DateTime? firedAt,
+  }) async {}
 
   @override
-  Future<void> completeMission(String alarmId) async {}
+  Future<void> completeMission(String alarmId, {DateTime? firedAt}) async {}
 
   @override
-  Future<void> abortMission(String alarmId) async {}
+  Future<void> abortMission(String alarmId, {DateTime? firedAt}) async {}
 }

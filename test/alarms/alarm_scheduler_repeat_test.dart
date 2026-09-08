@@ -1,4 +1,4 @@
-import 'package:ezanvakti/core/interfaces/alarm_service.dart';
+import 'fakes/fake_alarm_service.dart';
 import 'package:ezanvakti/core/models/fasting_log.dart';
 import 'package:ezanvakti/core/models/prayer_log.dart';
 import 'package:ezanvakti/core/models/quiet_window.dart';
@@ -15,7 +15,7 @@ import 'package:ezanvakti/features/alarms/domain/alarm_scheduler.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// scheduleAlarm cagrilarini butun argumanlariyla kaydeden servis.
-class _RecordingAlarmService implements AlarmService {
+class _RecordingAlarmService extends FakeAlarmService {
   final List<
     ({
       String id,
@@ -227,10 +227,16 @@ void main() {
           ),
         },
       );
-      expect(service.calls.single.repeatWeekdays, isEmpty);
+      expect(service.calls, hasLength(7));
       expect(
-        service.calls.single.id,
-        'a1#at${service.calls.single.time.millisecondsSinceEpoch}',
+        service.calls.every((call) => call.repeatWeekdays.isEmpty),
+        isTrue,
+      );
+      expect(service.calls.any((call) => call.time == fire), isFalse);
+      expect(service.plans.single.skippedOccurrences, hasLength(1));
+      expect(
+        service.calls.first.id,
+        'a1#at${service.calls.first.time.millisecondsSinceEpoch}',
       );
     },
   );

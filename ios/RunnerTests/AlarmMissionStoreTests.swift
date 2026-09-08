@@ -136,7 +136,11 @@ final class AlarmMissionStoreTests: XCTestCase {
     try store.configure(config)
     _ = try store.stop(scheduleId: config.scheduleId, nowMillis: fire + 1000)
     XCTAssertNotNil(try store.begin(alarmId: "is", nowMillis: fire + 2000))
-    let stopped = try XCTUnwrap(store.stop(scheduleId: config.scheduleId, nowMillis: fire + 3000))
+    let watchdog = config.chainConfiguration(
+      scheduleId: config.scheduleId + "#w1", fireAtMillis: fire + 3000,
+      originalFireAtMillis: fire)
+    try store.configure(watchdog)
+    let stopped = try XCTUnwrap(store.stop(scheduleId: watchdog.scheduleId, nowMillis: fire + 3000))
     XCTAssertTrue(stopped.event.chainStopped)
   }
 
@@ -161,5 +165,69 @@ final class AlarmMissionStoreTests: XCTestCase {
     XCTAssertNotNil(try store.stop(scheduleId: recent.scheduleId, nowMillis: fire + 2000))
     XCTAssertNil(store.configurations[future.scheduleId])
     XCTAssertNil(store.configurations[old.scheduleId])
+  }
+
+  func testBeginAfterExpiredSnoozeUsesTheNewMissionDeadline() throws {
+    let config = configuration("work")
+    try store.configure(config)
+    _ = try store.stop(scheduleId: config.scheduleId, nowMillis: fire + 1000)
+    _ = try store.snooze(alarmId: "work", minutes: 5, nowMillis: fire + 2000)
+    let now = fire + 1_800_000
+    let session = try XCTUnwrap(store.begin(alarmId: "work", nowMillis: now))
+    let next = try XCTUnwrap(session.snoozedUntilMillis ?? session.deadlineMillis)
+    XCTAssertGreaterThan(next, now)
+    XCTAssertNil(session.snoozedUntilMillis)
+  }
+
+  func testRefreshRetainsRecentFallbackUntilItsStopIntentArrives() throws {
+    let config = configuration("work")
+    var fallback = config.chainConfiguration(
+      scheduleId: config.scheduleId + "#ladder0", fireAtMillis: fire + 300_000,
+      originalFireAtMillis: fire)
+    fallback.isFallback = true
+    try store.configure(config)
+    try store.configure(fallback)
+    try store.retireConfigurations(keeping: [], nowMillis: fire + 301_000)
+    XCTAssertNotNil(try store.stop(scheduleId: fallback.scheduleId, nowMillis: fire + 302_000))
+  }
+
+  func testDuplicateStopDoesNotConsumeAnotherRearmOrClearSnooze() throws {
+    let config = configuration("work")
+    try store.configure(config)
+    _ = try store.stop(scheduleId: config.scheduleId, nowMillis: fire + 1000)
+    _ = try store.snooze(alarmId: "work", minutes: 5, nowMillis: fire + 2000)
+    XCTAssertNil(try store.stop(scheduleId: config.scheduleId, nowMillis: fire + 3000))
+    XCTAssertEqual(store.session(alarmId: "work")?.rearmCount, 1)
+    XCTAssertNotNil(store.session(alarmId: "work")?.snoozedUntilMillis)
+  }
+
+  func testDisabledRootRejectsLateIntentAndRetainsOtherSession() throws {
+    for id in ["work", "sunrise"] {
+      let config = configuration(id)
+      try store.configure(config)
+      _ = try store.stop(scheduleId: config.scheduleId, nowMillis: fire + 1000)
+    }
+    try store.disableAlarm("work")
+    XCTAssertNil(try store.stop(scheduleId: configuration("work").scheduleId, nowMillis: fire + 2000))
+    XCTAssertEqual(store.pendingSessions.map { $0.configuration.alarmId }, ["sunrise"])
+  }
+
+  func testSnapshotCanBeReadAgainWithoutConsumingSnoozedSessions() throws {
+    for id in ["work", "sunrise"] {
+      let config = configuration(id)
+      try store.configure(config)
+      _ = try store.stop(scheduleId: config.scheduleId, nowMillis: fire + 1000)
+      _ = try store.snooze(alarmId: id, minutes: 5, nowMillis: fire + 2000)
+    }
+    XCTAssertEqual(store.pendingSessions.count, 2)
+    XCTAssertEqual(store.pendingSessions.count, 2)
+    XCTAssertTrue(store.pendingSessions.allSatisfy { $0.snoozedUntilMillis == fire + 302_000 })
+  }
+
+  func testMalformedPersistedStateIsNotOverwrittenByMutation() throws {
+    let corrupted = Data("broken".utf8)
+    defaults.set(corrupted, forKey: "ezanvakti_alarm_missions_v2")
+    XCTAssertThrowsError(try store.configure(configuration("work")))
+    XCTAssertEqual(defaults.data(forKey: "ezanvakti_alarm_missions_v2"), corrupted)
   }
 }

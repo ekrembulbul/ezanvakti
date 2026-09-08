@@ -20,6 +20,7 @@ class AppLogger {
   AppLogger._internal() {
     _logger = Logger(
       level: kReleaseMode ? Level.warning : Level.debug,
+      filter: ProductionFilter(),
       printer: PrettyPrinter(
         methodCount: 0,
         errorMethodCount: 6,

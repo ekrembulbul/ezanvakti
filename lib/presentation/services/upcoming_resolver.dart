@@ -1,4 +1,5 @@
 import '../../core/models/alarm.dart';
+import '../../core/models/mission_session.dart';
 import '../../core/models/derived_time.dart';
 import '../../core/models/notification_setting.dart';
 import '../../core/models/prayer_time.dart';
@@ -134,6 +135,7 @@ UpcomingAlarm? resolveNextAlarm({
   required List<Alarm> alarms,
   required List<PrayerTime> prayerTimes,
   required DateTime now,
+  List<MissionSession> missionSessions = const [],
 }) {
   final byDate = <DateTime, PrayerTime>{
     for (final day in prayerTimes)
@@ -145,11 +147,17 @@ UpcomingAlarm? resolveNextAlarm({
   for (final alarm in alarms) {
     if (!alarm.isActive) continue;
 
-    final fire = AlarmScheduler.computeNextFire(
-      alarm: alarm,
-      now: now,
-      prayerTimesByDate: byDate,
-    );
+    final snoozedUntil = MissionSession.pendingForAlarm(
+      missionSessions,
+      alarm.id,
+    )?.snoozedUntil;
+    final fire = snoozedUntil?.isAfter(now) == true
+        ? snoozedUntil
+        : AlarmScheduler.computeNextFire(
+            alarm: alarm,
+            now: now,
+            prayerTimesByDate: byDate,
+          );
     if (fire == null) continue;
 
     if (earliest == null || fire.isBefore(earliest.time)) {

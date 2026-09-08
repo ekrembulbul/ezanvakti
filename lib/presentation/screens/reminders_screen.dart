@@ -15,6 +15,7 @@ import '../../core/interfaces/local_storage.dart';
 import '../../core/interfaces/alarm_service.dart';
 import '../../core/interfaces/notification_service.dart';
 import '../../core/models/alarm.dart';
+import '../../core/models/mission_session.dart';
 import '../../core/models/notification_setting.dart';
 import '../../core/providers/app_state.dart';
 import '../../core/services/exact_alarm_service.dart';
@@ -333,6 +334,7 @@ class _RemindersScreenState extends State<RemindersScreen>
 
   /// Son planlamada kurulamayan alarmlar; satır uyarısı için.
   Map<String, String> _scheduleFailures = {};
+  int _alarmListRevision = 0;
 
   Future<void> _refreshScheduleFailures() async {
     try {
@@ -350,8 +352,73 @@ class _RemindersScreenState extends State<RemindersScreen>
   }
 
   Future<void> _syncAlarms(AppState appState) async {
-    appState.setAlarms(await _alarmsManager.getAlarms());
-    _queueReschedule(appState);
+    try {
+      await _alarmsManager.scheduler.scheduleAlarms(
+        prayerTimes: appState.prayerTimes,
+        skips: appState.skips,
+      );
+    } catch (error) {
+      AppLogger().warning('Alarm reconciliation failed', error.runtimeType);
+      if (mounted) {
+        _snack(
+          context.l10n.alarmChangeFailed,
+          isError: true,
+          action: SnackBarAction(
+            label: context.l10n.actionRetry,
+            onPressed: () => unawaited(_syncAlarms(appState)),
+          ),
+        );
+      }
+    }
+    await _reloadAlarms(appState);
+  }
+
+  Future<void> _reloadAlarms(AppState appState) async {
+    try {
+      appState.setAlarms(await _alarmsManager.getAlarms());
+    } catch (error) {
+      AppLogger().warning(
+        'Alarm rows could not be refreshed',
+        error.runtimeType,
+      );
+    }
+    try {
+      appState.setMissionSessions(await _alarmService.getMissionSessions());
+    } catch (error) {
+      AppLogger().warning(
+        'Mission state could not be refreshed',
+        error.runtimeType,
+      );
+    }
+    await _refreshScheduleFailures();
+  }
+
+  Future<bool> _changeAlarm(
+    AppState appState,
+    Future<void> Function() change,
+    Future<void> Function() retry,
+  ) async {
+    try {
+      await change();
+    } catch (error) {
+      AppLogger().warning('Alarm change did not finish', error.runtimeType);
+      await _reloadAlarms(appState);
+      if (mounted) {
+        // Recreate a swiped row if persistence failed before it was removed.
+        setState(() => _alarmListRevision++);
+        _snack(
+          context.l10n.alarmChangeFailed,
+          isError: true,
+          action: SnackBarAction(
+            label: context.l10n.actionRetry,
+            onPressed: () => unawaited(retry()),
+          ),
+        );
+      }
+      return false;
+    }
+    await _syncAlarms(appState);
+    return true;
   }
 
   // --- Bildirim mutasyonları ---
@@ -557,8 +624,15 @@ class _RemindersScreenState extends State<RemindersScreen>
     if (result == null) return;
 
     await _ensureAlarmPermission();
-    await _alarmsManager.save(result);
-    await _syncAlarms(appState);
+    await _saveAlarm(appState, result);
+  }
+
+  Future<void> _saveAlarm(AppState appState, Alarm alarm) async {
+    await _changeAlarm(
+      appState,
+      () => _alarmsManager.save(alarm),
+      () => _saveAlarm(appState, alarm),
+    );
   }
 
   Future<void> _duplicateAlarm(Alarm source) => _addOrEditAlarm(
@@ -579,11 +653,17 @@ class _RemindersScreenState extends State<RemindersScreen>
     final referenceTime = now ?? DateTime.now();
     final result = <String, DateTime>{};
     for (final alarm in appState.alarms) {
-      final fire = AlarmScheduler.computeNextFire(
-        alarm: alarm,
-        now: referenceTime,
-        prayerTimesByDate: byDate,
-      );
+      final snoozed = MissionSession.pendingForAlarm(
+        appState.missionSessions,
+        alarm.id,
+      )?.snoozedUntil;
+      final fire = snoozed?.isAfter(referenceTime) == true
+          ? snoozed
+          : AlarmScheduler.computeNextFire(
+              alarm: alarm,
+              now: referenceTime,
+              prayerTimesByDate: byDate,
+            );
       if (fire != null) result[alarm.id] = fire;
     }
     return result;
@@ -613,10 +693,20 @@ class _RemindersScreenState extends State<RemindersScreen>
     final appState = context.read<AppState>();
     // Sıradaki çalış kapatmadan **önce** hesaplanmalı: kapalı alarm
     // planlamada yer almıyor.
-    final fireAt = isActive ? null : _nextFireByAlarm(appState)[alarm.id];
+    final fireAt = isActive
+        ? null
+        : MissionSession.pendingForAlarm(
+                appState.missionSessions,
+                alarm.id,
+              )?.firedAt ??
+              _nextFireByAlarm(appState)[alarm.id];
 
-    await _alarmsManager.setActive(alarm, isActive);
-    await _syncAlarms(appState);
+    final changed = await _changeAlarm(
+      appState,
+      () => _alarmsManager.setActive(alarm, isActive),
+      () => _toggleAlarm(alarm, isActive),
+    );
+    if (!changed) return;
     if (isActive) return;
 
     _snack(
@@ -634,15 +724,18 @@ class _RemindersScreenState extends State<RemindersScreen>
   /// Kapatılan alarmı geri açar ve yalnızca sıradaki çalışı atlar.
   Future<void> _skipOnceAlarm(Alarm alarm, DateTime fireAt) async {
     final appState = context.read<AppState>();
-    await _alarmsManager.setActive(alarm, true);
-    await _syncAlarms(appState);
-    await _toggleSkip(
+    final next = await ServiceLocator().get<SkipManager>().skip(
       SkippedOccurrence(
         kind: SkipKind.alarm,
         reference: alarm.id,
         fireAt: fireAt,
       ),
-      true,
+    );
+    appState.setSkips(next);
+    await _changeAlarm(
+      appState,
+      () => _alarmsManager.setActive(alarm, true),
+      () => _skipOnceAlarm(alarm, fireAt),
     );
   }
 
@@ -654,8 +747,12 @@ class _RemindersScreenState extends State<RemindersScreen>
   Future<void> _deleteAlarm(Alarm alarm) async {
     final l10n = context.l10n;
     final appState = context.read<AppState>();
-    await _alarmsManager.delete(alarm.id);
-    await _syncAlarms(appState);
+    final deleted = await _changeAlarm(
+      appState,
+      () => _alarmsManager.delete(alarm.id),
+      () => _deleteAlarm(alarm),
+    );
+    if (!deleted) return;
     _snack(
       l10n.alarmDeleted(alarmTimeLabel(alarm, l10n: l10n)),
       action: SnackBarAction(
@@ -668,8 +765,7 @@ class _RemindersScreenState extends State<RemindersScreen>
 
   Future<void> _restoreAlarm(Alarm alarm) async {
     final appState = context.read<AppState>();
-    await _alarmsManager.save(alarm);
-    await _syncAlarms(appState);
+    await _saveAlarm(appState, alarm);
   }
 
   // --- Ekleme düğmesi ---
@@ -878,6 +974,7 @@ class _RemindersScreenState extends State<RemindersScreen>
               onDelete: _deleteNotification,
             ),
             AlarmsSection(
+              key: ValueKey(_alarmListRevision),
               now: now,
               isReordering: _isReordering && _tab == ReminderTab.alarms,
               onReorder: (oldIndex, newIndex) => _reorder(
@@ -886,7 +983,7 @@ class _RemindersScreenState extends State<RemindersScreen>
                 oldIndex,
                 newIndex,
               ),
-              missionSession: appState.missionSession,
+              missionSessions: appState.missionSessions,
               onDisableBlocked: _onDisableBlocked,
               scheduleFailures: _scheduleFailures,
               nextFireByAlarm: nextAlarmTimes,

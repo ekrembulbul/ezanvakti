@@ -1,8 +1,8 @@
+import '../alarms/fakes/fake_alarm_service.dart';
 import 'dart:async';
 
 import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/core/models/mission_stop_event.dart';
-import 'package:ezanvakti/core/interfaces/alarm_service.dart';
 import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
@@ -18,9 +18,7 @@ import 'package:logger/logger.dart';
 
 import '../support/fakes.dart';
 
-class _MockAlarmService implements AlarmService {
-  int cancelAllCount = 0;
-
+class _MockAlarmService extends FakeAlarmService {
   @override
   Future<void> cancelAllAlarms() async => cancelAllCount++;
 
@@ -36,16 +34,20 @@ class _MockAlarmService implements AlarmService {
   }) async => const [];
 
   @override
-  Future<void> beginMission(String alarmId) async {}
+  Future<void> beginMission(String alarmId, {DateTime? firedAt}) async {}
 
   @override
-  Future<void> snoozeMission(String alarmId, int minutes) async {}
+  Future<void> snoozeMission(
+    String alarmId,
+    int minutes, {
+    DateTime? firedAt,
+  }) async {}
 
   @override
-  Future<void> completeMission(String alarmId) async {}
+  Future<void> completeMission(String alarmId, {DateTime? firedAt}) async {}
 
   @override
-  Future<void> abortMission(String alarmId) async {}
+  Future<void> abortMission(String alarmId, {DateTime? firedAt}) async {}
 }
 
 class _FailingNotificationService extends FakeNotificationService {
@@ -143,24 +145,28 @@ void main() {
 
     expect(done, isTrue);
     expect(notifications.scheduled, isNotEmpty);
-    expect(alarms.cancelAllCount, 1);
-  });
-
-  test('Vakit verisi yoksa false doner ve hicbir seye dokunmaz', () async {
-    final (rescheduler, notifications, alarms) = await build();
-
-    final done = await rescheduler.reschedule(
-      location: location,
-      prayerTimes: const [],
-      skips: const {},
-    );
-
-    // Gecici bir ag hatasi yuzunden kullanicinin mevcut bildirimleri
-    // silinmemeli; iptal karari cagirana ait.
-    expect(done, isFalse);
-    expect(notifications.cancelAllCount, 0);
+    expect(alarms.plans, hasLength(1));
     expect(alarms.cancelAllCount, 0);
   });
+
+  test(
+    'Vakit verisi yoksa bildirimleri korur ve alarm planını yine uzlaştırır',
+    () async {
+      final (rescheduler, notifications, alarms) = await build();
+
+      final done = await rescheduler.reschedule(
+        location: location,
+        prayerTimes: const [],
+        skips: const {},
+      );
+
+      // Gecici bir ag hatasi yuzunden kullanicinin mevcut bildirimleri
+      // silinmemeli; iptal karari cagirana ait.
+      expect(done, isFalse);
+      expect(notifications.cancelAllCount, 0);
+      expect(alarms.cancelAllCount, 0);
+    },
+  );
 
   test('Konum yoksa false doner', () async {
     final (rescheduler, notifications, _) = await build();
@@ -213,10 +219,14 @@ void main() {
     final expectedScheduleId = 'sunrise#at$expectedFire';
 
     Future<Object?> handleAlarmCall(MethodCall call) async {
-      if (call.method == 'cancelAllAlarms') pendingAlarms.clear();
-      if (call.method == 'scheduleAlarm') {
+      if (call.method == 'reconcileAlarms') {
         final args = call.arguments as Map;
-        pendingAlarms[args['id'] as String] = args['timeMillis'] as int;
+        final records = args['records'] as List;
+        pendingAlarms.clear();
+        for (final record in records.cast<Map>()) {
+          pendingAlarms[record['id'] as String] = record['timeMillis'] as int;
+        }
+        return <String, String>{};
       }
       return null;
     }
@@ -306,7 +316,7 @@ void main() {
       final rescheduler = await buildNative(notifications);
       final releaseAlarm = Completer<void>();
       messenger.setMockMethodCallHandler(channel, (call) async {
-        if (call.method == 'scheduleAlarm') await releaseAlarm.future;
+        if (call.method == 'reconcileAlarms') await releaseAlarm.future;
         return handleAlarmCall(call);
       });
       var completed = false;
@@ -355,8 +365,8 @@ void main() {
         _FailingNotificationService(notificationFailure),
       );
       messenger.setMockMethodCallHandler(channel, (call) async {
-        if (call.method == 'cancelAllAlarms') {
-          throw PlatformException(code: 'alarm_cancel_failed');
+        if (call.method == 'reconcileAlarms') {
+          throw PlatformException(code: 'alarm_reconcile_failed');
         }
         return handleAlarmCall(call);
       });
@@ -370,7 +380,7 @@ void main() {
       final alarmFailure = isA<PlatformException>().having(
         (error) => error.code,
         'code',
-        'alarm_cancel_failed',
+        'alarm_reconcile_failed',
       );
 
       await expectLater(

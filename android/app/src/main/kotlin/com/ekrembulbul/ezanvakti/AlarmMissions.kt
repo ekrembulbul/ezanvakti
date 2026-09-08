@@ -29,16 +29,38 @@ data class NativeMissionSession(
     val snoozedUntilMillis: Long? = null,
     val begun: Boolean = false,
     val ringingScheduleId: String? = null,
+    val timerScheduleId: String? = null,
+    val lastStopScheduleId: String? = null,
+    val lastStopTimeMillis: Long? = null,
 ) {
     val occurrenceId get() = args.alarmId + "#at" + firedAtMillis
     val chainDeadline get() = firedAtMillis + args.chainDurationMillis
     fun canContinue(now: Long) = pending && (!args.missionEnabled ||
         (now < chainDeadline && rearmCount <= args.maxRearms))
 
-    fun watchdog(at: Long) = args.copy(
-        id = occurrenceId + "#w", timeMillis = at, originalFireAtMillis = firedAtMillis,
+    fun watchdog(at: Long, scheduleId: String = timerScheduleId ?: (occurrenceId + "#w")) = args.copy(
+        id = scheduleId, timeMillis = at, originalFireAtMillis = firedAtMillis,
         repeatWeekdays = emptyList(),
     )
+
+    fun recovery(now: Long): NativeMissionSession? {
+        if (!canContinue(now) || now + 1000 >= chainDeadline) return null
+        val at = snoozedUntilMillis ?: deadlineMillis
+        if (at == null && ringingScheduleId == null) return null
+        if (at != null && at > now && ringingScheduleId == null) return this
+        return copy(snoozedUntilMillis = null, deadlineMillis = now + 1000,
+            begun = false, ringingScheduleId = null)
+    }
+
+    fun snapshot(): Map<String, Any> = mutableMapOf<String, Any>(
+        "alarmId" to args.alarmId, "firedAt" to firedAtMillis,
+        "stoppedAt" to stoppedAtMillis, "pending" to pending,
+        "snoozeUsed" to snoozeUsed, "rearmCount" to rearmCount, "begun" to begun,
+    ).apply {
+        if (begun && deadlineMillis != null) put("deadlineAt", deadlineMillis)
+        if (snoozedUntilMillis != null) put("snoozedUntil", snoozedUntilMillis)
+        if (args.missionEnabled) put("chainDeadlineAt", chainDeadline)
+    }
 
     fun toJson(): JSONObject = JSONObject().apply {
         put("args", JSONObject(args.toJson()))
@@ -52,6 +74,9 @@ data class NativeMissionSession(
         put("snoozedUntil", snoozedUntilMillis ?: JSONObject.NULL)
         put("begun", begun)
         put("ringingId", ringingScheduleId ?: JSONObject.NULL)
+        put("timerId", timerScheduleId ?: JSONObject.NULL)
+        put("lastStopId", lastStopScheduleId ?: JSONObject.NULL)
+        put("lastStopTime", lastStopTimeMillis ?: JSONObject.NULL)
     }
 
     companion object {
@@ -64,6 +89,9 @@ data class NativeMissionSession(
                 if (value.isNull("snoozedUntil")) null else value.getLong("snoozedUntil"),
                 value.getBoolean("begun"),
                 if (value.isNull("ringingId")) null else value.getString("ringingId"),
+                if (value.isNull("timerId")) null else value.getString("timerId"),
+                if (value.isNull("lastStopId")) null else value.getString("lastStopId"),
+                if (value.isNull("lastStopTime")) null else value.getLong("lastStopTime"),
             )
         }
     }
@@ -72,18 +100,28 @@ data class NativeMissionSession(
 data class MissionState(
     val sessions: MutableMap<String, NativeMissionSession> = linkedMapOf(),
     val events: MutableList<MissionEvent> = mutableListOf(),
+    var enabledAlarmIds: Set<String>? = null,
+    val skippedOccurrences: MutableMap<String, Long> = mutableMapOf(),
 ) {
     fun toJson(): String = JSONObject().apply {
         put("sessions", JSONObject().apply {
             sessions.forEach { (id, session) -> put(id, session.toJson()) }
         })
         put("events", JSONArray(events.map { JSONObject(it.toMap()) }))
+        put("enabledAlarmIds", enabledAlarmIds?.let { JSONArray(it.toList()) } ?: JSONObject.NULL)
+        put("skippedOccurrences", JSONObject(skippedOccurrences))
     }.toString()
 
     companion object {
         fun fromJson(json: String): MissionState {
             val value = JSONObject(json)
             val state = MissionState()
+            state.enabledAlarmIds = value.optJSONArray("enabledAlarmIds")?.let { array ->
+                (0 until array.length()).map { array.getString(it) }.toSet()
+            }
+            value.optJSONObject("skippedOccurrences")?.let { skipped ->
+                skipped.keys().forEach { key -> state.skippedOccurrences[key] = skipped.getLong(key) }
+            }
             val sessions = value.getJSONObject("sessions")
             sessions.keys().forEach { id -> state.sessions[id] = NativeMissionSession.fromJson(sessions.getJSONObject(id)) }
             val events = value.getJSONArray("events")
@@ -119,14 +157,57 @@ class AlarmMissions(private val storage: MissionStateStorage) {
 
     fun session(id: String): NativeMissionSession? = synchronized(lock) { storage.read().sessions[id] }
 
+    fun isEnabled(id: String): Boolean = synchronized(lock) {
+        storage.read().enabledAlarmIds?.contains(id) ?: true
+    }
+
+    fun pendingSessions(): List<NativeMissionSession> = synchronized(lock) {
+        val state = storage.read()
+        state.sessions.values.filter { it.pending && (state.enabledAlarmIds?.contains(it.args.alarmId) ?: true) }
+            .sortedWith(compareBy({ it.firedAtMillis }, { it.args.alarmId }))
+    }
+
+    fun setEnabledAlarmIds(ids: Set<String>) = mutate { state ->
+        state.enabledAlarmIds = ids
+        state.sessions.keys.removeAll { it !in ids }
+        state.events.removeAll { it.alarmId !in ids }
+    }
+
+    fun disableAlarm(id: String, knownRoots: Set<String>) = mutate { state ->
+        state.enabledAlarmIds = (state.enabledAlarmIds ?: knownRoots).minus(id)
+        state.sessions.remove(id)
+        state.events.removeAll { it.alarmId == id }
+    }
+
+    fun enableAlarm(id: String, knownRoots: Set<String>) = mutate { state ->
+        state.enabledAlarmIds = (state.enabledAlarmIds ?: knownRoots).plus(id)
+    }
+
+    fun setSkippedOccurrences(skips: List<AlarmSuppression>, now: Long) = mutate { state ->
+        state.skippedOccurrences.entries.removeAll { it.value > now || it.value < now - 86_400_000 }
+        skips.forEach { state.skippedOccurrences[it.occurrenceId] = it.fireAtMillis }
+        state.sessions.replaceAll { _, session ->
+            if (session.occurrenceId in state.skippedOccurrences) session.copy(
+                pending = false, deadlineMillis = null, snoozedUntilMillis = null,
+                ringingScheduleId = null, timerScheduleId = null)
+            else session
+        }
+    }
+
     fun fired(args: AlarmArgs, receivedAt: Long): Boolean = mutate { state ->
         if (!args.isValid || args.timeMillis > receivedAt) return@mutate false
+        if (state.enabledAlarmIds?.contains(args.alarmId) == false) return@mutate false
         val fire = args.originalFireAtMillis ?: args.timeMillis
+        if (args.alarmId + "#at" + fire in state.skippedOccurrences) return@mutate false
         val current = state.sessions[args.alarmId]
+        if (current != null && current.firedAtMillis > fire) return@mutate false
+        if (current?.firedAtMillis == fire && current.lastStopScheduleId == args.id &&
+            current.lastStopTimeMillis == args.timeMillis) return@mutate false
         if (args.isWatchdog && (current == null || !current.canContinue(receivedAt) || current.firedAtMillis != fire)) {
             return@mutate false
         }
         if (args.isWatchdog && args.timeMillis != (current?.snoozedUntilMillis ?: current?.deadlineMillis)) return@mutate false
+        if (args.isWatchdog && current?.timerScheduleId != null && current.timerScheduleId != args.id) return@mutate false
         if (current?.firedAtMillis == fire && !current.pending) return@mutate false
         val session = if (current?.firedAtMillis == fire) current else NativeMissionSession(
             args, fire, receivedAt, receivedAt,
@@ -147,10 +228,12 @@ class AlarmMissions(private val storage: MissionStateStorage) {
             stoppedAtMillis = now, pending = !ended && current.args.opensApp,
             rearmCount = current.rearmCount + if (next == null) 0 else 1,
             deadlineMillis = next, snoozedUntilMillis = null, begun = false, ringingScheduleId = null,
+            lastStopScheduleId = args.id, lastStopTimeMillis = args.timeMillis,
         )
         val event = MissionEvent(args.alarmId, current.firedAtMillis, now, session.snoozeUsed, session.rearmCount, ended)
         state.sessions[args.alarmId] = session
         if (args.opensApp) state.events.add(event)
+        if (state.events.size > 64) state.events.subList(0, state.events.size - 64).clear()
         MissionStopped(session, event, next)
     }
 
@@ -164,8 +247,8 @@ class AlarmMissions(private val storage: MissionStateStorage) {
     fun begin(alarmId: String, now: Long): NativeMissionSession? = mutate { state ->
         val current = state.sessions[alarmId] ?: return@mutate null
         if (!current.args.missionEnabled || !current.canContinue(now) || (current.snoozedUntilMillis ?: 0) > now) return@mutate null
-        if (current.begun) return@mutate current
-        val session = current.copy(begun = true,
+        if (current.begun && (current.deadlineMillis ?: 0) > now) return@mutate current
+        val session = current.copy(begun = true, snoozedUntilMillis = null,
             deadlineMillis = minOf(now + current.args.missionTimeoutSeconds * 1000L, current.chainDeadline))
         state.sessions[alarmId] = session
         session
@@ -176,8 +259,9 @@ class AlarmMissions(private val storage: MissionStateStorage) {
         val limit = current.args.maxSnoozes ?: if (current.args.missionEnabled) 5 else Int.MAX_VALUE
         val next = now + minutes * 60_000L
         if (!current.canContinue(now) || !current.args.snoozeEnabled ||
-            minutes != current.args.snoozeMinutes || minutes <= 0 || current.snoozeUsed >= limit ||
-            (current.snoozedUntilMillis ?: 0) > now || (current.args.missionEnabled && next >= current.chainDeadline)) return@mutate null
+            minutes != current.args.snoozeMinutes || minutes <= 0) return@mutate null
+        if ((current.snoozedUntilMillis ?: 0) > now) return@mutate current
+        if (current.snoozeUsed >= limit || (current.args.missionEnabled && next >= current.chainDeadline)) return@mutate null
         val session = current.copy(snoozeUsed = current.snoozeUsed + 1, snoozedUntilMillis = next,
             deadlineMillis = null, begun = false, ringingScheduleId = null)
         state.sessions[alarmId] = session
@@ -187,7 +271,8 @@ class AlarmMissions(private val storage: MissionStateStorage) {
     fun finish(alarmId: String): String? = mutate { state ->
         val current = state.sessions[alarmId]
         if (current != null) state.sessions[alarmId] = current.copy(
-            pending = false, deadlineMillis = null, snoozedUntilMillis = null, ringingScheduleId = null)
+            pending = false, deadlineMillis = null, snoozedUntilMillis = null, ringingScheduleId = null,
+            timerScheduleId = null)
         state.events.removeAll { it.alarmId == alarmId }
         current?.occurrenceId
     }
@@ -211,7 +296,8 @@ class AlarmMissions(private val storage: MissionStateStorage) {
     fun ringing(): AlarmArgs? = synchronized(lock) {
         storage.read().sessions.values.lastOrNull { it.pending && it.ringingScheduleId != null }?.let {
             if (it.ringingScheduleId == it.args.id) it.args
-            else it.watchdog(it.deadlineMillis ?: it.snoozedUntilMillis ?: it.firedAtMillis)
+            else it.watchdog(it.deadlineMillis ?: it.snoozedUntilMillis ?: it.firedAtMillis,
+                requireNotNull(it.ringingScheduleId))
         }
     }
 }

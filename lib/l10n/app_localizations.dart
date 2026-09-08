@@ -2943,6 +2943,18 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Kaynak: Diyanet Din İşleri Yüksek Kurulu'**
   String get kerahatSourceName;
+
+  /// No description provided for @alarmChangeFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Alarm değişikliği tamamlanamadı. Yeniden dene.'**
+  String get alarmChangeFailed;
+
+  /// No description provided for @alarmCancellationPending.
+  ///
+  /// In tr, this message translates to:
+  /// **'Cihazdaki alarm kaydı kaldırılamadı'**
+  String get alarmCancellationPending;
 }
 
 class _AppLocalizationsDelegate

@@ -1627,4 +1627,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get kerahatSourceName =>
       'Source: Diyanet High Council of Religious Affairs';
+
+  @override
+  String get alarmChangeFailed =>
+      'The alarm change could not be completed. Try again.';
+
+  @override
+  String get alarmCancellationPending =>
+      'The alarm could not be removed from the device';
 }

@@ -105,4 +105,72 @@ class AlarmMissionsTest {
         assertFalse(missions.fired(oldWatchdog, oldWatchdog.timeMillis))
         assertFalse(missions.fired(a.copy(timeMillis = fire + 60_000), fire + 1000))
     }
+
+    @Test fun expiredSnoozeIsClearedBeforeBeginningMission() {
+        val a = args("is")
+        missions.fired(a, fire)
+        missions.stop(a, fire + 1000)
+        missions.snooze("is", 5, fire + 2000)
+        val now = fire + 1_800_000
+        val begun = missions.begin("is", now)!!
+        assertNull(begun.snoozedUntilMillis)
+        assertTrue(begun.deadlineMillis!! > now)
+    }
+
+    @Test fun retryOfAcceptedSnoozeDoesNotConsumeAnAdditionalRight() {
+        val a = args("is").copy(maxSnoozes = 1)
+        missions.fired(a, fire)
+        missions.stop(a, fire + 1000)
+        val first = missions.snooze("is", 5, fire + 2000)!!
+        val retry = missions.snooze("is", 5, fire + 3000)!!
+        assertEquals(first.snoozedUntilMillis, retry.snoozedUntilMillis)
+        assertEquals(1, retry.snoozeUsed)
+    }
+
+    @Test fun snapshotsPreserveTwoIndependentSnoozedSessions() {
+        for (id in listOf("a", "b")) {
+            val a = args(id)
+            missions.fired(a, fire)
+            missions.stop(a, fire + 1000)
+            missions.snooze(id, 5, fire + 2000)
+        }
+        assertEquals(2, missions.pendingSessions().size)
+        assertEquals(2, missions.pendingSessions().size)
+        assertTrue(missions.pendingSessions().all { it.snoozedUntilMillis == fire + 302_000 })
+        missions.finish("a")
+        assertEquals("b", missions.pendingSessions().single().args.alarmId)
+    }
+
+    @Test fun bootRecoveryMovesExpiredSnoozeToFutureWithoutSpendingAnotherRight() {
+        val a = args("is")
+        missions.fired(a, fire)
+        missions.stop(a, fire + 1000)
+        val snoozed = missions.snooze("is", 5, fire + 2000)!!
+        val now = fire + 1_800_000
+        val recovered = snoozed.recovery(now)!!
+        assertNull(recovered.snoozedUntilMillis)
+        assertTrue(recovered.deadlineMillis!! > now)
+        assertEquals(snoozed.snoozeUsed, recovered.snoozeUsed)
+        missions.restore(recovered)
+        val watchdog = recovered.watchdog(recovered.deadlineMillis!!)
+        assertTrue(missions.fired(watchdog, watchdog.timeMillis))
+    }
+
+    @Test fun bootRecoveryKeepsFutureSnoozeAndDoesNotReviveExpiredChain() {
+        val a = args("is")
+        missions.fired(a, fire)
+        missions.stop(a, fire + 1000)
+        val snoozed = missions.snooze("is", 5, fire + 2000)!!
+        assertEquals(snoozed.snoozedUntilMillis, snoozed.recovery(fire + 3000)!!.snoozedUntilMillis)
+        assertNull(snoozed.recovery(snoozed.chainDeadline))
+    }
+
+    @Test fun legacySessionWithoutNewFieldsIsReadable() {
+        val a = args("is")
+        val json = NativeMissionSession(a, fire, fire, fire).toJson()
+        for (key in listOf("timerId", "lastStopId", "lastStopTime")) json.remove(key)
+        val restored = NativeMissionSession.fromJson(json)
+        assertNull(restored.timerScheduleId)
+        assertNull(restored.lastStopScheduleId)
+    }
 }

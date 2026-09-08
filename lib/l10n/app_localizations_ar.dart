@@ -1613,4 +1613,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get kerahatSourceName =>
       'المصدر: المجلس الأعلى للشؤون الدينية في ديانت';
+
+  @override
+  String get alarmChangeFailed => 'تعذّر إكمال تغيير المنبّه. حاول مجددًا.';
+
+  @override
+  String get alarmCancellationPending => 'تعذّر إزالة المنبّه من الجهاز';
 }

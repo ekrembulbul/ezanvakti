@@ -1,5 +1,7 @@
 import '../models/alarm_mission.dart';
 import '../models/alarm_theme.dart';
+import '../models/alarm_plan.dart';
+import '../models/mission_session.dart';
 import '../models/mission_stop_event.dart';
 
 /// Sesli/kalıcı alarmların native teslim katmanı.
@@ -17,6 +19,13 @@ abstract class AlarmService {
   Future<bool> requestPermission();
 
   Future<bool> isPermissionGranted();
+
+  /// Applies a desired plan while preserving unchanged or protected records.
+  /// Returns current failures by root id; an empty map means reconciliation succeeded.
+  Future<Map<String, String>> reconcileAlarms(AlarmPlan plan);
+
+  /// Repeatable native snapshot. Reading it never consumes a mission event.
+  Future<List<MissionSession>> getMissionSessions();
 
   /// Tek seferlik bir alarmı [scheduledTime] anında çalacak şekilde planlar.
   /// Aynı [id] ile tekrar çağrı, öncekini değiştirir.
@@ -68,15 +77,15 @@ abstract class AlarmService {
 
   /// Görev ekranı açıldı: nöbetçinin son tarihi `grace`ten görev süresine
   /// taşınır.
-  Future<void> beginMission(String alarmId);
+  Future<void> beginMission(String alarmId, {DateTime? firedAt});
 
-  /// Erteleme: aktif nöbetçi iptal edilir, alarm [minutes] dakika sonrasına
-  /// yeniden kurulur. Oturum açık kalır — görev hâlâ borç.
-  Future<void> snoozeMission(String alarmId, int minutes);
+  /// Erteleme: yeni nöbetçi [minutes] dakika sonrasına kurulur, kabul
+  /// edildikten sonra eski nöbetçi kaldırılır. Görev oturumu açık kalır.
+  Future<void> snoozeMission(String alarmId, int minutes, {DateTime? firedAt});
 
   /// Görev tamamlandı: zincirdeki tüm alarmlar iptal edilir, oturum kapanır.
-  Future<void> completeMission(String alarmId);
+  Future<void> completeMission(String alarmId, {DateTime? firedAt});
 
   /// Acil çıkış: [completeMission] ile aynı temizlik, ayrı raporlanır.
-  Future<void> abortMission(String alarmId);
+  Future<void> abortMission(String alarmId, {DateTime? firedAt});
 }

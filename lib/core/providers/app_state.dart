@@ -50,6 +50,7 @@ class AppState extends ChangeNotifier {
     _generalSettings = settings;
     notifyListeners();
   }
+
   bool get hasActiveLocation => _activeLocation != null;
 
   void setActiveLocation(Location? location) {
@@ -79,11 +80,16 @@ class AppState extends ChangeNotifier {
 
   /// Bekleyen görev oturumu. Ertelenen alarmın ne zaman çalacağını ve
   /// hangi alarmın görev borcu olduğunu arayüz buradan okur.
-  MissionSession? _missionSession;
-  MissionSession? get missionSession => _missionSession;
+  List<MissionSession> _missionSessions = const [];
+  List<MissionSession> get missionSessions => _missionSessions;
+  MissionSession? get missionSession => _missionSessions.firstOrNull;
 
   void setMissionSession(MissionSession? session) {
-    _missionSession = session;
+    setMissionSessions(session == null ? const [] : [session]);
+  }
+
+  void setMissionSessions(List<MissionSession> sessions) {
+    _missionSessions = List.unmodifiable(sessions);
     notifyListeners();
   }
 

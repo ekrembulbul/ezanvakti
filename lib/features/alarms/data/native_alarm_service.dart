@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 import '../../../core/interfaces/alarm_service.dart';
 import '../../../core/models/alarm_mission.dart';
 import '../../../core/models/alarm_theme.dart';
+import '../../../core/models/alarm_plan.dart';
+import '../../../core/models/mission_session.dart';
 import '../../../core/models/mission_stop_event.dart';
 
 /// Native alarm modülüyle (Android: AlarmManager + tam ekran çalar; iOS 26.1+:
@@ -56,6 +58,26 @@ class NativeAlarmService implements AlarmService {
   Future<bool> isPermissionGranted() async {
     if (!_hasNative) return false;
     return await _channel.invokeMethod<bool>('isPermissionGranted') ?? false;
+  }
+
+  @override
+  Future<Map<String, String>> reconcileAlarms(AlarmPlan plan) async {
+    if (!_hasNative) return const {};
+    return await _channel.invokeMapMethod<String, String>(
+          'reconcileAlarms',
+          plan.toMap(),
+        ) ??
+        const {};
+  }
+
+  @override
+  Future<List<MissionSession>> getMissionSessions() async {
+    if (!_hasNative) return const [];
+    final raw = await _channel.invokeListMethod<Object?>('getMissionSessions');
+    return [
+      for (final item in raw ?? const <Object?>[])
+        MissionSession.fromNativeMap(item as Map<Object?, Object?>),
+    ];
   }
 
   @override
@@ -127,29 +149,47 @@ class NativeAlarmService implements AlarmService {
   }
 
   @override
-  Future<void> beginMission(String alarmId) async {
+  Future<void> beginMission(String alarmId, {DateTime? firedAt}) async {
     if (!_hasNative) return;
-    await _channel.invokeMethod('beginMission', {'id': alarmId});
+    await _channel.invokeMethod(
+      'beginMission',
+      _missionArguments(alarmId, firedAt),
+    );
   }
 
   @override
-  Future<void> snoozeMission(String alarmId, int minutes) async {
+  Future<void> snoozeMission(
+    String alarmId,
+    int minutes, {
+    DateTime? firedAt,
+  }) async {
     if (!_hasNative) return;
     await _channel.invokeMethod('snoozeMission', {
-      'id': alarmId,
+      ..._missionArguments(alarmId, firedAt),
       'minutes': minutes,
     });
   }
 
   @override
-  Future<void> completeMission(String alarmId) async {
+  Future<void> completeMission(String alarmId, {DateTime? firedAt}) async {
     if (!_hasNative) return;
-    await _channel.invokeMethod('completeMission', {'id': alarmId});
+    await _channel.invokeMethod(
+      'completeMission',
+      _missionArguments(alarmId, firedAt),
+    );
   }
 
   @override
-  Future<void> abortMission(String alarmId) async {
+  Future<void> abortMission(String alarmId, {DateTime? firedAt}) async {
     if (!_hasNative) return;
-    await _channel.invokeMethod('abortMission', {'id': alarmId});
+    await _channel.invokeMethod(
+      'abortMission',
+      _missionArguments(alarmId, firedAt),
+    );
   }
+
+  Map<String, dynamic> _missionArguments(String id, DateTime? firedAt) => {
+    'id': id,
+    if (firedAt != null) 'firedAtMillis': firedAt.millisecondsSinceEpoch,
+  };
 }

@@ -36,13 +36,41 @@ class AlarmChannel(private val context: Context) {
                     "requestPermission" -> result.success(canScheduleExact())
                     "scheduleAlarm" -> {
                         val args = AlarmArgs.fromMap(call.arguments as Map<*, *>)
+                        AndroidMissionStore.missions(context).enableAlarm(args.alarmId,
+                            AlarmScheduling.allArgs(context).map { it.alarmId }.toSet())
                         AlarmScheduling.schedule(context, args)
                         result.success(null)
                     }
+                    "reconcileAlarms" -> {
+                        val values = call.arguments as Map<*, *>
+                        require((values["protocolVersion"] as? Number)?.toInt() == 2)
+                        val records = (values["records"] as List<*>).map { AlarmArgs.fromMap(it as Map<*, *>) }
+                        val enabled = (values["enabledAlarmIds"] as List<*>).map { it as String }.toSet()
+                        val preserved = (values["preserveAlarmIds"] as List<*>).map { it as String }.toSet()
+                        require(enabled.all { it.isNotBlank() && it.length <= 256 })
+                        val periods = (values["preservedPeriods"] as? List<*> ?: emptyList<Any>()).map {
+                            val item = it as Map<*, *>
+                            val root = item["alarmId"] as String
+                            val from = (item["fromMillis"] as Number).toLong()
+                            val until = (item["untilMillis"] as Number).toLong()
+                            require(root in enabled && from > 0 && until > from && until <= 8_640_000_000_000_000L)
+                            AlarmPreservedPeriod(root, from, until)
+                        }
+                        val skips = (values["skippedOccurrences"] as? List<*> ?: emptyList<Any>()).map {
+                            val item = it as Map<*, *>
+                            val root = item["alarmId"] as String
+                            val fire = (item["fireAtMillis"] as Number).toLong()
+                            require(root in enabled && fire > 0)
+                            AlarmSuppression(root, fire)
+                        }
+                        // Android records a mission at native delivery, before
+                        // opening Flutter; iOS-only preplanned ladders are not added.
+                        result.success(AlarmScheduling.reconcile(context, records, enabled, preserved, skips, periods))
+                    }
                     "cancelAlarm" -> {
                         val id = requireNotNull(call.argument<String>("id"))
-                        AlarmScheduling.cancelAlarm(context, id)
-                        AlarmRingService.cancelForAlarm(context, id)
+                        try { AlarmScheduling.cancelAlarm(context, id) }
+                        finally { AlarmRingService.cancelForAlarm(context, id) }
                         result.success(null)
                     }
                     "cancelAllAlarms" -> {
@@ -52,32 +80,45 @@ class AlarmChannel(private val context: Context) {
                     "consumeMissionEvents" -> result.success(
                         AndroidMissionStore.missions(context).consume(call.argument<String>("alarmId")).map { it.toMap() },
                     )
+                    "getMissionSessions" -> result.success(
+                        AndroidMissionStore.missions(context).pendingSessions().map { it.snapshot() },
+                    )
                     "beginMission", "snoozeMission" -> {
                         val id = requireNotNull(call.argument<String>("id"))
                         val missions = AndroidMissionStore.missions(context)
                         val previous = missions.session(id)
+                        val expected = call.argument<Number>("firedAtMillis")?.toLong()
+                        require(expected == null || previous?.firedAtMillis == expected) { "Stale occurrence" }
                         val now = System.currentTimeMillis()
                         val session = if (call.method == "beginMission") missions.begin(id, now)
                             else missions.snooze(id, call.argument<Number>("minutes")?.toInt() ?: 0, now)
                         requireNotNull(session) { "Mission action is unavailable" }
-                        if (call.method != "beginMission" || previous?.begun != true) {
-                            try {
-                                AlarmScheduling.rearm(context, session,
-                                    requireNotNull(session.snoozedUntilMillis ?: session.deadlineMillis))
-                                AlarmRingService.cancelForAlarm(context, id)
-                            } catch (error: Exception) {
-                                if (previous != null) missions.restore(previous)
-                                throw error
+                        try {
+                            val deadline = if (call.method == "beginMission") session.deadlineMillis else session.snoozedUntilMillis
+                            AlarmScheduling.rearm(context, session, requireNotNull(deadline))
+                            AlarmRingService.cancelForAlarm(context, id, session.firedAtMillis)
+                            AlarmJournal(context).record(call.method, session.args)
+                        } catch (error: Exception) {
+                            if (previous != null && missions.session(id)?.timerScheduleId == previous.timerScheduleId) {
+                                missions.restore(previous)
                             }
+                            throw error
                         }
                         result.success(null)
                     }
                     "completeMission", "abortMission" -> {
                         val id = requireNotNull(call.argument<String>("id"))
                         val missions = AndroidMissionStore.missions(context)
-                        missions.session(id)?.let { AlarmScheduling.cancelChain(context, it.occurrenceId) }
+                        val session = missions.session(id)
+                        val expected = call.argument<Number>("firedAtMillis")?.toLong()
+                        require(expected == null || session == null || session.firedAtMillis == expected) { "Stale occurrence" }
                         missions.finish(id)
-                        AlarmRingService.cancelForAlarm(context, id)
+                        try {
+                            session?.let { AlarmScheduling.cancelChain(context, it.occurrenceId) }
+                        } finally {
+                            AlarmRingService.cancelForAlarm(context, id, expected ?: session?.firedAtMillis)
+                        }
+                        AlarmJournal(context).record(call.method, session?.args, id)
                         result.success(null)
                     }
                     "importCustomSound" -> {
@@ -92,7 +133,9 @@ class AlarmChannel(private val context: Context) {
                 }
             } catch (error: Exception) {
                 Log.e("EzanAlarm", "event=operation_failed method=" + call.method + " type=" + error.javaClass.simpleName)
-                result.error("alarm_operation_failed", "Alarm operation failed", null)
+                AlarmJournal(context).record(call.method, result = "failed", error = error)
+                result.error("alarm_operation_failed", "Alarm operation failed",
+                    mapOf("operation" to call.method, "nativeCode" to error.javaClass.name))
             }
         }
     }

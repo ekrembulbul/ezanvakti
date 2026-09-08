@@ -1624,4 +1624,11 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get kerahatSourceName => 'Kaynak: Diyanet Din İşleri Yüksek Kurulu';
+
+  @override
+  String get alarmChangeFailed =>
+      'Alarm değişikliği tamamlanamadı. Yeniden dene.';
+
+  @override
+  String get alarmCancellationPending => 'Cihazdaki alarm kaydı kaldırılamadı';
 }

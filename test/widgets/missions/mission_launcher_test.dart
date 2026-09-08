@@ -55,7 +55,7 @@ void main() {
   setUp(() async {
     storage = FakeStorage();
     await storage.init();
-    alarmService = FakeAlarmService();
+    alarmService = FakeAlarmService(alarmDefinitions: storage.getAlarms);
     appState = AppState();
     coordinator = MissionCoordinator(
       alarmService: alarmService,
@@ -65,11 +65,13 @@ void main() {
     final locator = ServiceLocator();
     locator.register<LocalStorage>(storage);
     locator.register<AlarmService>(alarmService);
-    locator.register<AlarmsManager>(AlarmsManager(storage: storage));
-    locator.register<MissionCoordinator>(coordinator);
-    locator.register<AlarmScheduler>(
-      AlarmScheduler(alarmService: alarmService, storage: storage),
+    final scheduler = AlarmScheduler(
+      alarmService: alarmService,
+      storage: storage,
     );
+    locator.register<AlarmsManager>(AlarmsManager(scheduler: scheduler));
+    locator.register<MissionCoordinator>(coordinator);
+    locator.register<AlarmScheduler>(scheduler);
   });
 
   /// `_MissionHost` saniyelik bir sayaç çalıştırıyor; `pumpAndSettle` bu
@@ -151,6 +153,43 @@ void main() {
 
   group('Ekran ne zaman acilir', () {
     testWidgets(
+      'Arka plandaki durdurma görev açmaz; öne gelince kendi görevi açılır',
+      (tester) async {
+        await storage.saveAlarm(mathAlarm);
+        alarmService.pendingEvents = [
+          MissionStopEvent(alarmId: mathAlarm.id, stoppedAt: DateTime.now()),
+        ];
+        await pumpLauncher(tester);
+        tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+        addTearDown(
+          () => tester.binding.handleAppLifecycleStateChanged(
+            AppLifecycleState.resumed,
+          ),
+        );
+        await openMissionIfPending(hostContext);
+        await settle(tester);
+        expect(find.byType(AlarmStopScreen), findsNothing);
+        expect(find.byType(MissionScreen), findsNothing);
+        expect(alarmService.begun, isEmpty);
+        expect(
+          (await alarmService.getMissionSessions()).single.alarmId,
+          mathAlarm.id,
+        );
+        tester.binding.handleAppLifecycleStateChanged(
+          AppLifecycleState.resumed,
+        );
+        unawaited(openMissionIfPending(hostContext));
+        await settle(tester);
+        expect(
+          tester.widget<AlarmStopScreen>(find.byType(AlarmStopScreen)).alarm.id,
+          mathAlarm.id,
+        );
+        await enterMission(tester);
+        await solveMath(tester);
+      },
+    );
+
+    testWidgets(
       'native erteleme hatası görevi kapatmaz ve yeniden denemeye izin verir',
       (tester) async {
         await storage.saveAlarm(mathAlarm);
@@ -162,7 +201,10 @@ void main() {
         await tester.tap(find.byKey(kStopSnoozeKey));
         await settle(tester);
         expect(find.byType(AlarmStopScreen), findsOneWidget);
-        expect((await storage.getMissionSession())!.snoozeUsed, 0);
+        expect(
+          ((await alarmService.getMissionSessions()).firstOrNull)!.snoozeUsed,
+          0,
+        );
         alarmService.snoozeError = null;
         await tester.tap(find.text('Yeniden Dene'));
         await settle(tester);
@@ -232,7 +274,7 @@ void main() {
 
     testWidgets('Ertelenmis oturumda ekran acilmaz', (tester) async {
       await storage.saveAlarm(mathAlarm);
-      await storage.saveMissionSession(
+      await alarmService.seedSession(
         MissionSession(
           alarmId: mathAlarm.id,
           firedAt: stoppedAt,
@@ -512,7 +554,7 @@ void main() {
       expect(find.byType(AlarmStopScreen), findsNothing);
       expect(alarmService.completed, [plainSnooze.id]);
       expect(alarmService.scheduled, [plainSnooze.id]);
-      expect(await storage.getMissionSession(), isNull);
+      expect((await alarmService.getMissionSessions()).firstOrNull, isNull);
     });
 
     testWidgets('Gorevsiz: Ertele sayar, yeniden kurmaz', (tester) async {
@@ -528,14 +570,17 @@ void main() {
       expect(find.byType(AlarmStopScreen), findsNothing);
       expect(alarmService.snoozed, [(id: plainSnooze.id, minutes: 10)]);
       expect(alarmService.scheduled, isEmpty);
-      expect((await storage.getMissionSession())!.snoozeUsed, 1);
+      expect(
+        ((await alarmService.getMissionSessions()).firstOrNull)!.snoozeUsed,
+        1,
+      );
     });
 
     testWidgets('Gorevsiz: hak bitince ekran acilmaz, oturum kapanir', (
       tester,
     ) async {
       await storage.saveAlarm(plainSnooze);
-      await storage.saveMissionSession(
+      await alarmService.seedSession(
         MissionSession(
           alarmId: plainSnooze.id,
           firedAt: DateTime.now(),
@@ -616,7 +661,7 @@ void main() {
 
     testWidgets('Gorevli, hak yokken dogrudan gorev ekrani', (tester) async {
       await storage.saveAlarm(mathAlarm);
-      await storage.saveMissionSession(
+      await alarmService.seedSession(
         MissionSession(
           alarmId: mathAlarm.id,
           firedAt: DateTime.now(),
@@ -660,7 +705,7 @@ void main() {
       await solveMath(tester);
 
       expect(alarmService.completed, [mathAlarm.id]);
-      expect(await storage.getMissionSession(), isNull);
+      expect((await alarmService.getMissionSessions()).firstOrNull, isNull);
     });
 
     testWidgets('Ertele alarmi erteler ve ekrani kapatir', (tester) async {
@@ -680,7 +725,7 @@ void main() {
         (id: mathAlarm.id, minutes: mathAlarm.snoozeMinutes),
       ]);
       expect(find.byType(MissionScreen), findsNothing);
-      final session = await storage.getMissionSession();
+      final session = (await alarmService.getMissionSessions()).firstOrNull;
       expect(session?.snoozeUsed, 1);
     });
 

@@ -31,11 +31,12 @@ class AlarmRingService : Service() {
         const val NOTIF_ID = 9911
         @Volatile private var ringingAlarmId: String? = null
 
-        fun cancelForAlarm(context: Context, alarmId: String) {
+        fun cancelForAlarm(context: Context, alarmId: String, firedAtMillis: Long? = null) {
             if (ringingAlarmId != alarmId) return
             context.startService(Intent(context, AlarmRingService::class.java).apply {
                 action = ACTION_CANCEL
                 putExtra("alarmId", alarmId)
+                if (firedAtMillis != null) putExtra("firedAtMillis", firedAtMillis)
             })
         }
     }
@@ -71,7 +72,10 @@ class AlarmRingService : Service() {
                     stopSelf()
                     return START_NOT_STICKY
                 }
-                if (current?.alarmId == intent.getStringExtra("alarmId")) {
+                val active = current!!
+                val expected = if (intent.hasExtra("firedAtMillis")) intent.getLongExtra("firedAtMillis", 0) else null
+                if (active.alarmId == intent.getStringExtra("alarmId") &&
+                    (expected == null || expected == (active.originalFireAtMillis ?: active.timeMillis))) {
                     stopRinging()
                     current = null
                     ringingAlarmId = null
@@ -203,16 +207,22 @@ class AlarmRingService : Service() {
     private fun recordStop(args: AlarmArgs): Boolean {
         return try {
             val missions = AndroidMissionStore.missions(this)
+            val previous = missions.session(args.alarmId)
             val stopped = missions.stop(args, System.currentTimeMillis()) ?: return false
             var armed = true
             if (stopped.rearmAtMillis != null) {
                 try { AlarmScheduling.rearm(this, stopped.session, stopped.rearmAtMillis) }
                 catch (error: Exception) {
                     armed = false
+                    if (previous != null && missions.session(args.alarmId)?.timerScheduleId == previous.timerScheduleId) {
+                        missions.restore(previous)
+                    }
                     Log.e("EzanAlarm", "event=watchdog_failed id=" + args.alarmId + " type=" + error.javaClass.simpleName)
+                    AlarmJournal(this).record("stop_rearm", args, result = "failed", error = error)
                 }
             }
             if (args.opensApp) AlarmChannel.notifyStopped(stopped.event)
+            AlarmJournal(this).record("stopped", args)
             // If rearming fails, keep the sound until the task is completed.
             armed || !args.missionEnabled
         } catch (error: Exception) {

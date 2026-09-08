@@ -38,6 +38,11 @@ bool _needsMissionCheck = false;
 
 bool get _missionScreenOpen => _openScreenNavigator?.mounted ?? false;
 
+bool get _canPresentMission {
+  final state = WidgetsBinding.instance.lifecycleState;
+  return state == null || state == AppLifecycleState.resumed;
+}
+
 /// Ara ekranın nasıl kapandığı.
 enum StopScreenResult { done, mission }
 
@@ -64,11 +69,11 @@ void _showMissionFailure(
 
 /// Bekleyen bir oturum varsa uygun ekranı açar.
 ///
-/// Uygulama, alarm durdurulunca `stopIntent` tarafından öne getiriliyor;
-/// buraya hem soğuk açılışta hem de ön plana dönüşte uğranır. Karar
+/// Native stop yalnız durumu kaydeder. Buraya kullanıcı uygulamayı açınca veya
+/// uygulama zaten ön plandayken bir durdurma olayı geldiğinde uğranır. Karar
 /// [StopGate]'te; burada yalnızca sonuç uygulanır.
 Future<void> openMissionIfPending(BuildContext context) async {
-  if (!context.mounted) return;
+  if (!context.mounted || !_canPresentMission) return;
   if (_missionScreenOpen) {
     _needsMissionCheck = true;
     return;
@@ -82,28 +87,59 @@ Future<void> openMissionIfPending(BuildContext context) async {
       _needsMissionCheck = false;
       checkNext = await _openNextMission(context);
     } while (context.mounted && (checkNext || _needsMissionCheck));
+  } catch (error, stack) {
+    if (context.mounted) {
+      _showMissionFailure(
+        context,
+        error,
+        stack,
+        () => openMissionIfPending(context),
+      );
+    }
   } finally {
     if (identical(_openScreenNavigator, navigator)) _openScreenNavigator = null;
-    final session = await coordinator.currentSession();
-    if (context.mounted) context.read<AppState>().setMissionSession(session);
+    if (context.mounted) {
+      try {
+        final sessions = await coordinator.currentSessions();
+        if (context.mounted) {
+          context.read<AppState>().setMissionSessions(sessions);
+        }
+      } catch (error, stack) {
+        if (context.mounted) {
+          _showMissionFailure(
+            context,
+            error,
+            stack,
+            () => openMissionIfPending(context),
+          );
+        }
+      }
+    }
   }
 }
 
 Future<bool> _openNextMission(BuildContext context) async {
+  if (!_canPresentMission) return false;
   final coordinator = ServiceLocator().get<MissionCoordinator>();
   final result = await coordinator.resume();
   if (result.chainStoppedAlarmId != null) {
     // Zincir tavana carpti (K3): gorev borcu dustu, ekran acilmaz;
     // native zincir temizlenir ve yarinki calislar kurulur.
-    await coordinator.complete(result.chainStoppedAlarmId!);
+    await coordinator.complete(
+      result.chainStoppedAlarmId!,
+      firedAt: result.session?.firedAt,
+    );
+    final sessions = await coordinator.currentSessions();
     if (context.mounted) {
-      context.read<AppState>().setMissionSession(null);
+      context.read<AppState>().setMissionSessions(sessions);
       await rearmAlarms(context);
     }
     return true;
   }
   final session = result.session;
-  if (context.mounted) context.read<AppState>().setMissionSession(session);
+  if (context.mounted) {
+    context.read<AppState>().setMissionSessions(result.sessions);
+  }
   if (session == null || !session.isPending) return false;
 
   final alarms = await ServiceLocator().get<AlarmsManager>().getAlarms();
@@ -120,7 +156,7 @@ Future<bool> _openNextMission(BuildContext context) async {
     case StopDecision.closeAndRearm:
       // Alarm silinmis, secim yok ya da bayat: zinciri kapat ki telefon
       // olmayan bir gorevi beklemesin; ertesi gunu kur.
-      await coordinator.complete(session.alarmId);
+      await coordinator.complete(session.alarmId, firedAt: session.firedAt);
       if (context.mounted) await rearmAlarms(context);
       return true;
     case StopDecision.openMission:
@@ -128,7 +164,7 @@ Future<bool> _openNextMission(BuildContext context) async {
       break;
   }
 
-  if (!context.mounted) return false;
+  if (!context.mounted || !_canPresentMission) return false;
   // Bayrak ara ekran ve gorev ekrani boyunca true kalir: pushReplacement
   // yerine sirali iki push, cunku pushReplacement ilk rotanin Future'ini
   // erken tamamlayip bayragi dusururdu.
@@ -142,15 +178,19 @@ Future<bool> _openNextMission(BuildContext context) async {
     );
     openMission = result == StopScreenResult.mission;
   }
-  if (openMission && context.mounted) {
+  if (openMission && context.mounted && _canPresentMission) {
     final current = await coordinator.currentSession();
-    if (!context.mounted) return false;
+    if (!context.mounted || !_canPresentMission) return false;
     await Navigator.of(context).push(
       MaterialPageRoute(
         fullscreenDialog: true,
         builder: (_) => _MissionHost(
           alarm: alarm!,
-          snoozeUsed: current?.snoozeUsed ?? session.snoozeUsed,
+          session:
+              current?.alarmId == session.alarmId &&
+                  current!.firedAt.isAtSameMomentAs(session.firedAt)
+              ? current
+              : session,
         ),
       ),
     );
@@ -173,7 +213,7 @@ class _StopHost extends StatefulWidget {
   State<_StopHost> createState() => _StopHostState();
 }
 
-class _StopHostState extends State<_StopHost> {
+class _StopHostState extends State<_StopHost> with WidgetsBindingObserver {
   late MissionSession _session = widget.session;
   Timer? _ticker;
   StreamSubscription<dynamic>? _stops;
@@ -196,6 +236,7 @@ class _StopHostState extends State<_StopHost> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) => _tick());
     // Gorevlide sure dolup alarm donerse ve yine durdurulursa geri sayim
     // yeni stoppedAt ile tazelenir; ikinci ekran acilmaz.
@@ -207,20 +248,39 @@ class _StopHostState extends State<_StopHost> {
   }
 
   Future<void> _refresh() async {
-    final result = await _coordinator.resume(alarmId: widget.alarm.id);
-    if (result.chainStoppedAlarmId != null) {
-      await _coordinator.complete(widget.alarm.id);
-      if (mounted) {
-        await rearmAlarms(context);
-        if (mounted) Navigator.of(context).pop(StopScreenResult.done);
+    try {
+      final result = await _coordinator.resume(alarmId: widget.alarm.id);
+      if (result.chainStoppedAlarmId != null) {
+        await _coordinator.complete(
+          widget.alarm.id,
+          firedAt: widget.session.firedAt,
+        );
+        if (mounted) {
+          await rearmAlarms(context);
+          if (mounted) Navigator.of(context).pop(StopScreenResult.done);
+        }
+        return;
       }
-      return;
+      final session = result.session;
+      if (!mounted) return;
+      if (session == null ||
+          !session.firedAt.isAtSameMomentAs(widget.session.firedAt)) {
+        if (!_closing) {
+          _closing = true;
+          Navigator.of(context).pop(StopScreenResult.done);
+        }
+        return;
+      }
+      context.read<AppState>().setMissionSessions(result.sessions);
+      setState(() => _session = session);
+    } catch (error, stack) {
+      if (mounted) _showMissionFailure(context, error, stack, _refresh);
     }
-    final session = result.session;
-    if (!mounted || session == null || session.alarmId != widget.alarm.id) {
-      return;
-    }
-    setState(() => _session = session);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) unawaited(_refresh());
   }
 
   void _tick() {
@@ -237,7 +297,10 @@ class _StopHostState extends State<_StopHost> {
       return;
     }
     try {
-      await _coordinator.complete(widget.alarm.id);
+      await _coordinator.complete(
+        widget.alarm.id,
+        firedAt: widget.session.firedAt,
+      );
       if (!mounted) return;
       await rearmAlarms(context);
       if (mounted) Navigator.of(context).pop(StopScreenResult.done);
@@ -252,7 +315,10 @@ class _StopHostState extends State<_StopHost> {
     if (_closing) return;
     _closing = true;
     try {
-      final ok = await _coordinator.snooze(widget.alarm);
+      final ok = await _coordinator.snooze(
+        widget.alarm,
+        firedAt: widget.session.firedAt,
+      );
       if (!ok || !mounted) {
         _closing = false;
         return;
@@ -266,6 +332,7 @@ class _StopHostState extends State<_StopHost> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _ticker?.cancel();
     _stops?.cancel();
     super.dispose();
@@ -295,16 +362,18 @@ class _StopHostState extends State<_StopHost> {
 /// Görev ekranını sayaçla birlikte çalıştıran kabuk.
 class _MissionHost extends StatefulWidget {
   final Alarm alarm;
-  final int snoozeUsed;
+  final MissionSession session;
 
-  const _MissionHost({required this.alarm, required this.snoozeUsed});
+  const _MissionHost({required this.alarm, required this.session});
 
   @override
   State<_MissionHost> createState() => _MissionHostState();
 }
 
-class _MissionHostState extends State<_MissionHost> {
+class _MissionHostState extends State<_MissionHost>
+    with WidgetsBindingObserver {
   bool _closing = false;
+  late MissionSession _session = widget.session;
 
   /// Görev süresinin mutlak bitişi. Geri sayım bundan hesaplanır; ekran
   /// yeniden açılsa da baştan başlamaz, arka planda da işlemeye devam eder.
@@ -328,6 +397,7 @@ class _MissionHostState extends State<_MissionHost> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // Native tarafa haber ver: nobetci `grace`ten gorev suresine tasinsin.
     unawaited(_begin());
     _ticker = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -344,35 +414,57 @@ class _MissionHostState extends State<_MissionHost> {
   }
 
   Future<void> _begin() async {
+    if (!_canPresentMission) return;
     try {
       final deadline = await _coordinator.begin(
         widget.alarm.id,
         widget.alarm.mission,
+        firedAt: widget.session.firedAt,
       );
-      if (mounted) setState(() => _deadline = deadline);
+      if (!mounted) return;
+      if (deadline == null) {
+        if (!_closing) {
+          _closing = true;
+          Navigator.of(context).pop();
+        }
+        return;
+      }
+      final sessions = await _coordinator.currentSessions();
+      if (!mounted) return;
+      context.read<AppState>().setMissionSessions(sessions);
+      setState(() {
+        _deadline = deadline;
+        _session =
+            MissionSession.pendingForAlarm(sessions, widget.alarm.id) ??
+            _session;
+      });
     } catch (error, stack) {
       if (mounted) _showMissionFailure(context, error, stack, _begin);
     }
   }
 
   Future<void> _refreshDeadline() async {
-    final result = await _coordinator.resume(alarmId: widget.alarm.id);
-    if (result.chainStoppedAlarmId != null) {
-      await _complete();
-      return;
+    if (!_canPresentMission) return;
+    try {
+      final result = await _coordinator.resume(alarmId: widget.alarm.id);
+      if (result.chainStoppedAlarmId != null) {
+        await _complete();
+        return;
+      }
+      await _begin();
+    } catch (error, stack) {
+      if (mounted) _showMissionFailure(context, error, stack, _refreshDeadline);
     }
-    final deadline = await _coordinator.begin(
-      widget.alarm.id,
-      widget.alarm.mission,
-    );
-    if (!mounted) return;
-    setState(() {
-      _deadline = deadline;
-    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) unawaited(_refreshDeadline());
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _ticker?.cancel();
     _stops?.cancel();
     super.dispose();
@@ -381,7 +473,7 @@ class _MissionHostState extends State<_MissionHost> {
   int get _snoozeRemaining {
     final limit = effectiveSnoozeLimit(widget.alarm);
     if (!widget.alarm.snoozeEnabled || limit == null) return 0;
-    final left = limit - widget.snoozeUsed;
+    final left = limit - _session.snoozeUsed;
     return left < 0 ? 0 : left;
   }
 
@@ -389,7 +481,10 @@ class _MissionHostState extends State<_MissionHost> {
     if (_closing) return;
     _closing = true;
     try {
-      await _coordinator.complete(widget.alarm.id);
+      await _coordinator.complete(
+        widget.alarm.id,
+        firedAt: widget.session.firedAt,
+      );
       if (!mounted) return;
       await rearmAlarms(context);
       if (mounted) Navigator.of(context).pop();
@@ -403,7 +498,10 @@ class _MissionHostState extends State<_MissionHost> {
     if (_closing) return;
     _closing = true;
     try {
-      final ok = await _coordinator.snooze(widget.alarm);
+      final ok = await _coordinator.snooze(
+        widget.alarm,
+        firedAt: widget.session.firedAt,
+      );
       if (!ok || !mounted) {
         _closing = false;
         return;
@@ -418,19 +516,48 @@ class _MissionHostState extends State<_MissionHost> {
   }
 
   Future<void> _abort() async {
-    final state = await ServiceLocator()
-        .get<MissionCoordinator>()
-        .storage
-        .getAbortState();
-    final now = DateTime.now();
-    final level = AbortGate.effectiveLevel(state: state, now: now);
-    if (!mounted) return;
-    final confirmed = await showAbortDialog(context: context, level: level);
-    if (!confirmed) return;
-    await _coordinator.abort(widget.alarm.id, DateTime.now());
-    if (!mounted) return;
-    await rearmAlarms(context);
-    if (mounted) Navigator.of(context).pop();
+    if (_closing) return;
+    _closing = true;
+    try {
+      final state = await _coordinator.storage.getAbortState();
+      if (!mounted) return;
+      final confirmed = await showAbortDialog(
+        context: context,
+        level: AbortGate.effectiveLevel(state: state, now: DateTime.now()),
+      );
+      if (!confirmed) {
+        _closing = false;
+        return;
+      }
+      await _finishAbort(DateTime.now());
+    } catch (error, stack) {
+      _closing = false;
+      if (mounted) _showMissionFailure(context, error, stack, _abort);
+    }
+  }
+
+  Future<void> _finishAbort(DateTime requestedAt) async {
+    _closing = true;
+    try {
+      await _coordinator.abort(
+        widget.alarm.id,
+        requestedAt,
+        firedAt: widget.session.firedAt,
+      );
+      if (!mounted) return;
+      await rearmAlarms(context);
+      if (mounted) Navigator.of(context).pop();
+    } catch (error, stack) {
+      _closing = false;
+      if (mounted) {
+        _showMissionFailure(
+          context,
+          error,
+          stack,
+          () => _finishAbort(requestedAt),
+        );
+      }
+    }
   }
 
   /// Görev gövdesi **bir kez** kuruluyor.
@@ -474,16 +601,9 @@ class _MissionHostState extends State<_MissionHost> {
   }
 }
 
-/// Zincir kapandıktan sonra alarmları yeniden kurar.
-///
-/// Native taraf görev bitince zinciri temizliyor; alarmlar AlarmKit'e tek
-/// seferlik kurulduğu için bir sonraki çalışı yeniden kurmak Dart'ın işi.
-/// Bu olmayınca cihazda görülen şey: Güneş alarmının QR görevi tamamlandı,
-/// aynı güne kurulu 08:45 hiç çalmadı.
-///
-/// **Ertelemede çağrılmaz**: `scheduleAlarms` önce her şeyi iptal ediyor,
-/// ertelemenin kurduğu nöbetçiyi de silerdi. Hata yukarı sızmaz — görev
-/// ekranı kapanmalı; yeniden kurma bir sonraki öne gelişte tekrar denenir.
+/// Görev tamamlanınca tarihli planın ufkunu yeniler. Native uzlaştırma diğer
+/// alarmları ve ertelemeleri korur. Yenileme hatası tamamlanan görevi açmaz;
+/// hata kaydedilir ve sonraki öne gelişte plan tekrar uzlaştırılır.
 Future<void> rearmAlarms(BuildContext context) async {
   final appState = context.read<AppState>();
   try {

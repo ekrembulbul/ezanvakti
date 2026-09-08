@@ -35,7 +35,7 @@ class AlarmsSection extends StatelessWidget {
 
   /// Bekleyen görev oturumu; ertelenmiş alarmı ve görev borcunu buradan
   /// okuyoruz.
-  final MissionSession? missionSession;
+  final List<MissionSession> missionSessions;
 
   /// Ertelenmiş görevli alarm kapatılmak istendiğinde çağrılır.
   final void Function(Alarm alarm)? onDisableBlocked;
@@ -69,7 +69,7 @@ class AlarmsSection extends StatelessWidget {
     required this.isPermissionGranted,
     required this.onRequestPermission,
     required this.onToggle,
-    this.missionSession,
+    this.missionSessions = const [],
     this.onDisableBlocked,
     this.nextFireByAlarm = const {},
     this.skips = const {},
@@ -112,8 +112,10 @@ class AlarmsSection extends StatelessWidget {
     bool skipped,
     AppLocalizations l10n,
   ) {
-    if (alarm.isActive && scheduleFailures.containsKey(alarm.id)) {
-      return l10n.reminderScheduleFailed;
+    if (scheduleFailures.containsKey(alarm.id)) {
+      return !alarm.isActive || scheduleFailures[alarm.id] == 'cancel_failed'
+          ? l10n.alarmCancellationPending
+          : l10n.reminderScheduleFailed;
     }
     if (snoozedUntil != null) return SnoozeNotice.label(snoozedUntil, l10n);
     if (skipped) return l10n.reminderSkippedOnce;
@@ -122,6 +124,10 @@ class AlarmsSection extends StatelessWidget {
   }
 
   Widget _alarmRow(BuildContext context, Alarm alarm) {
+    final missionSession = MissionSession.pendingForAlarm(
+      missionSessions,
+      alarm.id,
+    );
     final snoozedUntil = SnoozeNotice.snoozedUntilFor(missionSession, alarm);
     final canDisable = SnoozeNotice.canDisable(missionSession, alarm);
 

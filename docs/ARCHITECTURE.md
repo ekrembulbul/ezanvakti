@@ -83,6 +83,14 @@ NotificationScheduler ──▶ NotificationService (flutter_local_notifications
 - Lokasyon/kaynak değişiminde eski planlar iptal edilip yenileri kurulmalıdır.
 - Android 12+ için exact alarm izni `ExactAlarmService` ile kontrol edilir; izin yoksa inexact zamanlamaya düşülür.
 
+## Veri akışı — sesli alarm ve görev
+
+`AlarmsManager` tanım değişikliklerini `AlarmScheduler` ile aynı kuyruğa alır. Scheduler güncel SQLite tanımlarından protocolVersion=2 istenen planı üretir; toplu iptal yapmaz. iOS `AlarmPlanEngine` + `AlarmKitPlatform`, Android `AlarmReconciler` + `AlarmScheduling` değişmeyen kayıtları ve etkin görev zincirlerini koruyarak planı uygular. Silme/pasifleştirme tüm kökü kapatır.
+
+Görev ve erteleme durumu native depoda tutulur. `MissionCoordinator` tekrar okunabilen snapshot'lardan tek ekran seçer; `AppState` bütün bekleyen oturumları saklar. Komutlar kök id ile birlikte asıl çalma zamanını taşır. iOS arka plan Stop aksiyonu ve uygulamayı açan görev aksiyonu ayrıdır.
+
+Ayrıntılı kontrat ve hata davranışları: [alarm motoru tasarımı](superpowers/specs/2026-09-08-alarm-engine-design.md).
+
 ## Veri akışı — iOS widget
 
 ```

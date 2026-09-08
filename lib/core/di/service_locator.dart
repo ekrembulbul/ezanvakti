@@ -146,7 +146,7 @@ class ServiceLocator {
       appearance: () => themeController.alarmAppearance,
     );
     register<AlarmScheduler>(alarmScheduler);
-    register<AlarmsManager>(AlarmsManager(storage: localStorage));
+    register<AlarmsManager>(AlarmsManager(scheduler: alarmScheduler));
     register<MissionCoordinator>(
       MissionCoordinator(alarmService: alarmService, storage: localStorage),
     );

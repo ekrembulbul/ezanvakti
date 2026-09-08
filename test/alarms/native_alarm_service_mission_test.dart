@@ -1,6 +1,8 @@
 import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/core/models/alarm_mission.dart';
 import 'package:ezanvakti/core/models/alarm_theme.dart';
+import 'package:ezanvakti/core/models/alarm_plan.dart';
+import 'package:ezanvakti/core/models/skipped_occurrence.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/core/theme/day_phase.dart';
@@ -24,6 +26,22 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, (call) async {
           calls.add(call);
+          if (call.method == 'reconcileAlarms') {
+            return <String, String>{'sahur': 'cancel_failed'};
+          }
+          if (call.method == 'getMissionSessions') {
+            return [
+              for (final id in ['sahur', 'work'])
+                {
+                  'alarmId': id,
+                  'firedAt': 1786883326000,
+                  'stoppedAt': 1786883327000,
+                  'snoozeUsed': 1,
+                  'snoozedUntil': 1786883626000,
+                  'pending': true,
+                },
+            ];
+          }
           if (call.method == 'consumeMissionEvents') {
             return [
               {'alarmId': 'sahur', 'stoppedAt': 1786883326000},
@@ -40,6 +58,79 @@ void main() {
   });
 
   final theme = AlarmTheme.forPalette(DayPhase.night, Brightness.dark);
+
+  test(
+    'Versioned plan carries enabled roots and exact skip occurrence; native failures return',
+    () async {
+      final fire = DateTime.fromMillisecondsSinceEpoch(1786883326000);
+      final plan = AlarmPlan(
+        records: [
+          AlarmPlanEntry(
+            id: 'sahur#at1786883326000',
+            alarm: const Alarm(
+              id: 'sahur',
+              kind: AlarmKind.fixed,
+              mission: AlarmMission.qr,
+            ),
+            scheduledTime: fire,
+            theme: theme,
+            chainConfig: const {},
+          ),
+        ],
+        enabledAlarmIds: {'sahur'},
+        skippedOccurrences: {
+          SkippedOccurrence(
+            kind: SkipKind.alarm,
+            reference: 'sahur',
+            fireAt: fire,
+          ),
+        },
+      );
+      expect(await NativeAlarmService().reconcileAlarms(plan), {
+        'sahur': 'cancel_failed',
+      });
+      final args = calls.single.arguments as Map;
+      expect(args['protocolVersion'], 2);
+      expect(args['enabledAlarmIds'], ['sahur']);
+      expect((args['skippedOccurrences'] as List).single, {
+        'alarmId': 'sahur',
+        'fireAtMillis': 1786883326000,
+      });
+    },
+  );
+
+  test(
+    'Repeated native snapshots preserve multiple alarms without consuming events',
+    () async {
+      final service = NativeAlarmService();
+      for (var i = 0; i < 2; i++) {
+        final sessions = await service.getMissionSessions();
+        expect(sessions.map((s) => s.alarmId), ['sahur', 'work']);
+        expect(
+          sessions.every((s) => s.snoozeUsed == 1 && s.snoozedUntil != null),
+          isTrue,
+        );
+      }
+      expect(calls.map((c) => c.method), [
+        'getMissionSessions',
+        'getMissionSessions',
+      ]);
+    },
+  );
+
+  test('Every mission command binds the exact occurrence', () async {
+    final service = NativeAlarmService();
+    final fire = DateTime.fromMillisecondsSinceEpoch(1786883326000);
+    await service.beginMission('sahur', firedAt: fire);
+    await service.snoozeMission('sahur', 5, firedAt: fire);
+    await service.completeMission('sahur', firedAt: fire);
+    await service.abortMission('sahur', firedAt: fire);
+    expect(calls, hasLength(4));
+    for (final call in calls) {
+      expect((call.arguments as Map)['firedAtMillis'], 1786883326000);
+      expect((call.arguments as Map)['id'], 'sahur');
+    }
+  });
 
   for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
     for (final example in [(tune: 0, minute: 0), (tune: 5, minute: 5)]) {

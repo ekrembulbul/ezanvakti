@@ -35,7 +35,7 @@ void main() {
       onToggle: onToggle ?? (a, b) {},
       onEdit: (_) {},
       onDelete: (_) async {},
-      missionSession: session,
+      missionSessions: session == null ? const [] : [session],
       onDisableBlocked: onDisableBlocked,
       nextFireByAlarm: {'ogle': fireAt, 'sahur': fireAt},
       skips: skips,

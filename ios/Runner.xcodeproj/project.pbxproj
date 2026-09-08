@@ -55,6 +55,12 @@
 		829997E19CBDA7275DAB3186 /* MissionChainKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFD52B237E5D440A5C7EE976 /* MissionChainKeys.swift */; };
 		8A5E96BE942E62D6008C7CC8 /* MissionStopPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7892FE509B28D70BAC1532D /* MissionStopPolicyTests.swift */; };
 		15F418BCCFE937096135DC30 /* MissionStopPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C93353C3414D398555C7C49 /* MissionStopPolicy.swift */; };
+		5D720CC2466ADC1F0E652FBF /* AlarmJournal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C0B08C220DD1E8C56A97BB9 /* AlarmJournal.swift */; };
+		5D2D78ECD1D4D2803EA061B7 /* AlarmPlanEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32DB76CD7831DA031B499492 /* AlarmPlanEngine.swift */; };
+		15C962FE7A015DDD86C5F405 /* AlarmKitPlatform.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9A1FA848A00A4A642780324 /* AlarmKitPlatform.swift */; };
+		398E44BAE24D1FE4AD0CA28D /* AlarmPlanEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F230903EEBD768C9B26C4220 /* AlarmPlanEngineTests.swift */; };
+		160CF7B1AC642BD436045B73 /* AlarmJournalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0956F22CBDA467734506C734 /* AlarmJournalTests.swift */; };
+		8A7DD5F7169132CDB9DD735E /* AlarmIntentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B975392D800E8DDF1242932E /* AlarmIntentTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -159,6 +165,12 @@
 		E5A1A00F00000000000000C4 /* WidgetAppearanceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetAppearanceTests.swift; sourceTree = "<group>"; };
 		9C93353C3414D398555C7C49 /* MissionStopPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissionStopPolicy.swift; sourceTree = "<group>"; };
 		E5A10004HEAD0004SWF00004 /* HeadingStreamHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeadingStreamHandler.swift; sourceTree = "<group>"; };
+		6C0B08C220DD1E8C56A97BB9 /* AlarmJournal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmJournal.swift; sourceTree = "<group>"; };
+		32DB76CD7831DA031B499492 /* AlarmPlanEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmPlanEngine.swift; sourceTree = "<group>"; };
+		C9A1FA848A00A4A642780324 /* AlarmKitPlatform.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmKitPlatform.swift; sourceTree = "<group>"; };
+		F230903EEBD768C9B26C4220 /* AlarmPlanEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmPlanEngineTests.swift; sourceTree = "<group>"; };
+		0956F22CBDA467734506C734 /* AlarmJournalTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmJournalTests.swift; sourceTree = "<group>"; };
+		B975392D800E8DDF1242932E /* AlarmIntentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmIntentTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -219,6 +231,9 @@
 		331C8082294A63A400263BE5 /* RunnerTests */ = {
 			isa = PBXGroup;
 			children = (
+				B975392D800E8DDF1242932E /* AlarmIntentTests.swift */,
+				0956F22CBDA467734506C734 /* AlarmJournalTests.swift */,
+				F230903EEBD768C9B26C4220 /* AlarmPlanEngineTests.swift */,
 				A1A200000000000000000004 /* AlarmMissionStoreTests.swift */,
 				B7892FE509B28D70BAC1532D /* MissionStopPolicyTests.swift */,
 				E5A10008TIMETST00000008 /* TimeFormattingTests.swift */,
@@ -314,6 +329,9 @@
 		97C146F01CF9000F007C117D /* Runner */ = {
 			isa = PBXGroup;
 			children = (
+				C9A1FA848A00A4A642780324 /* AlarmKitPlatform.swift */,
+				32DB76CD7831DA031B499492 /* AlarmPlanEngine.swift */,
+				6C0B08C220DD1E8C56A97BB9 /* AlarmJournal.swift */,
 				A1A200000000000000000002 /* AlarmMissionStore.swift */,
 				A1A200000000000000000006 /* AlarmKitHandler.swift */,
 				9C93353C3414D398555C7C49 /* MissionStopPolicy.swift */,
@@ -584,6 +602,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8A7DD5F7169132CDB9DD735E /* AlarmIntentTests.swift in Sources */,
+				160CF7B1AC642BD436045B73 /* AlarmJournalTests.swift in Sources */,
+				398E44BAE24D1FE4AD0CA28D /* AlarmPlanEngineTests.swift in Sources */,
 				8A5E96BE942E62D6008C7CC8 /* MissionStopPolicyTests.swift in Sources */,
 				A1A200000000000000000003 /* AlarmMissionStoreTests.swift in Sources */,
 				E5A10009TIMETST00000009 /* TimeFormattingTests.swift in Sources */,
@@ -611,6 +632,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				15C962FE7A015DDD86C5F405 /* AlarmKitPlatform.swift in Sources */,
+				5D2D78ECD1D4D2803EA061B7 /* AlarmPlanEngine.swift in Sources */,
+				5D720CC2466ADC1F0E652FBF /* AlarmJournal.swift in Sources */,
 				A1A200000000000000000001 /* AlarmMissionStore.swift in Sources */,
 				A1A200000000000000000005 /* AlarmKitHandler.swift in Sources */,
 				15F418BCCFE937096135DC30 /* MissionStopPolicy.swift in Sources */,

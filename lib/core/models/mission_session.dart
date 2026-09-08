@@ -25,6 +25,7 @@ class MissionSession {
   final DateTime? snoozedUntil;
 
   final DateTime? completedAt;
+  final DateTime? chainDeadlineAt;
 
   const MissionSession({
     required this.alarmId,
@@ -35,9 +36,17 @@ class MissionSession {
     this.deadlineAt,
     this.snoozedUntil,
     this.completedAt,
+    this.chainDeadlineAt,
   }) : stoppedAt = stoppedAt ?? firedAt;
 
   bool get isPending => completedAt == null;
+
+  static MissionSession? pendingForAlarm(
+    Iterable<MissionSession> sessions,
+    String alarmId,
+  ) => sessions
+      .where((session) => session.alarmId == alarmId && session.isPending)
+      .firstOrNull;
 
   Map<String, dynamic> toJson() => {
     'alarm_id': alarmId,
@@ -48,6 +57,7 @@ class MissionSession {
     'deadline_at': deadlineAt?.toIso8601String(),
     'snoozed_until': snoozedUntil?.toIso8601String(),
     'completed_at': completedAt?.toIso8601String(),
+    'chain_deadline_at': chainDeadlineAt?.toIso8601String(),
   };
 
   factory MissionSession.fromJson(Map<String, dynamic> json) => MissionSession(
@@ -71,7 +81,40 @@ class MissionSession {
       final String s => DateTime.tryParse(s),
       _ => null,
     },
+    chainDeadlineAt: switch (json['chain_deadline_at']) {
+      final String s => DateTime.tryParse(s),
+      _ => null,
+    },
   );
+
+  factory MissionSession.fromNativeMap(Map<Object?, Object?> value) {
+    DateTime? time(String key, {bool required = false}) {
+      final raw = value[key];
+      if (raw == null && !required) return null;
+      if (raw is! num || !raw.isFinite || raw <= 0) {
+        throw FormatException('Invalid native mission time: $key');
+      }
+      return DateTime.fromMillisecondsSinceEpoch(raw.toInt());
+    }
+
+    final id = value['alarmId'];
+    if (id is! String || id.isEmpty) {
+      throw const FormatException('Missing native alarm id');
+    }
+    return MissionSession(
+      alarmId: id,
+      firedAt: time('firedAt', required: true)!,
+      stoppedAt: time('stoppedAt', required: true)!,
+      snoozeUsed: (value['snoozeUsed'] as num?)?.toInt() ?? 0,
+      rearmCount: (value['rearmCount'] as num?)?.toInt() ?? 0,
+      deadlineAt: time('deadlineAt'),
+      snoozedUntil: time('snoozedUntil'),
+      chainDeadlineAt: time('chainDeadlineAt'),
+      completedAt: value['pending'] == false
+          ? time('stoppedAt', required: true)
+          : null,
+    );
+  }
 
   MissionSession copyWith({
     DateTime? stoppedAt,
@@ -93,5 +136,6 @@ class MissionSession {
         ? null
         : (snoozedUntil ?? this.snoozedUntil),
     completedAt: completedAt ?? this.completedAt,
+    chainDeadlineAt: chainDeadlineAt,
   );
 }

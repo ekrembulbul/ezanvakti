@@ -20,10 +20,9 @@ class ReminderRescheduler {
     required this.alarmScheduler,
   });
 
-  /// Planlamayı yeniden kurar. Vakit verisi ya da konum yoksa `false` döner ve
-  /// **hiçbir şeye dokunmaz** — geçici bir ağ hatası yüzünden kullanıcının
-  /// mevcut bildirimlerini silmemek için. Silinen/kapatılan bir kaydın eski OS
-  /// kopyasını iptal etmek çağıranın işidir.
+  /// Alarmlar her çağrıda uzlaştırılır. Konum veya vakit verisi yoksa bildirim
+  /// planlaması atlanır ve false döner; sabit alarmlar yine planlanır, mevcut
+  /// çıpalı alarm kayıtları alarm planlayıcısının koruma listesinde kalır.
   ///
   /// İki planlama bağımsız tamamlanır; hatalar ayrı ayrı loglanır ve ilk hata
   /// ancak ikisi de tamamlandıktan sonra çağırana iletilir.
@@ -32,17 +31,18 @@ class ReminderRescheduler {
     required List<PrayerTime> prayerTimes,
     required Set<SkippedOccurrence> skips,
   }) async {
-    if (location == null || prayerTimes.isEmpty) return false;
+    final canScheduleNotifications = location != null && prayerTimes.isNotEmpty;
 
     await Future.wait<void>([
-      _runSchedule(
-        'notifications',
-        () => notificationScheduler.scheduleNotifications(
-          location: location,
-          prayerTimes: prayerTimes,
-          skips: skips,
+      if (location != null && prayerTimes.isNotEmpty)
+        _runSchedule(
+          'notifications',
+          () => notificationScheduler.scheduleNotifications(
+            location: location,
+            prayerTimes: prayerTimes,
+            skips: skips,
+          ),
         ),
-      ),
       _runSchedule(
         'alarms',
         () => alarmScheduler.scheduleAlarms(
@@ -51,7 +51,7 @@ class ReminderRescheduler {
         ),
       ),
     ], eagerError: false);
-    return true;
+    return canScheduleNotifications;
   }
 
   Future<void> _runSchedule(

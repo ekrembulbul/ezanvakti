@@ -1,3 +1,4 @@
+import 'fakes/fake_alarm_service.dart';
 import 'package:ezanvakti/core/models/alarm_mission.dart';
 import 'package:ezanvakti/core/models/fasting_log.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart'
@@ -5,7 +6,6 @@ import 'package:ezanvakti/core/models/notification_setting.dart'
 import 'package:ezanvakti/core/models/prayer_log.dart';
 import 'package:ezanvakti/core/models/quiet_window.dart';
 import 'package:ezanvakti/core/models/mission_stop_event.dart';
-import 'package:ezanvakti/core/interfaces/alarm_service.dart';
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
 import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/core/models/alarm_theme.dart';
@@ -14,9 +14,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Belirli bir id'de patlayan, digerlerinde basarili olan servis.
-class _FlakyAlarmService implements AlarmService {
-  final List<String> scheduled = [];
-  int cancelAllCount = 0;
+class _FlakyAlarmService extends FakeAlarmService {
   String? failingId = 'patlayan';
 
   @override
@@ -55,16 +53,20 @@ class _FlakyAlarmService implements AlarmService {
   }) async => const [];
 
   @override
-  Future<void> beginMission(String alarmId) async {}
+  Future<void> beginMission(String alarmId, {DateTime? firedAt}) async {}
 
   @override
-  Future<void> snoozeMission(String alarmId, int minutes) async {}
+  Future<void> snoozeMission(
+    String alarmId,
+    int minutes, {
+    DateTime? firedAt,
+  }) async {}
 
   @override
-  Future<void> completeMission(String alarmId) async {}
+  Future<void> completeMission(String alarmId, {DateTime? firedAt}) async {}
 
   @override
-  Future<void> abortMission(String alarmId) async {}
+  Future<void> abortMission(String alarmId, {DateTime? firedAt}) async {}
 }
 
 class _StorageWithAlarms implements LocalStorage {
@@ -215,7 +217,8 @@ void main() {
 
     await scheduler.scheduleAlarms(prayerTimes: const []);
 
-    expect(service.cancelAllCount, 1);
+    expect(service.cancelAllCount, 0);
+    expect(service.plans, hasLength(1));
   });
 
   test('Pasif alarmlar planlanmaz', () async {

@@ -1,22 +1,24 @@
 import '../../../core/interfaces/local_storage.dart';
 import '../../../core/models/alarm.dart';
+import 'alarm_scheduler.dart';
 
 /// Alarmların depolama (CRUD) giriş noktası. Planlama [AlarmScheduler] ile,
 /// tetikleme native [AlarmService] ile yapılır.
 class AlarmsManager {
-  final LocalStorage storage;
+  final AlarmScheduler scheduler;
+  LocalStorage get storage => scheduler.storage;
 
-  AlarmsManager({required this.storage});
+  AlarmsManager({required this.scheduler});
 
   Future<List<Alarm>> getAlarms() => storage.getAlarms();
 
   /// Ekler veya (aynı id ise) günceller.
-  Future<void> save(Alarm alarm) => storage.saveAlarm(alarm);
+  Future<void> save(Alarm alarm) => scheduler.saveDefinition(alarm);
 
-  Future<void> delete(String id) => storage.deleteAlarm(id);
+  Future<void> delete(String id) => scheduler.deleteDefinition(id);
 
   Future<void> setActive(Alarm alarm, bool isActive) =>
-      storage.saveAlarm(alarm.copyWith(isActive: isActive));
+      scheduler.saveDefinition(alarm.copyWith(isActive: isActive));
 }
 
 /// [source]'un yeni kimlikli kopyası; kopya açık başlar. **Kaydetmez** —

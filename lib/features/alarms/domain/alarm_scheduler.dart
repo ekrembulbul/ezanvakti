@@ -2,6 +2,7 @@ import '../../../core/config/mission_tuning.dart';
 import '../../../core/interfaces/alarm_service.dart';
 import '../../../core/interfaces/local_storage.dart';
 import '../../../core/models/alarm.dart';
+import '../../../core/models/alarm_plan.dart';
 import '../../../core/models/alarm_mission.dart';
 import '../../../core/models/alarm_theme.dart';
 import '../../../core/models/notification_setting.dart' show PrayerType;
@@ -14,9 +15,10 @@ import 'snooze_options.dart';
 import '../../../core/utils/app_logger.dart';
 
 /// Alarmların bir sonraki tetiklenme anını hesaplar ve native [AlarmService] ile
-/// planlar. Tekrarlı alarmlarda yalnızca "bir sonraki" çalış planlanır; alarm
-/// çalıp kapatılınca (veya uygulama açılış/yenilemesinde) yeniden planlanır.
+/// planlar. Sabit alarmlar native haftalık tekrar, vakte bağlı alarmlar
+/// tarihli kayıtlarla kurulur. Yenileme mevcut planla uzlaştırılır.
 class AlarmScheduler {
+  static const _searchDays = 64;
   final AlarmService alarmService;
   final LocalStorage storage;
 
@@ -35,29 +37,68 @@ class AlarmScheduler {
   }) : appearance = appearance ?? (() => AlarmAppearance.fallback),
        _logger = logger ?? AppLogger();
 
-  /// Kayıtlı tüm alarmlar için önce mevcut planları temizler, sonra aktif
-  /// alarmların bir sonraki tetiklenmesini planlar.
+  /// Serializes plan updates and definition changes against the same storage.
+  Future<T> _serial<T>(Future<T> Function() operation) {
+    final previous = _scheduleQueue;
+    final result = previous == null
+        ? Future<T>.sync(operation)
+        : previous.then((_) => operation());
+    _scheduleQueue = result.then<void>(
+      (_) {},
+      onError: (Object error, StackTrace stack) {},
+    );
+    return result;
+  }
+
+  Future<void> saveDefinition(Alarm alarm) => _serial(() async {
+    await storage.saveAlarm(alarm);
+    if (!alarm.isActive) await _cancelRoot(alarm.id);
+  });
+
+  Future<void> deleteDefinition(String id) => _serial(() async {
+    await storage.deleteAlarm(id);
+    await _cancelRoot(id);
+  });
+
+  Future<void> _cancelRoot(String id) async {
+    try {
+      await alarmService.cancelAlarm(id);
+    } catch (error) {
+      final failures = <String, String>{id: 'cancel_failed'};
+      try {
+        failures.addAll(await storage.getAlarmScheduleFailures());
+      } catch (storageError) {
+        _logger.warning(
+          'Alarm status could not be read',
+          storageError.runtimeType,
+        );
+      }
+      failures[id] = 'cancel_failed';
+      await _saveFailures(failures);
+      rethrow;
+    }
+    try {
+      final failures = Map<String, String>.of(
+        await storage.getAlarmScheduleFailures(),
+      );
+      failures.remove(id);
+      await _saveFailures(failures);
+    } catch (error) {
+      _logger.warning(
+        'Alarm status could not be read after cancellation',
+        error.runtimeType,
+      );
+    }
+  }
+
+  /// Native reconciliation preserves unchanged records and active missions.
   Future<void> scheduleAlarms({
     required List<PrayerTime> prayerTimes,
     Set<SkippedOccurrence> skips = const {},
   }) {
     final times = List<PrayerTime>.unmodifiable(prayerTimes);
     final skipped = Set<SkippedOccurrence>.unmodifiable(skips);
-    final previous = _scheduleQueue;
-    final operation = previous == null
-        ? Future<void>.sync(
-            () => _scheduleAlarms(prayerTimes: times, skips: skipped),
-          )
-        : previous.then(
-            (_) => _scheduleAlarms(prayerTimes: times, skips: skipped),
-          );
-    _scheduleQueue = operation.then<void>(
-      (_) {},
-      // Only recover the sequencing tail. The caller receives the original
-      // failing operation below, so its error and stack remain intact.
-      onError: (Object error, StackTrace stack) {},
-    );
-    return operation;
+    return _serial(() => _scheduleAlarms(prayerTimes: times, skips: skipped));
   }
 
   Future<void> _scheduleAlarms({
@@ -65,124 +106,118 @@ class AlarmScheduler {
     required Set<SkippedOccurrence> skips,
   }) async {
     final alarms = await storage.getAlarms();
-
-    // Boş olsa bile önce temizle (silinen alarmlar ortada kalmasın).
-    await alarmService.cancelAllAlarms();
-    if (alarms.isEmpty) return;
-
-    final byDate = <DateTime, PrayerTime>{};
-    for (final pt in prayerTimes) {
-      byDate[_dateKey(pt.date)] = pt;
-    }
-
+    final byDate = {for (final pt in prayerTimes) _dateKey(pt.date): pt};
     final now = DateTime.now();
     final currentAppearance = appearance();
-    final failures = <String, String>{};
-    for (final alarm in alarms) {
-      if (!alarm.isActive) continue;
+    final records = <AlarmPlanEntry>[];
+    final enabled = <String>{};
+    final preserved = <String>{};
+    final preservedPeriods = <AlarmPreservedPeriod>[];
+    for (final alarm in alarms.where((alarm) => alarm.isActive)) {
+      enabled.add(alarm.id);
       if (alarm.kind == AlarmKind.anchored) {
-        await _scheduleAnchoredSeries(
-          alarm: alarm,
-          now: now,
-          byDate: byDate,
-          skips: skips,
-          currentAppearance: currentAppearance,
-          failures: failures,
-        );
-        continue;
+        preservedPeriods.addAll(_missingPrayerPeriods(alarm, byDate, now));
       }
-      final fire = computeNextFire(
+      final repeatDays = alarm.kind == AlarmKind.fixed
+          ? _relativeWeekdaysFor(alarm, skips: skips)
+          : const <int>[];
+      final fires = computeNextFires(
         alarm: alarm,
         now: now,
         prayerTimesByDate: byDate,
         skips: skips,
+        limit: alarm.kind == AlarmKind.anchored || repeatDays.isEmpty ? 7 : 1,
       );
-      if (fire == null) continue;
-      final repeatWeekdays = _relativeWeekdaysFor(
-        alarm,
-        now: now,
-        skips: skips,
-      );
-      // Tek bir alarm planlanamazsa (ör. kullanıcı alarm iznini reddetti)
-      // diğerleri etkilenmemeli. Hata yutulmaz, uyarı olarak loglanır: sessiz
-      // başarısızlık hata ayıklamayı imkânsız kılar.
-      try {
-        await alarmService.scheduleAlarm(
-          repeatWeekdays: repeatWeekdays,
-          id: repeatWeekdays.isEmpty
-              ? '${alarm.id}#at${fire.millisecondsSinceEpoch}'
-              : alarm.id,
-          scheduledTime: fire,
-          label: alarm.label,
-          soundId: alarm.soundId,
-          vibrate: alarm.vibrate,
-          snoozeEnabled: alarm.snoozeEnabled,
-          snoozeMinutes: alarm.snoozeMinutes,
-          theme: themeForFire(fire, byDate, currentAppearance),
-          mission: alarm.mission,
-          missionLevel: alarm.missionLevel,
-          chainConfig: _chainConfig(alarm, fire),
+      if (fires.isEmpty) {
+        if (alarm.kind == AlarmKind.anchored) preserved.add(alarm.id);
+        continue;
+      }
+      for (final (index, fire) in fires.indexed) {
+        records.add(
+          AlarmPlanEntry(
+            id: repeatDays.isEmpty
+                ? '${alarm.id}#at${fire.millisecondsSinceEpoch}'
+                : alarm.id,
+            alarm: alarm,
+            scheduledTime: fire,
+            theme: themeForFire(fire, byDate, currentAppearance),
+            repeatWeekdays: repeatDays,
+            isFirstOccurrence: index == 0,
+            chainConfig: _chainConfig(alarm, fire, includeLadder: index == 0),
+          ),
         );
-      } catch (e) {
-        // Log; kullanıcıya gösterilmiyor, çevrilmiyor.
-        _logger.warning('Alarm scheduling failed (id: ${alarm.id})', e);
-        failures[alarm.id] = _shortMessage(e);
       }
     }
+    records.sort((left, right) {
+      if (left.isFirstOccurrence != right.isFirstOccurrence) {
+        return left.isFirstOccurrence ? -1 : 1;
+      }
+      final time = left.scheduledTime.compareTo(right.scheduledTime);
+      return time != 0 ? time : left.id.compareTo(right.id);
+    });
+    try {
+      final failures = await alarmService.reconcileAlarms(
+        AlarmPlan(
+          records: records,
+          enabledAlarmIds: enabled,
+          preserveAlarmIds: preserved,
+          preservedPeriods: preservedPeriods,
+          skippedOccurrences: skips
+              .where(
+                (skip) =>
+                    skip.kind == SkipKind.alarm &&
+                    enabled.contains(skip.reference),
+              )
+              .toSet(),
+        ),
+      );
+      await _saveFailures(failures);
+    } catch (error) {
+      await _saveFailures({
+        for (final alarm in alarms) alarm.id: 'reconcile_failed',
+        if (alarms.isEmpty) '_plan': 'reconcile_failed',
+      });
+      rethrow;
+    }
+  }
 
-    // Kalıcı kayıt arayüz içindir; yazılamaması planlamayı düşürmemeli
-    // (testlerdeki kısmi sahte depolar da desteklemeyebilir).
+  Future<void> _saveFailures(Map<String, String> failures) async {
     try {
       await storage.saveAlarmScheduleFailures(failures);
-    } catch (e) {
-      _logger.warning('Alarm hata kaydi yazilamadi', e);
+    } catch (error) {
+      _logger.warning('Alarm status could not be saved', error.runtimeType);
     }
   }
 
-  /// Satırda gösterilecek kadar kısa hata özeti.
-  static String _shortMessage(Object error) {
-    final text = error.toString();
-    return text.length <= 120 ? text : text.substring(0, 120);
-  }
-
-  /// Çıpalı çalışlar kararlı tarih kimlikleriyle kurulur. Her kayıt ana alarm
-  /// kimliğini ve görevi taşır; günler ilerleyince başka çalışın kimliğini almaz.
-  Future<void> _scheduleAnchoredSeries({
-    required Alarm alarm,
-    required DateTime now,
-    required Map<DateTime, PrayerTime> byDate,
-    required Set<SkippedOccurrence> skips,
-    required AlarmAppearance currentAppearance,
-    required Map<String, String> failures,
-  }) async {
-    final fires = computeNextFires(
-      alarm: alarm,
-      now: now,
-      prayerTimesByDate: byDate,
-      skips: skips,
-    );
-    for (var i = 0; i < fires.length; i++) {
-      final fire = fires[i];
-      final primary = i == 0;
-      try {
-        await alarmService.scheduleAlarm(
-          id: '${alarm.id}#at${fire.millisecondsSinceEpoch}',
-          scheduledTime: fire,
-          label: alarm.label,
-          soundId: alarm.soundId,
-          vibrate: alarm.vibrate,
-          snoozeEnabled: alarm.snoozeEnabled,
-          snoozeMinutes: alarm.snoozeMinutes,
-          theme: themeForFire(fire, byDate, currentAppearance),
-          mission: alarm.mission,
-          missionLevel: alarm.missionLevel,
-          chainConfig: _chainConfig(alarm, fire, includeLadder: primary),
+  List<AlarmPreservedPeriod> _missingPrayerPeriods(
+    Alarm alarm,
+    Map<DateTime, PrayerTime> available,
+    DateTime now,
+  ) {
+    final periods = <AlarmPreservedPeriod>[];
+    final offset = Duration(minutes: alarm.offsetMinutes);
+    for (var i = 0; i < _searchDays; i++) {
+      final day = DateTime(now.year, now.month, now.day + i);
+      if (!alarm.firesOnWeekday(day.weekday) || available.containsKey(day)) {
+        continue;
+      }
+      final from = day.add(offset);
+      final until = DateTime(day.year, day.month, day.day + 1).add(offset);
+      if (!until.isAfter(now)) continue;
+      final previous = periods.lastOrNull;
+      if (previous?.until == from) {
+        periods[periods.length - 1] = AlarmPreservedPeriod(
+          alarmId: alarm.id,
+          from: previous!.from,
+          until: until,
         );
-      } catch (e) {
-        _logger.warning('Alarm scheduling failed (id: ${alarm.id}, day $i)', e);
-        failures[alarm.id] = _shortMessage(e);
+      } else {
+        periods.add(
+          AlarmPreservedPeriod(alarmId: alarm.id, from: from, until: until),
+        );
       }
     }
+    return periods;
   }
 
   Map<String, dynamic> _chainConfig(
@@ -194,6 +229,11 @@ class AlarmScheduler {
     'fireAtMillis': fire.millisecondsSinceEpoch,
     if (alarm.kind == AlarmKind.fixed) 'repeatHour': alarm.hour,
     if (alarm.kind == AlarmKind.fixed) 'repeatMinute': alarm.minute,
+    if (alarm.kind == AlarmKind.fixed)
+      'templateWeekdays':
+          (alarm.weekdays.isEmpty ? {1, 2, 3, 4, 5, 6, 7} : alarm.weekdays)
+              .toList()
+            ..sort(),
     'graceSeconds': MissionTuning.graceSeconds,
     'maxRearms': MissionTuning.maxRearms,
     'maxSnoozes': effectiveSnoozeLimit(alarm),
@@ -232,29 +272,19 @@ class AlarmScheduler {
     );
   }
 
-  /// Sabit saatli tekrarlı alarm için native haftalık tekrar günleri
-  /// (1=Pazartesi..7=Pazar, sıralı). Çıpalı alarm relative olamaz (saat her
-  /// gün kayar) ve "yalnızca bu sefer atla" devredeyken native tekrar o
-  /// örneği atlayamayacağı için tek seferlik yola düşülür — atlanan gün
-  /// geçince bir sonraki planlamada tekrar native tekrara döner.
+  /// iOS cannot suppress a single delivery of a weekly OS record. While a
+  /// skip is pending it uses dated records and restores the weekly template
+  /// after the next stop. Android keeps the template and filters its receiver.
   static List<int> _relativeWeekdaysFor(
     Alarm alarm, {
-    required DateTime now,
     required Set<SkippedOccurrence> skips,
   }) {
-    if (alarm.kind != AlarmKind.fixed) return const [];
-    final withSkips = computeNextFire(
-      alarm: alarm,
-      now: now,
-      prayerTimesByDate: const {},
-      skips: skips,
-    );
-    final withoutSkips = computeNextFire(
-      alarm: alarm,
-      now: now,
-      prayerTimesByDate: const {},
-    );
-    if (withSkips == null || withSkips != withoutSkips) return const [];
+    if (alarm.kind != AlarmKind.fixed ||
+        skips.any(
+          (skip) => skip.kind == SkipKind.alarm && skip.reference == alarm.id,
+        )) {
+      return const [];
+    }
     final days = alarm.weekdays.isEmpty
         ? const {1, 2, 3, 4, 5, 6, 7}
         : alarm.weekdays;
@@ -268,7 +298,7 @@ class AlarmScheduler {
     required Alarm alarm,
     required DateTime now,
     required Map<DateTime, PrayerTime> prayerTimesByDate,
-    int searchDays = 8,
+    int searchDays = _searchDays,
     Set<SkippedOccurrence> skips = const {},
   }) {
     final fires = computeNextFires(
@@ -288,7 +318,7 @@ class AlarmScheduler {
     required Alarm alarm,
     required DateTime now,
     required Map<DateTime, PrayerTime> prayerTimesByDate,
-    int searchDays = 8,
+    int searchDays = _searchDays,
     int limit = 7,
     Set<SkippedOccurrence> skips = const {},
   }) {

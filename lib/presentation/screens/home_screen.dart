@@ -50,7 +50,7 @@ class HomeScreen extends StatefulWidget {
   final Set<SkippedOccurrence> skips;
 
   /// Bekleyen görev oturumu; ertelenmiş alarm bilgisi için.
-  final MissionSession? missionSession;
+  final List<MissionSession> missionSessions;
   final void Function(SkippedOccurrence occurrence, bool skipped)?
   onSkipChanged;
 
@@ -63,7 +63,7 @@ class HomeScreen extends StatefulWidget {
   final String? errorMessage;
 
   const HomeScreen({
-    this.missionSession,
+    this.missionSessions = const [],
     this.ramadanActive = false,
     super.key,
     required this.location,
@@ -220,7 +220,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 24),
           UpcomingCard(
-            missionSession: widget.missionSession,
+            missionSessions: widget.missionSessions,
             now: now,
             notification: resolveNextNotification(
               settings: widget.notificationSettings,
@@ -231,6 +231,7 @@ class _HomeScreenState extends State<HomeScreen> {
               alarms: widget.alarms,
               prayerTimes: widget.prayerTimes,
               now: now,
+              missionSessions: widget.missionSessions,
             ),
             skips: widget.skips,
             onSkipChanged: widget.onSkipChanged,

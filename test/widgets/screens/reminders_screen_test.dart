@@ -30,7 +30,7 @@ import '../../support/fakes.dart';
 import '../../alarms/fakes/fake_alarm_service.dart';
 import '../theme_harness.dart';
 
-class _StubAlarmService implements AlarmService {
+class _StubAlarmService extends FakeAlarmService {
   @override
   Future<bool> isSupported() async => true;
 
@@ -55,16 +55,20 @@ class _StubAlarmService implements AlarmService {
   }) async => const [];
 
   @override
-  Future<void> beginMission(String alarmId) async {}
+  Future<void> beginMission(String alarmId, {DateTime? firedAt}) async {}
 
   @override
-  Future<void> snoozeMission(String alarmId, int minutes) async {}
+  Future<void> snoozeMission(
+    String alarmId,
+    int minutes, {
+    DateTime? firedAt,
+  }) async {}
 
   @override
-  Future<void> completeMission(String alarmId) async {}
+  Future<void> completeMission(String alarmId, {DateTime? firedAt}) async {}
 
   @override
-  Future<void> abortMission(String alarmId) async {}
+  Future<void> abortMission(String alarmId, {DateTime? firedAt}) async {}
 }
 
 /// Planlamayı askıda tutan bildirim servisi.
@@ -85,6 +89,17 @@ class _FailingNotificationService extends FakeNotificationService {
   @override
   Future<void> cancelAllNotifications() async =>
       throw StateError('Notification service unavailable');
+}
+
+class _FailingCancellationService extends FakeAlarmService {
+  bool fails = true;
+  int attempts = 0;
+  @override
+  Future<void> cancelAlarm(String id) async {
+    attempts++;
+    if (fails) throw StateError('Native cancellation failed');
+    await super.cancelAlarm(id);
+  }
 }
 
 class _FailingAlarmService extends FakeAlarmService {
@@ -124,12 +139,16 @@ void main() {
     final notificationService = notifications ?? FakeNotificationService();
     final locator = ServiceLocator();
     final alarmService = alarms ?? _StubAlarmService();
+    final alarmScheduler = AlarmScheduler(
+      alarmService: alarmService,
+      storage: storage,
+    );
 
     locator.register<LocalStorage>(storage);
     locator.register<NotificationService>(notificationService);
     locator.register<ExactAlarmService>(ExactAlarmService());
     locator.register<AlarmService>(alarmService);
-    locator.register<AlarmsManager>(AlarmsManager(storage: storage));
+    locator.register<AlarmsManager>(AlarmsManager(scheduler: alarmScheduler));
     locator.register<SkipManager>(SkipManager(storage: storage));
     locator.register<NotificationSettingsManager>(
       NotificationSettingsManager(storage: storage),
@@ -140,10 +159,7 @@ void main() {
           notificationService: notificationService,
           storage: storage,
         ),
-        alarmScheduler: AlarmScheduler(
-          alarmService: alarmService,
-          storage: storage,
-        ),
+        alarmScheduler: alarmScheduler,
       ),
     );
   }
@@ -353,6 +369,29 @@ void main() {
           'Mutasyon sonrasi AppState tazelenmezse ana ekrandaki SIRADAKI '
           'karti bayat alarm gosterir',
     );
+  });
+
+  testWidgets('Native deletion failure stays recoverable through retry', (
+    tester,
+  ) async {
+    final native = _FailingCancellationService();
+    register(alarms: native);
+    await storage.saveAlarm(sahur);
+    appState.setAlarms(const [sahur]);
+    await pump(tester);
+    await tester.tap(find.text('Alarmlar'));
+    await tester.pumpAndSettle();
+    await tester.drag(find.textContaining('06:30'), const Offset(-400, 0));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(native.attempts, 1);
+    expect(find.byType(SnackBarAction), findsOneWidget);
+    native.fails = false;
+    await tester.tap(find.byType(SnackBarAction));
+    await tester.pumpAndSettle();
+    expect(native.attempts, 2);
+    expect(native.cancelled, contains(sahur.id));
+    expect(await storage.getAlarms(), isEmpty);
   });
 
   testWidgets(

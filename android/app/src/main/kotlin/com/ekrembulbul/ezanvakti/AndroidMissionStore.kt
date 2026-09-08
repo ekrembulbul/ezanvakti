@@ -10,7 +10,7 @@ class AndroidMissionStore(context: Context) : MissionStateStorage {
         val raw = preferences.getString("state", null) ?: return MissionState()
         return try { MissionState.fromJson(raw) } catch (error: Exception) {
             Log.e("EzanAlarm", "event=mission_state_decode_failed type=" + error.javaClass.simpleName)
-            MissionState()
+            throw IllegalStateException("Mission state is unreadable", error)
         }
     }
 
