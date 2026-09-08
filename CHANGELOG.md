@@ -4,6 +4,21 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.18.0] - 2026-09-08
+
+### Değişti
+- **Kilit ekranındaki görev aksiyonu ayrıldı.** “Durdur” görev durumunu arka planda kaydeder; “Görevi aç” uygulamayı açar. Görevsiz, ertelemeli alarmlarda “Alarmı aç” kullanılır.
+- Alarm planı yenilenirken değişmeyen kayıtlar korunur. Yakın ana alarmlar, ileri günlerden ve beş dakikalık yedeklerden önce planlanır.
+- Kalıcı native alarm günlüğü, planlama ve görev hatalarını sınırlı bir geçmişte tutar.
+
+### Düzeltildi
+- Kilitli iPhone'da uygulama açılamadığı için görev durumunun kaybolduğu durdurma akışı düzeltildi.
+- Süresi geçmiş ertelemeden sonra alarmın geçmiş bir saate tekrar kurulması engellendi.
+- Silinen veya kapatılan alarmın ana, yedek ve erteleme kayıtlarının temizlenmesi; gecikmiş işlemlerin alarmı geri açmaması sağlandı.
+- Yeni görev alarmı kurulamazsa mevcut yedekler korunur. Temizlik hatası sonrası yeniden deneme ek erteleme hakkı tüketmez.
+- Birden fazla alarmın görev, etiket ve erteleme durumları ayrı tutulur; eski görev ekranı yeni günün alarmını kapatamaz.
+- Vakit verisi kısmi geldiğinde eksik günlerin mevcut alarm kayıtları korunur; tek seferlik atlama ve haftalık tekrar devamlılığı düzeltildi.
+
 ## [0.17.0] - 2026-09-08
 
 ### Değişti
