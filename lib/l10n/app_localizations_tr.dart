@@ -515,6 +515,13 @@ class AppLocalizationsTr extends AppLocalizations {
   String get alarmVibrate => 'Titreşim';
 
   @override
+  String get alarmFadeIn => 'Ses yavaşça yükselsin';
+
+  @override
+  String get alarmFadeInHint =>
+      'Alarm kısık başlar, birkaç saniyede tam sese çıkar.';
+
+  @override
   String get alarmSnooze => 'Ertele (snooze)';
 
   @override

@@ -1,3 +1,4 @@
+import 'dart:io';
 import '../widgets/missions/qr_payload_field.dart';
 import '../../l10n/l10n_extensions.dart';
 import '../utils/time_format_context.dart';
@@ -29,7 +30,15 @@ import '../widgets/common/sliding_segment.dart';
 
 class AlarmEditScreen extends StatefulWidget {
   final Alarm? alarm;
-  const AlarmEditScreen({super.key, this.alarm});
+
+  /// Sesin kademeli yükselmesi yalnızca Android'de uygulanabiliyor: iOS'ta
+  /// alarm AlarmKit'in elinde ve ses seviyesine erişim yok. Yarım çalışan bir
+  /// ayar sunmak yerine o platformda hiç gösterilmiyor (bkz. docs/adr/0003).
+  /// Parametre testlerin platformu sabitlemesi için.
+  final bool fadeInSupported;
+
+  AlarmEditScreen({super.key, this.alarm, bool? fadeInSupported})
+    : fadeInSupported = fadeInSupported ?? Platform.isAndroid;
 
   @override
   State<AlarmEditScreen> createState() => _AlarmEditScreenState();
@@ -44,6 +53,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   late Set<int> _weekdays;
   late String _soundId;
   late bool _vibrate;
+  late bool _fadeIn;
   late bool _snoozeEnabled;
   late int _snoozeMinutes;
   late AlarmMission _mission;
@@ -76,6 +86,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
     _weekdays = wd.isEmpty ? {1, 2, 3, 4, 5, 6, 7} : {...wd};
     _soundId = a?.soundId ?? 'default';
     _vibrate = a?.vibrate ?? true;
+    _fadeIn = a?.fadeIn ?? false;
     _snoozeEnabled = a?.snoozeEnabled ?? true;
     _snoozeMinutes = a?.snoozeMinutes ?? 5;
     _mission = a?.mission ?? AlarmMission.none;
@@ -125,6 +136,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
       weekdays: weekdaysToSave,
       soundId: _soundId,
       vibrate: _vibrate,
+      fadeIn: _fadeIn,
       snoozeEnabled: _snoozeEnabled,
       snoozeMinutes: _snoozeMinutes,
       mission: _mission,
@@ -205,6 +217,22 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
               _vibrate,
               (v) => setState(() => _vibrate = v),
             ),
+            if (widget.fadeInSupported) ...[
+              _switchTile(
+                context.l10n.alarmFadeIn,
+                _fadeIn,
+                (v) => setState(() => _fadeIn = v),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(
+                  context.l10n.alarmFadeInHint,
+                  style: AppTypography.hint.copyWith(
+                    color: tokens.textTertiary,
+                  ),
+                ),
+              ),
+            ],
             _switchTile(context.l10n.alarmSnooze, _snoozeEnabled, (v) {
               setState(() => _snoozeEnabled = v);
             }),

@@ -35,6 +35,7 @@ iOS alert'inde bir **ikincil düğme** bulunur (`AlarmKitPlatform.swift:31-38`).
 |---|---|---|
 | Ses çalan taraf | Uygulama (`MediaPlayer`) | Sistem (`AlarmKit`) |
 | Ses akışı kontrolü | Uygulamada | Yok |
+| Sesin kademeli yükselmesi | Var (alarm başına ayar) | Yok |
 | Sessiz pencere | Var | Yok (commit `2cfc4b8`) |
 | Asgari sürüm kısıtı | — | `iOS 26.1` (`guard #available`) |
 | Tam ekran sunum | `AlarmRingActivity` | Sistem alert'i |
@@ -50,7 +51,8 @@ iOS alert'inde bir **ikincil düğme** bulunur (`AlarmKitPlatform.swift:31-38`).
 ### Bedeller
 
 - Her alarm özelliği iki kez tasarlanmak zorundadır ve bazıları tek platformda kalır.
-- iOS'ta ses akışına erişim olmadığı için **ses seviyesi ve ses geçişleri üzerinde kontrol yoktur.** Şu anda hiçbir platformda ses seviyesi kontrolü uygulanmamıştır; Android'de mümkün, iOS'ta `AlarmKit` altında değildir.
+- iOS'ta ses akışına erişim olmadığı için **ses seviyesi ve ses geçişleri üzerinde kontrol yoktur.** Apple'ın DTS mühendisi bunu forumda doğruluyor: *"AlarmKit does not directly support volume customization beyond utilizing the system ringer volume... there is no API in AlarmKit that allows for volume modification neither."* Önerdikleri geçici çözüm (local notification + `AVAudioPlayer`) bu ADR'de zaten elenen yaklaşımdır — alarmın çalma garantisini yok eder.
+- Bunun somut sonucu: sesin kademeli yükselmesi (fade-in) yalnızca Android'de sunulur. Ayar iOS'ta kullanıcıya hiç gösterilmez; `Alarm.fadeIn` alanı payload'da taşınır ama iOS tarafı okumaz.
 - `iOS 26.1` altındaki cihazlarda alarm motoru `EngineError.unavailable` fırlatır.
 
 ## Değerlendirilen alternatifler
@@ -68,4 +70,6 @@ iOS alert'inde bir **ikincil düğme** bulunur (`AlarmKitPlatform.swift:31-38`).
 - `android/app/src/main/kotlin/com/ekrembulbul/ezanvakti/AlarmRingService.kt:133-186` — ses döngüsü, URI kararı, titreşim
 - `android/app/src/main/kotlin/com/ekrembulbul/ezanvakti/AlarmRingActivity.kt` — tam ekran çalar ekranı
 - `lib/core/interfaces/alarm_service.dart` — ortak Dart arayüzü
+- `android/app/src/main/kotlin/com/ekrembulbul/ezanvakti/AlarmRingService.kt` — `startFadeIn()`, `MediaPlayer.setVolume` ile ramp
 - Commit `2cfc4b8` — sessiz pencerelerin yalnızca Android'de yayınlanması
+- [Apple Developer Forums 813519](https://developer.apple.com/forums/thread/813519) — AlarmKit'te ses seviyesi kontrolü olmadığına dair DTS yanıtı

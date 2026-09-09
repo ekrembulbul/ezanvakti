@@ -37,7 +37,7 @@ class SqliteStorage implements LocalStorage {
 
     return await openDatabase(
       path,
-      version: 13,
+      version: 14,
       onCreate: _onCreate,
       onUpgrade: onUpgrade,
     );
@@ -172,6 +172,7 @@ class SqliteStorage implements LocalStorage {
         weekdays TEXT NOT NULL DEFAULT '',
         sound_id TEXT NOT NULL DEFAULT 'default',
         vibrate INTEGER NOT NULL DEFAULT 1,
+        fade_in INTEGER NOT NULL DEFAULT 0,
         snooze_enabled INTEGER NOT NULL DEFAULT 1,
         snooze_minutes INTEGER NOT NULL DEFAULT 5,
         mission TEXT NOT NULL DEFAULT 'none',
@@ -315,6 +316,13 @@ class SqliteStorage implements LocalStorage {
     }
     if (oldVersion < 13) {
       await _createFastingTable(db);
+    }
+    if (oldVersion < 14) {
+      // Sesin kademeli yükselmesi. Mevcut alarmlar kapalı başlar: sessiz bir
+      // davranış değişikliği alarm kaçırmaya yol açabilirdi.
+      await db.execute(
+        'ALTER TABLE alarms ADD COLUMN fade_in INTEGER NOT NULL DEFAULT 0',
+      );
     }
   }
 

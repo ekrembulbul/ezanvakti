@@ -152,6 +152,8 @@
   "alarmSoundPick": "Pick a sound from device…",
   "alarmSoundVolumeNote": "Alarms play at the Ringer & Alerts volume.",
   "alarmVibrate": "Vibration",
+  "alarmFadeIn": "Fade the sound in",
+  "alarmFadeInHint": "The alarm starts quiet and reaches full volume in a few seconds.",
   "alarmSnooze": "Snooze",
   "alarmSnoozeCount": "Snooze limit",
   "alarmSnoozeUnlimited": "Unlimited",

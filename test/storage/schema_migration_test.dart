@@ -95,7 +95,7 @@ void main() {
       'sound_id': 'adhan',
       'created_at': DateTime(2026).toIso8601String(),
     });
-    await storage.onUpgrade(db, oldVersion, 13);
+    await storage.onUpgrade(db, oldVersion, 14);
     return db;
   }
 
@@ -131,6 +131,29 @@ void main() {
 
     final rows = await db.query('alarms');
     expect(rows.single['sound_id'], 'default');
+  });
+
+  test('v8 -> v14 alarms tablosuna fade_in kolonu ekler', () async {
+    final db = await upgradeFrom(8);
+    addTearDown(db.close);
+
+    final columns = await db.rawQuery("PRAGMA table_info('alarms')");
+    final fadeIn = columns.where((c) => c['name'] == 'fade_in');
+    expect(fadeIn, hasLength(1), reason: 'v14 kolonu olusmali');
+    expect(
+      fadeIn.single['dflt_value'],
+      '0',
+      reason: 'mevcut alarmlar kapali baslamali; davranis degismemeli',
+    );
+  });
+
+  test('v14 yukseltmesi mevcut alarmi kaybetmez', () async {
+    final db = await upgradeFrom(8);
+    addTearDown(db.close);
+
+    final rows = await db.query('alarms');
+    expect(rows, hasLength(1));
+    expect(rows.single['fade_in'], 0);
   });
 
   test('yukseltme bloklari artan sirada duruyor', () {

@@ -1015,6 +1015,18 @@ abstract class AppLocalizations {
   /// Ayar
   ///
   /// In tr, this message translates to:
+  /// **'Ses yavaşça yükselsin'**
+  String get alarmFadeIn;
+
+  /// Ayar aciklamasi
+  ///
+  /// In tr, this message translates to:
+  /// **'Alarm kısık başlar, birkaç saniyede tam sese çıkar.'**
+  String get alarmFadeInHint;
+
+  /// Ayar
+  ///
+  /// In tr, this message translates to:
   /// **'Ertele (snooze)'**
   String get alarmSnooze;
 

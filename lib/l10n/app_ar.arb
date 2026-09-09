@@ -152,6 +152,8 @@
   "alarmSoundPick": "اختر صوتًا من الجهاز…",
   "alarmSoundVolumeNote": "يعمل المنبه بمستوى صوت الرنين والتنبيهات.",
   "alarmVibrate": "الاهتزاز",
+  "alarmFadeIn": "رفع الصوت تدريجيًا",
+  "alarmFadeInHint": "يبدأ المنبه منخفضًا ويصل إلى الصوت الكامل خلال ثوانٍ.",
   "alarmSnooze": "التأجيل",
   "alarmSnoozeCount": "عدد مرات التأجيل",
   "alarmSnoozeUnlimited": "غير محدود",

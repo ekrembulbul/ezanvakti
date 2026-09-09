@@ -684,6 +684,14 @@
   "@alarmVibrate": {
     "description": "Ayar"
   },
+  "alarmFadeIn": "Ses yavaşça yükselsin",
+  "@alarmFadeIn": {
+    "description": "Ayar"
+  },
+  "alarmFadeInHint": "Alarm kısık başlar, birkaç saniyede tam sese çıkar.",
+  "@alarmFadeInHint": {
+    "description": "Ayar aciklamasi"
+  },
   "alarmSnooze": "Ertele (snooze)",
   "@alarmSnooze": {
     "description": "Ayar"

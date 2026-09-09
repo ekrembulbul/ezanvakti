@@ -14,6 +14,8 @@ data class AlarmArgs(
     val label: String,
     val soundId: String,
     val vibrate: Boolean,
+    /** Ses düşük seviyeden başlayıp kısa sürede tam seviyeye çıksın mı? */
+    val fadeIn: Boolean = false,
     val snoozeEnabled: Boolean,
     val snoozeMinutes: Int,
     val theme: AlarmTheme = AlarmTheme.FALLBACK,
@@ -54,6 +56,7 @@ data class AlarmArgs(
         put("label", label)
         put("soundId", soundId)
         put("vibrate", vibrate)
+        put("fadeIn", fadeIn)
         put("snoozeEnabled", snoozeEnabled)
         put("snoozeMinutes", snoozeMinutes)
         put("theme", theme.toJson())
@@ -84,6 +87,7 @@ data class AlarmArgs(
                 label = values["label"] as? String ?: "",
                 soundId = values["soundId"] as? String ?: "default",
                 vibrate = values["vibrate"] as? Boolean ?: true,
+                fadeIn = values["fadeIn"] as? Boolean ?: false,
                 snoozeEnabled = values["snoozeEnabled"] as? Boolean ?: false,
                 snoozeMinutes = (values["snoozeMinutes"] as? Number)?.toInt() ?: 5,
                 theme = AlarmTheme.fromMap(values["theme"] as? Map<*, *>),
@@ -113,6 +117,7 @@ data class AlarmArgs(
             label = intent.getStringExtra("label") ?: "",
             soundId = intent.getStringExtra("soundId") ?: "adhan",
             vibrate = intent.getBooleanExtra("vibrate", true),
+            fadeIn = intent.getBooleanExtra("fadeIn", false),
             snoozeEnabled = intent.getBooleanExtra("snoozeEnabled", true),
             snoozeMinutes = intent.getIntExtra("snoozeMinutes", 5),
             theme = AlarmTheme.fromJson(intent.getStringExtra("theme")),
@@ -127,6 +132,7 @@ data class AlarmArgs(
                 label = o.optString("label", ""),
                 soundId = o.optString("soundId", "adhan"),
                 vibrate = o.optBoolean("vibrate", true),
+                fadeIn = o.optBoolean("fadeIn", false),
                 snoozeEnabled = o.optBoolean("snoozeEnabled", true),
                 snoozeMinutes = o.optInt("snoozeMinutes", 5),
                 theme = AlarmTheme.fromJson(o.optString("theme")),

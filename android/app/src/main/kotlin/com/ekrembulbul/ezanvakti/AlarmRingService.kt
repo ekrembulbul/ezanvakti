@@ -12,6 +12,8 @@ import android.media.MediaPlayer
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.os.IBinder
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -29,6 +31,12 @@ class AlarmRingService : Service() {
         const val ACTION_CANCEL = "com.ekrembulbul.ezanvakti.RING_CANCEL"
         const val CHANNEL_ID = "ezan_vakti_alarm_channel"
         const val NOTIF_ID = 9911
+
+        /** Ses yükselişi: bu süre boyunca START_VOLUME'dan tam sese çıkar. */
+        const val FADE_IN_MILLIS = 5_000L
+        const val FADE_IN_STEP_MILLIS = 100L
+        /** Sıfırdan değil: sessiz başlayan alarm ilk saniyelerde hiç duyulmayabilir. */
+        const val FADE_IN_START_VOLUME = 0.2f
         @Volatile private var ringingAlarmId: String? = null
 
         fun cancelForAlarm(context: Context, alarmId: String, firedAtMillis: Long? = null) {
@@ -42,6 +50,8 @@ class AlarmRingService : Service() {
     }
 
     private var player: MediaPlayer? = null
+    private val fadeHandler = Handler(Looper.getMainLooper())
+    private var fadeStartedAt = 0L
     private var vibrator: Vibrator? = null
     private var current: AlarmArgs? = null
 
@@ -145,8 +155,10 @@ class AlarmRingService : Service() {
                 setDataSource(this@AlarmRingService, uri)
                 isLooping = true
                 prepare()
+                if (args.fadeIn) setVolume(FADE_IN_START_VOLUME, FADE_IN_START_VOLUME)
                 start()
             }
+            if (args.fadeIn) startFadeIn(playback)
             Log.i("EzanAlarm", "event=audio_started id=" + args.id + " audio_ms=" + System.currentTimeMillis())
         } catch (error: Exception) {
             // Ses çalınamazsa alarm yine de görünür kalır.
@@ -172,6 +184,34 @@ class AlarmRingService : Service() {
             ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
     }
 
+    /**
+     * Sesi [FADE_IN_START_VOLUME] seviyesinden tam sese çıkarır.
+     *
+     * `setVolume` uygulama içi bir çarpandır: kullanıcının sistem alarm ses
+     * seviyesine dokunmaz, yalnızca onun içinde bir oran uygular.
+     */
+    private fun startFadeIn(playback: MediaPlayer) {
+        fadeStartedAt = System.currentTimeMillis()
+        val startedAt = fadeStartedAt
+        val step = object : Runnable {
+            override fun run() {
+                // Alarm durduysa ya da yeni bir çalış başladıysa bu ramp ölür.
+                if (player !== playback || fadeStartedAt != startedAt) return
+                val elapsed = System.currentTimeMillis() - startedAt
+                val progress = (elapsed.toFloat() / FADE_IN_MILLIS).coerceIn(0f, 1f)
+                val volume = FADE_IN_START_VOLUME + (1f - FADE_IN_START_VOLUME) * progress
+                try {
+                    playback.setVolume(volume, volume)
+                } catch (error: IllegalStateException) {
+                    // Oynatıcı arada serbest bırakılmış olabilir; ramp burada biter.
+                    return
+                }
+                if (progress < 1f) fadeHandler.postDelayed(this, FADE_IN_STEP_MILLIS)
+            }
+        }
+        fadeHandler.post(step)
+    }
+
     private fun startVibrate() {
         @Suppress("DEPRECATION")
         val vib = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator ?: return
@@ -186,6 +226,8 @@ class AlarmRingService : Service() {
     }
 
     private fun stopRinging() {
+        fadeStartedAt = 0L
+        fadeHandler.removeCallbacksAndMessages(null)
         player?.let {
             try {
                 if (it.isPlaying) it.stop()

@@ -274,6 +274,40 @@ void main() {
       expect(fire, DateTime(2026, 8, 6, 6, 30));
     });
   });
+
+  group('Alarm.fadeIn', () {
+    const base = Alarm(id: 'a1', kind: AlarmKind.fixed, hour: 6, minute: 30);
+
+    test('varsayilan kapali: mevcut alarmlarin davranisi degismez', () {
+      expect(base.fadeIn, isFalse);
+    });
+
+    test('toMap/fromMap round-trip korur', () {
+      const alarm = Alarm(
+        id: 'a1',
+        kind: AlarmKind.fixed,
+        hour: 6,
+        minute: 30,
+        fadeIn: true,
+      );
+      expect(alarm.toMap()['fade_in'], 1);
+      expect(Alarm.fromMap(alarm.toMap()).fadeIn, isTrue);
+    });
+
+    test('kolonu olmayan eski kayit kapali okunur', () {
+      final map = Map<String, dynamic>.of(base.toMap())..remove('fade_in');
+      expect(Alarm.fromMap(map).fadeIn, isFalse);
+    });
+
+    test('copyWith alani tasir', () {
+      expect(base.copyWith(fadeIn: true).fadeIn, isTrue);
+      expect(base.copyWith(fadeIn: true).copyWith(label: 'x').fadeIn, isTrue);
+    });
+
+    test('esitlik alani hesaba katar', () {
+      expect(base.copyWith(fadeIn: true), isNot(base));
+    });
+  });
 }
 
 class _FakeStorage implements LocalStorage {

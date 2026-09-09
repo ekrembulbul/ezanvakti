@@ -165,6 +165,36 @@ void main() {
       );
     },
   );
+
+  test('fadeIn native plana gecer', () async {
+    await storage.saveAlarm(
+      const Alarm(
+        id: 'sahur',
+        kind: AlarmKind.fixed,
+        hour: 5,
+        minute: 0,
+        fadeIn: true,
+      ),
+    );
+    final now = DateTime.now();
+    await scheduler.scheduleAlarms(
+      prayerTimes: [_day(DateTime(now.year, now.month, now.day + 1))],
+    );
+
+    expect(service.plans.single.records.single.toMap()['fadeIn'], isTrue);
+  });
+
+  test('fadeIn kapaliyken plana false gider', () async {
+    await storage.saveAlarm(
+      const Alarm(id: 'sahur', kind: AlarmKind.fixed, hour: 5, minute: 0),
+    );
+    final now = DateTime.now();
+    await scheduler.scheduleAlarms(
+      prayerTimes: [_day(DateTime(now.year, now.month, now.day + 1))],
+    );
+
+    expect(service.plans.single.records.single.toMap()['fadeIn'], isFalse);
+  });
 }
 
 PrayerTime _day(DateTime d) => PrayerTime(

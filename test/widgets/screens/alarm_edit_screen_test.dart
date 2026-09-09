@@ -7,11 +7,19 @@ import 'package:flutter_test/flutter_test.dart';
 import '../theme_harness.dart';
 
 void main() {
-  Future<void> pumpEdit(WidgetTester tester, {Alarm? alarm}) async {
+  Future<void> pumpEdit(
+    WidgetTester tester, {
+    Alarm? alarm,
+    bool fadeInSupported = false,
+  }) async {
     tester.view.physicalSize = const Size(1206, 2622);
     tester.view.devicePixelRatio = 3.0;
     addTearDown(tester.view.reset);
-    await tester.pumpWidget(wrapWithTheme(AlarmEditScreen(alarm: alarm)));
+    await tester.pumpWidget(
+      wrapWithTheme(
+        AlarmEditScreen(alarm: alarm, fadeInSupported: fadeInSupported),
+      ),
+    );
     await tester.pump();
   }
 
@@ -126,7 +134,11 @@ void main() {
             'Kodsuz QR gorevi kapisiz alarm demek; kullanici yalnizca acil '
             'cikisla susturabilirdi',
       );
-      expect(find.text('Alarm ekle'), findsOneWidget, reason: 'ekran kapanmadi');
+      expect(
+        find.text('Alarm ekle'),
+        findsOneWidget,
+        reason: 'ekran kapanmadi',
+      );
     });
 
     testWidgets('Kod girilince kaydedilir', (tester) async {
@@ -157,6 +169,51 @@ void main() {
             'Bolum liste sonunda aciliyor; kaydirilmazsa kullanici kod '
             'alaninin hic gelmedigini saniyor',
       );
+    });
+  });
+
+  group('Sesin kademeli yukselmesi', () {
+    testWidgets('Desteklenmeyen platformda ayar gorunmez', (tester) async {
+      await pumpEdit(tester);
+
+      expect(
+        find.text('Ses yavaşça yükselsin'),
+        findsNothing,
+        reason: 'iOSta AlarmKit ses seviyesi vermiyor; yarim ayar sunulmaz',
+      );
+    });
+
+    testWidgets('Desteklenen platformda ayar gorunur', (tester) async {
+      await pumpEdit(tester, fadeInSupported: true);
+      await tester.scrollUntilVisible(
+        find.text('Ses yavaşça yükselsin'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+
+      expect(find.text('Ses yavaşça yükselsin'), findsOneWidget);
+    });
+
+    testWidgets('Kayitli deger anahtara yansir', (tester) async {
+      await pumpEdit(
+        tester,
+        alarm: const Alarm(
+          id: '1',
+          kind: AlarmKind.fixed,
+          hour: 6,
+          minute: 30,
+          fadeIn: true,
+        ),
+        fadeInSupported: true,
+      );
+      await tester.scrollUntilVisible(
+        find.text('Ses yavaşça yükselsin'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+
+      final tile = find.widgetWithText(SwitchListTile, 'Ses yavaşça yükselsin');
+      expect(tester.widget<SwitchListTile>(tile).value, isTrue);
     });
   });
 }

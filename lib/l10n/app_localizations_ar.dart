@@ -514,6 +514,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get alarmVibrate => 'الاهتزاز';
 
   @override
+  String get alarmFadeIn => 'رفع الصوت تدريجيًا';
+
+  @override
+  String get alarmFadeInHint =>
+      'يبدأ المنبه منخفضًا ويصل إلى الصوت الكامل خلال ثوانٍ.';
+
+  @override
   String get alarmSnooze => 'التأجيل';
 
   @override

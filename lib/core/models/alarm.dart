@@ -31,6 +31,11 @@ class Alarm {
   /// Gömülü ses kimliği (örn. 'adhan') ya da özel ses işareti (`custom:<uri>`).
   final String soundId;
   final bool vibrate;
+
+  /// Ses sıfırdan değil, düşük bir seviyeden başlayıp kısa sürede tam
+  /// seviyeye çıksın mı? **Yalnızca Android'de** etkili: iOS'ta alarm
+  /// sistemin (AlarmKit) elinde ve ses seviyesine erişim yok.
+  final bool fadeIn;
   final bool snoozeEnabled;
   final int snoozeMinutes;
 
@@ -61,6 +66,7 @@ class Alarm {
     this.weekdays = const {},
     this.soundId = 'default',
     this.vibrate = true,
+    this.fadeIn = false,
     this.snoozeEnabled = true,
     this.snoozeMinutes = 5,
     this.mission = AlarmMission.none,
@@ -87,6 +93,7 @@ class Alarm {
       'weekdays': (weekdays.toList()..sort()).join(','),
       'sound_id': soundId,
       'vibrate': vibrate ? 1 : 0,
+      'fade_in': fadeIn ? 1 : 0,
       'snooze_enabled': snoozeEnabled ? 1 : 0,
       'snooze_minutes': snoozeMinutes,
       'mission': mission.name,
@@ -120,6 +127,7 @@ class Alarm {
       weekdays: weekdays,
       soundId: _migrateSoundId(map['sound_id'] as String?),
       vibrate: (map['vibrate'] as int? ?? 1) == 1,
+      fadeIn: (map['fade_in'] as int? ?? 0) == 1,
       snoozeEnabled: (map['snooze_enabled'] as int? ?? 1) == 1,
       snoozeMinutes: map['snooze_minutes'] as int? ?? 5,
       mission: AlarmMission.values.firstWhere(
@@ -144,6 +152,7 @@ class Alarm {
     Set<int>? weekdays,
     String? soundId,
     bool? vibrate,
+    bool? fadeIn,
     bool? snoozeEnabled,
     int? snoozeMinutes,
     AlarmMission? mission,
@@ -163,6 +172,7 @@ class Alarm {
       weekdays: weekdays ?? this.weekdays,
       soundId: soundId ?? this.soundId,
       vibrate: vibrate ?? this.vibrate,
+      fadeIn: fadeIn ?? this.fadeIn,
       snoozeEnabled: snoozeEnabled ?? this.snoozeEnabled,
       snoozeMinutes: snoozeMinutes ?? this.snoozeMinutes,
       mission: mission ?? this.mission,
@@ -188,6 +198,7 @@ class Alarm {
           _setEquals(weekdays, other.weekdays) &&
           soundId == other.soundId &&
           vibrate == other.vibrate &&
+          fadeIn == other.fadeIn &&
           snoozeEnabled == other.snoozeEnabled &&
           snoozeMinutes == other.snoozeMinutes &&
           mission == other.mission &&
@@ -208,6 +219,7 @@ class Alarm {
     Object.hashAllUnordered(weekdays),
     soundId,
     vibrate,
+    fadeIn,
     snoozeEnabled,
     snoozeMinutes,
     mission,

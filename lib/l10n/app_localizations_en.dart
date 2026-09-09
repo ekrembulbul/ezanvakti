@@ -516,6 +516,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get alarmVibrate => 'Vibration';
 
   @override
+  String get alarmFadeIn => 'Fade the sound in';
+
+  @override
+  String get alarmFadeInHint =>
+      'The alarm starts quiet and reaches full volume in a few seconds.';
+
+  @override
   String get alarmSnooze => 'Snooze';
 
   @override

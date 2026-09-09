@@ -47,6 +47,9 @@ class AlarmPlanEntry {
     'label': alarm.label,
     'soundId': alarm.soundId,
     'vibrate': alarm.vibrate,
+    // Yalnızca Android okur; iOS'ta alarm AlarmKit'in elinde ve ses
+    // seviyesine erişim yok (bkz. docs/adr/0003).
+    'fadeIn': alarm.fadeIn,
     'snoozeEnabled': alarm.snoozeEnabled,
     'snoozeMinutes': alarm.snoozeMinutes,
     'theme': theme.toMap(),
