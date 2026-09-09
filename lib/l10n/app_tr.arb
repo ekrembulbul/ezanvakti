@@ -2037,6 +2037,11 @@
   "@stopHeadline": {
     "description": "Ara ekranin ust basligi."
   },
+  "stopNextPrayer": "Sıradaki {prayer} · {time} · {remaining}",
+  "@stopNextPrayer": {
+    "description": "Ara ekranda siradaki vakit satiri: ad, saat, kalan sure.",
+    "placeholders": {"prayer": {"type": "String"}, "time": {"type": "String"}, "remaining": {"type": "String"}}
+  },
   "stopMissionSummary": "{mission} · {level} · {seconds} sn",
   "@stopMissionSummary": {
     "description": "Ara ekranda gorev ozeti.",

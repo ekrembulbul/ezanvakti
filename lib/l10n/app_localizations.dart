@@ -2698,6 +2698,12 @@ abstract class AppLocalizations {
   /// **'ALARM DURDURULDU'**
   String get stopHeadline;
 
+  /// Ara ekranda siradaki vakit satiri: ad, saat, kalan sure.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıradaki {prayer} · {time} · {remaining}'**
+  String stopNextPrayer(String prayer, String time, String remaining);
+
   /// Ara ekranda gorev ozeti.
   ///
   /// In tr, this message translates to:

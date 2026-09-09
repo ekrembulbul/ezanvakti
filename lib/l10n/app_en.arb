@@ -433,6 +433,7 @@
   "alarmDefaultLabel": "Alarm",
   "soundFileTypeLabel": "Audio",
   "stopHeadline": "ALARM STOPPED",
+  "stopNextPrayer": "Next {prayer} · {time} · {remaining}",
   "stopMissionSummary": "{mission} · {level} · {seconds} s",
   "missionAnswerHint": "Answer",
   "missionFinish": "Finish",

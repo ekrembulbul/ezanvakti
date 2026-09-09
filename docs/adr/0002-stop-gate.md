@@ -26,10 +26,12 @@ Karar mantığı `StopGate.decide()` saf fonksiyonunda toplanır. Zamanı dışa
 |---|---|---|
 | `none` | Oturum halen ertelenmiş (`snoozedUntil` gelecekte) | Hiçbir ekran açılmaz |
 | `closeAndRearm` | Alarm silinmiş, seçim yok ya da oturum bayat | Oturum kapanır, alarmlar yeniden kurulur, ekran açılmaz |
-| `showStopScreen` | Gerçek bir seçim var | Ara ekran: görevlide "Görevi yap / Ertele", görevsizde "Tamam / Ertele" |
+| `showStopScreen` | Görevlide gerçek bir seçim var; görevsizde taze her durdurma | Ara ekran: görevlide "Görevi yap / Ertele", görevsizde karşılama — "Tamam", hak varsa "Ertele" |
 | `openMission` | Görevli alarm, erteleme hakkı bitmiş | Doğrudan görev ekranı |
 
-Yönetici kural: **ekran yalnızca gerçek bir seçim varsa açılır** (spec 2026-08-30 D6). Bu, "Görevi yap" düğmesinin varlık sebebidir — düğme tek başına değil, "Ertele" ile birlikte bir çift oluşturur. Erteleme hakkı bittiğinde ara ekran hiç açılmaz, akış doğrudan göreve gider.
+Yönetici kural, görevli yolda: **ekran yalnızca gerçek bir seçim varsa açılır** (spec 2026-08-30 D6).
+
+**Görevsiz yolda D6, 9 Eylül'de bilinçli olarak esnetildi.** iOS'ta stop intent artık uygulamayı öne getirdiği için (bkz. [0003](0003-platform-alarm-models.md)) görevsiz alarmda kullanıcı bir seçimi olmasa da uygulamaya düşüyordu ve karşısında boş ana ekran buluyordu. Karşılama ekranı bu boşluğu doldurur: alarmın adı ve saati, **sıradaki vakit ve kalan süre** (ana ekranla aynı hesap, ADR 0004), tek "Tamam"; erteleme hakkı varsa yanında "Ertele". Dokunulmazsa `stopScreenSeconds` sonunda kendini kapatır — D6'nın koruduğu "uykulu kullanıcıya fazladan dokunuş yükleme" ilkesi böyle korunur. Bayatlık kuralı (D7) değişmedi. Bu, "Görevi yap" düğmesinin varlık sebebidir — düğme tek başına değil, "Ertele" ile birlikte bir çift oluşturur. Erteleme hakkı bittiğinde ara ekran hiç açılmaz, akış doğrudan göreve gider.
 
 Bayatlık eşikleri iki yolda farklıdır:
 

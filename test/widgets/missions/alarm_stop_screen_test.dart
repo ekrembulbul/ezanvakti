@@ -45,6 +45,8 @@ void main() {
     VoidCallback? onPrimary,
     VoidCallback? onSnooze,
     DateTime? currentTime,
+    PrayerType? nextPrayerType,
+    DateTime? nextPrayerTime,
   }) async {
     tester.view.physicalSize = const Size(1206, 2622);
     tester.view.devicePixelRatio = 3.0;
@@ -61,6 +63,8 @@ void main() {
           now: currentTime ?? now,
           onPrimary: onPrimary ?? () {},
           onSnooze: onSnooze,
+          nextPrayerType: nextPrayerType,
+          nextPrayerTime: nextPrayerTime,
         ),
       ),
     );
@@ -151,5 +155,31 @@ void main() {
   testWidgets('kac dakika once durduruldugu yazar', (tester) async {
     await pump(tester, alarm: plain, gated: false);
     expect(find.textContaining('az önce'), findsOneWidget);
+  });
+
+  group('Siradaki vakit satiri', () {
+    testWidgets('vakit verilince ad, saat ve kalan sure yazilir', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        alarm: plain,
+        gated: false,
+        nextPrayerType: PrayerType.asr,
+        nextPrayerTime: now.add(const Duration(hours: 2, minutes: 5)),
+      );
+
+      final line = find.byKey(kStopNextPrayerKey);
+      expect(line, findsOneWidget);
+      final text = tester.widget<Text>(line).data!;
+      expect(text, contains('İkindi'));
+      expect(text, contains('2 sa'));
+    });
+
+    testWidgets('vakit verisi yoksa satir cizilmez', (tester) async {
+      await pump(tester, alarm: plain, gated: false);
+
+      expect(find.byKey(kStopNextPrayerKey), findsNothing);
+    });
   });
 }

@@ -1459,6 +1459,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get stopHeadline => 'تم إيقاف المنبه';
 
   @override
+  String stopNextPrayer(String prayer, String time, String remaining) {
+    return 'التالي $prayer · $time · $remaining';
+  }
+
+  @override
   String stopMissionSummary(String mission, String level, int seconds) {
     return '$mission · $level · $seconds ث';
   }

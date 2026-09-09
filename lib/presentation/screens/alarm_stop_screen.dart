@@ -5,16 +5,20 @@ import 'package:intl/intl.dart';
 
 import '../../core/config/mission_tuning.dart';
 import '../../core/models/alarm.dart';
+import '../../core/models/notification_setting.dart' show PrayerType;
 import '../../core/theme/app_tokens.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/tokens_context.dart';
 import '../utils/alarm_labels.dart';
+import '../utils/time_format_context.dart';
+import '../widgets/home/upcoming_card.dart';
 import '../../core/utils/duration_formatter.dart';
 import '../widgets/missions/mission_metrics.dart';
 
 const Key kStopPrimaryKey = Key('stop_primary');
 const Key kStopSnoozeKey = Key('stop_snooze');
 const Key kStopCountdownKey = Key('stop_countdown');
+const Key kStopNextPrayerKey = Key('stop_next_prayer');
 
 /// Alarm durdurulunca açılan karar ekranı. Salt sunum: sayaç ve eylemler
 /// dışarıdan gelir.
@@ -40,6 +44,11 @@ class AlarmStopScreen extends StatelessWidget {
   final VoidCallback onPrimary;
   final VoidCallback? onSnooze;
 
+  /// Karşılama satırı: sıradaki vakit ve kalan süre. Vakit verisi yoksa
+  /// (ilk açılış, veri hatası) satır çizilmez; ekran yine çalışır.
+  final PrayerType? nextPrayerType;
+  final DateTime? nextPrayerTime;
+
   const AlarmStopScreen({
     super.key,
     required this.alarm,
@@ -51,6 +60,8 @@ class AlarmStopScreen extends StatelessWidget {
     required this.now,
     required this.onPrimary,
     this.onSnooze,
+    this.nextPrayerType,
+    this.nextPrayerTime,
   });
 
   String get _countdown {
@@ -101,6 +112,10 @@ class AlarmStopScreen extends StatelessWidget {
               if (gated) ...[
                 const SizedBox(height: 24),
                 _missionCard(tokens, l10n),
+              ],
+              if (nextPrayerType != null && nextPrayerTime != null) ...[
+                const SizedBox(height: 24),
+                _nextPrayerLine(context, tokens, l10n),
               ],
               const Spacer(),
               _primaryButton(tokens, l10n),
@@ -159,6 +174,27 @@ class AlarmStopScreen extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _nextPrayerLine(
+    BuildContext context,
+    AppTokens tokens,
+    AppLocalizations l10n,
+  ) {
+    final time = nextPrayerTime!;
+    return Text(
+      l10n.stopNextPrayer(
+        l10n.prayerName(nextPrayerType!),
+        context.formatTime(time),
+        formatRemaining(time.difference(now), l10n),
+      ),
+      key: kStopNextPrayerKey,
+      textAlign: TextAlign.center,
+      style: AppTypography.rowTitle.copyWith(
+        fontSize: kMissionSupportFontSize,
+        color: tokens.textSecondary,
+      ),
     );
   }
 

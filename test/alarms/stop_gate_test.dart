@@ -66,10 +66,10 @@ void main() {
       );
     });
 
-    test('gorevsiz, erteleme kapali: kapat', () {
+    test('gorevsiz, erteleme kapali: yine ekran (karsilama, tek Tamam)', () {
       expect(
         StopGate.decide(alarm: plainNoSnooze, session: session(), now: now),
-        StopDecision.closeAndRearm,
+        StopDecision.showStopScreen,
       );
     });
 
@@ -100,14 +100,14 @@ void main() {
       );
     });
 
-    test('gorevsiz, taze, hak yok: kapat', () {
+    test('gorevsiz, taze, hak yok: yine ekran (karsilama, tek Tamam)', () {
       expect(
         StopGate.decide(
           alarm: plain,
           session: session(snoozeUsed: 1),
           now: now,
         ),
-        StopDecision.closeAndRearm,
+        StopDecision.showStopScreen,
       );
     });
 

@@ -1473,6 +1473,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get stopHeadline => 'ALARM STOPPED';
 
   @override
+  String stopNextPrayer(String prayer, String time, String remaining) {
+    return 'Next $prayer · $time · $remaining';
+  }
+
+  @override
   String stopMissionSummary(String mission, String level, int seconds) {
     return '$mission · $level · $seconds s';
   }

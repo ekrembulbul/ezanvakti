@@ -14,6 +14,7 @@ import '../../core/models/alarm_mission.dart';
 import '../../core/models/mission_session.dart';
 import '../../core/models/skipped_occurrence.dart';
 import '../../core/utils/app_logger.dart';
+import '../../core/utils/prayer_utils.dart';
 import '../../features/alarms/domain/abort_gate.dart';
 import '../../features/alarms/domain/alarm_scheduler.dart';
 import '../../features/alarms/domain/alarms_manager.dart';
@@ -416,9 +417,17 @@ class _StopHostState extends State<_StopHost> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     final remaining = StopGate.snoozeRemaining(widget.alarm, _session);
     final canSnooze = remaining == null || remaining > 0;
+    // Karşılama satırı ana ekranla aynı hesabı kullanır (ADR 0004).
+    final appState = context.read<AppState>();
+    final today = appState.todaysPrayerTime;
     return PopScope(
       canPop: false,
       child: AlarmStopScreen(
+        nextPrayerType: PrayerUtils.getNextPrayerType(today),
+        nextPrayerTime: PrayerUtils.getNextPrayerTime(
+          today,
+          appState.tomorrowsPrayerTime,
+        ),
         alarm: widget.alarm,
         gated: _gated,
         remainingSeconds: _remaining,

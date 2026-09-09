@@ -1471,6 +1471,11 @@ class AppLocalizationsTr extends AppLocalizations {
   String get stopHeadline => 'ALARM DURDURULDU';
 
   @override
+  String stopNextPrayer(String prayer, String time, String remaining) {
+    return 'Sıradaki $prayer · $time · $remaining';
+  }
+
+  @override
   String stopMissionSummary(String mission, String level, int seconds) {
     return '$mission · $level · $seconds sn';
   }

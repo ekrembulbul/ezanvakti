@@ -433,6 +433,7 @@
   "alarmDefaultLabel": "منبه",
   "soundFileTypeLabel": "صوت",
   "stopHeadline": "تم إيقاف المنبه",
+  "stopNextPrayer": "التالي {prayer} · {time} · {remaining}",
   "stopMissionSummary": "{mission} · {level} · {seconds} ث",
   "missionAnswerHint": "الإجابة",
   "missionFinish": "إنهاء",

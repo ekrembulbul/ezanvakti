@@ -8,6 +8,7 @@ import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/core/models/alarm_mission.dart';
 import 'package:ezanvakti/core/models/mission_session.dart';
 import 'package:ezanvakti/core/models/mission_stop_event.dart';
+import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/core/models/skipped_occurrence.dart';
 import 'package:ezanvakti/core/providers/app_state.dart';
 import 'package:ezanvakti/features/alarms/domain/alarm_scheduler.dart';
@@ -577,7 +578,7 @@ void main() {
       );
     });
 
-    testWidgets('Gorevsiz: hak bitince ekran acilmaz, oturum kapanir', (
+    testWidgets('Gorevsiz: hak bitince de karsilama acilir; Tamam kapatir', (
       tester,
     ) async {
       await storage.saveAlarm(plainSnooze);
@@ -594,9 +595,40 @@ void main() {
 
       await open(tester);
 
+      // Karsilama: gorev yok ama bos ekrana dusulmez; Ertele yok, tek Tamam.
+      expect(find.byType(AlarmStopScreen), findsOneWidget);
+      expect(find.byKey(kStopSnoozeKey), findsNothing);
+      expect(alarmService.completed, isEmpty);
+
+      await tester.tap(find.byKey(kStopPrimaryKey));
+      await settle(tester);
+
       expect(find.byType(AlarmStopScreen), findsNothing);
       expect(alarmService.completed, [plainSnooze.id]);
       expect(alarmService.scheduled, [plainSnooze.id]);
+    });
+
+    testWidgets('Gorevsiz: karsilama siradaki vakti AppStateten gosterir', (
+      tester,
+    ) async {
+      await storage.saveAlarm(plainSnooze);
+      await alarmService.seedSession(
+        MissionSession(alarmId: plainSnooze.id, firedAt: DateTime.now()),
+      );
+      alarmService.pendingEvents = [
+        MissionStopEvent(alarmId: plainSnooze.id, stoppedAt: DateTime.now()),
+      ];
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      appState.setTodaysPrayerTime(_prayerDay(today));
+      appState.setTomorrowsPrayerTime(
+        _prayerDay(today.add(const Duration(days: 1))),
+      );
+
+      await open(tester);
+
+      expect(find.byType(AlarmStopScreen), findsOneWidget);
+      expect(find.byKey(kStopNextPrayerKey), findsOneWidget);
     });
 
     testWidgets('Gorevsiz: bayat durdurma ekran acmaz', (tester) async {
@@ -919,3 +951,13 @@ void main() {
     });
   });
 }
+
+PrayerTime _prayerDay(DateTime d) => PrayerTime(
+  date: d,
+  fajr: DateTime(d.year, d.month, d.day, 5, 0),
+  sunrise: DateTime(d.year, d.month, d.day, 6, 30),
+  dhuhr: DateTime(d.year, d.month, d.day, 13, 0),
+  asr: DateTime(d.year, d.month, d.day, 16, 30),
+  maghrib: DateTime(d.year, d.month, d.day, 19, 30),
+  isha: DateTime(d.year, d.month, d.day, 21, 0),
+);

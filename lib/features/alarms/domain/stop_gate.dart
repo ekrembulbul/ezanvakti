@@ -12,7 +12,8 @@ enum StopDecision {
   /// Oturumu kapat, alarmları yeniden kur; ekran açma.
   closeAndRearm,
 
-  /// Ara ekran: görevlide "Görevi yap / Ertele", görevsizde "Tamam / Ertele".
+  /// Ara ekran: görevlide "Görevi yap / Ertele", görevsizde karşılama —
+  /// "Tamam", erteleme hakkı varsa yanında "Ertele".
   showStopScreen,
 
   /// Görevli alarm, erteleme hakkı yok: doğrudan görev ekranı.
@@ -21,8 +22,11 @@ enum StopDecision {
 
 /// Ara ekranın kapısı. Spec 2026-08-30 §4 tablosu; saf, zamanı dışarıdan alır.
 ///
-/// Kural: ekran **yalnızca gerçek bir seçim varsa** açılır (D6). Tek düğmelik
-/// ekran uykulu kullanıcıya fazladan bir dokunuş.
+/// Kural, görevli yolda: ekran **yalnızca gerçek bir seçim varsa** açılır
+/// (D6); seçim yoksa doğrudan görev. Görevsiz yolda D6 bilinçli esnetildi
+/// (9 Eylül): stop artık uygulamayı öne getirdiği için kullanıcı boş bir ana
+/// ekrana düşmesin — karşılama ekranı sıradaki vakti gösterir, tek "Tamam" ile
+/// kapanır, dokunulmazsa kendini kapatır.
 class StopGate {
   const StopGate._();
 
@@ -41,9 +45,9 @@ class StopGate {
     final hasChoice = remaining == null || remaining > 0;
 
     if (!alarm.mission.requiresGate) {
-      if (!hasChoice) return StopDecision.closeAndRearm;
-      // Görevsizde durdurma kesin (D3); saatler sonra eski bir Ertele
-      // ekranıyla karşılaşılmasın (D7).
+      // Görevsizde durdurma kesin (D3); saatler sonra eski bir karşılama
+      // ekranıyla karşılaşılmasın (D7). Erteleme hakkı ekranı etkilemez,
+      // yalnızca "Ertele" düğmesini.
       final expiresAt = session.stoppedAt.add(
         const Duration(seconds: MissionTuning.stopScreenSeconds),
       );
