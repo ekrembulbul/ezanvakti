@@ -148,8 +148,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       // dönünce paleti yeniden hesaplat.
       ServiceLocator().get<ThemeController>().refresh();
 
-      // Alarm durdurulunca stopIntent uygulamayi one getiriyor; bekleyen
-      // gorev varsa ekrani burada aciyoruz.
+      // iOS'ta stop intent once arka planda kaydeder, sonra one gelmeyi
+      // *dener*; telefon kilitliyse gelemez (8 Eylul cihaz bulgusu). Bu
+      // yuzden bekleyen gorev, uygulama ne zaman one gelirse burada acilir.
       openMissionIfPending(context);
 
       // Gün dönümü timer'ı da askıdayken tetiklenmez: uygulama gece açık

@@ -25,7 +25,11 @@ Ortak bir soyutlamayı zorlamak, her iki tarafta da yanlış davranış üretiyo
 
 `AlarmKitPlatform`, `AlarmManager.shared.schedule()` ile alarmı sisteme kaydeder. Ses `AlarmManager`'a bir `sound` parametresi olarak verilir; uygulama ses akışına dokunmaz. Sunum `AlarmPresentation` ile tarif edilir.
 
-iOS alert'inde bir **ikincil düğme** bulunur (`AlarmKitPlatform.swift:31-38`). Sebebi teknik bir zorunluluktur: `stopIntent` arka planda çalışır ve uygulamayı açmaz, dolayısıyla görev ekranı gösterilemez. İkincil düğme `MissionOpenIntent` ile uygulamayı öne getirir. Düğme yalnızca gerekliyse eklenir (`record.gated || record.snoozeEnabled`) ve başlığı duruma göre değişir: görevlide "Open task", görevsizde "Open alarm".
+iOS alert'inde bir **ikincil düğme** bulunur (`AlarmKitPlatform.swift:31-38`). Sebebi teknik bir zorunluluktu: `stopIntent` arka planda çalışır ve uygulamayı açmaz, dolayısıyla görev ekranı gösterilemezdi. İkincil düğme `MissionOpenIntent` ile uygulamayı öne getirir. Düğme yalnızca gerekliyse eklenir (`record.gated || record.snoozeEnabled`) ve başlığı duruma göre değişir: görevlide "Open task", görevsizde "Open alarm".
+
+**Neden stop doğrudan uygulamayı açmıyor?** Denendi ve 8 Eylül'de gerçek cihazda kaybedildi: `openAppWhenRun = true` (iOS 26 adıyla `.foreground(.immediate)`) sistemin `perform()`'u çalıştırmadan *önce* kilit açılmasını istemesine yol açıyor; kilitli telefonda `Locked / RequestDenied` ile çıkıyor ve stop kaydı, görev oturumu, nöbetçi zincir hiç oluşmuyordu (`docs/investigations/2026-09-08-device-alarm-audit.md`).
+
+**9 Eylül, aşama 1:** stop intent `supportedModes = [.background, .foreground(.dynamic)]` ile önce arka planda kaydeder, sonra `continueInForeground()` ile öne gelmeyi *dener*. Reddedilirse (kilitli cihaz) kayıt korunur ve red journal'a `stop_foreground / declined` olarak yazılır. İkincil düğme, cihaz doğrulaması tamamlanana kadar geri düşüş yolu olarak yerinde kalır; doğrulanınca kaldırılması planlanıyor (aşama 2).
 
 > Bu düğme, Flutter tarafındaki ara ekranın "Görevi yap" düğmesinden **farklı bir şeydir**. İkisi ayrı katmanlarda, ayrı sebeplerle vardır: iOS'taki düğme uygulamayı açmak için, Flutter'daki düğme erteleme ile görev arasında seçim sunmak içindir (bkz. [0002](0002-stop-gate.md)).
 

@@ -141,6 +141,17 @@ final class AlarmKitHandler {
     await handleIntent(scheduleId: scheduleId, open: true)
   }
 
+  /// The stop was recorded; only the follow-up foregrounding was refused
+  /// (typically a locked device). Kept in the journal so device audits can
+  /// tell "stop lost" from "stop recorded, app stayed closed".
+  func handleForegroundDeclined(scheduleId: String, error: Error) async {
+    await enqueue {
+      guard #available(iOS 26.1, *), Self.validId(scheduleId) else { return }
+      self.engine.journal.record("stop_foreground",
+        at: Date().timeIntervalSince1970 * 1000, scheduleId: scheduleId, result: "declined", error: error)
+    }.value
+  }
+
   private func handleIntent(scheduleId: String, open: Bool) async {
     await enqueue {
       guard #available(iOS 26.1, *), Self.validId(scheduleId) else { return }

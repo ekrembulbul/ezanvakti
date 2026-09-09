@@ -1,4 +1,5 @@
 import AlarmKit
+import AppIntents
 import XCTest
 @testable import Runner
 
@@ -7,10 +8,23 @@ final class AlarmIntentTests: XCTestCase {
   func testStopAndOpenHaveSeparateForegroundRequirementsAndExactIdentity() throws {
     guard #available(iOS 26.1, *) else { throw XCTSkip("AlarmKit requires iOS 26.1") }
     let id = "sample#at1800000000000#ladder0"
-    XCTAssertFalse(MissionStopIntent.openAppWhenRun)
     XCTAssertTrue(MissionOpenIntent.openAppWhenRun)
     XCTAssertEqual(MissionStopIntent(scheduleId: id).scheduleId, id)
     XCTAssertEqual(MissionOpenIntent(scheduleId: id).scheduleId, id)
+  }
+
+  /// Stop must record in the background first and only then ask to come to
+  /// the foreground (`.foreground(.dynamic)`). `.foreground(.immediate)` is
+  /// the iOS 26 name for `openAppWhenRun = true`: it makes the system require
+  /// an unlocked device *before* perform() runs, which is exactly what lost
+  /// the stop record on the locked phone on 8 September.
+  @MainActor
+  func testStopRecordsInBackgroundThenOffersToContinueInForeground() throws {
+    guard #available(iOS 26.1, *) else { throw XCTSkip("AlarmKit requires iOS 26.1") }
+    let modes = MissionStopIntent.supportedModes
+    XCTAssertTrue(modes.contains(.background))
+    XCTAssertTrue(modes.contains(.foreground(.dynamic)))
+    XCTAssertFalse(modes.contains(.foreground(.immediate)))
   }
 
   @MainActor
