@@ -17,6 +17,8 @@ Makineye özel tercihleri ve kişisel dosya yollarını repository'ye taşıma. 
 
 Ayrıntılar için [mimari](docs/ARCHITECTURE.md) ve [geliştirme rehberini](docs/DEVELOPMENT.md) incele. Belgelerle implementasyon çelişirse ilgili kodu ve yapılandırmayı doğrula; eski sürüm veya platform notlarını varsayım olarak kullanma.
 
+Alarm zinciri, durdurma akışı, platform alarm modelleri, vakit hesabı ve bildirim planlaması gibi kritik alanlarda değişiklik yapmadan önce ilgili [mimari karar kaydını](docs/adr/README.md) oku. Bir kararı değiştiriyorsan kaydı da güncelle.
+
 ## Çalışma biçimi
 
 - Önce ilgili kodu, çağıranları ve testleri oku; yalnızca istenen kapsamı değiştir. Çok adımlı işlerde kısa bir plan çıkar.
