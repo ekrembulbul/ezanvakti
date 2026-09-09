@@ -11,7 +11,7 @@ import '../../core/theme/app_typography.dart';
 import '../../core/theme/tokens_context.dart';
 import '../utils/alarm_labels.dart';
 import '../utils/time_format_context.dart';
-import '../widgets/home/upcoming_card.dart';
+import '../utils/reminder_labels.dart';
 import '../../core/utils/duration_formatter.dart';
 import '../widgets/missions/mission_metrics.dart';
 
@@ -187,7 +187,7 @@ class AlarmStopScreen extends StatelessWidget {
       l10n.stopNextPrayer(
         l10n.prayerName(nextPrayerType!),
         context.formatTime(time),
-        formatRemaining(time.difference(now), l10n),
+        reminderRemaining(time.difference(now), l10n),
       ),
       key: kStopNextPrayerKey,
       textAlign: TextAlign.center,
