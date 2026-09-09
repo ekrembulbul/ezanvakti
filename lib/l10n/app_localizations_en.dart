@@ -1495,6 +1495,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get qrScannerTitle => 'Scan the code';
 
   @override
+  String get qrTorchOn => 'Turn on the flash';
+
+  @override
+  String get qrTorchOff => 'Turn off the flash';
+
+  @override
   String get qrSectionLabel => 'QR CODE';
 
   @override

@@ -2077,6 +2077,14 @@
   "@qrScannerTitle": {
     "description": "Tam ekran QR tarayicinin basligi."
   },
+  "qrTorchOn": "Flaşı aç",
+  "@qrTorchOn": {
+    "description": "QR okuyucudaki flas dugmesi, kapaliyken."
+  },
+  "qrTorchOff": "Flaşı kapat",
+  "@qrTorchOff": {
+    "description": "QR okuyucudaki flas dugmesi, acikken."
+  },
   "qrSectionLabel": "QR KOD",
   "@qrSectionLabel": {
     "description": "QR kod alaninin bolum etiketi."

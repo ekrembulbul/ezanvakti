@@ -1493,6 +1493,12 @@ class AppLocalizationsTr extends AppLocalizations {
   String get qrScannerTitle => 'Kodu okut';
 
   @override
+  String get qrTorchOn => 'Flaşı aç';
+
+  @override
+  String get qrTorchOff => 'Flaşı kapat';
+
+  @override
   String get qrSectionLabel => 'QR KOD';
 
   @override

@@ -439,6 +439,8 @@
   "missionConfirm": "Confirm",
   "missionAbortWait": "Wait: {seconds} s",
   "qrScannerTitle": "Scan the code",
+  "qrTorchOn": "Turn on the flash",
+  "qrTorchOff": "Turn off the flash",
   "qrSectionLabel": "QR CODE",
   "locationTypeGps": "GPS location",
   "locationTypeManual": "Manual",

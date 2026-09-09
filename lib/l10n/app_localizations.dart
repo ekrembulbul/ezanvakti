@@ -2734,6 +2734,18 @@ abstract class AppLocalizations {
   /// **'Kodu okut'**
   String get qrScannerTitle;
 
+  /// QR okuyucudaki flas dugmesi, kapaliyken.
+  ///
+  /// In tr, this message translates to:
+  /// **'Flaşı aç'**
+  String get qrTorchOn;
+
+  /// QR okuyucudaki flas dugmesi, acikken.
+  ///
+  /// In tr, this message translates to:
+  /// **'Flaşı kapat'**
+  String get qrTorchOff;
+
   /// QR kod alaninin bolum etiketi.
   ///
   /// In tr, this message translates to:

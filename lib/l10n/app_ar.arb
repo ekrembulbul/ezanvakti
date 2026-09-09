@@ -439,6 +439,8 @@
   "missionConfirm": "تأكيد",
   "missionAbortWait": "انتظر: {seconds} ث",
   "qrScannerTitle": "امسح الرمز",
+  "qrTorchOn": "تشغيل الفلاش",
+  "qrTorchOff": "إطفاء الفلاش",
   "qrSectionLabel": "رمز QR",
   "locationTypeGps": "موقع GPS",
   "locationTypeManual": "يدوي",

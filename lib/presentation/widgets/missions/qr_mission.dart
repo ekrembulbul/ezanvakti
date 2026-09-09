@@ -8,6 +8,7 @@ import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 import 'mission_metrics.dart';
+import 'torch_button.dart';
 
 const Key kQrScannerKey = Key('qr_scanner');
 const Key kQrHintKey = Key('qr_hint');
@@ -40,6 +41,12 @@ class QrMission extends StatefulWidget {
 class _QrMissionState extends State<QrMission> {
   bool _mismatch = false;
 
+  /// Testte kamera açılmasın diye yalnızca gerçek kullanımda kurulur; flaş
+  /// düğmesi de bu denetleyiciye bağlı. Sabah alarmı karanlıkta çalıyor.
+  late final MobileScannerController? _controller = widget.codes != null
+      ? null
+      : MobileScannerController();
+
   StreamSubscription<String>? _injected;
 
   /// Kod görüş alanında kaldığı sürece okuma her karede yeniden geliyor.
@@ -56,6 +63,7 @@ class _QrMissionState extends State<QrMission> {
   @override
   void dispose() {
     _injected?.cancel();
+    unawaited(_controller?.dispose());
     super.dispose();
   }
 
@@ -88,8 +96,8 @@ class _QrMissionState extends State<QrMission> {
         const SizedBox(height: 20),
         Text(
           _mismatch
-          ? context.l10n.qrMissionMismatch
-          : context.l10n.qrMissionScanSaved,
+              ? context.l10n.qrMissionMismatch
+              : context.l10n.qrMissionScanSaved,
           key: kQrHintKey,
           textAlign: TextAlign.center,
           style: AppTypography.rowTitle.copyWith(
@@ -112,6 +120,18 @@ class _QrMissionState extends State<QrMission> {
     );
   }
 
+  Widget _torchButton() {
+    final controller = _controller;
+    if (controller == null) return const SizedBox.shrink();
+    return ValueListenableBuilder<MobileScannerState>(
+      valueListenable: controller,
+      builder: (_, state, _) => TorchButton(
+        state: state.torchState,
+        onPressed: () => unawaited(controller.toggleTorch()),
+      ),
+    );
+  }
+
   Widget _viewfinder(AppTokens tokens) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
@@ -123,12 +143,20 @@ class _QrMissionState extends State<QrMission> {
         // Testte kamera acilmasin diye yalnizca gercek kullanimda kurulur.
         child: widget.codes != null
             ? Container(key: kQrScannerKey, color: tokens.surface)
-            : MobileScanner(
-                key: kQrScannerKey,
-                onDetect: (capture) {
-                  final value = capture.barcodes.firstOrNull?.rawValue;
-                  if (value != null) _onCode(value);
-                },
+            : Stack(
+                children: [
+                  Positioned.fill(
+                    child: MobileScanner(
+                      key: kQrScannerKey,
+                      controller: _controller,
+                      onDetect: (capture) {
+                        final value = capture.barcodes.firstOrNull?.rawValue;
+                        if (value != null) _onCode(value);
+                      },
+                    ),
+                  ),
+                  Positioned(top: 4, right: 4, child: _torchButton()),
+                ],
               ),
       ),
     );

@@ -1481,6 +1481,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get qrScannerTitle => 'امسح الرمز';
 
   @override
+  String get qrTorchOn => 'تشغيل الفلاش';
+
+  @override
+  String get qrTorchOff => 'إطفاء الفلاش';
+
+  @override
   String get qrSectionLabel => 'رمز QR';
 
   @override
