@@ -851,6 +851,7 @@ class _RemindersScreenState extends State<RemindersScreen>
 
   @override
   Widget build(BuildContext context) {
+    final alarmsLocked = _tab == ReminderTab.alarms && !_alarmSupported;
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
@@ -858,9 +859,11 @@ class _RemindersScreenState extends State<RemindersScreen>
         title: context.l10n.remindersTitle,
         showBack: false,
         // Tasarimda ekleme eylemi app bar'in saginda; FAB son satiri ortuyordu.
+        // AlarmKit olmayan cihazda Alarmlar sekmesi kapali: calmayacak alarm
+        // kurdurulmaz, siralanacak liste de yok.
         actions: [
-          _sortAction(),
-          if (!_isReordering)
+          if (!alarmsLocked) _sortAction(),
+          if (!_isReordering && !alarmsLocked)
             AppBarActionButton(
               key: const Key('add_reminder_button'),
               icon: Icons.add_rounded,

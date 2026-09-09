@@ -738,5 +738,22 @@ void main() {
       expect(find.textContaining('06:30'), findsNothing);
       expect(find.text('1 kayıtlı alarm korunuyor.'), findsOneWidget);
     });
+
+    testWidgets('Alarmlar sekmesinde ekle dugmesi yok; Bildirimlerde var', (
+      tester,
+    ) async {
+      register(alarms: _UnsupportedAlarmService());
+      await pump(tester);
+
+      expect(find.byIcon(Icons.add_rounded), findsOneWidget);
+      await tester.tap(find.text('Alarmlar'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byIcon(Icons.add_rounded),
+        findsNothing,
+        reason: 'calmayacak alarm kurdurulmaz; ekle dugmesi de kapali',
+      );
+    });
   });
 }
