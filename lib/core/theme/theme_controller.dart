@@ -26,7 +26,7 @@ const Duration kPaletteTransition = Duration(milliseconds: 400);
 ///
 /// Dakikalık yoklama yapmaz: bir sonraki dilim sınırına tek seferlik bir
 /// [Timer] kurar, tetiklenince yeniden hesaplayıp timer'ı yeniler.
-class ThemeController extends ChangeNotifier {
+class ThemeController extends ChangeNotifier with WidgetsBindingObserver {
   final LocalStorage _storage;
   final WidgetPublisher? _widgetPublisher;
   final AppLogger _logger;
@@ -34,6 +34,7 @@ class ThemeController extends ChangeNotifier {
 
   AppearanceSettings _settings = const AppearanceSettings();
   Brightness _platformBrightness = Brightness.dark;
+  bool _observingPlatform = false;
   PrayerTime? _today;
   PrayerTime? _tomorrow;
   Timer? _boundaryTimer;
@@ -91,6 +92,28 @@ class ThemeController extends ChangeNotifier {
     _tomorrow = tomorrow;
     _scheduleBoundary();
     notifyListeners();
+  }
+
+  /// Cihazın gece/gündüz tercihini sistem bildirimiyle izler. Kaydolurken
+  /// güncel değeri okur ki ilk kare de doğru olsun.
+  ///
+  /// Eskiden `MyApp.build` içinde `MediaQuery`'den okunup her yapıda
+  /// [setPlatformBrightness] çağrılıyordu; build sırasında `notifyListeners`
+  /// framework assertion'ı üretiyordu (iOS 18.5 ve 26.5 integration
+  /// testlerinde görüldü). Yapı içinde değil, binding gözlemcisiyle izlenir.
+  void observePlatformBrightness() {
+    if (!_observingPlatform) {
+      WidgetsBinding.instance.addObserver(this);
+      _observingPlatform = true;
+    }
+    didChangePlatformBrightness();
+  }
+
+  @override
+  void didChangePlatformBrightness() {
+    setPlatformBrightness(
+      WidgetsBinding.instance.platformDispatcher.platformBrightness,
+    );
   }
 
   /// Cihazın gece/gündüz tercihi değiştiğinde çağrılır.
@@ -166,6 +189,8 @@ class ThemeController extends ChangeNotifier {
   @override
   void dispose() {
     _boundaryTimer?.cancel();
+    // Yalnız kaydolunduysa: binding'siz birim testleri de dispose çağırır.
+    if (_observingPlatform) WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 }

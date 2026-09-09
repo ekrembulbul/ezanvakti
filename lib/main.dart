@@ -23,6 +23,7 @@ void main() async {
 
   final serviceLocator = ServiceLocator();
   await serviceLocator.initialize();
+  serviceLocator.get<ThemeController>().observePlatformBrightness();
 
   runApp(const MyApp());
 }
@@ -41,10 +42,9 @@ class MyApp extends StatelessWidget {
       ],
       child: Consumer<ThemeController>(
         builder: (context, controller, _) {
-          // Cihazin gece/gunduz tercihi degisince "Sistem" modu izlesin.
-          controller.setPlatformBrightness(
-            MediaQuery.platformBrightnessOf(context),
-          );
+          // Cihazin gece/gunduz tercihi ThemeController tarafindan binding
+          // gozlemcisiyle izlenir (observePlatformBrightness, main()); build
+          // icinde okuyup notify etmek framework assertion'i uretiyordu.
 
           // Sistem cubugu aktif paletin zemini ve parlakligiyla uyumlu kalsin;
           // palet gun icinde degistigi icin her yapida guncellenir.
@@ -59,9 +59,7 @@ class MyApp extends StatelessWidget {
               statusBarIconBrightness: isDark
                   ? Brightness.light
                   : Brightness.dark,
-              statusBarBrightness: isDark
-                  ? Brightness.dark
-                  : Brightness.light,
+              statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
               systemNavigationBarColor: controller.tokens.backgroundStops.last,
               systemNavigationBarIconBrightness: isDark
                   ? Brightness.light

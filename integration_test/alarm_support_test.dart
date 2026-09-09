@@ -30,17 +30,6 @@ void main() {
   testWidgets('Alarmlar sekmesi platform desteğine göre açılır ya da kapanır', (
     tester,
   ) async {
-    // ThemeController.setPlatformBrightness build sırasında notifyListeners
-    // çağırıyor (framework assertion, yalnız debug). Ürün kodundaki bu bilinen
-    // sorun bu testin konusu değil; yalnız o hata elenir, diğerleri testi
-    // düşürmeye devam eder.
-    final forwardError = FlutterError.onError;
-    FlutterError.onError = (details) {
-      if (details.exceptionAsString().contains('ThemeController')) return;
-      forwardError?.call(details);
-    };
-    addTearDown(() => FlutterError.onError = forwardError);
-
     app.main();
     // main() beklenemiyor (void async); uygulamanın ayağa kalktığının işareti
     // ilk kurulum ekranı. Ondan önce depoya yazmak, initialize() ile yarışır.

@@ -1,7 +1,8 @@
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
 import 'package:ezanvakti/core/interfaces/widget_publisher.dart';
 import 'package:ezanvakti/core/models/fasting_log.dart';
-import 'package:ezanvakti/core/models/notification_setting.dart' show PrayerType;
+import 'package:ezanvakti/core/models/notification_setting.dart'
+    show PrayerType;
 import 'package:ezanvakti/core/models/prayer_log.dart';
 import 'package:ezanvakti/core/models/quiet_window.dart';
 import 'package:ezanvakti/core/models/general_settings.dart';
@@ -15,7 +16,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _InMemoryStorage implements LocalStorage {
-
   final Map<String, String> _rawSettings = {};
 
   @override
@@ -384,4 +384,31 @@ void main() {
 
     controller.dispose();
   });
+
+  testWidgets(
+    'Platform parlakligini kendisi izler; build icinde cagri gerekmez',
+    (tester) async {
+      final storage = _InMemoryStorage()
+        ..stored = const AppearanceSettings(themeMode: AppThemeMode.system);
+      final controller = _controller(storage);
+      await controller.load();
+      addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
+
+      // Kaydolurken gercek degeri okur: ilk kare de dogru olsun.
+      tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
+      controller.observePlatformBrightness();
+      expect(controller.brightness, Brightness.light);
+
+      var notified = 0;
+      controller.addListener(() => notified++);
+      tester.platformDispatcher.platformBrightnessTestValue = Brightness.dark;
+      expect(controller.brightness, Brightness.dark);
+      expect(notified, 1);
+
+      controller.dispose();
+      // Kayit silindi: sonraki degisim eski nesneye ulasmaz.
+      tester.platformDispatcher.platformBrightnessTestValue = Brightness.light;
+      expect(notified, 1);
+    },
+  );
 }
