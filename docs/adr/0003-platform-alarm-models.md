@@ -25,13 +25,13 @@ Ortak bir soyutlamayı zorlamak, her iki tarafta da yanlış davranış üretiyo
 
 `AlarmKitPlatform`, `AlarmManager.shared.schedule()` ile alarmı sisteme kaydeder. Ses `AlarmManager`'a bir `sound` parametresi olarak verilir; uygulama ses akışına dokunmaz. Sunum `AlarmPresentation` ile tarif edilir.
 
-iOS alert'inde bir **ikincil düğme** bulunur (`AlarmKitPlatform.swift:31-38`). Sebebi teknik bir zorunluluktu: `stopIntent` arka planda çalışır ve uygulamayı açmaz, dolayısıyla görev ekranı gösterilemezdi. İkincil düğme `MissionOpenIntent` ile uygulamayı öne getirir. Düğme yalnızca gerekliyse eklenir (`record.gated || record.snoozeEnabled`) ve başlığı duruma göre değişir: görevlide "Open task", görevsizde "Open alarm".
+iOS alert'inde yalnızca sistemin stop kontrolü vardır; ikincil düğme yoktur.
 
-**Neden stop doğrudan uygulamayı açmıyor?** Denendi ve 8 Eylül'de gerçek cihazda kaybedildi: `openAppWhenRun = true` (iOS 26 adıyla `.foreground(.immediate)`) sistemin `perform()`'u çalıştırmadan *önce* kilit açılmasını istemesine yol açıyor; kilitli telefonda `Locked / RequestDenied` ile çıkıyor ve stop kaydı, görev oturumu, nöbetçi zincir hiç oluşmuyordu (`docs/investigations/2026-09-08-device-alarm-audit.md`).
+**Tarihçe — neden bir ara dönem "Görevi aç" düğmesi vardı?** Stop intent'in uygulamayı açması `openAppWhenRun = true` ile denendi ve 8 Eylül'de gerçek cihazda kaybedildi: bu bayrak (iOS 26 adıyla `.foreground(.immediate)`) sistemin `perform()`'u çalıştırmadan *önce* kilit açılmasını istemesine yol açıyor; kilitli telefonda `Locked / RequestDenied` ile çıkıyor ve stop kaydı, görev oturumu, nöbetçi zincir hiç oluşmuyordu (`docs/investigations/2026-09-08-device-alarm-audit.md`). Aynı gün stop arka plana alındı ve uygulamayı açma işi ayrı bir "Görevi aç / Alarmı aç" düğmesine (`MissionOpenIntent`) taşındı.
 
-**9 Eylül, aşama 1:** stop intent `supportedModes = [.background, .foreground(.dynamic)]` ile önce arka planda kaydeder, sonra `continueInForeground()` ile öne gelmeyi *dener*. Reddedilirse (kilitli cihaz) kayıt korunur ve red journal'a `stop_foreground / declined` olarak yazılır. İkincil düğme, cihaz doğrulaması tamamlanana kadar geri düşüş yolu olarak yerinde kalır; doğrulanınca kaldırılması planlanıyor (aşama 2).
+**9 Eylül:** stop intent `supportedModes = [.background, .foreground(.dynamic)]` ile önce arka planda kaydeder, sonra `continueInForeground()` ile öne gelmeyi *dener*. Reddedilirse (kilitli cihaz) kayıt korunur ve red journal'a `stop_foreground / declined` olarak yazılır; bekleyen görev uygulama ne zaman açılırsa gösterilir. Bu, ikincil düğmenin işini devraldığı için düğme ve `MissionOpenIntent` kaldırıldı. Kilitliyken uygulama yine açılmaz — iOS buna izin vermiyor — ama eskiden kaybolan kayıt artık korunuyor.
 
-> Bu düğme, Flutter tarafındaki ara ekranın "Görevi yap" düğmesinden **farklı bir şeydir**. İkisi ayrı katmanlarda, ayrı sebeplerle vardır: iOS'taki düğme uygulamayı açmak için, Flutter'daki düğme erteleme ile görev arasında seçim sunmak içindir (bkz. [0002](0002-stop-gate.md)).
+> Flutter tarafındaki ara ekranın "Görevi yap" düğmesi bundan bağımsızdır ve durur: o, erteleme ile görev arasında seçim sunar (bkz. [0002](0002-stop-gate.md)).
 
 ### Kabul edilen davranış farkları
 

@@ -134,11 +134,18 @@ final class AlarmKitHandler {
   }
 
   func handleStop(scheduleId: String) async {
-    await handleIntent(scheduleId: scheduleId, open: false)
-  }
-
-  func handleOpen(scheduleId: String) async {
-    await handleIntent(scheduleId: scheduleId, open: true)
+    await enqueue {
+      guard #available(iOS 26.1, *), Self.validId(scheduleId) else { return }
+      self.startObserving()
+      do {
+        if let event = try await self.engine.stop(scheduleId: scheduleId) {
+          self.channel?.invokeMethod("missionStopped", arguments: event.dictionary)
+        }
+      } catch {
+        self.engine.journal.record("stop",
+          at: Date().timeIntervalSince1970 * 1000, scheduleId: scheduleId, result: "failed", error: error)
+      }
+    }.value
   }
 
   /// The stop was recorded; only the follow-up foregrounding was refused
@@ -149,22 +156,6 @@ final class AlarmKitHandler {
       guard #available(iOS 26.1, *), Self.validId(scheduleId) else { return }
       self.engine.journal.record("stop_foreground",
         at: Date().timeIntervalSince1970 * 1000, scheduleId: scheduleId, result: "declined", error: error)
-    }.value
-  }
-
-  private func handleIntent(scheduleId: String, open: Bool) async {
-    await enqueue {
-      guard #available(iOS 26.1, *), Self.validId(scheduleId) else { return }
-      self.startObserving()
-      do {
-        let event = open
-          ? try await self.engine.open(scheduleId: scheduleId)
-          : try await self.engine.stop(scheduleId: scheduleId)
-        if let event { self.channel?.invokeMethod("missionStopped", arguments: event.dictionary) }
-      } catch {
-        self.engine.journal.record(open ? "open" : "stop",
-          at: Date().timeIntervalSince1970 * 1000, scheduleId: scheduleId, result: "failed", error: error)
-      }
     }.value
   }
 
@@ -202,7 +193,10 @@ final class AlarmKitHandler {
     record.missionTimeoutSeconds = (chain["missionTimeoutSeconds"] as? NSNumber)?.intValue ?? 90
     record.tintHex = theme["accent"] as? String ?? ""
     record.soundId = args["soundId"] as? String ?? "default"
-    record.presentationVersion = 2
+    // Bump whenever the alert presentation changes: hasSameSchedule compares
+    // it, so records scheduled by an older build get re-registered instead of
+    // keeping a stale alert. 3 = secondary "Open task" button removed.
+    record.presentationVersion = 3
     guard validId(record.alarmId), (1...3600).contains(record.graceSeconds),
       (1...1000).contains(record.maxRearms),
       record.chainDurationMillis.isFinite, record.chainDurationMillis > 0,

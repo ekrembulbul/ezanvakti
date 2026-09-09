@@ -1,5 +1,3 @@
 /* Base language; kept explicit so `en` is a real bundle localization. */
 "Prayer Times & Alarm" = "Prayer Times & Alarm";
 "Stop alarm" = "Stop alarm";
-"Open task" = "Open task";
-"Open alarm" = "Open alarm";

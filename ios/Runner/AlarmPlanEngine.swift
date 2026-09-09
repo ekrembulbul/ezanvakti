@@ -317,14 +317,6 @@ final class AlarmPlanEngine {
     }
   }
 
-  func open(scheduleId: String) async throws -> AlarmMissionEvent? {
-    try validateState()
-    if let uuid = mapping[scheduleId], try platform.alarms()[uuid] == .alerting {
-      try platform.stop(id: uuid)
-    }
-    return try await stop(scheduleId: scheduleId)
-  }
-
   private func matchingSession(_ alarmId: String, expectedFireMillis: Double?) throws -> AlarmMissionSession? {
     try validateState()
     let session = missions.session(alarmId: alarmId)

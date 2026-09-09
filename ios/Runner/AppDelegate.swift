@@ -58,22 +58,3 @@ struct MissionStopIntent: LiveActivityIntent {
     return .result()
   }
 }
-
-/// Foregrounding is a separate, explicitly labelled alarm action.
-@available(iOS 26.1, *)
-struct MissionOpenIntent: LiveActivityIntent {
-  static let title: LocalizedStringResource = "Open alarm"
-  static let openAppWhenRun: Bool = true
-  static let isDiscoverable: Bool = false
-
-  @Parameter(title: "Alarm")
-  var scheduleId: String
-
-  init() { scheduleId = "" }
-  init(scheduleId: String) { self.scheduleId = scheduleId }
-
-  func perform() async throws -> some IntentResult {
-    await AlarmKitHandler.shared.handleOpen(scheduleId: scheduleId)
-    return .result()
-  }
-}

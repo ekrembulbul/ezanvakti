@@ -30,12 +30,10 @@ final class AlarmKitPlatform: AlarmPlatform {
   static func presentation(for record: AlarmMissionConfiguration) -> AlarmPresentation {
     let title: LocalizedStringResource = record.label.isEmpty
       ? "Prayer Times & Alarm" : LocalizedStringResource(stringLiteral: record.label)
-    let needsAction = record.gated || record.snoozeEnabled
-    let actionTitle: LocalizedStringResource = record.gated ? "Open task" : "Open alarm"
-    return AlarmPresentation(alert: AlarmPresentation.Alert(title: title,
-      secondaryButton: needsAction ? AlarmButton(text: actionTitle,
-        textColor: .white, systemImageName: record.gated ? "checkmark.circle" : "alarm") : nil,
-      secondaryButtonBehavior: needsAction ? .custom : nil))
+    // Only the system stop control. Stop records in the background and then
+    // asks to come to the foreground itself (MissionStopIntent), so a separate
+    // "open" button has no job left — gated or not, snooze or not.
+    return AlarmPresentation(alert: AlarmPresentation.Alert(title: title))
   }
 
   func schedule(id: UUID, configuration record: AlarmMissionConfiguration) async throws {
@@ -49,13 +47,11 @@ final class AlarmKitPlatform: AlarmPlatform {
       schedule = .relative(.init(time: .init(hour: time.hour ?? 0, minute: time.minute ?? 0),
         repeats: .weekly(Self.localeWeekdays(fromIso: record.repeatWeekdays))))
     }
-    let handlesActions = record.gated || record.snoozeEnabled
     let attributes = AlarmAttributes<EzanAlarmMetadata>(
       presentation: Self.presentation(for: record), metadata: EzanAlarmMetadata(),
       tintColor: Self.color(fromHex: record.tintHex) ?? Self.fallbackTint)
     let configuration = AlarmManager.AlarmConfiguration(schedule: schedule, attributes: attributes,
       stopIntent: MissionStopIntent(scheduleId: record.scheduleId),
-      secondaryIntent: handlesActions ? MissionOpenIntent(scheduleId: record.scheduleId) : nil,
       sound: alertSound(record.soundId))
     _ = try await AlarmManager.shared.schedule(id: id, configuration: configuration)
   }
