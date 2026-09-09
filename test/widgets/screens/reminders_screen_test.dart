@@ -756,4 +756,19 @@ void main() {
       );
     });
   });
+
+  testWidgets('Ekran acilisinda alarmlar AppState bos olsa da depodan yuklenir', (
+    tester,
+  ) async {
+    // Ana ekran alarmlari vakit istegiyle birlikte yukluyordu; ag yavassa
+    // Hatirlaticilar sekmesi bos gorunuyordu. Ekran kendi verisini tazeler.
+    await storage.saveAlarm(sahur);
+    appState.setAlarms(const []);
+
+    await pump(tester);
+    await tester.tap(find.text('Alarmlar'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('06:30'), findsOneWidget);
+  });
 }

@@ -95,6 +95,11 @@ class _RemindersScreenState extends State<RemindersScreen>
     _hasPermission = context.read<AppState>().hasNotificationPermission;
     _refreshPermissions();
     _refreshScheduleFailures();
+    // Ana ekran alarmları vakit isteğiyle birlikte yüklüyor; ağ yavaşken bu
+    // ekran boş kalmasın diye liste henüz gelmemişse depodan tazeler. Dolu
+    // listeye dokunulmaz: sıra ve anlık durum AppState'te doğru.
+    final appState = context.read<AppState>();
+    if (appState.alarms.isEmpty) unawaited(_reloadAlarms(appState));
   }
 
   @override

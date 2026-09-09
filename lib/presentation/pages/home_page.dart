@@ -397,6 +397,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     appState.clearError();
 
     try {
+      // Alarmlar depodan gelir, ağa bağlı değil: vakit isteği sürerken ya da
+      // başarısız olsa da liste dolu olsun.
+      appState.setAlarms(
+        await ServiceLocator().get<AlarmsManager>().getAlarms(),
+      );
       final data = await _dataLoaderService.loadPrayerData(
         location,
         forceRefresh: forceRefresh,
@@ -408,9 +413,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       appState.setLastUpdateTime(data.lastUpdate);
       appState.setNotificationPermission(data.hasPermission);
       appState.setNotificationSettings(data.settings);
-      appState.setAlarms(
-        await ServiceLocator().get<AlarmsManager>().getAlarms(),
-      );
       appState.setSkips(data.skips);
       appState.setRefreshing(false);
 
