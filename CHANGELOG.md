@@ -4,6 +4,12 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.20.1] - 2026-09-09
+
+### Düzeltildi
+- Alarm listesi artık vakit verisi beklenmeden yüklenir; Hatırlatıcılar ekranı açılışta alarmları depodan tazeler. Ağ yavaşken sekme boş görünmüyor.
+- Tema, cihazın gece/gündüz tercihini yapı (build) sırasında değil sistem bildirimiyle izliyor; ilk karede yanlış parlaklık ve debug'daki framework uyarısı giderildi.
+
 ## [0.20.0] - 2026-09-09
 
 ### Değişti
