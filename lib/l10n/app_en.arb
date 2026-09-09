@@ -375,7 +375,6 @@
   "exactAlarmOff": "Exact alarms are off. Notifications may be delayed.",
   "actionOpen": "Open",
   "alarmDeleted": "Alarm {label} deleted",
-  "alarmBlockedSnoozed": "This alarm is snoozed and still owes its task; it cannot be turned off yet.",
   "alarmTurnedOff": "Alarm turned off",
   "snoozeUntil": "Rings at {time}",
   "themeDark": "Dark",

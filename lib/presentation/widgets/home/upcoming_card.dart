@@ -220,10 +220,9 @@ class UpcomingCard extends StatelessWidget {
         },
         label: customLabel.isEmpty ? null : customLabel,
       ),
-      // Ertelenmis gorevli alarm atlanamaz: gorev borcu duruyor.
-      trailing: SnoozeNotice.canDisable(missionSession, item.alarm)
-          ? _skipSwitch(occurrence, skipped)
-          : const Switch(value: true, onChanged: null),
+      // Gorev borcu olan alarm da atlanabilir gorunur: dokunus gorev kapisina
+      // gider (`resolveSkipBeforeDismiss`), kilitli anahtar cikissiz birakiyordu.
+      trailing: _skipSwitch(occurrence, skipped),
     );
   }
 

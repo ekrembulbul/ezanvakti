@@ -36,6 +36,16 @@ Bayatlık eşikleri iki yolda farklıdır:
 - **Görevsiz:** `stopScreenSeconds` (45 sn). Durdurma zaten kesindir; saatler sonra eski bir "Ertele" ekranıyla karşılaşılmamalıdır (D3/D7).
 - **Görevli:** zincirin sert tavanı ile aynı pencere (`chainDeadlineAt`, bkz. [0001](0001-alarm-watchdog-chain.md)). Tavan dolduğunda görev borcu da düşer; iki mekanizma aynı anda sona erer.
 
+### Kapatma girişimleri de aynı kapıdan geçer
+
+`decide()` "ortada çalan alarm var mı" sorusunu cevaplar. Ödenmemiş görev borcu ise alarm ertelenmişken de durur, ve o sırada alarmı listeden pasife almak ya da sıradaki çalışını atlamak borçtan kaçmanın arka kapısıydı.
+
+`StopGate.blocksDismissal()` bu ikinci soruyu sorar: *bu alarmın ödenmemiş görev borcu var mı?* Görevli alarmda bekleyen bir oturum varsa ve zincirin sert tavanı (bkz. [0001](0001-alarm-watchdog-chain.md)) dolmamışsa kapatma girişimi doğrudan uygulanmaz; kullanıcı görev ekranına uğrar. Orada görevi yapar ya da kademeli acil çıkışı kullanır — ikisi de borcu kapatır, sonra istediği kapatma uygulanır.
+
+Kapıya tabi olanlar: alarm satırındaki anahtarı kapatma, "SIRADAKİ" kartından tek seferlik atlama. **Silme tabi değildir** — kalıcı ve niyetli bir eylemdir, ve silinmiş bir alarmın görevini yaptırmak anlamsız olurdu.
+
+Önceki çözüm kullanıcıyı çıkışsız bırakıyordu: anahtar kilitleniyor ve "görevi yapmadan kapatılamaz" uyarısı gösteriliyordu. Erteleme bitene kadar beklemekten başka yol yoktu. Kapı, koruma ile çıkışı aynı ekranda buluşturur.
+
 Erteleme hakkı ayrı bir kural taşır: görev açıkken sınırsız erteleme kapıyı işlevsiz bırakacağı için limit en büyük sonlu seçeneğe indirilir (`snooze_options.dart:19-21`).
 
 ## Sonuçlar
@@ -61,7 +71,8 @@ Erteleme hakkı ayrı bir kural taşır: görev açıkken sınırsız erteleme k
 
 ## Referanslar
 
-- `lib/features/alarms/domain/stop_gate.dart` — karar fonksiyonu ve enum
+- `lib/features/alarms/domain/stop_gate.dart` — `decide()` karar fonksiyonu, enum ve `blocksDismissal()` borç sorgusu
+- `lib/presentation/screens/mission_launcher.dart` — `resolveMissionBeforeDismiss()` ve `resolveSkipBeforeDismiss()`
 - `lib/features/alarms/domain/snooze_options.dart:14-21` — erteleme limiti normalleştirme
 - `lib/presentation/screens/mission_launcher.dart:145-197` — kararın uygulanması
 - `lib/presentation/screens/alarm_stop_screen.dart:196-217` — birincil düğme metni (`stopDoMission` / `actionOk`)

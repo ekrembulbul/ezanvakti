@@ -2350,12 +2350,6 @@ abstract class AppLocalizations {
   /// **'{label} alarmı silindi'**
   String alarmDeleted(Object label);
 
-  /// Uyarı
-  ///
-  /// In tr, this message translates to:
-  /// **'Bu alarm ertelendi ve görevi bekliyor; görevi yapmadan kapatılamaz.'**
-  String get alarmBlockedSnoozed;
-
   /// Bildirim mesajı
   ///
   /// In tr, this message translates to:

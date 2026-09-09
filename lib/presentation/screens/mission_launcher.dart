@@ -12,6 +12,7 @@ import '../../core/interfaces/alarm_service.dart';
 import '../../core/models/alarm.dart';
 import '../../core/models/alarm_mission.dart';
 import '../../core/models/mission_session.dart';
+import '../../core/models/skipped_occurrence.dart';
 import '../../core/utils/app_logger.dart';
 import '../../features/alarms/domain/abort_gate.dart';
 import '../../features/alarms/domain/alarm_scheduler.dart';
@@ -116,6 +117,79 @@ Future<void> openMissionIfPending(BuildContext context) async {
       }
     }
   }
+}
+
+/// Alarmı kapatma girişimini görev kapısından geçirir.
+///
+/// Görev borcu yoksa hemen `true` döner ve çağıran eylemini uygular. Borç
+/// varsa görev ekranı açılır; ekran kapandığında borç ödenmişse (görev
+/// yapıldı ya da kademeli acil çıkış kullanıldı) `true`, kullanıcı yeniden
+/// ertelediyse `false` döner.
+///
+/// [openMissionIfPending]'den farkı: erteleme sürerken de açar. Orada karar
+/// [StopGate.decide]'ın, burada [StopGate.blocksDismissal]'ın — biri "çalan
+/// alarm var mı" sorar, diğeri "ödenmemiş borç var mı".
+Future<bool> resolveMissionBeforeDismiss(
+  BuildContext context,
+  Alarm alarm,
+) async {
+  if (!context.mounted) return false;
+  final coordinator = ServiceLocator().get<MissionCoordinator>();
+
+  // Yan etkisiz: AppState'i tazelemek cagiranin isi. Buradan yazmak yeniden
+  // kurulum tetikleyip oturumu ekran acilmadan degistirebiliyordu.
+  Future<bool> blocked() async => StopGate.blocksDismissal(
+    alarm: alarm,
+    sessions: await coordinator.currentSessions(),
+    now: DateTime.now(),
+  );
+
+  if (!await blocked()) return true;
+  if (!context.mounted) return false;
+
+  // Görev ekranı zaten açıksa kullanıcı borçla uğraşıyor demektir; ikinci bir
+  // ekran açmak yerine eylemi uygulamadan geri dön.
+  if (_missionScreenOpen || !_canPresentMission) return false;
+
+  final session = MissionSession.pendingForAlarm(
+    await coordinator.currentSessions(),
+    alarm.id,
+  );
+  if (session == null || !context.mounted) return false;
+
+  final navigator = Navigator.of(context);
+  _openScreenNavigator = navigator;
+  try {
+    await navigator.push(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => _MissionHost(alarm: alarm, session: session),
+      ),
+    );
+  } finally {
+    if (identical(_openScreenNavigator, navigator)) _openScreenNavigator = null;
+  }
+  if (!context.mounted) return false;
+  return !await blocked();
+}
+
+/// Tek seferlik kapatma da aynı kapıdan geçer.
+///
+/// Ödenmemiş görev borcu olan bir alarmın sıradaki çalışını atlamak, borçtan
+/// kaçmanın bir başka yoludur. Bildirim atlamalarının görevle ilgisi yoktur;
+/// onlar doğrudan uygulanır.
+Future<bool> resolveSkipBeforeDismiss(
+  BuildContext context,
+  SkippedOccurrence occurrence,
+  List<Alarm> alarms,
+) async {
+  if (occurrence.kind != SkipKind.alarm) return true;
+  final alarm = alarms
+      .where((candidate) => candidate.id == occurrence.reference)
+      .firstOrNull;
+  // Tanımı gitmiş alarmın borcu da düşer; atlama kaydı engellenmez.
+  if (alarm == null) return true;
+  return resolveMissionBeforeDismiss(context, alarm);
 }
 
 Future<bool> _openNextMission(BuildContext context) async {

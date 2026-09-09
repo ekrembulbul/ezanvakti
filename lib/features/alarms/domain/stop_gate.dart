@@ -54,15 +54,39 @@ class StopGate {
     // Görevli yolda da bayatlık sınırı: dünkü oturum bugünkü açılışta görev
     // ekranı açmamalı (31 Ağustos olayı). Eşik, zincirin sert tavanıyla aynı
     // pencere — tavan dolduktan sonra görev borcu da düşer.
-    final staleAt =
-        session.chainDeadlineAt ??
-        session.firedAt.add(
-          const Duration(minutes: MissionTuning.chainDeadlineMinutes),
-        );
-    if (!now.isBefore(staleAt)) return StopDecision.closeAndRearm;
+    if (!now.isBefore(_staleAt(session))) return StopDecision.closeAndRearm;
 
     return hasChoice ? StopDecision.showStopScreen : StopDecision.openMission;
   }
+
+  /// Alarmı kapatma girişimi önce görev ekranına uğramalı mı?
+  ///
+  /// Görevli alarmda görev borcu, alarmı listeden pasife alarak ya da tek
+  /// seferlik kapatarak atlanabiliyordu; kapı yalnızca görev ekranındaydı.
+  /// Bu sorgu aynı kapıyı o çağrı noktalarına da taşır — kullanıcı görevi
+  /// yapar ya da kademeli acil çıkışı kullanır.
+  ///
+  /// [decide] ile kasıtlı olarak ayrıdır: erteleme sürerken [decide] ekran
+  /// açmaz ([StopDecision.none]) ama borç durur, dolayısıyla kapı kapalıdır.
+  /// Silme bu kapıya tabi değildir — kalıcı ve niyetli bir eylemdir.
+  static bool blocksDismissal({
+    required Alarm alarm,
+    required Iterable<MissionSession> sessions,
+    required DateTime now,
+  }) {
+    if (!alarm.mission.requiresGate) return false;
+    final session = MissionSession.pendingForAlarm(sessions, alarm.id);
+    if (session == null) return false;
+    // Tavan dolduysa borç zaten düşmüştür; kapı da açılır.
+    return now.isBefore(_staleAt(session));
+  }
+
+  /// Görev borcunun düştüğü an: zincirin sert tavanıyla aynı pencere.
+  static DateTime _staleAt(MissionSession session) =>
+      session.chainDeadlineAt ??
+      session.firedAt.add(
+        const Duration(minutes: MissionTuning.chainDeadlineMinutes),
+      );
 
   /// Kalan erteleme hakkı. `null` = sınırsız; erteleme kapalıysa 0.
   static int? snoozeRemaining(Alarm alarm, MissionSession session) {

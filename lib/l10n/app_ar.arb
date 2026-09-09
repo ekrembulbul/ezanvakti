@@ -375,7 +375,6 @@
   "exactAlarmOff": "المنبهات الدقيقة معطلة. قد تتأخر التنبيهات.",
   "actionOpen": "افتح",
   "alarmDeleted": "تم حذف المنبه {label}",
-  "alarmBlockedSnoozed": "هذا المنبه مؤجل ولا تزال مهمته معلّقة؛ لا يمكن إيقافه بعد.",
   "alarmTurnedOff": "تم إيقاف المنبه",
   "snoozeUntil": "سيرن في {time}",
   "themeDark": "داكن",

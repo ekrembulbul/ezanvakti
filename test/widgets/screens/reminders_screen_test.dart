@@ -6,6 +6,7 @@ import 'package:ezanvakti/core/interfaces/notification_service.dart';
 import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/core/models/alarm_mission.dart';
 import 'package:ezanvakti/core/models/alarm_theme.dart';
+import 'package:ezanvakti/core/models/mission_session.dart';
 import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/models/skipped_occurrence.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart';
@@ -14,6 +15,8 @@ import 'package:ezanvakti/core/providers/app_state.dart';
 import 'package:ezanvakti/core/services/exact_alarm_service.dart';
 import 'package:ezanvakti/features/alarms/domain/alarm_scheduler.dart';
 import 'package:ezanvakti/features/alarms/domain/alarms_manager.dart';
+import 'package:ezanvakti/features/alarms/domain/mission_coordinator.dart';
+import 'package:ezanvakti/presentation/screens/mission_screen.dart';
 import 'package:ezanvakti/features/notifications/domain/skip_manager.dart';
 import 'package:ezanvakti/features/notifications/domain/notification_scheduler.dart';
 import 'package:ezanvakti/features/notifications/domain/notification_settings_manager.dart';
@@ -69,6 +72,24 @@ class _StubAlarmService extends FakeAlarmService {
 
   @override
   Future<void> abortMission(String alarmId, {DateTime? firedAt}) async {}
+}
+
+/// Görev akışını gerçekten yürüten stub.
+///
+/// [_StubAlarmService] görev metotlarını boş geçiyor; görev ekranının
+/// açıldığını doğrulayan test tam da o akışa bakıyor.
+class _MissionStubService extends FakeAlarmService {
+  @override
+  Future<bool> isSupported() async => true;
+
+  @override
+  Future<bool> isPermissionGranted() async => true;
+
+  @override
+  Future<bool> requestPermission() async => true;
+
+  @override
+  Future<void> cancelAllAlarms() async {}
 }
 
 /// Planlamayı askıda tutan bildirim servisi.
@@ -150,6 +171,10 @@ void main() {
     locator.register<AlarmService>(alarmService);
     locator.register<AlarmsManager>(AlarmsManager(scheduler: alarmScheduler));
     locator.register<SkipManager>(SkipManager(storage: storage));
+    locator.register<AlarmScheduler>(alarmScheduler);
+    locator.register<MissionCoordinator>(
+      MissionCoordinator(alarmService: alarmService, storage: storage),
+    );
     locator.register<NotificationSettingsManager>(
       NotificationSettingsManager(storage: storage),
     );
@@ -632,5 +657,61 @@ void main() {
           "Eylemli snackbar Flutter'da varsayilan olarak kalici; kullanici "
           'dokunmazsa cubuk hic kapanmiyordu',
     );
+  });
+
+  group('Ertelenmis gorevli alarmi kapatma', () {
+    const gatedAlarm = Alarm(
+      id: 'sahur',
+      kind: AlarmKind.fixed,
+      label: 'Sahur',
+      hour: 6,
+      minute: 30,
+      mission: AlarmMission.math,
+      missionLevel: 1,
+      snoozeEnabled: true,
+      snoozeMinutes: 5,
+      maxSnoozes: 2,
+    );
+
+    testWidgets('Anahtar kapatilinca gorev ekrani acilir', (tester) async {
+      tester.view.physicalSize = const Size(1206, 2622);
+      tester.view.devicePixelRatio = 3.0;
+      addTearDown(tester.view.reset);
+
+      final alarmService = _MissionStubService();
+      register(alarms: alarmService);
+      await storage.saveAlarm(gatedAlarm);
+      final firedAt = DateTime.now();
+      await alarmService.seedSession(
+        MissionSession(
+          alarmId: gatedAlarm.id,
+          firedAt: firedAt,
+          snoozedUntil: firedAt.add(const Duration(minutes: 8)),
+        ),
+      );
+      appState.setAlarms(const [gatedAlarm]);
+      appState.setMissionSessions([
+        MissionSession(
+          alarmId: gatedAlarm.id,
+          firedAt: firedAt,
+          snoozedUntil: firedAt.add(const Duration(minutes: 8)),
+        ),
+      ]);
+
+      await pump(tester);
+      await tester.tap(find.text('Alarmlar'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(Switch).first);
+      for (var i = 0; i < 30; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      expect(find.byType(MissionScreen), findsOneWidget);
+      expect(
+        find.textContaining('görevi bekliyor'),
+        findsNothing,
+        reason: 'kullaniciya cikis yolu verilmeli, sadece uyari degil',
+      );
+    });
   });
 }

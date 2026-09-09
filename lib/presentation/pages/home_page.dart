@@ -440,6 +440,13 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// yalnızca gösterilen örneği atlar.
   Future<void> _toggleSkip(SkippedOccurrence occurrence, bool skipped) async {
     final appState = context.read<AppState>();
+    // Atlamak, ödenmemiş görev borcundan kaçmanın bir yolu; kapatma ile aynı
+    // kapıdan geçer. Geri açmak (skipped == false) borç yaratmaz.
+    if (skipped &&
+        !await resolveSkipBeforeDismiss(context, occurrence, appState.alarms)) {
+      return;
+    }
+    if (!mounted) return;
     final manager = ServiceLocator().get<SkipManager>();
 
     final next = skipped

@@ -1266,10 +1266,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get alarmBlockedSnoozed =>
-      'This alarm is snoozed and still owes its task; it cannot be turned off yet.';
-
-  @override
   String get alarmTurnedOff => 'Alarm turned off';
 
   @override

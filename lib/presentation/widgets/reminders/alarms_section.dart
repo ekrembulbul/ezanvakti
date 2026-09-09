@@ -3,6 +3,7 @@ import '../../../l10n/app_localizations.dart';
 import '../../../l10n/l10n_extensions.dart';
 import '../../utils/time_format_context.dart';
 import '../../../features/notifications/domain/skip_rules.dart';
+import '../../../features/alarms/domain/stop_gate.dart';
 import '../../../core/models/mission_session.dart';
 import 'snooze_notice.dart';
 import 'package:flutter/material.dart';
@@ -129,7 +130,11 @@ class AlarmsSection extends StatelessWidget {
       alarm.id,
     );
     final snoozedUntil = SnoozeNotice.snoozedUntilFor(missionSession, alarm);
-    final canDisable = SnoozeNotice.canDisable(missionSession, alarm);
+    final canDisable = !StopGate.blocksDismissal(
+      alarm: alarm,
+      sessions: missionSessions,
+      now: DateTime.now(),
+    );
 
     final fireAt = nextFireByAlarm[alarm.id];
     final skipped =

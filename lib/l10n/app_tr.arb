@@ -1721,10 +1721,6 @@
       }
     }
   },
-  "alarmBlockedSnoozed": "Bu alarm ertelendi ve görevi bekliyor; görevi yapmadan kapatılamaz.",
-  "@alarmBlockedSnoozed": {
-    "description": "Uyarı"
-  },
   "alarmTurnedOff": "Alarm kapatıldı",
   "@alarmTurnedOff": {
     "description": "Bildirim mesajı"

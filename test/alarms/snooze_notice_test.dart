@@ -20,7 +20,6 @@ void main() {
     kind: AlarmKind.fixed,
     mission: AlarmMission.math,
   );
-  const plain = Alarm(id: 'ogle', kind: AlarmKind.fixed);
 
   MissionSession session({
     String alarmId = 'sahur',
@@ -63,26 +62,6 @@ void main() {
         SnoozeNotice.snoozedUntilFor(session(snoozedUntil: until), gated),
         until,
       );
-    });
-  });
-
-  group('canDisable', () {
-    test('Gorevsiz alarm her zaman kapatilabilir', () {
-      expect(
-        SnoozeNotice.canDisable(session(alarmId: 'ogle', snoozedUntil: until), plain),
-        isTrue,
-      );
-    });
-
-    test('Ertelenmis gorevli alarm kapatilamaz', () {
-      expect(
-        SnoozeNotice.canDisable(session(snoozedUntil: until), gated),
-        isFalse,
-      );
-    });
-
-    test('Ertelenmemis gorevli alarm kapatilabilir', () {
-      expect(SnoozeNotice.canDisable(session(), gated), isTrue);
     });
   });
 

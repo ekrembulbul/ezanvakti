@@ -1253,10 +1253,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get alarmBlockedSnoozed =>
-      'هذا المنبه مؤجل ولا تزال مهمته معلّقة؛ لا يمكن إيقافه بعد.';
-
-  @override
   String get alarmTurnedOff => 'تم إيقاف المنبه';
 
   @override

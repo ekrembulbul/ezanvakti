@@ -1263,10 +1263,6 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get alarmBlockedSnoozed =>
-      'Bu alarm ertelendi ve görevi bekliyor; görevi yapmadan kapatılamaz.';
-
-  @override
   String get alarmTurnedOff => 'Alarm kapatıldı';
 
   @override

@@ -16,6 +16,7 @@ import '../../core/interfaces/alarm_service.dart';
 import '../../core/interfaces/notification_service.dart';
 import '../../core/models/alarm.dart';
 import '../../core/models/mission_session.dart';
+import 'mission_launcher.dart';
 import '../../core/models/notification_setting.dart';
 import '../../core/providers/app_state.dart';
 import '../../core/services/exact_alarm_service.dart';
@@ -680,10 +681,16 @@ class _RemindersScreenState extends State<RemindersScreen>
     await _syncAlarms(appState);
   }
 
-  /// Ertelenmiş görevli alarm kapatılmak istendi. Kapatmak, görevi yapmadan
-  /// alarmdan kurtulmanın arka kapısı olurdu.
-  void _onDisableBlocked(Alarm alarm) {
-    _snack(context.l10n.alarmBlockedSnoozed);
+  /// Görev borcu duran alarm kapatılmak istendi.
+  ///
+  /// Kapatmak, görevi yapmadan alarmdan kurtulmanın arka kapısı olurdu; ama
+  /// kullanıcıyı borç bitene kadar beklemeye mahkûm etmek de doğru değil.
+  /// Görev ekranına uğratılır: görevi yapar ya da kademeli acil çıkışı
+  /// kullanır. İkisi de borcu kapatır, sonra istediği kapatma uygulanır.
+  Future<void> _onDisableBlocked(Alarm alarm) async {
+    if (!await resolveMissionBeforeDismiss(context, alarm)) return;
+    if (!mounted) return;
+    await _toggleAlarm(alarm, false);
   }
 
   /// Kapatma, "yalnızca bu sefer"in giriş kapısı: alarm kapatılır ve altta

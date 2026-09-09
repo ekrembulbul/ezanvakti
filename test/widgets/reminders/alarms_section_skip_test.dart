@@ -129,13 +129,16 @@ void main() {
   testWidgets('Ertelenmis gorevli alarm kapatilamaz', (tester) async {
     Alarm? blocked;
     var toggled = false;
+    // Sabit gecmis tarih kullanilamaz: kapi 60 dk sonra borcu bayat sayip
+    // acilyor. Test "az once durdu" varsayar.
+    final firedAt = DateTime.now();
     await tester.pumpWidget(
       build(
         alarms: const [gated],
         session: MissionSession(
           alarmId: 'sahur',
-          firedAt: fireAt,
-          snoozedUntil: DateTime(2026, 8, 19, 5, 10),
+          firedAt: firedAt,
+          snoozedUntil: firedAt.add(const Duration(minutes: 10)),
         ),
         onDisableBlocked: (a) => blocked = a,
         onToggle: (a, b) => toggled = true,
@@ -166,5 +169,49 @@ void main() {
     await tester.pump();
 
     expect(toggled, isTrue);
+  });
+
+  testWidgets('Ertelenmemis ama gorev borcu duran alarm da kapidan gecer', (
+    tester,
+  ) async {
+    Alarm? blocked;
+    var toggled = false;
+    await tester.pumpWidget(
+      build(
+        alarms: const [gated],
+        // Erteleme yok: alarm durdurulmus, gorev henuz yapilmamis.
+        session: MissionSession(alarmId: 'sahur', firedAt: DateTime.now()),
+        onDisableBlocked: (a) => blocked = a,
+        onToggle: (a, b) => toggled = true,
+      ),
+    );
+    await tester.tap(find.byType(Switch));
+    await tester.pump();
+
+    expect(
+      blocked?.id,
+      'sahur',
+      reason: 'gorev borcu erteleme olmadan da kapatmayi kapiya yollamali',
+    );
+    expect(toggled, isFalse);
+  });
+
+  testWidgets('Zincir tavani dolmus borc kapatmayi engellemez', (tester) async {
+    var toggled = false;
+    await tester.pumpWidget(
+      build(
+        alarms: const [gated],
+        session: MissionSession(
+          alarmId: 'sahur',
+          firedAt: DateTime.now().subtract(const Duration(hours: 3)),
+        ),
+        onDisableBlocked: (_) {},
+        onToggle: (a, b) => toggled = true,
+      ),
+    );
+    await tester.tap(find.byType(Switch));
+    await tester.pump();
+
+    expect(toggled, isTrue, reason: 'tavan dolunca gorev borcu da duser');
   });
 }

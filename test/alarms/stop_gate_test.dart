@@ -188,4 +188,104 @@ void main() {
       expect(StopGate.snoozeRemaining(plain, session(snoozeUsed: 5)), 0);
     });
   });
+
+  group('StopGate.blocksDismissal', () {
+    MissionSession pending({
+      DateTime? snoozedUntil,
+      DateTime? completedAt,
+      DateTime? chainDeadlineAt,
+    }) => MissionSession(
+      alarmId: gated.id,
+      firedAt: stoppedAt,
+      snoozedUntil: snoozedUntil,
+      completedAt: completedAt,
+      chainDeadlineAt: chainDeadlineAt,
+    );
+
+    test('gorevsiz alarmda engellenmez', () {
+      expect(
+        StopGate.blocksDismissal(
+          alarm: plain,
+          sessions: [MissionSession(alarmId: plain.id, firedAt: stoppedAt)],
+          now: now,
+        ),
+        isFalse,
+      );
+    });
+
+    test('bekleyen oturum yoksa engellenmez', () {
+      expect(
+        StopGate.blocksDismissal(alarm: gated, sessions: const [], now: now),
+        isFalse,
+      );
+    });
+
+    test('tamamlanmis oturum engellemez', () {
+      expect(
+        StopGate.blocksDismissal(
+          alarm: gated,
+          sessions: [pending(completedAt: now)],
+          now: now,
+        ),
+        isFalse,
+      );
+    });
+
+    test('baska alarmin oturumu engellemez', () {
+      expect(
+        StopGate.blocksDismissal(
+          alarm: gated,
+          sessions: [MissionSession(alarmId: 'baska', firedAt: stoppedAt)],
+          now: now,
+        ),
+        isFalse,
+      );
+    });
+
+    test('gorevli alarmda bekleyen oturum engeller', () {
+      expect(
+        StopGate.blocksDismissal(alarm: gated, sessions: [pending()], now: now),
+        isTrue,
+      );
+    });
+
+    test('erteleme surerken de engeller', () {
+      expect(
+        StopGate.blocksDismissal(
+          alarm: gated,
+          sessions: [
+            pending(snoozedUntil: now.add(const Duration(minutes: 8))),
+          ],
+          now: now,
+        ),
+        isTrue,
+      );
+    });
+
+    test('zincir tavani dolmus oturum engellemez', () {
+      final stale = stoppedAt.add(
+        const Duration(minutes: MissionTuning.chainDeadlineMinutes + 1),
+      );
+      expect(
+        StopGate.blocksDismissal(
+          alarm: gated,
+          sessions: [pending()],
+          now: stale,
+        ),
+        isFalse,
+      );
+    });
+
+    test('kayitli chain deadline varsa o kullanilir', () {
+      final deadline = stoppedAt.add(const Duration(minutes: 5));
+      expect(
+        StopGate.blocksDismissal(
+          alarm: gated,
+          sessions: [pending(chainDeadlineAt: deadline)],
+          now: deadline.add(const Duration(seconds: 1)),
+        ),
+        isFalse,
+      );
+    });
+  });
 }

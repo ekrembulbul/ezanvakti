@@ -5,6 +5,7 @@ import 'package:intl/date_symbol_data_local.dart';
 
 import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/core/models/alarm_mission.dart';
+import 'package:ezanvakti/core/models/mission_session.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart';
 import 'package:ezanvakti/core/models/skipped_occurrence.dart';
 import 'package:ezanvakti/features/notifications/domain/notification_scheduler.dart';
@@ -65,6 +66,7 @@ void main() {
       double width = 360,
       double textScale = 1,
       Locale locale = const Locale('tr'),
+      List<MissionSession> missionSessions = const [],
     }) async {
       await tester.pumpWidget(
         wrapWithTheme(
@@ -80,6 +82,7 @@ void main() {
                   notification: notification,
                   alarm: alarm,
                   skips: skips,
+                  missionSessions: missionSessions,
                   onSkipChanged: onSkipChanged,
                   onSeeAll: onSeeAll ?? () {},
                 ),
@@ -204,6 +207,31 @@ void main() {
 
       expect(find.text('İmsak · 30 dk önce'), findsOneWidget);
       expect(find.byIcon(Icons.qr_code_scanner_rounded), findsOneWidget);
+    });
+
+    testWidgets('Ertelenmis gorevli alarmin atlama anahtari kilitli degil', (
+      tester,
+    ) async {
+      // Kilitli anahtar kullaniciyi cikissiz birakiyordu; artik dokunus gorev
+      // kapisina gidiyor, karar orada veriliyor.
+      SkippedOccurrence? changed;
+      await pumpCard(
+        tester,
+        alarm: (alarm: sahur.copyWith(mission: AlarmMission.qr), time: alarmAt),
+        missionSessions: [
+          MissionSession(
+            alarmId: sahur.id,
+            firedAt: now,
+            snoozedUntil: now.add(const Duration(minutes: 8)),
+          ),
+        ],
+        onSkipChanged: (occurrence, _) => changed = occurrence,
+      );
+
+      expect(tester.widget<Switch>(find.byType(Switch)).onChanged, isNotNull);
+      await tester.tap(find.byType(Switch));
+      await tester.pump();
+      expect(changed?.reference, sahur.id);
     });
 
     testWidgets('Adsız sabit alarm saati bir kez gösterilir', (tester) async {
