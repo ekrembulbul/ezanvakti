@@ -4,6 +4,18 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.19.0] - 2026-09-09
+
+### Eklendi
+- **Alarm sesi kademeli yükselebilir (Android).** Alarm başına açılan ayarla ses %20'den başlayıp 5 saniyede tam sese çıkar; sistemin alarm ses seviyesine dokunulmaz. iOS'ta AlarmKit ses seviyesi API'si vermediği için ayar gösterilmez.
+- **QR okuyucularda flaş düğmesi.** Hem görev sırasında hem kod eklerken; flaşsız cihazda düğme çizilmez.
+- **Görevsiz alarma karşılama ekranı.** Alarm durdurulunca alarmın adı, saati, sıradaki vakit ve kalan süre gösterilir; tek "Tamam", erteleme hakkı varsa "Ertele". Dokunulmazsa kendini kapatır.
+- Mimari karar kayıtları (`docs/adr/`): alarm zinciri, durdurma kapısı, platform alarm modelleri, vakit hesabında tek kaynak, bildirim planlaması.
+
+### Değişti
+- **iOS kilit ekranındaki "Görevi aç" düğmesi kaldırıldı.** "Durdur" önce arka planda kaydı yapar, sonra uygulamayı öne getirmeyi dener; kilitli telefonda kayıt korunur, uygulama kilit açılınca ya da sonradan açıldığında görevi gösterir. Eski build'in kurduğu düğmeli alarm kayıtları ilk açılışta yenilenir.
+- **Görev borcu duran alarm kapatılırken görev ekranı açılır.** Ertelenmiş görevli alarmın anahtarı artık kilitlenmiyor; listeden kapatma ve tek seferlik atlama görev ekranına uğrar, görev yapılır ya da acil çıkış kullanılırsa kapatma uygulanır. Silme kapsam dışı.
+
 ## [0.18.0] - 2026-09-08
 
 ### Değişti
