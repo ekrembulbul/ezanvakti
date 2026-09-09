@@ -1696,7 +1696,12 @@
   "@alarmsRescheduleNote": {
     "description": "Bilgi"
   },
-  "alarmsUnsupported": "Sesli alarm bu cihazda desteklenmiyor (iOS 26.1 ve üzeri gerekir). Alarmlar kaydedilir ancak çalmaz.",
+  "alarmsUnsupported": "Sesli alarm için iOS 26.1 ve üzeri gerekir. Cihazını güncellediğinde alarmların burada olacak.",
+  "alarmsUnsupportedKept": "{count, plural, =1{1 kayıtlı alarm korunuyor.} other{{count} kayıtlı alarm korunuyor.}}",
+  "@alarmsUnsupportedKept": {
+    "description": "Destek olmayan cihazda saklanan alarm sayisi.",
+    "placeholders": {"count": {"type": "int"}}
+  },
   "@alarmsUnsupported": {
     "description": "Uyarı"
   },

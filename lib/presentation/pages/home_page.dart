@@ -69,6 +69,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    _refreshAlarmSupport();
     WidgetsBinding.instance.addObserver(this);
     final logger = AppLogger();
     logger.debug('HomePage initState called');
@@ -368,6 +369,20 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   ///
   /// Tek giriş noktası: açılış, GPS güncellemesi, konum değişimi, hesaplama
   /// ayarı değişimi ve kullanıcının manuel yenilemesi hep buradan geçer.
+  /// Sesli alarm desteği tek yerden (AppState) okunur; Sıradaki kartı ve
+  /// Hatırlatıcılar ekranı aynı bilgiye bakar. Köprü cevap veremezse
+  /// varsayılan (açık) kalır: yanlışlıkla kapatmak, açık bırakmaktan kötü.
+  Future<void> _refreshAlarmSupport() async {
+    try {
+      final supported = await ServiceLocator()
+          .get<AlarmService>()
+          .isSupported();
+      if (mounted) context.read<AppState>().setAlarmsSupported(supported);
+    } catch (error, stackTrace) {
+      AppLogger().warning('Alarm support check failed', error, stackTrace);
+    }
+  }
+
   Future<void> _loadPrayerData({bool forceRefresh = false}) async {
     final logger = AppLogger();
     final appState = context.read<AppState>();
@@ -637,6 +652,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               prayerTimes: appState.prayerTimes,
               notificationSettings: appState.notificationSettings,
               alarms: appState.alarms,
+              alarmsSupported: appState.alarmsSupported,
               skips: appState.skips,
               onSkipChanged: _toggleSkip,
               errorMessage: appState.errorMessage,

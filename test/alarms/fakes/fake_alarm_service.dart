@@ -213,8 +213,10 @@ class FakeAlarmService implements AlarmService {
     return events;
   }
 
+  /// iOS < 26.1 gibi AlarmKit olmayan cihazi taklit etmek icin.
+  bool supported = true;
   @override
-  Future<bool> isSupported() async => true;
+  Future<bool> isSupported() async => supported;
   @override
   Future<bool> requestPermission() async => true;
   @override

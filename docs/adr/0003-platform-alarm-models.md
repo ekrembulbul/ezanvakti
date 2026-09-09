@@ -41,8 +41,13 @@ iOS alert'inde yalnızca sistemin stop kontrolü vardır; ikincil düğme yoktur
 | Ses akışı kontrolü | Uygulamada | Yok |
 | Sesin kademeli yükselmesi | Var (alarm başına ayar) | Yok |
 | Sessiz pencere | Var | Yok (commit `2cfc4b8`) |
-| Asgari sürüm kısıtı | — | `iOS 26.1` (`guard #available`) |
+| Asgari sürüm kısıtı (alarm) | Android 7.0 / API 24 (uygulama tabanı) | `iOS 26.1` (`guard #available`); uygulama tabanı iOS 17.0 |
+| Alarm desteği olmayan cihazda | — | Alarm bölümü kapalı: yalnız bilgi kartı, planlayıcı köprüye gitmez, kayıtlar korunur |
 | Tam ekran sunum | `AlarmRingActivity` | Sistem alert'i |
+
+### Eski iOS'ta alarm kapalı (9 Eylül)
+
+Deployment target iOS 17.0 kalır: vakitler, bildirimler ve widget herkes için çalışır. AlarmKit yoksa (`isSupported == false`) alarm **kurdurulmaz**: Alarmlar sekmesi yalnız bilgi kartı gösterir, ana ekranın Sıradaki kartı alarm listelemez, `AlarmScheduler` köprüye hiç gitmez ve eski `reconcile_failed` kayıtlarını temizler. Kayıtlı alarm verisi silinmez; cihaz 26.1'e güncellenince alarmlar geri gelir. Önceki davranış ("alarmlar kaydedilir ancak çalmaz") çalmayan alarm kurdurduğu ve her açılışta köprü hatası ürettiği için terk edildi. Eski iOS için arka plan ses yöntemi, ADR'nin alternatifler bölümündeki gerekçeyle yeniden elendi.
 
 ## Sonuçlar
 

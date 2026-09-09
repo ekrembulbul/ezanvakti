@@ -219,6 +219,9 @@ void main() {
     final expectedScheduleId = 'sunrise#at$expectedFire';
 
     Future<Object?> handleAlarmCall(MethodCall call) async {
+      // Planlayıcı köprüye gitmeden önce destek sorar; sahte kanal yoksa
+      // null → "desteklenmiyor" sayılır ve plan hiç gönderilmezdi.
+      if (call.method == 'isSupported') return true;
       if (call.method == 'reconcileAlarms') {
         final args = call.arguments as Map;
         final records = args['records'] as List;

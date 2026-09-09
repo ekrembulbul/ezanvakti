@@ -1237,7 +1237,18 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get alarmsUnsupported =>
-      'المنبهات الصوتية غير مدعومة على هذا الجهاز (يتطلب iOS 26.1 أو أحدث). تُحفظ المنبهات لكنها لن ترن.';
+      'تتطلب المنبهات الصوتية iOS 26.1 أو أحدث. ستظهر منبهاتك هنا بعد التحديث.';
+
+  @override
+  String alarmsUnsupportedKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم الاحتفاظ بـ $count منبهًا محفوظًا.',
+      one: 'تم الاحتفاظ بمنبه محفوظ واحد.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get alarmsNeedPermission => 'يلزم الإذن حتى ترن المنبهات.';

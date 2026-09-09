@@ -265,6 +265,7 @@ class _RemindersScreenState extends State<RemindersScreen>
         : false;
 
     if (!mounted) return;
+    context.read<AppState>().setAlarmsSupported(supported);
     setState(() {
       _hasPermission = hasPermission;
       _exactAlarmAllowed = exactAllowed;

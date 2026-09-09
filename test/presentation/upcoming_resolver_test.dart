@@ -473,4 +473,30 @@ void main() {
       expect(next, isNull);
     });
   });
+
+  group('resolveNextAlarm — platform destegi', () {
+    const sahur = Alarm(id: 'sahur', kind: AlarmKind.fixed, hour: 5, minute: 0);
+
+    test('destek yoksa alarm hic secilmez; kayit dursa bile', () {
+      expect(
+        resolveNextAlarm(
+          alarms: const [sahur],
+          prayerTimes: const [],
+          now: DateTime(2026, 9, 9, 22, 0),
+          supported: false,
+        ),
+        isNull,
+      );
+    });
+
+    test('destek varsa sabit alarm yarina secilir', () {
+      final next = resolveNextAlarm(
+        alarms: const [sahur],
+        prayerTimes: const [],
+        now: DateTime(2026, 9, 9, 22, 0),
+      );
+      expect(next?.alarm.id, 'sahur');
+      expect(next?.time, DateTime(2026, 9, 10, 5, 0));
+    });
+  });
 }

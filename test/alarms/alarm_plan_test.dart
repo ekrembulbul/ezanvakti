@@ -195,6 +195,25 @@ void main() {
 
     expect(service.plans.single.records.single.toMap()['fadeIn'], isFalse);
   });
+
+  test(
+    'destek yoksa plan native tarafa gitmez ve eski hatalar temizlenir',
+    () async {
+      service.supported = false;
+      await storage.saveAlarm(
+        const Alarm(id: 'sahur', kind: AlarmKind.fixed, hour: 5, minute: 0),
+      );
+      await storage.saveAlarmScheduleFailures({'sahur': 'reconcile_failed'});
+      final now = DateTime.now();
+
+      await scheduler.scheduleAlarms(
+        prayerTimes: [_day(DateTime(now.year, now.month, now.day + 1))],
+      );
+
+      expect(service.plans, isEmpty, reason: 'AlarmKit yokken kopru cagrilmaz');
+      expect(await storage.getAlarmScheduleFailures(), isEmpty);
+    },
+  );
 }
 
 PrayerTime _day(DateTime d) => PrayerTime(

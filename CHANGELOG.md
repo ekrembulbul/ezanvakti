@@ -4,6 +4,12 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.20.0] - 2026-09-09
+
+### Değişti
+- **AlarmKit olmayan cihazlarda (iOS 26.1 altı) alarm bölümü kapalı.** Uygulama iOS 17.0+ ile yayınlanmaya devam eder; vakitler, bildirimler ve widget çalışır. Alarmlar sekmesi yalnız "iOS 26.1 gerekir" bilgi kartını gösterir, alarm kurulamaz, ana ekran alarm listelemez. Kayıtlı alarmlar silinmez; cihaz güncellenince geri gelir. Önceden alarm kurulabiliyor ama çalmıyordu ve her açılışta planlama hatası üretiyordu.
+- Desteklenen sürümler belgelendi: iOS 17.0+ (sesli alarm iOS 26.1+), Android 7.0 / API 24+.
+
 ## [0.19.0] - 2026-09-09
 
 ### Eklendi

@@ -21,6 +21,11 @@ class AppState extends ChangeNotifier {
   bool _hasNotificationPermission = false;
   GeneralSettings _generalSettings = const GeneralSettings();
 
+  /// Sesli alarm bu cihazda kurulabilir mi? iOS 26.1 altında AlarmKit yok.
+  /// Açılışta köprüden bir kez okunur; ekranlar ve planlayıcı buradan bakar.
+  /// Varsayılan açık: köprü cevap veremezse bölüm yanlışlıkla kapanmasın.
+  bool _alarmsSupported = true;
+
   Location? get activeLocation => _activeLocation;
   PrayerTime? get todaysPrayerTime => _todaysPrayerTime;
   PrayerTime? get tomorrowsPrayerTime => _tomorrowsPrayerTime;
@@ -52,6 +57,13 @@ class AppState extends ChangeNotifier {
   }
 
   bool get hasActiveLocation => _activeLocation != null;
+
+  bool get alarmsSupported => _alarmsSupported;
+
+  void setAlarmsSupported(bool supported) {
+    _alarmsSupported = supported;
+    notifyListeners();
+  }
 
   void setActiveLocation(Location? location) {
     _activeLocation = location;

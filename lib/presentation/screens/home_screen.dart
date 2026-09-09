@@ -46,6 +46,9 @@ class HomeScreen extends StatefulWidget {
   final List<NotificationSetting> notificationSettings;
   final List<Alarm> alarms;
 
+  /// Sesli alarm bu cihazda destekleniyor mu (bkz. AppState.alarmsSupported).
+  final bool alarmsSupported;
+
   /// "Yalnızca bu sefer" atlanmış örnekler ve anahtar geri çağrısı.
   final Set<SkippedOccurrence> skips;
 
@@ -79,6 +82,7 @@ class HomeScreen extends StatefulWidget {
     this.prayerTimes = const [],
     this.notificationSettings = const [],
     this.alarms = const [],
+    this.alarmsSupported = true,
     this.skips = const {},
     this.onSkipChanged,
     this.isLoading = false,
@@ -232,6 +236,7 @@ class _HomeScreenState extends State<HomeScreen> {
               prayerTimes: widget.prayerTimes,
               now: now,
               missionSessions: widget.missionSessions,
+              supported: widget.alarmsSupported,
             ),
             skips: widget.skips,
             onSkipChanged: widget.onSkipChanged,

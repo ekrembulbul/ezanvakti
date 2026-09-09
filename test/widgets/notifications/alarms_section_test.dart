@@ -156,10 +156,14 @@ void main() {
     expect(find.text('Henüz alarm yok'), findsOneWidget);
   });
 
-  testWidgets('Desteklenmiyorsa uyari cizilir', (tester) async {
+  testWidgets('Desteklenmiyorsa bilgi karti cizilir, liste cizilmez', (
+    tester,
+  ) async {
     await tester.pumpWidget(build(isSupported: false));
 
-    expect(find.textContaining('desteklenmiyor'), findsOneWidget);
+    // Ayrintili davranis: alarms_section_unsupported_test.dart
+    expect(find.textContaining('26.1'), findsOneWidget);
+    expect(find.byType(Switch), findsNothing);
   });
 
   testWidgets('Izin yoksa izin uyarisi cizilir', (tester) async {

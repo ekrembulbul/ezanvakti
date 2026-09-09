@@ -86,12 +86,40 @@ class AlarmsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!isSupported) return _unsupported(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         ?_permissionBanner(context),
         Expanded(child: alarms.isEmpty ? _empty(context) : _list(context)),
         _footer(context),
+      ],
+    );
+  }
+
+  /// AlarmKit olmayan cihaz (iOS < 26.1): bölüm kapalı. Çalmayacak bir alarm
+  /// kurdurmak yerine yalnız bilgi verilir; kayıtlı alarmlar silinmez, cihaz
+  /// güncellenince geri gelir (ADR 0003).
+  Widget _unsupported(BuildContext context) {
+    final tokens = context.tokens;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 12),
+          child: InfoBanner(
+            icon: Icons.info_outline_rounded,
+            text: context.l10n.alarmsUnsupported,
+          ),
+        ),
+        if (alarms.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(4, 12, 4, 0),
+            child: Text(
+              context.l10n.alarmsUnsupportedKept(alarms.length),
+              style: AppTypography.hint.copyWith(color: tokens.textTertiary),
+            ),
+          ),
       ],
     );
   }
@@ -320,18 +348,9 @@ class AlarmsSection extends StatelessWidget {
     );
   }
 
-  /// iOS < 26'da destek yok; izin verilmemişse uyarı + "İzin ver". Her şey
-  /// yolundaysa null döner.
+  /// İzin verilmemişse uyarı + "İzin ver"; her şey yolundaysa null döner.
+  /// Destek yokken bölüm zaten [_unsupported] ile çiziliyor.
   Widget? _permissionBanner(BuildContext context) {
-    if (!isSupported) {
-      return Padding(
-        padding: const EdgeInsets.only(top: 12),
-        child: InfoBanner(
-          icon: Icons.info_outline_rounded,
-          text: context.l10n.alarmsUnsupported,
-        ),
-      );
-    }
     if (!isPermissionGranted) {
       return Padding(
         padding: const EdgeInsets.only(top: 12),

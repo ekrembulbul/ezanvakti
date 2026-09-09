@@ -92,6 +92,12 @@ class _MissionStubService extends FakeAlarmService {
   Future<void> cancelAllAlarms() async {}
 }
 
+/// AlarmKit olmayan cihaz (iOS < 26.1).
+class _UnsupportedAlarmService extends _StubAlarmService {
+  @override
+  Future<bool> isSupported() async => false;
+}
+
 /// Planlamayı askıda tutan bildirim servisi.
 ///
 /// Silme geri bildiriminin planlamayı beklemediğini doğrulamak için gerekli:
@@ -712,6 +718,25 @@ void main() {
         findsNothing,
         reason: 'kullaniciya cikis yolu verilmeli, sadece uyari degil',
       );
+    });
+  });
+
+  group('AlarmKit olmayan cihaz', () {
+    testWidgets('Alarmlar sekmesi bilgi karti gosterir, liste ve anahtar yok', (
+      tester,
+    ) async {
+      register(alarms: _UnsupportedAlarmService());
+      await storage.saveAlarm(sahur);
+      appState.setAlarms(const [sahur]);
+
+      await pump(tester);
+      await tester.tap(find.text('Alarmlar'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('26.1'), findsOneWidget);
+      expect(find.byType(Switch), findsNothing);
+      expect(find.textContaining('06:30'), findsNothing);
+      expect(find.text('1 kayıtlı alarm korunuyor.'), findsOneWidget);
     });
   });
 }

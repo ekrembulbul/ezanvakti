@@ -76,6 +76,7 @@ Türkiye için (başlangıçta) Awqat Salah API üzerinden Diyanet verisini alı
   - Tüm eski planlar iptal + yeni planlar kur.
 
 ### 4.3 Sistem kısıtları (kabul)
+- Desteklenen sürümler: iOS 17.0+ ve Android 7.0 (API 24)+. Sesli alarm iOS'ta yalnız 26.1+ (AlarmKit); eski iOS'ta alarm bölümü kapalıdır, kayıtlı alarmlar korunur ve cihaz güncellenince geri gelir (bkz. `docs/adr/0003`).
 - iOS ve Android’in pil optimizasyonları nedeniyle bazı cihazlarda gecikme olabilir:
   - MVP kabul kriteri: “mümkün olan en güvenilir yerel planlama”.
   - İleri sürüm: platforma özel iyileştirmeler.

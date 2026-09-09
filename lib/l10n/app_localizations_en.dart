@@ -1248,7 +1248,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get alarmsUnsupported =>
-      'Audible alarms are not supported on this device (iOS 26.1 or later required). Alarms are saved but will not ring.';
+      'Audible alarms need iOS 26.1 or later. Your alarms will be here once you update.';
+
+  @override
+  String alarmsUnsupportedKept(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count saved alarms are kept.',
+      one: '1 saved alarm is kept.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get alarmsNeedPermission => 'Permission is needed for alarms to ring.';

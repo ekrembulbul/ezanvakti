@@ -57,8 +57,10 @@ final class AlarmKitHandler {
         guard #available(iOS 26.1, *) else { result(false); return }
         result(try await AlarmManager.shared.requestAuthorization() == .authorized)
       case "reconcileAlarms":
-        guard #available(iOS 26.1, *),
-          let args = call.arguments as? [String: Any],
+        // Flutter, AlarmKit yokken buraya hiç gelmez (AlarmScheduler erken
+        // döner); gelirse dürüst kod dönsün, "bozuk argüman" değil.
+        guard #available(iOS 26.1, *) else { throw BridgeError.unsupported }
+        guard let args = call.arguments as? [String: Any],
           (args["protocolVersion"] as? NSNumber)?.intValue == 2,
           let raw = args["records"] as? [[String: Any]],
           let enabled = args["enabledAlarmIds"] as? [String],

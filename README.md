@@ -27,6 +27,7 @@ Türkiye için namaz vakitlerini gösteren ve vakitlere göre bildirim/hatırlat
 | Vakit kaynağı | Aladhan API (koordinat tabanlı, `method`=Diyanet vb.) |
 | HTTP | `http` |
 | Loglama | `logger` |
+| Desteklenen sürümler | iOS 17.0+ (sesli alarm için iOS 26.1+ — AlarmKit), Android 7.0 / API 24+ |
 
 ## Hızlı Başlangıç
 

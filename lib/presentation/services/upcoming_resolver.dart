@@ -136,7 +136,12 @@ UpcomingAlarm? resolveNextAlarm({
   required List<PrayerTime> prayerTimes,
   required DateTime now,
   List<MissionSession> missionSessions = const [],
+
+  /// AlarmKit olmayan cihazda (iOS < 26.1) alarm kurulamaz; kayıtlı alarm
+  /// dursa bile "Sıradaki" olarak gösterilmez.
+  bool supported = true,
 }) {
+  if (!supported) return null;
   final byDate = <DateTime, PrayerTime>{
     for (final day in prayerTimes)
       DateTime(day.date.year, day.date.month, day.date.day): day,

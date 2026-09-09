@@ -83,9 +83,9 @@ Hedef: Vakitte yalnızca sessiz bildirim değil, **sesli alarm/ezan** çalması.
 **Platform stratejisi (doğrulanması önerilir):**
 - **Android** 🟢 — gerçek alarm mümkün: `AlarmManager.setAlarmClock()` + full-screen intent + foreground service. exact alarm izni (mevcut) gerekir; bazı cihazlarda pil optimizasyonu gecikme yapabilir.
 - **iOS 26+** 🟡 — Apple **AlarmKit** (WWDC 2025) ile 3. parti uygulamalar sessiz mod/Focus'u delen gerçek sistem alarmı kurabiliyor. Uygulamanın hedefi widget çalışmasıyla **17.0**'a çıktı; AlarmKit 26 istediği için `#available(iOS 26, *)` dallanmasıyla ele alınmalı. Native (platform-channel) entegrasyon gerekir, olgun hazır plugin beklenmemeli.
-- **iOS < 26** 🔴 — gerçek alarm API'si yok. Pratikte **arka plan ses** hilesiyle taklit edilir (uygulama canlı kaldıkça `.playback` oturumuyla sessiz modu delip döngüde çalar). Kırılgan: kullanıcı uygulamayı force-quit ederse çalmaz, pil tüketir. `Critical Alerts` entitlement'ı genel alarm uygulamalarına pratikte verilmiyor.
+- **iOS < 26.1** ⚪ — gerçek alarm API'si yok. Arka plan ses hilesi (Alarmy'nin AlarmKit öncesi yöntemi) değerlendirildi ve **elendi**: force-quit'te çalmaz, Focus/sessiz modu aşamaz, App Store riski taşır; Alarmy de iOS 26 ile AlarmKit'e geçti. Karar: eski iOS'ta alarm bölümü kapalı, kayıtlar korunur (uygulandı 2026-09-09, ADR 0003).
 
-> Hedef deneyim: **iOS 26+ → AlarmKit**, **eski iOS → arka plan ses (sınırları kullanıcıya dürüstçe belirtilerek)**, **Android → gerçek AlarmManager alarmı**. Kısıtlar resmî dokümanlardan doğrulanmalı (Apple AlarmKit/Critical Alerts, Android `USE_EXACT_ALARM` politikaları).
+> Deneyim: **iOS 26.1+ → AlarmKit**, **eski iOS → alarm kapalı, diğer her şey çalışır**, **Android → gerçek AlarmManager alarmı**.
 
 ### 📍 Çoklu / favori lokasyonlar
 Büyük ölçüde uygulandı: kayıtlı lokasyon listesi, ekleme (arama/GPS), düzenleme (yöntem/mezhep/isim) ve hızlı geçiş mevcut. İyileştirme: lokasyonları sıralama/etiketleme, GPS ile eklenen konuma da düzenleme akışında parametre seçimi (zaten düzenleme ekranından mümkün).

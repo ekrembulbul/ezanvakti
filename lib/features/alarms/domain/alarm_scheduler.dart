@@ -105,6 +105,13 @@ class AlarmScheduler {
     required List<PrayerTime> prayerTimes,
     required Set<SkippedOccurrence> skips,
   }) async {
+    // AlarmKit olmayan cihazda (iOS < 26.1) köprü çağrılmaz: her açılışta
+    // hata üretip alarmları "planlanamadı" diye damgalıyordu. Eski damgalar
+    // da temizlenir; tanımlar dokunulmadan kalır, cihaz güncellenince kurulur.
+    if (!await alarmService.isSupported()) {
+      await _saveFailures(const {});
+      return;
+    }
     final alarms = await storage.getAlarms();
     final byDate = {for (final pt in prayerTimes) _dateKey(pt.date): pt};
     final now = DateTime.now();
