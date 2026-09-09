@@ -35,7 +35,15 @@ void main() {
     storage = FakeStorage();
     await storage.init();
     service = _PlanService();
-    scheduler = AlarmScheduler(storage: storage, alarmService: service);
+    // Saat sabit: 'bugun/yarin' hesaplari gercek gunle ayni kalir ama
+    // planlayicinin gun-sonu esigi (isha sonrasi) teste karismaz. 23:52'de
+    // 'Partial prayer cache' testi bu yuzden dusuyordu.
+    final base = DateTime.now();
+    scheduler = AlarmScheduler(
+      storage: storage,
+      alarmService: service,
+      clock: () => DateTime(base.year, base.month, base.day, 9, 0),
+    );
   });
 
   test('Refresh sends desired records without cancelling all alarms', () async {

@@ -27,6 +27,10 @@ class AlarmScheduler {
   final AlarmAppearance Function() appearance;
 
   final AppLogger _logger;
+
+  /// Planın "şimdi"si. Testler sabitler: gün-sonu eşiği (isha sonrası) gerçek
+  /// saate göre değişince aynı test gündüz geçip gece düşüyordu.
+  final DateTime Function() _clock;
   Future<void>? _scheduleQueue;
 
   AlarmScheduler({
@@ -34,8 +38,10 @@ class AlarmScheduler {
     required this.storage,
     AlarmAppearance Function()? appearance,
     AppLogger? logger,
+    DateTime Function()? clock,
   }) : appearance = appearance ?? (() => AlarmAppearance.fallback),
-       _logger = logger ?? AppLogger();
+       _logger = logger ?? AppLogger(),
+       _clock = clock ?? DateTime.now;
 
   /// Serializes plan updates and definition changes against the same storage.
   Future<T> _serial<T>(Future<T> Function() operation) {
@@ -114,7 +120,7 @@ class AlarmScheduler {
     }
     final alarms = await storage.getAlarms();
     final byDate = {for (final pt in prayerTimes) _dateKey(pt.date): pt};
-    final now = DateTime.now();
+    final now = _clock();
     final currentAppearance = appearance();
     final records = <AlarmPlanEntry>[];
     final enabled = <String>{};
