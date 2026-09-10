@@ -4,7 +4,7 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
-## [Unreleased]
+## [0.21.0] - 2026-09-10
 
 ### Eklendi
 - **Matematik görevinde dört zorluk seviyesi.** Kolay (1 soru, iki haneli ± tek haneli), Orta (2 soru, iki haneli ± iki haneli), Zor (3 soru, iki haneli × tek haneli), Ekstrem (3 soru, iki haneli × iki haneli). Alarm düzenlemede görev Matematik iken "Zorluk" satırı; mevcut alarmlar Kolay olarak kalır. Ara ekrandaki görev özeti seviye adını yazar.
