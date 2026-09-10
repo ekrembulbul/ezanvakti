@@ -15,11 +15,16 @@ class OptionItem<T> {
 
   final IconData? icon;
 
+  /// Alt sayfada grup başlığı. Ardışık seçeneklerin grubu değişince başlık
+  /// çizilir; hiçbir seçenek grup taşımıyorsa alt sayfa düz listedir.
+  final String? group;
+
   const OptionItem({
     required this.value,
     required this.label,
     this.description,
     this.icon,
+    this.group,
   });
 }
 
@@ -112,11 +117,7 @@ class OptionRow<T> extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 6),
-            Icon(
-              context.forwardChevron,
-              size: 20,
-              color: tokens.textTertiary,
-            ),
+            Icon(context.forwardChevron, size: 20, color: tokens.textTertiary),
           ],
         ),
       ),
@@ -176,13 +177,32 @@ class _OptionSheet<T> extends StatelessWidget {
               child: ListView.builder(
                 shrinkWrap: true,
                 itemCount: items.length,
-                itemBuilder: (context, i) => _row(context, items[i]),
+                itemBuilder: (context, i) => _entry(context, i),
               ),
             ),
             const SizedBox(height: 8),
           ],
         ),
       ),
+    );
+  }
+
+  /// Satır; grubu bir öncekinden farklıysa üstüne grup başlığı gelir.
+  Widget _entry(BuildContext context, int index) {
+    final item = items[index];
+    final group = item.group;
+    final startsGroup =
+        group != null && (index == 0 || items[index - 1].group != group);
+    if (!startsGroup) return _row(context, item);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(20, index == 0 ? 8 : 16, 20, 2),
+          child: SectionLabel(group),
+        ),
+        _row(context, item),
+      ],
     );
   }
 
