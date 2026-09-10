@@ -32,7 +32,8 @@ import '../utils/prayer_name_helper.dart';
 import '../widgets/common/app_bar_widgets.dart';
 import '../widgets/common/app_surface.dart';
 import '../widgets/common/sliding_segment.dart';
-import '../widgets/notifications/add_notification_bottom_sheet.dart';
+import '../../core/models/notification_draft.dart';
+import 'notification_edit_screen.dart';
 import '../widgets/reminders/alarms_section.dart';
 import '../widgets/reminders/notifications_section.dart';
 import 'alarm_edit_screen.dart';
@@ -790,35 +791,39 @@ class _RemindersScreenState extends State<RemindersScreen>
       _addOrEditAlarm();
       return;
     }
-    _showNotificationSheet();
+    unawaited(_openNotificationEditor());
   }
 
-  void _showNotificationSheet({NotificationSetting? initial}) {
+  /// Bildirim sayfası alarm sayfası gibi tam ekran açılır; "Kaydet" taslağı
+  /// döndürür, geri tuşu vazgeçer.
+  Future<void> _openNotificationEditor({NotificationSetting? initial}) async {
     final appState = context.read<AppState>();
-    final prayerTime =
-        appState.todaysPrayerTime ??
-        (appState.prayerTimes.isNotEmpty ? appState.prayerTimes.first : null);
-
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (_) => AddNotificationBottomSheet(
-        prayerTime: prayerTime,
-        initialSetting: initial,
-        submitLabel: initial == null ? null : context.l10n.remindersUpdate,
-        title: initial == null ? null : context.l10n.remindersUpdateTitle,
-        onAdd: (type, minutes, weekdays, label, derivedKind) => initial == null
-            ? _addNotification(type, minutes, weekdays, label, derivedKind)
-            : _updateNotification(
-                initial,
-                type,
-                minutes,
-                weekdays,
-                label,
-                derivedKind,
-              ),
+    final draft = await Navigator.of(context).push<NotificationDraft>(
+      MaterialPageRoute(
+        builder: (_) => NotificationEditScreen(
+          initial: initial,
+          prayerTimes: appState.prayerTimes,
+        ),
       ),
+    );
+    if (draft == null || !mounted) return;
+    if (initial == null) {
+      await _addNotification(
+        draft.prayerType,
+        draft.minutesBefore,
+        draft.weekdays,
+        draft.label,
+        draft.derivedKind,
+      );
+      return;
+    }
+    await _updateNotification(
+      initial,
+      draft.prayerType,
+      draft.minutesBefore,
+      draft.weekdays,
+      draft.label,
+      draft.derivedKind,
     );
   }
 
@@ -985,7 +990,8 @@ class _RemindersScreenState extends State<RemindersScreen>
               onOpenExactAlarmSettings:
                   _notificationService.openExactAlarmSettings,
               onToggle: _toggleNotification,
-              onEdit: (setting) => _showNotificationSheet(initial: setting),
+              onEdit: (setting) =>
+                  unawaited(_openNotificationEditor(initial: setting)),
               onAddFridayReminder: _addFridayReminder,
               onDelete: _deleteNotification,
             ),

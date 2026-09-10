@@ -1202,32 +1202,56 @@ class AppLocalizationsAr extends AppLocalizations {
   String get abortHoldToClose => 'اضغط مطولًا ٣ ثوانٍ للإيقاف';
 
   @override
-  String get remindersUpdate => 'تحديث';
-
-  @override
-  String get remindersUpdateTitle => 'تحديث التنبيه';
-
-  @override
-  String get remindersAddTitle => 'إضافة تنبيه';
-
-  @override
   String get remindersAddButton => 'أضف تنبيهًا';
 
   @override
-  String get remindersWhichPrayer => 'لأي صلاة تريد تنبيهًا؟';
-
-  @override
-  String get remindersPrayerSection => 'الصلاة';
-
-  @override
-  String get remindersDerivedSection => 'الأوقات المشتقة';
-
-  @override
-  String get remindersDerivedHint =>
-      'تُحسب أوقات الكراهة والنوافل من الصلاة المختارة.';
-
-  @override
   String get remindersTimeSection => 'وقت التنبيه';
+
+  @override
+  String get remindersNew => 'تنبيه جديد';
+
+  @override
+  String get remindersEdit => 'تعديل التنبيه';
+
+  @override
+  String get remindersWhen => 'متى؟';
+
+  @override
+  String get remindersPrayerGroup => 'أوقات الصلاة';
+
+  @override
+  String get remindersDerivedGroup => 'أوقات محسوبة';
+
+  @override
+  String get remindersDerivedExplain =>
+      'هذه ليست أوقات أذان؛ تُحسب من الشروق والظهر والمغرب.';
+
+  @override
+  String get remindersFormulaIshraq => 'بعد الشروق بـ 45 دقيقة';
+
+  @override
+  String get remindersFormulaIstiwa => 'قبل الظهر بـ 10 دقائق';
+
+  @override
+  String get remindersFormulaPreMaghrib => 'قبل المغرب بـ 45 دقيقة';
+
+  @override
+  String get remindersFormulaMidnight =>
+      'منتصف ما بين المغرب وفجر اليوم التالي';
+
+  @override
+  String get remindersFormulaLastThird =>
+      'بداية الثلث الأخير من الليل بين المغرب وفجر اليوم التالي';
+
+  @override
+  String remindersTodayAt(String time) {
+    return 'اليوم $time';
+  }
+
+  @override
+  String remindersNextPreview(String day, String time) {
+    return 'التالي: $day $time';
+  }
 
   @override
   String get remindersDaysSection => 'الأيام';

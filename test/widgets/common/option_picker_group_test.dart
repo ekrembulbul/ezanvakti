@@ -1,6 +1,5 @@
 import 'package:ezanvakti/presentation/widgets/common/option_picker.dart';
 import 'package:ezanvakti/presentation/widgets/common/section_label.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../theme_harness.dart';

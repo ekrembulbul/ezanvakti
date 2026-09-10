@@ -2263,56 +2263,92 @@ abstract class AppLocalizations {
   /// Düğme
   ///
   /// In tr, this message translates to:
-  /// **'Güncelle'**
-  String get remindersUpdate;
-
-  /// Sheet başlığı
-  ///
-  /// In tr, this message translates to:
-  /// **'Bildirimi Güncelle'**
-  String get remindersUpdateTitle;
-
-  /// Sheet başlığı
-  ///
-  /// In tr, this message translates to:
-  /// **'Yeni Bildirim Ekle'**
-  String get remindersAddTitle;
-
-  /// Düğme
-  ///
-  /// In tr, this message translates to:
   /// **'Bildirim Ekle'**
   String get remindersAddButton;
-
-  /// Yönerge
-  ///
-  /// In tr, this message translates to:
-  /// **'Hangi vakitte bildirim almak istiyorsunuz?'**
-  String get remindersWhichPrayer;
-
-  /// Bölüm
-  ///
-  /// In tr, this message translates to:
-  /// **'Namaz Vakti'**
-  String get remindersPrayerSection;
-
-  /// Bölüm
-  ///
-  /// In tr, this message translates to:
-  /// **'Türetilmiş Vakitler'**
-  String get remindersDerivedSection;
-
-  /// Bilgi
-  ///
-  /// In tr, this message translates to:
-  /// **'Kerahat ve nafile pencereleri, seçtiğin vakitten hesaplanır.'**
-  String get remindersDerivedHint;
 
   /// Bölüm
   ///
   /// In tr, this message translates to:
   /// **'Bildirim Zamanı'**
   String get remindersTimeSection;
+
+  /// Bildirim düzenleme sayfası başlığı (ekleme)
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni bildirim'**
+  String get remindersNew;
+
+  /// Bildirim düzenleme sayfası başlığı (güncelleme)
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirimi düzenle'**
+  String get remindersEdit;
+
+  /// Bildirim hedefi seçici satırı
+  ///
+  /// In tr, this message translates to:
+  /// **'Ne zaman?'**
+  String get remindersWhen;
+
+  /// No description provided for @remindersPrayerGroup.
+  ///
+  /// In tr, this message translates to:
+  /// **'Namaz vakitleri'**
+  String get remindersPrayerGroup;
+
+  /// No description provided for @remindersDerivedGroup.
+  ///
+  /// In tr, this message translates to:
+  /// **'Hesaplanan vakitler'**
+  String get remindersDerivedGroup;
+
+  /// Hesaplanan vakit seçilince açıklama kartındaki genel not
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu saatler ezan vakti değildir; güneş, öğle ve akşam vakitlerinden hesaplanır.'**
+  String get remindersDerivedExplain;
+
+  /// No description provided for @remindersFormulaIshraq.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güneş vaktinden 45 dk sonra'**
+  String get remindersFormulaIshraq;
+
+  /// No description provided for @remindersFormulaIstiwa.
+  ///
+  /// In tr, this message translates to:
+  /// **'Öğle vaktinden 10 dk önce'**
+  String get remindersFormulaIstiwa;
+
+  /// No description provided for @remindersFormulaPreMaghrib.
+  ///
+  /// In tr, this message translates to:
+  /// **'Akşam vaktinden 45 dk önce'**
+  String get remindersFormulaPreMaghrib;
+
+  /// No description provided for @remindersFormulaMidnight.
+  ///
+  /// In tr, this message translates to:
+  /// **'Akşam ile ertesi imsak arasının ortası'**
+  String get remindersFormulaMidnight;
+
+  /// No description provided for @remindersFormulaLastThird.
+  ///
+  /// In tr, this message translates to:
+  /// **'Akşam ile ertesi imsak arasındaki gecenin son üçte birinin başı'**
+  String get remindersFormulaLastThird;
+
+  /// Seçilen noktanın bugünkü saati
+  ///
+  /// In tr, this message translates to:
+  /// **'Bugün {time}'**
+  String remindersTodayAt(String time);
+
+  /// Bildirimin bir sonraki çalma anı önizlemesi
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıradaki: {day} {time}'**
+  String remindersNextPreview(String day, String time);
 
   /// Bölüm
   ///

@@ -1635,41 +1635,57 @@
   "@abortHoldToClose": {
     "description": "Yönerge"
   },
-  "remindersUpdate": "Güncelle",
-  "@remindersUpdate": {
-    "description": "Düğme"
-  },
-  "remindersUpdateTitle": "Bildirimi Güncelle",
-  "@remindersUpdateTitle": {
-    "description": "Sheet başlığı"
-  },
-  "remindersAddTitle": "Yeni Bildirim Ekle",
-  "@remindersAddTitle": {
-    "description": "Sheet başlığı"
-  },
   "remindersAddButton": "Bildirim Ekle",
   "@remindersAddButton": {
     "description": "Düğme"
   },
-  "remindersWhichPrayer": "Hangi vakitte bildirim almak istiyorsunuz?",
-  "@remindersWhichPrayer": {
-    "description": "Yönerge"
-  },
-  "remindersPrayerSection": "Namaz Vakti",
-  "@remindersPrayerSection": {
-    "description": "Bölüm"
-  },
-  "remindersDerivedSection": "Türetilmiş Vakitler",
-  "@remindersDerivedSection": {
-    "description": "Bölüm"
-  },
-  "remindersDerivedHint": "Kerahat ve nafile pencereleri, seçtiğin vakitten hesaplanır.",
-  "@remindersDerivedHint": {
-    "description": "Bilgi"
-  },
   "remindersTimeSection": "Bildirim Zamanı",
   "@remindersTimeSection": {
     "description": "Bölüm"
+  },
+  "remindersNew": "Yeni bildirim",
+  "@remindersNew": {
+    "description": "Bildirim düzenleme sayfası başlığı (ekleme)"
+  },
+  "remindersEdit": "Bildirimi düzenle",
+  "@remindersEdit": {
+    "description": "Bildirim düzenleme sayfası başlığı (güncelleme)"
+  },
+  "remindersWhen": "Ne zaman?",
+  "@remindersWhen": {
+    "description": "Bildirim hedefi seçici satırı"
+  },
+  "remindersPrayerGroup": "Namaz vakitleri",
+  "remindersDerivedGroup": "Hesaplanan vakitler",
+  "remindersDerivedExplain": "Bu saatler ezan vakti değildir; güneş, öğle ve akşam vakitlerinden hesaplanır.",
+  "@remindersDerivedExplain": {
+    "description": "Hesaplanan vakit seçilince açıklama kartındaki genel not"
+  },
+  "remindersFormulaIshraq": "Güneş vaktinden 45 dk sonra",
+  "remindersFormulaIstiwa": "Öğle vaktinden 10 dk önce",
+  "remindersFormulaPreMaghrib": "Akşam vaktinden 45 dk önce",
+  "remindersFormulaMidnight": "Akşam ile ertesi imsak arasının ortası",
+  "remindersFormulaLastThird": "Akşam ile ertesi imsak arasındaki gecenin son üçte birinin başı",
+  "remindersTodayAt": "Bugün {time}",
+  "@remindersTodayAt": {
+    "description": "Seçilen noktanın bugünkü saati",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "remindersNextPreview": "Sıradaki: {day} {time}",
+  "@remindersNextPreview": {
+    "description": "Bildirimin bir sonraki çalma anı önizlemesi",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
   },
   "remindersDaysSection": "Günler",
   "@remindersDaysSection": {

@@ -1210,33 +1210,56 @@ class AppLocalizationsTr extends AppLocalizations {
   String get abortHoldToClose => 'Kapatmak için 3 saniye basılı tut';
 
   @override
-  String get remindersUpdate => 'Güncelle';
-
-  @override
-  String get remindersUpdateTitle => 'Bildirimi Güncelle';
-
-  @override
-  String get remindersAddTitle => 'Yeni Bildirim Ekle';
-
-  @override
   String get remindersAddButton => 'Bildirim Ekle';
 
   @override
-  String get remindersWhichPrayer =>
-      'Hangi vakitte bildirim almak istiyorsunuz?';
-
-  @override
-  String get remindersPrayerSection => 'Namaz Vakti';
-
-  @override
-  String get remindersDerivedSection => 'Türetilmiş Vakitler';
-
-  @override
-  String get remindersDerivedHint =>
-      'Kerahat ve nafile pencereleri, seçtiğin vakitten hesaplanır.';
-
-  @override
   String get remindersTimeSection => 'Bildirim Zamanı';
+
+  @override
+  String get remindersNew => 'Yeni bildirim';
+
+  @override
+  String get remindersEdit => 'Bildirimi düzenle';
+
+  @override
+  String get remindersWhen => 'Ne zaman?';
+
+  @override
+  String get remindersPrayerGroup => 'Namaz vakitleri';
+
+  @override
+  String get remindersDerivedGroup => 'Hesaplanan vakitler';
+
+  @override
+  String get remindersDerivedExplain =>
+      'Bu saatler ezan vakti değildir; güneş, öğle ve akşam vakitlerinden hesaplanır.';
+
+  @override
+  String get remindersFormulaIshraq => 'Güneş vaktinden 45 dk sonra';
+
+  @override
+  String get remindersFormulaIstiwa => 'Öğle vaktinden 10 dk önce';
+
+  @override
+  String get remindersFormulaPreMaghrib => 'Akşam vaktinden 45 dk önce';
+
+  @override
+  String get remindersFormulaMidnight =>
+      'Akşam ile ertesi imsak arasının ortası';
+
+  @override
+  String get remindersFormulaLastThird =>
+      'Akşam ile ertesi imsak arasındaki gecenin son üçte birinin başı';
+
+  @override
+  String remindersTodayAt(String time) {
+    return 'Bugün $time';
+  }
+
+  @override
+  String remindersNextPreview(String day, String time) {
+    return 'Sıradaki: $day $time';
+  }
 
   @override
   String get remindersDaysSection => 'Günler';

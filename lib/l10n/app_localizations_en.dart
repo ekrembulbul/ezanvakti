@@ -1215,33 +1215,56 @@ class AppLocalizationsEn extends AppLocalizations {
   String get abortHoldToClose => 'Hold for 3 seconds to dismiss';
 
   @override
-  String get remindersUpdate => 'Update';
-
-  @override
-  String get remindersUpdateTitle => 'Update notification';
-
-  @override
-  String get remindersAddTitle => 'Add notification';
-
-  @override
   String get remindersAddButton => 'Add notification';
 
   @override
-  String get remindersWhichPrayer =>
-      'For which prayer do you want a notification?';
-
-  @override
-  String get remindersPrayerSection => 'Prayer';
-
-  @override
-  String get remindersDerivedSection => 'Derived times';
-
-  @override
-  String get remindersDerivedHint =>
-      'Disliked and voluntary windows are computed from the chosen prayer.';
-
-  @override
   String get remindersTimeSection => 'Notification time';
+
+  @override
+  String get remindersNew => 'New notification';
+
+  @override
+  String get remindersEdit => 'Edit notification';
+
+  @override
+  String get remindersWhen => 'When?';
+
+  @override
+  String get remindersPrayerGroup => 'Prayer times';
+
+  @override
+  String get remindersDerivedGroup => 'Calculated times';
+
+  @override
+  String get remindersDerivedExplain =>
+      'These are not adhan times; they are calculated from sunrise, Dhuhr and Maghrib.';
+
+  @override
+  String get remindersFormulaIshraq => '45 min after sunrise';
+
+  @override
+  String get remindersFormulaIstiwa => '10 min before Dhuhr';
+
+  @override
+  String get remindersFormulaPreMaghrib => '45 min before Maghrib';
+
+  @override
+  String get remindersFormulaMidnight =>
+      'Midpoint between Maghrib and the next Fajr';
+
+  @override
+  String get remindersFormulaLastThird =>
+      'Start of the last third of the night between Maghrib and the next Fajr';
+
+  @override
+  String remindersTodayAt(String time) {
+    return 'Today $time';
+  }
+
+  @override
+  String remindersNextPreview(String day, String time) {
+    return 'Next: $day $time';
+  }
 
   @override
   String get remindersDaysSection => 'Days';
