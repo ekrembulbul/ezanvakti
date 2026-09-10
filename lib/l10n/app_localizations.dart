@@ -1108,6 +1108,66 @@ abstract class AppLocalizations {
   /// **'Kayıtlı kodu okutmadan kapanmaz'**
   String get missionQrHint;
 
+  /// Matematik görevi zorluk satırı
+  ///
+  /// In tr, this message translates to:
+  /// **'Zorluk'**
+  String get missionLevel;
+
+  /// No description provided for @missionLevelEasy.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kolay'**
+  String get missionLevelEasy;
+
+  /// No description provided for @missionLevelMedium.
+  ///
+  /// In tr, this message translates to:
+  /// **'Orta'**
+  String get missionLevelMedium;
+
+  /// No description provided for @missionLevelHard.
+  ///
+  /// In tr, this message translates to:
+  /// **'Zor'**
+  String get missionLevelHard;
+
+  /// No description provided for @missionLevelExtreme.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ekstrem'**
+  String get missionLevelExtreme;
+
+  /// No description provided for @missionLevelEasyHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'1 soru · toplama, çıkarma'**
+  String get missionLevelEasyHint;
+
+  /// No description provided for @missionLevelMediumHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'2 soru · iki haneli toplama, çıkarma'**
+  String get missionLevelMediumHint;
+
+  /// No description provided for @missionLevelHardHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'3 soru · iki haneli × tek haneli çarpma'**
+  String get missionLevelHardHint;
+
+  /// No description provided for @missionLevelExtremeHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'3 soru · iki haneli × iki haneli çarpma'**
+  String get missionLevelExtremeHint;
+
+  /// Ara ekranda seviyesiz görev özeti (sallama, QR).
+  ///
+  /// In tr, this message translates to:
+  /// **'{mission} · {seconds} sn'**
+  String stopMissionSummaryPlain(String mission, int seconds);
+
   /// Tekrar
   ///
   /// In tr, this message translates to:

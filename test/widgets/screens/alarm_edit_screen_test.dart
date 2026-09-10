@@ -1,4 +1,5 @@
 import 'package:ezanvakti/core/models/alarm.dart';
+import 'package:ezanvakti/core/models/alarm_mission.dart';
 import 'package:ezanvakti/presentation/screens/alarm_edit_screen.dart';
 import 'package:ezanvakti/presentation/widgets/missions/qr_payload_field.dart';
 import 'package:flutter/material.dart';
@@ -99,6 +100,107 @@ void main() {
 
     // Yedi gunu de kapatmak mumkun degil; sonuncu secili kalir.
     expect(find.text('Pa'), findsOneWidget);
+  });
+
+  group('Zorluk', () {
+    /// Ekrani bir rota olarak acar ki "Kaydet" ile donen alarm okunabilsin.
+    Future<Alarm? Function()> openForResult(
+      WidgetTester tester, {
+      Alarm? alarm,
+    }) async {
+      tester.view.physicalSize = const Size(1206, 2622);
+      tester.view.devicePixelRatio = 3.0;
+      addTearDown(tester.view.reset);
+      Alarm? saved;
+      await tester.pumpWidget(
+        wrapWithTheme(
+          Builder(
+            builder: (context) => TextButton(
+              onPressed: () async {
+                saved = await Navigator.of(context).push<Alarm>(
+                  MaterialPageRoute(
+                    builder: (_) => AlarmEditScreen(alarm: alarm),
+                  ),
+                );
+              },
+              child: const Text('aç'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('aç'));
+      await tester.pumpAndSettle();
+      return () => saved;
+    }
+
+    Future<void> pickMission(WidgetTester tester, String name) async {
+      await tester.tap(find.text('Kapatma görevi'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(name));
+      await tester.pumpAndSettle();
+    }
+
+    /// Liste tembel kuruluyor; gorev satirinin altindaki satir ancak
+    /// kaydirilinca insa ediliyor.
+    Future<void> revealBelowMission(WidgetTester tester) async {
+      await tester.drag(find.byType(ListView), const Offset(0, -400));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('Yalnizca matematik gorevinde Zorluk satiri gorunur', (
+      tester,
+    ) async {
+      await pumpEdit(tester);
+      await tester.pumpAndSettle();
+      await revealBelowMission(tester);
+      expect(find.text('Zorluk'), findsNothing);
+
+      await pickMission(tester, 'Matematik');
+      await revealBelowMission(tester);
+      expect(find.text('Zorluk'), findsOneWidget);
+      expect(find.text('Kolay'), findsOneWidget, reason: 'varsayilan seviye');
+
+      await pickMission(tester, 'Sallama');
+      await revealBelowMission(tester);
+      expect(find.text('Zorluk'), findsNothing);
+    });
+
+    testWidgets('Secilen seviye kaydedilir', (tester) async {
+      final saved = await openForResult(tester);
+      await pickMission(tester, 'Matematik');
+      await revealBelowMission(tester);
+
+      await tester.tap(find.text('Zorluk'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Ekstrem'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Kaydet'));
+      await tester.pumpAndSettle();
+
+      expect(saved()?.missionLevel, 4);
+    });
+
+    testWidgets('Matematik disi gorevde seviye 1 olarak kaydedilir', (
+      tester,
+    ) async {
+      final saved = await openForResult(
+        tester,
+        alarm: const Alarm(
+          id: '1',
+          kind: AlarmKind.fixed,
+          hour: 6,
+          minute: 30,
+          mission: AlarmMission.math,
+          missionLevel: 4,
+        ),
+      );
+      await pickMission(tester, 'Sallama');
+      await tester.tap(find.text('Kaydet'));
+      await tester.pumpAndSettle();
+
+      expect(saved()?.mission, AlarmMission.shake);
+      expect(saved()?.missionLevel, 1);
+    });
   });
 
   group('QR gorevi', () {

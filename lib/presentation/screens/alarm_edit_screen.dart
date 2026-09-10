@@ -5,7 +5,9 @@ import '../utils/time_format_context.dart';
 import '../../core/utils/duration_formatter.dart';
 import '../widgets/common/option_picker.dart';
 import '../../core/models/alarm_mission.dart';
+import '../../features/alarms/domain/math_challenge.dart';
 import '../../features/alarms/domain/snooze_options.dart';
+import '../utils/alarm_labels.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -140,7 +142,9 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
       snoozeEnabled: _snoozeEnabled,
       snoozeMinutes: _snoozeMinutes,
       mission: _mission,
-      missionLevel: _missionLevel,
+      // Seviye yalnizca matematik icin anlamli; diger gorevlerde 1 yazilir ki
+      // Ekstrem secili bir alarm Sallama'ya cevrilince gizlice zorlasmasin.
+      missionLevel: _mission == AlarmMission.math ? _missionLevel : 1,
       // Gorev QR degilse kayitli kod korunur: kullanici gorevi gecici olarak
       // kapatip geri actiginda kodu yeniden girmek zorunda kalmasin.
       qrPayload: _mission == AlarmMission.qr
@@ -242,6 +246,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                 _maxSnoozesSelector(),
               ]),
             _missionSelector(),
+            if (_mission == AlarmMission.math) _levelSelector(),
             if (_mission == AlarmMission.qr) ...[
               const SizedBox(height: 12),
               KeyedSubtree(
@@ -779,6 +784,23 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
         });
         if (v == AlarmMission.qr) _revealQrSection();
       },
+    );
+  }
+
+  /// Matematik zorluğu. Yalnızca görev Matematik iken çizilir.
+  Widget _levelSelector() {
+    return OptionRow<int>(
+      label: context.l10n.missionLevel,
+      selected: _missionLevel.clamp(1, MathChallenge.maxLevel),
+      items: [
+        for (var level = 1; level <= MathChallenge.maxLevel; level++)
+          OptionItem(
+            value: level,
+            label: missionLevelLabel(level, context.l10n),
+            description: missionLevelHint(level, context.l10n),
+          ),
+      ],
+      onChanged: (v) => setState(() => _missionLevel = v),
     );
   }
 

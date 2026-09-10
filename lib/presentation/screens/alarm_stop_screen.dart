@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../core/config/mission_tuning.dart';
 import '../../core/models/alarm.dart';
+import '../../core/models/alarm_mission.dart';
 import '../../core/models/notification_setting.dart' show PrayerType;
 import '../../core/theme/app_tokens.dart';
 import '../../core/theme/app_typography.dart';
@@ -213,11 +214,17 @@ class AlarmStopScreen extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              l10n.stopMissionSummary(
-                missionLabel(alarm.mission, l10n),
-                '${alarm.missionLevel}',
-                seconds,
-              ),
+              // Seviye yalnizca matematikte var; sallama ve QR'da yazilmaz.
+              alarm.mission == AlarmMission.math
+                  ? l10n.stopMissionSummary(
+                      missionLabel(alarm.mission, l10n),
+                      missionLevelLabel(alarm.missionLevel, l10n),
+                      seconds,
+                    )
+                  : l10n.stopMissionSummaryPlain(
+                      missionLabel(alarm.mission, l10n),
+                      seconds,
+                    ),
               style: AppTypography.rowTitle.copyWith(
                 fontSize: kMissionSupportFontSize,
                 color: tokens.textPrimary,

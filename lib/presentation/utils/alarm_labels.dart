@@ -77,6 +77,24 @@ String missionLabel(AlarmMission mission, AppLocalizations l10n) =>
       AlarmMission.qr => l10n.missionQr,
     };
 
+/// Matematik zorluğunun adı. Seviye `1..4`'e kırpılır (bkz. `MathChallenge`).
+String missionLevelLabel(int level, AppLocalizations l10n) =>
+    switch (level.clamp(1, 4)) {
+      1 => l10n.missionLevelEasy,
+      2 => l10n.missionLevelMedium,
+      3 => l10n.missionLevelHard,
+      _ => l10n.missionLevelExtreme,
+    };
+
+/// Seçici satırındaki açıklama: soru sayısı ve işlem türü.
+String missionLevelHint(int level, AppLocalizations l10n) =>
+    switch (level.clamp(1, 4)) {
+      1 => l10n.missionLevelEasyHint,
+      2 => l10n.missionLevelMediumHint,
+      3 => l10n.missionLevelHardHint,
+      _ => l10n.missionLevelExtremeHint,
+    };
+
 IconData? missionIcon(AlarmMission mission) => switch (mission) {
   AlarmMission.none => null,
   AlarmMission.math => Icons.calculate_rounded,

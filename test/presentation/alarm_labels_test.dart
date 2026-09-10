@@ -99,4 +99,25 @@ void main() {
       expect(alarmSubtitle(alarm, l10n), 'Her gün');
     });
   });
+
+  group('missionLevelLabel', () {
+    test('Dort seviyenin adi', () {
+      expect([1, 2, 3, 4].map((level) => missionLevelLabel(level, l10n)), [
+        'Kolay',
+        'Orta',
+        'Zor',
+        'Ekstrem',
+      ]);
+    });
+
+    test('Aralik disi seviye en yakin uca kirpilir', () {
+      expect(missionLevelLabel(0, l10n), 'Kolay');
+      expect(missionLevelLabel(9, l10n), 'Ekstrem');
+    });
+
+    test('Aciklama soru sayisini soyler', () {
+      expect(missionLevelHint(1, l10n), contains('1 soru'));
+      expect(missionLevelHint(4, l10n), contains('3 soru'));
+    });
+  });
 }

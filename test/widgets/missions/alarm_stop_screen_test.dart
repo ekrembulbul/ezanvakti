@@ -1,3 +1,4 @@
+import 'package:ezanvakti/core/config/mission_tuning.dart';
 import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/core/models/alarm_mission.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart'
@@ -69,6 +70,28 @@ void main() {
       ),
     );
   }
+
+  testWidgets('gorev ozeti: matematikte seviye adi, digerlerinde yalniz sure', (
+    tester,
+  ) async {
+    // Ozetteki sure gorev tipinin sabit suresi, ara ekranin sayaci degil.
+    final qrSeconds = MissionTuning.timeoutSecondsFor(AlarmMission.qr);
+    final mathSeconds = MissionTuning.timeoutSecondsFor(AlarmMission.math);
+
+    await pump(tester, alarm: gated, gated: true);
+    expect(find.textContaining('QR okutma · $qrSeconds sn'), findsOneWidget);
+    expect(find.textContaining('· 2 ·'), findsNothing);
+
+    await pump(
+      tester,
+      alarm: gated.copyWith(mission: AlarmMission.math, missionLevel: 2),
+      gated: true,
+    );
+    expect(
+      find.textContaining('Matematik · Orta · $mathSeconds sn'),
+      findsOneWidget,
+    );
+  });
 
   testWidgets('gorevsiz: Tamam birincil, Ertele sure ve hak ile', (
     tester,

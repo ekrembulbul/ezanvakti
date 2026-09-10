@@ -567,6 +567,41 @@ class AppLocalizationsEn extends AppLocalizations {
   String get missionQrHint => 'Scan the saved code to dismiss';
 
   @override
+  String get missionLevel => 'Difficulty';
+
+  @override
+  String get missionLevelEasy => 'Easy';
+
+  @override
+  String get missionLevelMedium => 'Medium';
+
+  @override
+  String get missionLevelHard => 'Hard';
+
+  @override
+  String get missionLevelExtreme => 'Extreme';
+
+  @override
+  String get missionLevelEasyHint => '1 question · addition, subtraction';
+
+  @override
+  String get missionLevelMediumHint =>
+      '2 questions · two-digit addition, subtraction';
+
+  @override
+  String get missionLevelHardHint =>
+      '3 questions · two-digit × one-digit multiplication';
+
+  @override
+  String get missionLevelExtremeHint =>
+      '3 questions · two-digit × two-digit multiplication';
+
+  @override
+  String stopMissionSummaryPlain(String mission, int seconds) {
+    return '$mission · $seconds s';
+  }
+
+  @override
   String get alarmEveryDay => 'Every day';
 
   @override

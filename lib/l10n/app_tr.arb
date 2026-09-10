@@ -753,6 +753,30 @@
   "@missionQrHint": {
     "description": "Görev açıklaması"
   },
+  "missionLevel": "Zorluk",
+  "@missionLevel": {
+    "description": "Matematik görevi zorluk satırı"
+  },
+  "missionLevelEasy": "Kolay",
+  "missionLevelMedium": "Orta",
+  "missionLevelHard": "Zor",
+  "missionLevelExtreme": "Ekstrem",
+  "missionLevelEasyHint": "1 soru · toplama, çıkarma",
+  "missionLevelMediumHint": "2 soru · iki haneli toplama, çıkarma",
+  "missionLevelHardHint": "3 soru · iki haneli × tek haneli çarpma",
+  "missionLevelExtremeHint": "3 soru · iki haneli × iki haneli çarpma",
+  "stopMissionSummaryPlain": "{mission} · {seconds} sn",
+  "@stopMissionSummaryPlain": {
+    "description": "Ara ekranda seviyesiz görev özeti (sallama, QR).",
+    "placeholders": {
+      "mission": {
+        "type": "String"
+      },
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
   "alarmEveryDay": "Her gün",
   "@alarmEveryDay": {
     "description": "Tekrar"

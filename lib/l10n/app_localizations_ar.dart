@@ -565,6 +565,38 @@ class AppLocalizationsAr extends AppLocalizations {
   String get missionQrHint => 'لا يتوقف قبل مسح الرمز المحفوظ';
 
   @override
+  String get missionLevel => 'الصعوبة';
+
+  @override
+  String get missionLevelEasy => 'سهل';
+
+  @override
+  String get missionLevelMedium => 'متوسط';
+
+  @override
+  String get missionLevelHard => 'صعب';
+
+  @override
+  String get missionLevelExtreme => 'صعب جدًا';
+
+  @override
+  String get missionLevelEasyHint => 'سؤال واحد · جمع وطرح';
+
+  @override
+  String get missionLevelMediumHint => 'سؤالان · جمع وطرح من رقمين';
+
+  @override
+  String get missionLevelHardHint => '3 أسئلة · ضرب رقمين في رقم واحد';
+
+  @override
+  String get missionLevelExtremeHint => '3 أسئلة · ضرب رقمين في رقمين';
+
+  @override
+  String stopMissionSummaryPlain(String mission, int seconds) {
+    return '$mission · $seconds ث';
+  }
+
+  @override
   String get alarmEveryDay => 'كل يوم';
 
   @override

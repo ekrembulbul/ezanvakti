@@ -566,6 +566,39 @@ class AppLocalizationsTr extends AppLocalizations {
   String get missionQrHint => 'Kayıtlı kodu okutmadan kapanmaz';
 
   @override
+  String get missionLevel => 'Zorluk';
+
+  @override
+  String get missionLevelEasy => 'Kolay';
+
+  @override
+  String get missionLevelMedium => 'Orta';
+
+  @override
+  String get missionLevelHard => 'Zor';
+
+  @override
+  String get missionLevelExtreme => 'Ekstrem';
+
+  @override
+  String get missionLevelEasyHint => '1 soru · toplama, çıkarma';
+
+  @override
+  String get missionLevelMediumHint => '2 soru · iki haneli toplama, çıkarma';
+
+  @override
+  String get missionLevelHardHint => '3 soru · iki haneli × tek haneli çarpma';
+
+  @override
+  String get missionLevelExtremeHint =>
+      '3 soru · iki haneli × iki haneli çarpma';
+
+  @override
+  String stopMissionSummaryPlain(String mission, int seconds) {
+    return '$mission · $seconds sn';
+  }
+
+  @override
   String get alarmEveryDay => 'Her gün';
 
   @override
