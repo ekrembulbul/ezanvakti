@@ -33,6 +33,8 @@ iOS alert'inde yalnızca sistemin stop kontrolü vardır; ikincil düğme yoktur
 
 > Flutter tarafındaki ara ekranın "Görevi yap" düğmesi bundan bağımsızdır ve durur: o, erteleme ile görev arasında seçim sunar (bkz. [0002](0002-stop-gate.md)).
 
+**10 Eylül — AlarmKit var olan id'yi güncellemez.** `schedule(id:)` sistemde duran bir id ile ikinci kez çağrılınca `AlarmServiceError.invalidInput` ("Not scheduling an alarm with a duplicate ID") döner; cihaz arşivinde 20:25:27'de görüldü. `AlarmPlanEngine.upsert` bu yüzden değişen bir kaydı **yeni UUID** ile kurar, eşlemeyi yeni id'ye çevirir ve eski kaydı sonra iptal eder. Yeni kurulum patlarsa eski çalışan kayıt yerinde kalır; eski iptal patlarsa journal'a `retire_replaced / failed` yazılır ve sonraki uzlaştırmanın orphan geçişi temizler. Önceki davranış (aynı UUID ile yeniden `schedule`) her düzenlemede "Kurulamadı" üretiyor ve OS'ta eski konfigürasyonu çalar bırakıyordu.
+
 ### Kabul edilen davranış farkları
 
 | Konu | Android | iOS |

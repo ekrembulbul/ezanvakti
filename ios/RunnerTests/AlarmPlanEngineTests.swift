@@ -3,7 +3,7 @@ import XCTest
 
 @MainActor
 private final class FakeAlarmPlatform: AlarmPlatform {
-  enum Failure: Error { case injected }
+  enum Failure: Error { case injected, duplicateId }
   var records: [UUID: AlarmMissionConfiguration] = [:]
   var states: [UUID: AlarmPlatformState] = [:]
   var failSchedules: Set<String> = []
@@ -14,6 +14,9 @@ private final class FakeAlarmPlatform: AlarmPlatform {
     operations.append("schedule:" + configuration.scheduleId)
     if failSchedules.contains(configuration.scheduleId) ||
       failSchedules.contains("*") { throw Failure.injected }
+    // AlarmKit does not update an existing id; the device rejected the second
+    // schedule with invalidInput ("duplicate ID") on 2026-09-10.
+    if records[id] != nil { throw Failure.duplicateId }
     records[id] = configuration
     states[id] = .scheduled
   }
@@ -267,6 +270,57 @@ final class AlarmPlanEngineTests: XCTestCase {
       XCTFail("Corrupt mapping must be reported")
     } catch {}
     XCTAssertEqual(backend.states[id], .scheduled)
+  }
+
+  @MainActor
+  func testChangedConfigurationIsRegisteredUnderFreshIdAndOldOneRetired() async throws {
+    let (engine, backend, clock) = fixture()
+    var alarm = record("work", at: clock.now + 60_000)
+    _ = try await engine.reconcile(records: [alarm], enabledAlarmIds: ["work"])
+    let oldId = try XCTUnwrap(engine.mapping[alarm.scheduleId])
+    alarm.label = "changed"
+    let failures = try await engine.reconcile(records: [alarm], enabledAlarmIds: ["work"])
+    XCTAssertTrue(failures.isEmpty, "\(failures)")
+    let newId = try XCTUnwrap(engine.mapping[alarm.scheduleId])
+    XCTAssertNotEqual(newId, oldId)
+    XCTAssertEqual(backend.records[newId]?.label, "changed")
+    XCTAssertNil(backend.records[oldId])
+    XCTAssertEqual(backend.records.count, 1)
+  }
+
+  @MainActor
+  func testFailedReplacementOfChangedConfigurationKeepsOldRecord() async throws {
+    let (engine, backend, clock) = fixture()
+    var alarm = record("work", at: clock.now + 60_000)
+    _ = try await engine.reconcile(records: [alarm], enabledAlarmIds: ["work"])
+    let oldId = try XCTUnwrap(engine.mapping[alarm.scheduleId])
+    alarm.label = "changed"
+    backend.failSchedules = [alarm.scheduleId]
+    let failures = try await engine.reconcile(records: [alarm], enabledAlarmIds: ["work"])
+    XCTAssertNotNil(failures["work"])
+    XCTAssertEqual(engine.mapping[alarm.scheduleId], oldId)
+    XCTAssertEqual(backend.records[oldId]?.label, "work")
+    XCTAssertEqual(backend.records.count, 1)
+  }
+
+  @MainActor
+  func testRetireFailureAfterReplacementKeepsNewMappingAndOrphanIsCleanedOnRefresh() async throws {
+    let (engine, backend, clock) = fixture()
+    var alarm = record("work", at: clock.now + 60_000)
+    _ = try await engine.reconcile(records: [alarm], enabledAlarmIds: ["work"])
+    let oldId = try XCTUnwrap(engine.mapping[alarm.scheduleId])
+    alarm.label = "changed"
+    backend.failCancels = [oldId]
+    let failures = try await engine.reconcile(records: [alarm], enabledAlarmIds: ["work"])
+    XCTAssertTrue(failures.isEmpty || failures["_orphan"] != nil, "\(failures)")
+    let newId = try XCTUnwrap(engine.mapping[alarm.scheduleId])
+    XCTAssertNotEqual(newId, oldId)
+    XCTAssertEqual(backend.records[newId]?.label, "changed")
+    XCTAssertTrue(engine.journal.entries.contains { $0.operation == "retire_replaced" && $0.result == "failed" })
+    backend.failCancels = []
+    _ = try await engine.reconcile(records: [alarm], enabledAlarmIds: ["work"])
+    XCTAssertNil(backend.records[oldId])
+    XCTAssertEqual(backend.records.count, 1)
   }
 
   @MainActor

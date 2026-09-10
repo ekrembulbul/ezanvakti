@@ -198,15 +198,34 @@ final class AlarmPlanEngine {
 
   func upsert(_ record: AlarmMissionConfiguration) async throws {
     try validateState()
+    var retiring: UUID?
     if let id = mapping[record.scheduleId], let state = try platform.alarms()[id] {
       if state.protectsDelivery { return }
       if let old = missions.configurations[record.scheduleId], old.hasSameSchedule(as: record) { return }
+      // AlarmKit does not update an existing id: the second schedule fails with
+      // invalidInput ("duplicate ID", device archive 2026-09-10). The change is
+      // registered under a fresh id first, then the old record is retired, so a
+      // failed replacement leaves the working alarm in place.
+      retiring = id
     }
     guard record.fireAtMillis.isFinite,
       !record.repeatWeekdays.isEmpty || record.fireAtMillis > clock()
     else { throw EngineError.invalidTime }
     journal.record("schedule_requested", at: clock(), configuration: record)
-    try await platform.schedule(id: uuid(for: record.scheduleId), configuration: record)
+    let id = retiring == nil ? uuid(for: record.scheduleId) : UUID()
+    try await platform.schedule(id: id, configuration: record)
+    if let retiring {
+      var values = mapping
+      values[record.scheduleId] = id
+      setMapping(values)
+      do { try platform.cancel(id: retiring) }
+      catch {
+        // The mapping already points at the new id; the old record is now an
+        // orphan and the next reconcile retries its removal.
+        journal.record("retire_replaced", at: clock(), configuration: record,
+          scheduleId: record.scheduleId, result: "failed", error: error)
+      }
+    }
     try missions.configure(record)
     journal.record("scheduled", at: clock(), configuration: record)
   }
