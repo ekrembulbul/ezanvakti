@@ -73,7 +73,9 @@ enum NextPrayer {
         slots(days: days, calendar: calendar, labels: labels).first { $0.date > now }
     }
 
-    private static func combine(day: String, time: String, calendar: Calendar) -> Date? {
+    /// `"yyyy-MM-dd"` + `"HH:mm"` → cihaz-yerel `Date`; bozuk biçimde nil.
+    /// Kerahat aralıkları da aynı dönüşümü kullanır.
+    static func combine(day: String, time: String, calendar: Calendar) -> Date? {
         let dayParts = day.split(separator: "-").compactMap { Int($0) }
         let timeParts = time.split(separator: ":").compactMap { Int($0) }
         guard dayParts.count == 3, timeParts.count == 2 else { return nil }

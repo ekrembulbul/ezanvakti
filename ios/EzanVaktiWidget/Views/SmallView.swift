@@ -70,6 +70,11 @@ struct SmallView: View {
                     size: 26,
                     color: palette.textPrimary
                 )
+
+                if let status = entry.kerahat {
+                    KerahatLine(entry: entry, status: status, color: palette.kerahat)
+                        .padding(.top, 2)
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment.frame)

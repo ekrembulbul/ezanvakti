@@ -14,6 +14,13 @@ struct SnapshotTimes: Decodable, Equatable {
     let isha: String
 }
 
+/// Günün yaklaşık kerahat aralığı (v4); `"HH:mm"`, başlangıç dahil bitiş hariç.
+/// Uygulama hesaplar (`KerahatTimes`), widget sabit tutmaz.
+struct SnapshotInterval: Decodable, Equatable {
+    let start: String
+    let end: String
+}
+
 /// Uygulamanın kendi dilinde ürettiği etiketler (v3+).
 ///
 /// Widget'ta ayrı bir çeviri dosyası tutmak yerine metinler uygulamadan
@@ -39,6 +46,12 @@ struct SnapshotLabels: Decodable, Equatable {
     let durationHour: String?
     let durationMinute: String?
 
+    /// Kerahat satırı (v4): yaklaşırken `kerahat` + sistem sayacı, aktifken
+    /// `kerahatActive · kerahatUntil` (`{time}` yer tutucusu).
+    let kerahat: String?
+    let kerahatActive: String?
+    let kerahatUntil: String?
+
     func name(for key: PrayerKey) -> String {
         let value: String?
         switch key {
@@ -61,6 +74,9 @@ struct SnapshotDay: Decodable, Equatable {
     let hijri: String?
 
     let times: SnapshotTimes
+
+    /// Günün kerahat aralıkları; v4 öncesi payload'da yoktur.
+    var kerahat: [SnapshotInterval]? = nil
 }
 
 /// Uygulamanın App Group'a yazdığı payload.
@@ -71,7 +87,7 @@ struct WidgetSnapshot: Decodable, Equatable {
     /// duruyor olabilir ve onu reddetmek, uygulama zaten güncelken
     /// "uygulamayı güncelleyin" göstermek olurdu. Bilinmeyen sürüm reddedilir;
     /// çöp çizmek yerine kullanıcıya güncelleme mesajı gösterilir.
-    static let supportedSchemaVersions: Set<Int> = [1, 2, 3]
+    static let supportedSchemaVersions: Set<Int> = [1, 2, 3, 4]
 
     let schemaVersion: Int
     let locationLabel: String

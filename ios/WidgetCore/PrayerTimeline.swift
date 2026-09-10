@@ -15,9 +15,49 @@ enum WidgetContent: Equatable {
     case needsUpdate
 }
 
+/// Karenin anındaki kerahat durumu; ana ekrandaki `KerahatWarning` ile aynı
+/// kural (30 dk önceden uyar, aralık içinde aktif).
+enum KerahatStatus: Equatable {
+    case approaching(start: Date, end: Date)
+    case active(end: Date)
+
+    static let lead: TimeInterval = 30 * 60
+
+    /// Snapshot günlerindeki aralıkları `Date` çiftlerine çevirir; bozuk
+    /// biçimli aralık listeden düşer.
+    static func intervals(
+        days: [SnapshotDay], calendar: Calendar
+    ) -> [(start: Date, end: Date)] {
+        days.flatMap { day -> [(start: Date, end: Date)] in
+            (day.kerahat ?? []).compactMap { interval in
+                guard let start = NextPrayer.combine(day: day.date, time: interval.start, calendar: calendar),
+                    let end = NextPrayer.combine(day: day.date, time: interval.end, calendar: calendar),
+                    end > start
+                else { return nil }
+                return (start, end)
+            }
+        }
+        .sorted { $0.start < $1.start }
+    }
+
+    static func resolve(days: [SnapshotDay], now: Date, calendar: Calendar) -> KerahatStatus? {
+        let all = intervals(days: days, calendar: calendar)
+        if let active = all.first(where: { $0.start <= now && now < $0.end }) {
+            return .active(end: active.end)
+        }
+        if let soon = all.first(where: { now < $0.start && $0.start.timeIntervalSince(now) <= lead }) {
+            return .approaching(start: soon.start, end: soon.end)
+        }
+        return nil
+    }
+}
+
 struct PrayerEntry: TimelineEntry {
     let date: Date
     let content: WidgetContent
+
+    /// Karenin anındaki kerahat durumu; yoksa satır çizilmez.
+    var kerahat: KerahatStatus? = nil
 
     /// Kullanıcının "Widget'ı Düzenle" ekranından seçtiği hiza. Timeline saf
     /// kalsın diye burada varsayılanı var; gerçek değeri provider yazıyor.
@@ -39,7 +79,9 @@ enum PrayerTimeline {
     /// tazelenir.
     static let horizonHours = 48
 
-    static let maxEntries = 14
+    /// 48 saatte 12 vakit sınırı + günde 3 kerahat × 3 an (yaklaşma,
+    /// başlangıç, bitiş) sığsın; bitişlerin çoğu bir vakit sınırıyla çakışır.
+    static let maxEntries = 24
 
     static func entries(
         for result: Result<WidgetSnapshot, SnapshotLoadError>?,
@@ -78,7 +120,13 @@ enum PrayerTimeline {
         // Dakikalık kare üretimi (0.5.1–0.5.3) buna gerek bırakmıyordu.
         let horizon = now.addingTimeInterval(TimeInterval(horizonHours * 3600))
         let boundaries = slots.map(\.date).filter { $0 > now && $0 <= horizon }
-        let moments = ([now] + boundaries).prefix(maxEntries)
+        // Kerahat satırı da içeriktir: yaklaşma anı, başlangıç ve bitiş birer
+        // kare ister. Bitiş çoğunlukla bir vakit sınırıyla çakışır; küme
+        // tekrarı eler.
+        let kerahatMoments = KerahatStatus.intervals(days: snapshot.days, calendar: calendar)
+            .flatMap { [$0.start.addingTimeInterval(-KerahatStatus.lead), $0.start, $0.end] }
+            .filter { $0 > now && $0 <= horizon }
+        let moments = Array(Set([now] + boundaries + kerahatMoments)).sorted().prefix(maxEntries)
 
         return moments.map { moment in
             PrayerEntry(
@@ -86,6 +134,7 @@ enum PrayerTimeline {
                 content: content(
                     for: snapshot, slots: slots, at: moment, calendar: calendar
                 ),
+                kerahat: KerahatStatus.resolve(days: snapshot.days, now: moment, calendar: calendar),
                 labels: snapshot.labels
             )
         }

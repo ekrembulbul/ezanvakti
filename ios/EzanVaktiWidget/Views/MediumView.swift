@@ -74,6 +74,14 @@ struct MediumView: View {
                     size: 24,
                     color: palette.textPrimary
                 )
+
+                if let status = entry.kerahat {
+                    KerahatLine(
+                        entry: entry, status: status, color: palette.kerahat,
+                        showsStartTime: true
+                    )
+                    .padding(.top, 2)
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment.frame)
             .multilineTextAlignment(alignment.textAlignment)

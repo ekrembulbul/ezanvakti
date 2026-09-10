@@ -125,4 +125,78 @@ final class PrayerTimelineTests: XCTestCase {
         }
         XCTAssertTrue(isStale)
     }
+
+    // MARK: - Kerahat
+
+    private func kerahatSnapshot(days: [String]) -> WidgetSnapshot {
+        WidgetSnapshot(
+            schemaVersion: 4,
+            locationLabel: "Kadıköy, İstanbul",
+            days: days.map {
+                SnapshotDay(
+                    date: $0,
+                    hijri: "13 Rebiülevvel 1448",
+                    times: SnapshotTimes(
+                        fajr: "04:12", sunrise: "05:52", dhuhr: "13:15",
+                        asr: "16:58", maghrib: "20:26", isha: "21:58"
+                    ),
+                    kerahat: [
+                        SnapshotInterval(start: "05:52", end: "06:37"),
+                        SnapshotInterval(start: "13:05", end: "13:15"),
+                        SnapshotInterval(start: "19:41", end: "20:26"),
+                    ]
+                )
+            },
+            labels: nil
+        )
+    }
+
+    private func kerahatEntries(now: Date) -> [PrayerEntry] {
+        PrayerTimeline.entries(
+            for: .success(kerahatSnapshot(days: ["2026-08-25", "2026-08-26"])),
+            now: now, calendar: calendar
+        )
+    }
+
+    /// Kerahat satiri iceriktir: yaklasma ani (baslangic - 30 dk), baslangic
+    /// ve bitis birer kare gerektirir; vakit sinirlari da yerinde kalir.
+    func testEntriesIncludeKerahatMomentsBetweenPrayerBoundaries() {
+        let dates = kerahatEntries(now: at(25, 14, 0)).map(\.date)
+        XCTAssertEqual(Array(dates.prefix(6)), [
+            at(25, 14, 0),   // simdi
+            at(25, 16, 58),  // İkindi
+            at(25, 19, 11),  // kerahat - 30 dk
+            at(25, 19, 41),  // kerahat baslangici
+            at(25, 20, 26),  // Akşam = kerahat bitisi
+            at(25, 21, 58),  // Yatsı
+        ])
+        XCTAssertEqual(dates, dates.sorted())
+        XCTAssertEqual(Set(dates).count, dates.count)
+        XCTAssertLessThanOrEqual(dates.count, PrayerTimeline.maxEntries)
+    }
+
+    func testKerahatMomentsDoNotStarveNextDayPrayers() {
+        let dates = kerahatEntries(now: at(25, 14, 0)).map(\.date)
+        XCTAssertTrue(dates.contains(at(26, 13, 15)), "ertesi gunun oglesi 48 saatlik ufukta")
+    }
+
+    func testEntryCarriesApproachingKerahat() {
+        let first = kerahatEntries(now: at(25, 19, 20))[0]
+        XCTAssertEqual(first.kerahat, .approaching(start: at(25, 19, 41), end: at(25, 20, 26)))
+    }
+
+    func testEntryCarriesActiveKerahat() {
+        let first = kerahatEntries(now: at(25, 19, 50))[0]
+        XCTAssertEqual(first.kerahat, .active(end: at(25, 20, 26)))
+    }
+
+    func testEntryHasNoKerahatOutsideWindow() {
+        XCTAssertNil(kerahatEntries(now: at(25, 14, 0))[0].kerahat)
+        XCTAssertNil(kerahatEntries(now: at(25, 19, 10))[0].kerahat)
+        XCTAssertNil(kerahatEntries(now: at(25, 20, 30))[0].kerahat)
+    }
+
+    func testSnapshotWithoutKerahatYieldsNoStatus() {
+        XCTAssertNil(entries(days: ["2026-08-25"], now: at(25, 19, 20))[0].kerahat)
+    }
 }
