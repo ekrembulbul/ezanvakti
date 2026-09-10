@@ -8,61 +8,114 @@ import 'package:flutter_test/flutter_test.dart';
 import '../theme_harness.dart';
 
 void main() {
-  Future<void> answerAll(
-    WidgetTester tester,
-    List<MathQuestion> questions,
-  ) async {
-    for (final q in questions) {
-      await tester.enterText(find.byType(TextField), '${q.answer}');
-      await tester.tap(find.byKey(kMathSubmitKey));
-      await tester.pumpAndSettle();
+  Future<void> pumpMission(
+    WidgetTester tester, {
+    int level = 2,
+    int seed = 7,
+    VoidCallback? onCompleted,
+  }) async {
+    await tester.pumpWidget(
+      wrapWithTheme(
+        MathMission(
+          level: level,
+          random: Random(seed),
+          onCompleted: onCompleted ?? () {},
+        ),
+      ),
+    );
+    await tester.pump();
+  }
+
+  /// Cevabı ekrandaki tuş takımından girer; sistem klavyesi yok.
+  Future<void> type(WidgetTester tester, int answer) async {
+    for (final ch in '$answer'.split('')) {
+      await tester.tap(find.byKey(kMathKey(int.parse(ch))));
+      await tester.pump();
     }
   }
 
+  Future<void> submit(WidgetTester tester) async {
+    await tester.tap(find.byKey(kMathSubmitKey));
+    await tester.pumpAndSettle();
+  }
+
+  Finder answerText(String text) => find.descendant(
+    of: find.byKey(kMathAnswerKey),
+    matching: find.text(text),
+  );
+
+  testWidgets('Rakamlar tusla girilir; TextField ve scroll yok', (
+    tester,
+  ) async {
+    await pumpMission(tester);
+
+    expect(find.byType(TextField), findsNothing);
+    expect(find.byType(SingleChildScrollView), findsNothing);
+    for (var digit = 0; digit <= 9; digit++) {
+      expect(find.byKey(kMathKey(digit)), findsOneWidget, reason: '$digit');
+    }
+
+    await type(tester, 42);
+    expect(answerText('42'), findsOneWidget);
+  });
+
+  testWidgets('Geri tusu son rakami siler, uzun basinca hepsini', (
+    tester,
+  ) async {
+    await pumpMission(tester);
+    await type(tester, 123);
+
+    await tester.tap(find.byKey(kMathBackspaceKey));
+    await tester.pump();
+    expect(answerText('12'), findsOneWidget);
+
+    await tester.longPress(find.byKey(kMathBackspaceKey));
+    await tester.pump();
+    expect(answerText('12'), findsNothing);
+    expect(answerText('1'), findsNothing);
+  });
+
+  testWidgets('Cevap en fazla alti hane alir', (tester) async {
+    await pumpMission(tester);
+    await type(tester, 1234567);
+    expect(answerText('123456'), findsOneWidget);
+  });
+
   testWidgets('Tum sorular dogru cevaplanirsa tamamlanir', (tester) async {
     var done = false;
-    final questions = MathChallenge.generate(level: 1, random: Random(7));
+    final questions = MathChallenge.generate(level: 2, random: Random(7));
+    await pumpMission(tester, onCompleted: () => done = true);
 
-    await tester.pumpWidget(
-      wrapWithTheme(
-        MathMission(
-          level: 1,
-          random: Random(7),
-          onCompleted: () => done = true,
-        ),
-      ),
-    );
-
-    await answerAll(tester, questions);
+    for (final q in questions) {
+      await type(tester, q.answer);
+      await submit(tester);
+    }
     expect(done, isTrue);
   });
 
-  testWidgets('Yanlis cevap ilerletmez ve uyari gosterir', (tester) async {
+  testWidgets('Yanlis cevap ilerletmez, uyari gosterir ve girdiyi temizler', (
+    tester,
+  ) async {
     var done = false;
-    await tester.pumpWidget(
-      wrapWithTheme(
-        MathMission(
-          level: 1,
-          random: Random(7),
-          onCompleted: () => done = true,
-        ),
-      ),
-    );
+    await pumpMission(tester, onCompleted: () => done = true);
 
-    await tester.enterText(find.byType(TextField), '999999');
-    await tester.tap(find.byKey(kMathSubmitKey));
-    await tester.pumpAndSettle();
+    await type(tester, 999999);
+    await submit(tester);
 
     expect(done, isFalse);
     expect(find.textContaining('Yanlış'), findsOneWidget);
+    expect(answerText('999999'), findsNothing);
+  });
+
+  testWidgets('Bos cevap gonderilemez', (tester) async {
+    var done = false;
+    await pumpMission(tester, level: 1, onCompleted: () => done = true);
+    await submit(tester);
+    expect(done, isFalse);
   });
 
   testWidgets('Ilerleme her soru icin bir nokta cizer', (tester) async {
-    await tester.pumpWidget(
-      wrapWithTheme(
-        MathMission(level: 3, random: Random(7), onCompleted: () {}),
-      ),
-    );
+    await pumpMission(tester, level: 3);
     final total = MathChallenge.questionCount(3);
     final dots = tester.widget<Row>(find.byKey(kMathProgressKey)).children;
     expect(dots, hasLength(total));
@@ -74,7 +127,7 @@ void main() {
     // Kural soru sayisina bagli, seviyeye degil: tek soruda nokta dizisi
     // gereksiz gurultu olurdu. Sayilar kalibrasyonla degisebildigi icin
     // beklenti dogrudan `questionCount`tan turetiliyor.
-    for (final level in [1, 2, 3]) {
+    for (var level = 1; level <= MathChallenge.maxLevel; level++) {
       await tester.pumpWidget(
         wrapWithTheme(
           MathMission(
@@ -95,19 +148,25 @@ void main() {
     }
   });
 
-  testWidgets('Bos cevap gonderilemez', (tester) async {
-    var done = false;
-    await tester.pumpWidget(
-      wrapWithTheme(
-        MathMission(
-          level: 1,
-          random: Random(7),
-          onCompleted: () => done = true,
-        ),
-      ),
-    );
-    await tester.tap(find.byKey(kMathSubmitKey));
-    await tester.pumpAndSettle();
-    expect(done, isFalse);
+  testWidgets('Son soruda gonder tusu Bitir yazar, oncekilerde Onayla', (
+    tester,
+  ) async {
+    final questions = MathChallenge.generate(level: 2, random: Random(7));
+    await pumpMission(tester);
+
+    expect(find.text('Onayla'), findsOneWidget);
+    await type(tester, questions.first.answer);
+    await submit(tester);
+    expect(find.text('Bitir'), findsOneWidget);
+  });
+
+  testWidgets('Dar ve kisa ekranda tasmaz', (tester) async {
+    tester.view.physicalSize = const Size(640, 900);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.reset);
+
+    await pumpMission(tester, level: 4, seed: 1);
+
+    expect(tester.takeException(), isNull);
   });
 }

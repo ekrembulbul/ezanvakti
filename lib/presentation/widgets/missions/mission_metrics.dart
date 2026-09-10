@@ -15,3 +15,6 @@ const double kMissionLeadFontSize = 20;
 
 /// Yönergenin altındaki açıklama satırı.
 const double kMissionSupportFontSize = 16;
+
+/// Matematik tuş takımındaki rakam ve ikon boyu.
+const double kMissionKeyFontSize = 26;

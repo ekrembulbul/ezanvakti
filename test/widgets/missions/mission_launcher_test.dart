@@ -145,8 +145,10 @@ void main() {
       }
       if (answer == null) fail('Soru ekranda bulunamadi');
 
-      await tester.enterText(find.byKey(kMathFieldKey), '$answer');
-      await tester.ensureVisible(find.byKey(kMathSubmitKey));
+      for (final ch in '$answer'.split('')) {
+        await tester.tap(find.byKey(kMathKey(int.parse(ch))));
+        await tester.pump();
+      }
       await tester.tap(find.byKey(kMathSubmitKey));
       await settle(tester);
     }
