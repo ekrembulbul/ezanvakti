@@ -30,7 +30,7 @@
 **Arayüzler:**
 - Üretir: `upsert(_:)` imzası aynı; davranış: mevcut kayıt farklıysa yeni UUID + eski iptal. Journal işlemi `retire_replaced` (yalnız iptal hatasında, `result: "failed"`).
 
-- [ ] **Adım 1: Fake platform AlarmKit gibi duplicate id'yi reddetsin + kırmızı test**
+- [x] **Adım 1: Fake platform AlarmKit gibi duplicate id'yi reddetsin + kırmızı test**
 
 `FakeAlarmPlatform`:
 ```swift
@@ -77,12 +77,12 @@ func testFailedReplacementOfChangedConfigurationKeepsOldRecord() async throws {
 }
 ```
 
-- [ ] **Adım 2: Kırmızıyı gör**
+- [x] **Adım 2: Kırmızıyı gör**
 
 `xcodebuild test -workspace ios/Runner.xcworkspace -scheme Runner -destination 'platform=iOS Simulator,name=iPhone 17' -only-testing:RunnerTests/AlarmPlanEngineTests 2>&1 | grep -E "error:|failed|passed" | tail`
 Beklenen: ilk yeni test `failures.isEmpty` üzerinde kırmızı (fake `duplicateId` fırlatır).
 
-- [ ] **Adım 3: `upsert` düzeltmesi**
+- [x] **Adım 3: `upsert` düzeltmesi**
 
 ```swift
 func upsert(_ record: AlarmMissionConfiguration) async throws {
@@ -119,11 +119,11 @@ func upsert(_ record: AlarmMissionConfiguration) async throws {
 }
 ```
 
-- [ ] **Adım 4: Tüm RunnerTests yeşil**
+- [x] **Adım 4: Tüm RunnerTests yeşil**
 
 Aynı `xcodebuild test … -only-testing:RunnerTests`; beklenen: `** TEST SUCCEEDED **`.
 
-- [ ] **Adım 5: ADR 0003 notu ve commit**
+- [x] **Adım 5: ADR 0003 notu ve commit**
 
 ADR "iOS — sistem sahipliğinde" altına paragraf: AlarmKit `schedule(id:)` var olan id'yi güncellemez; değişen kayıt taze UUID ile kurulup eskisi kaldırılır; kanıt 2026-09-10 cihaz arşivi.
 
@@ -143,7 +143,7 @@ git commit -m "fix(alarms): değişen AlarmKit kaydını taze id ile kur"
 **Arayüzler:**
 - Üretir: `MathChallenge.maxLevel = 4`, `MathChallenge.questionCount(int level)`, `MathChallenge.generate({level, random})` (imza aynı).
 
-- [ ] **Adım 1: Kırmızı testler**
+- [x] **Adım 1: Kırmızı testler**
 
 ```dart
 test('Dort seviye: soru sayisi 1,2,3,3', () {
@@ -169,9 +169,9 @@ test('Ekstrem: iki haneli x iki haneli', () { /* op == multiply, a,b 11..99 */ }
 ```
 Mevcut "Seviye yukseldikce is miktari artar" testi: 2>1, 3>2, 4>=3 olarak güncellenir; "Seviye 1 carpma icermez" ve "en az bir operand > 9" (seviye 3) kalır; seviye listeleri `[1,2,3,4]`.
 
-- [ ] **Adım 2: Kırmızıyı gör** — `flutter test test/alarms/math_challenge_test.dart`
+- [x] **Adım 2: Kırmızıyı gör** — `flutter test test/alarms/math_challenge_test.dart`
 
-- [ ] **Adım 3: Uygulama**
+- [x] **Adım 3: Uygulama**
 
 ```dart
 static const int maxLevel = 4;
@@ -199,7 +199,7 @@ static MathQuestion _one(int level, Random random) {
 }
 ```
 
-- [ ] **Adım 4: Yeşil** — aynı komut. **Adım 5: Commit** `feat(missions): matematik görevine dört zorluk seviyesi`
+- [x] **Adım 4: Yeşil** — aynı komut. **Adım 5: Commit** `feat(missions): matematik görevine dört zorluk seviyesi`
 
 ---
 
@@ -212,7 +212,7 @@ static MathQuestion _one(int level, Random random) {
 **Arayüzler:**
 - Üretir: `Key kMathKey(int digit)`, `const Key kMathBackspaceKey`, `const Key kMathAnswerKey`; `kMathSubmitKey`, `kMathProgressKey` kalır; `kMathFieldKey` silinir. `const double kMissionKeyFontSize = 26`.
 
-- [ ] **Adım 1: Kırmızı testler** — `answerAll` rakamları tuşlayarak girer:
+- [x] **Adım 1: Kırmızı testler** — `answerAll` rakamları tuşlayarak girer:
 
 ```dart
 Future<void> type(WidgetTester tester, int answer) async {
@@ -241,11 +241,11 @@ testWidgets('Dar ekranda tasmaz', (tester) async {
 ```
 `mission_launcher_test.solveMath`: `enterText(kMathFieldKey)` yerine rakam tuşları.
 
-- [ ] **Adım 2: Kırmızıyı gör** — `flutter test test/widgets/missions/math_mission_test.dart`
+- [x] **Adım 2: Kırmızıyı gör** — `flutter test test/widgets/missions/math_mission_test.dart`
 
-- [ ] **Adım 3: Uygulama** — `_MathMissionState`: `String _input = ''`; `_append(int)` (6 hane), `_backspace()`, `_clear()`, `_submit()` (`int.tryParse(_input)`); `build`: `Column(children: [_progress, 16, _questionCard, 16, _answerDisplay, _wrongHint, 12, Expanded(child: _keypad)])`. `_keypad`: 4 `Expanded(Row)` satırı, her hücre `Expanded(Padding(_key))`; `_key` → `Material` + `InkWell`, `Center(FittedBox(Text(digit, gridValue.copyWith(fontSize: kMissionKeyFontSize))))`; `⌫` `Icons.backspace_outlined` + `onLongPress: _clear`; `✓` accent dolgu, `Icons.check_rounded` + altında küçük "Onayla"/"Bitir". Semantik etiketler: rakam metni, `l10n.actionDelete`, gönder etiketi.
+- [x] **Adım 3: Uygulama** — `_MathMissionState`: `String _input = ''`; `_append(int)` (6 hane), `_backspace()`, `_clear()`, `_submit()` (`int.tryParse(_input)`); `build`: `Column(children: [_progress, 16, _questionCard, 16, _answerDisplay, _wrongHint, 12, Expanded(child: _keypad)])`. `_keypad`: 4 `Expanded(Row)` satırı, her hücre `Expanded(Padding(_key))`; `_key` → `Material` + `InkWell`, `Center(FittedBox(Text(digit, gridValue.copyWith(fontSize: kMissionKeyFontSize))))`; `⌫` `Icons.backspace_outlined` + `onLongPress: _clear`; `✓` accent dolgu, `Icons.check_rounded` + altında küçük "Onayla"/"Bitir". Semantik etiketler: rakam metni, `l10n.actionDelete`, gönder etiketi.
 
-- [ ] **Adım 4: Yeşil** — `flutter test test/widgets/missions/`. **Adım 5: Commit** `feat(missions): matematik görevinde ekran tuş takımı`
+- [x] **Adım 4: Yeşil** — `flutter test test/widgets/missions/`. **Adım 5: Commit** `feat(missions): matematik görevinde ekran tuş takımı`
 
 ---
 
@@ -259,9 +259,9 @@ testWidgets('Dar ekranda tasmaz', (tester) async {
 - Üretir: `String missionLevelLabel(int level, AppLocalizations l10n)` → Kolay/Orta/Zor/Ekstrem; `String missionLevelHint(int level, AppLocalizations l10n)`.
 - ARB: `missionLevel` "Zorluk", `missionLevelEasy` "Kolay", `missionLevelMedium` "Orta", `missionLevelHard` "Zor", `missionLevelExtreme` "Ekstrem", `missionLevelEasyHint` "1 soru · toplama, çıkarma", `missionLevelMediumHint` "2 soru · iki haneli toplama, çıkarma", `missionLevelHardHint` "3 soru · iki haneli × tek haneli", `missionLevelExtremeHint` "3 soru · iki haneli × iki haneli".
 
-- [ ] **Adım 1: Kırmızı** — labels testi (`missionLevelLabel(4, l10n) == 'Ekstrem'`, `missionLevelLabel(9, l10n) == 'Ekstrem'`), edit ekranı testi: görev Matematik seçilince "Zorluk" satırı görünür, Sallama'da görünmez; "Ekstrem" seçip kaydedince `missionLevel == 4`; görev Sallama iken kaydedince `missionLevel == 1`.
-- [ ] **Adım 2: Kırmızıyı gör.** **Adım 3: Uygulama** (`OptionRow<int>` items 1..4, `sheetTitle: l10n.missionLevel`). Stop screen: `missionLevelLabel(alarm.missionLevel, l10n)`.
-- [ ] **Adım 4: `flutter gen-l10n`, yeşil.** **Adım 5: Commit** `feat(alarms): matematik görevi için zorluk seçimi`
+- [x] **Adım 1: Kırmızı** — labels testi (`missionLevelLabel(4, l10n) == 'Ekstrem'`, `missionLevelLabel(9, l10n) == 'Ekstrem'`), edit ekranı testi: görev Matematik seçilince "Zorluk" satırı görünür, Sallama'da görünmez; "Ekstrem" seçip kaydedince `missionLevel == 4`; görev Sallama iken kaydedince `missionLevel == 1`.
+- [x] **Adım 2: Kırmızıyı gör.** **Adım 3: Uygulama** (`OptionRow<int>` items 1..4, `sheetTitle: l10n.missionLevel`). Stop screen: `missionLevelLabel(alarm.missionLevel, l10n)`.
+- [x] **Adım 4: `flutter gen-l10n`, yeşil.** **Adım 5: Commit** `feat(alarms): matematik görevi için zorluk seçimi`
 
 ---
 
@@ -271,9 +271,9 @@ testWidgets('Dar ekranda tasmaz', (tester) async {
 - Değiştir: `lib/presentation/widgets/reminders/reminder_row.dart`
 - Test: `test/widgets/reminders/reminder_row_layout_test.dart`
 
-- [ ] **Adım 1: Kırmızı** — `find.text(label)` stil `fontSize == 16 && fontWeight == FontWeight.w600`; etiket ve detail farklı `Text`lerde ve etiket detail'in üstünde (`tester.getTopLeft(label).dy < tester.getTopLeft(detail).dy`).
-- [ ] **Adım 2: Kırmızıyı gör.** **Adım 3: Uygulama** — `Wrap` yerine: `if (label != null) Text(label, rowTitle.copyWith(fontWeight: w600, color: textPrimary))`; sonra `if (detail != null || remaining != null) Text([detail, remaining].whereType<String>().join(' · '), rowSubtitle, tabular)`.
-- [ ] **Adım 4: Yeşil (tr/ar 1.8 ölçek testi dahil).** **Adım 5: Commit** `feat(reminders): satırda etiket büyük, zaman bilgisi altta`
+- [x] **Adım 1: Kırmızı** — `find.text(label)` stil `fontSize == 16 && fontWeight == FontWeight.w600`; etiket ve detail farklı `Text`lerde ve etiket detail'in üstünde (`tester.getTopLeft(label).dy < tester.getTopLeft(detail).dy`).
+- [x] **Adım 2: Kırmızıyı gör.** **Adım 3: Uygulama** — `Wrap` yerine: `if (label != null) Text(label, rowTitle.copyWith(fontWeight: w600, color: textPrimary))`; sonra `if (detail != null || remaining != null) Text([detail, remaining].whereType<String>().join(' · '), rowSubtitle, tabular)`.
+- [x] **Adım 4: Yeşil (tr/ar 1.8 ölçek testi dahil).** **Adım 5: Commit** `feat(reminders): satırda etiket büyük, zaman bilgisi altta`
 
 ---
 
@@ -299,8 +299,8 @@ class NotificationDraft { prayerType, derivedKind, minutesBefore, weekdays, labe
 class OptionItem<T> { ..., final String? group; }
 ```
 
-- [ ] **Adım 1: Kırmızı** — `ReminderPoint.derivedPoint(istiwa).anchor == dhuhr`; `all.length == 11`; eşitlik; option picker: iki farklı `group` verilince sheet'te iki `SectionLabel` çizilir, `group == null` iken hiç çizilmez.
-- [ ] **Adım 2: Kırmızıyı gör.** **Adım 3: Uygulama.** **Adım 4: Yeşil.** **Adım 5: Commit** `feat(reminders): bildirim noktası modeli ve gruplu seçici`
+- [x] **Adım 1: Kırmızı** — `ReminderPoint.derivedPoint(istiwa).anchor == dhuhr`; `all.length == 11`; eşitlik; option picker: iki farklı `group` verilince sheet'te iki `SectionLabel` çizilir, `group == null` iken hiç çizilmez.
+- [x] **Adım 2: Kırmızıyı gör.** **Adım 3: Uygulama.** **Adım 4: Yeşil.** **Adım 5: Commit** `feat(reminders): bildirim noktası modeli ve gruplu seçici`
 
 ---
 
@@ -316,9 +316,9 @@ class OptionItem<T> { ..., final String? group; }
 - `RemindersScreen._openNotificationEditor({NotificationSetting? initial})`.
 - ARB: `remindersNew` "Yeni bildirim", `remindersEdit` "Bildirimi düzenle", `remindersWhen` "Ne zaman?", `remindersPrayerGroup` "Namaz vakitleri", `remindersDerivedGroup` "Hesaplanan vakitler", `remindersDerivedExplain`, `remindersFormulaIshraq` "Güneş vaktinden 45 dk sonra", `remindersFormulaIstiwa` "Öğle vaktinden 10 dk önce", `remindersFormulaPreMaghrib` "Akşam vaktinden 45 dk önce", `remindersFormulaMidnight` "Akşam ile ertesi imsak arasının ortası", `remindersFormulaLastThird` "Gecenin son üçte birinin başı", `remindersTodayAt` "Bugün {time}", `remindersNextPreview` "Sıradaki: {day} {time}". Kaldır: `remindersAddTitle`, `remindersAddButton`, `remindersUpdateTitle`, `remindersWhichPrayer`, `remindersPrayerSection`, `remindersDerivedSection`, `remindersDerivedHint` (başka kullanımı yoksa; `grep` ile doğrula).
 
-- [ ] **Adım 1: Kırmızı testler** — eski sheet testleri sayfaya taşınır: `pumpPage` bir `Navigator` altında açar, "Kaydet"e basınca `NotificationDraft` yakalanır. Yeni: "Ne zaman?" satırına basınca sheet'te "NAMAZ VAKİTLERİ" ve "HESAPLANAN VAKİTLER" başlıkları; "Kerahat (zeval)" seçilince açıklama kartında formül + "Bugün 12:45"; önizleme satırı "Sıradaki: bugün …"; dakika sınırı aşımı mesajı; günler/etiket kaydı; her gün → boş küme; hesaplanan nokta kaydında `prayerType` çıpa.
-- [ ] **Adım 2: Kırmızıyı gör.** **Adım 3: Uygulama** — sayfa `AlarmEditScreen` kalıbı; bölüm yardımcıları (`_whenRow`, `_explanationCard`, `_offsetSection`, `_previewLine`, `_weekdaySelector`, `_labelField`); `_nextPreview()` 8 gün döngüsü `NotificationTimeRules.pointTime`. `reminders_screen`: `Navigator.push<NotificationDraft>(MaterialPageRoute(...))`; sonuç null değilse add/update. Sheet ve testi silinir.
-- [ ] **Adım 4: `flutter gen-l10n`, `flutter analyze`, yeşil.** **Adım 5: Commit** `feat(reminders): bildirim ekleme tam sayfa ve anlaşılır zaman seçimi`
+- [x] **Adım 1: Kırmızı testler** — eski sheet testleri sayfaya taşınır: `pumpPage` bir `Navigator` altında açar, "Kaydet"e basınca `NotificationDraft` yakalanır. Yeni: "Ne zaman?" satırına basınca sheet'te "NAMAZ VAKİTLERİ" ve "HESAPLANAN VAKİTLER" başlıkları; "Kerahat (zeval)" seçilince açıklama kartında formül + "Bugün 12:45"; önizleme satırı "Sıradaki: bugün …"; dakika sınırı aşımı mesajı; günler/etiket kaydı; her gün → boş küme; hesaplanan nokta kaydında `prayerType` çıpa.
+- [x] **Adım 2: Kırmızıyı gör.** **Adım 3: Uygulama** — sayfa `AlarmEditScreen` kalıbı; bölüm yardımcıları (`_whenRow`, `_explanationCard`, `_offsetSection`, `_previewLine`, `_weekdaySelector`, `_labelField`); `_nextPreview()` 8 gün döngüsü `NotificationTimeRules.pointTime`. `reminders_screen`: `Navigator.push<NotificationDraft>(MaterialPageRoute(...))`; sonuç null değilse add/update. Sheet ve testi silinir.
+- [x] **Adım 4: `flutter gen-l10n`, `flutter analyze`, yeşil.** **Adım 5: Commit** `feat(reminders): bildirim ekleme tam sayfa ve anlaşılır zaman seçimi`
 
 ---
 
@@ -339,9 +339,9 @@ abstract final class KerahatWarning { static const Duration lead = Duration(minu
 ```
 ARB: `kerahatSoonLine` "Kerahat {time} · {remaining}".
 
-- [ ] **Adım 1: Kırmızı** — resolve: içinde → Active; start−20dk → Approaching; start−31dk → null; end sonrası → null. Hero: start−20dk'da `Key('kerahat_soon_line')` var ve metin "Kerahat 18:47 · 20 dk"; start−31dk'da yok; aktifken yok (kart var).
-- [ ] **Adım 2: Kırmızıyı gör.** **Adım 3: Uygulama** — `_countdown` altına `?_soonLine(tokens, now)`.
-- [ ] **Adım 4: Yeşil.** **Adım 5: Commit** `feat(home): kerahat yaklaşırken sayaç altında uyarı`
+- [x] **Adım 1: Kırmızı** — resolve: içinde → Active; start−20dk → Approaching; start−31dk → null; end sonrası → null. Hero: start−20dk'da `Key('kerahat_soon_line')` var ve metin "Kerahat 18:47 · 20 dk"; start−31dk'da yok; aktifken yok (kart var).
+- [x] **Adım 2: Kırmızıyı gör.** **Adım 3: Uygulama** — `_countdown` altına `?_soonLine(tokens, now)`.
+- [x] **Adım 4: Yeşil.** **Adım 5: Commit** `feat(home): kerahat yaklaşırken sayaç altında uyarı`
 
 ---
 
@@ -351,8 +351,8 @@ ARB: `kerahatSoonLine` "Kerahat {time} · {remaining}".
 - Değiştir: `lib/features/home_widget/domain/widget_snapshot.dart` (`WidgetKerahatInterval`, `WidgetSnapshotDay.kerahat`, `WidgetLabels.kerahat/kerahatActive/kerahatUntil`, `schemaVersion = 4`), `widget_snapshot_builder.dart` (`KerahatTimes.forDay`), `widget_labels_factory.dart`, `lib/l10n/app_*.arb` (`widgetKerahat` "Kerahat", `widgetKerahatActive` "Kerahat vakti", `widgetKerahatUntil` "bitiş {time}")
 - Test: `test/home_widget/widget_snapshot_builder_test.dart`, `test/home_widget/widget_snapshot_test.dart`
 
-- [ ] **Adım 1: Kırmızı** — builder: günün `kerahat` listesi 3 aralık, `toJson()['days'][0]['kerahat'] == [{'start':'05:52','end':'06:37'}, {'start':'13:05','end':'13:15'}, {'start':'19:41','end':'20:26'}]`; `schemaVersion == 4`; labels JSON'da üç yeni anahtar.
-- [ ] **Adım 2: Kırmızıyı gör.** **Adım 3: Uygulama.** **Adım 4: Yeşil.** **Adım 5: Commit** `feat(widget): snapshot v4 kerahat aralıkları ve etiketleri`
+- [x] **Adım 1: Kırmızı** — builder: günün `kerahat` listesi 3 aralık, `toJson()['days'][0]['kerahat'] == [{'start':'05:52','end':'06:37'}, {'start':'13:05','end':'13:15'}, {'start':'19:41','end':'20:26'}]`; `schemaVersion == 4`; labels JSON'da üç yeni anahtar.
+- [x] **Adım 2: Kırmızıyı gör.** **Adım 3: Uygulama.** **Adım 4: Yeşil.** **Adım 5: Commit** `feat(widget): snapshot v4 kerahat aralıkları ve etiketleri`
 
 ---
 
@@ -373,19 +373,19 @@ struct PrayerEntry { ... var kerahat: KerahatStatus? = nil }
 struct KerahatLine: View { let entry: PrayerEntry; let status: KerahatStatus; let color: Color; let showsStartTime: Bool }
 ```
 
-- [ ] **Adım 1: Kırmızı** — Snapshot: v4 JSON `kerahat` decode; v3 → `nil`. Timeline: `days` fixture'ına kerahat `[("05:52","06:37"),("13:05","13:15"),("19:41","20:26")]`; `now = 25 Ağustos 14:00` → kareler 16:58 (İkindi), 19:11 (start−30), 19:41 (start), 20:26 (Akşam=end) … ; `entries(now: 19:20).first.kerahat == .approaching(start: 19:41, end: 20:26)`; `now: 19:50` → `.active(end: 20:26)`; `now: 14:00` → nil.
-- [ ] **Adım 2: Kırmızıyı gör.** **Adım 3: Uygulama** — timeline `moments`: `boundaries + kerahatMoments` sıralı, tekrarsız, `prefix(maxEntries)`; her kare `kerahat: KerahatStatus.resolve(days:, now: moment, calendar:)`. Görünüm: `CountdownLabel` altına `if let status = entry.kerahat { KerahatLine(...) }`.
-- [ ] **Adım 4: RunnerTests yeşil + `flutter build ios --simulator --debug`.** **Adım 5: Commit** `feat(widget): kerahat yaklaşıyor ve kerahat vakti satırı`
+- [x] **Adım 1: Kırmızı** — Snapshot: v4 JSON `kerahat` decode; v3 → `nil`. Timeline: `days` fixture'ına kerahat `[("05:52","06:37"),("13:05","13:15"),("19:41","20:26")]`; `now = 25 Ağustos 14:00` → kareler 16:58 (İkindi), 19:11 (start−30), 19:41 (start), 20:26 (Akşam=end) … ; `entries(now: 19:20).first.kerahat == .approaching(start: 19:41, end: 20:26)`; `now: 19:50` → `.active(end: 20:26)`; `now: 14:00` → nil.
+- [x] **Adım 2: Kırmızıyı gör.** **Adım 3: Uygulama** — timeline `moments`: `boundaries + kerahatMoments` sıralı, tekrarsız, `prefix(maxEntries)`; her kare `kerahat: KerahatStatus.resolve(days:, now: moment, calendar:)`. Görünüm: `CountdownLabel` altına `if let status = entry.kerahat { KerahatLine(...) }`.
+- [x] **Adım 4: RunnerTests yeşil + `flutter build ios --simulator --debug`.** **Adım 5: Commit** `feat(widget): kerahat yaklaşıyor ve kerahat vakti satırı`
 
 ---
 
 ### Görev 11: Bütünlük ve teslim
 
-- [ ] `dart format` (dokunulan dosyalar), `flutter gen-l10n`, `flutter analyze`.
-- [ ] `flutter test > /tmp/…/test.log; echo $?` — tam suite.
-- [ ] `xcodebuild test … -only-testing:RunnerTests` tam; `flutter build ios --simulator --debug`.
-- [ ] CHANGELOG `## [Unreleased]` girişleri (Eklendi / Değişti / Düzeltildi); spec ve plan commit'i; `git status` temiz.
-- [ ] Cihaz kabul listesi Ekrem'e (alarm düzenle → çalma, matematik tuş takımı, bildirim sayfası, widget kerahat satırı).
+- [x] `dart format` (dokunulan dosyalar), `flutter gen-l10n`, `flutter analyze`.
+- [x] `flutter test > /tmp/…/test.log; echo $?` — tam suite: 1241 geçti; `test/notifications/weekday_filter_test.dart`'ta 2 test takvime bağlı (fixture 4–11 Eylül sabit, gerçek saat 10 Eylül 22:34) ve bu turdan bağımsız olarak kırmızı.
+- [x] `xcodebuild test … -only-testing:RunnerTests` tam; `flutter build ios --simulator --debug`.
+- [x] CHANGELOG `## [Unreleased]` girişleri (Eklendi / Değişti / Düzeltildi); spec ve plan commit'i; `git status` temiz.
+- [x] Cihaz kabul listesi Ekrem'e (alarm düzenle → çalma, matematik tuş takımı, bildirim sayfası, widget kerahat satırı).
 
 ## Fiziksel cihaz kabulü
 

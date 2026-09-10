@@ -4,6 +4,20 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [Unreleased]
+
+### Eklendi
+- **Matematik görevinde dört zorluk seviyesi.** Kolay (1 soru, iki haneli ± tek haneli), Orta (2 soru, iki haneli ± iki haneli), Zor (3 soru, iki haneli × tek haneli), Ekstrem (3 soru, iki haneli × iki haneli). Alarm düzenlemede görev Matematik iken "Zorluk" satırı; mevcut alarmlar Kolay olarak kalır. Ara ekrandaki görev özeti seviye adını yazar.
+- **Kerahat yaklaşıyor uyarısı.** Kerahat başlangıcına 30 dakika kala ana ekranda sayacın altında "Kerahat 19:41 · 20 dk" satırı; iOS small ve medium widget'ta da yaklaşırken "Kerahat · 28:13", kerahat girince "Kerahat vakti · bitiş 20:26" satırı. Widget payload şeması 4 (kerahat aralıkları uygulamadan gelir).
+
+### Değişti
+- **Matematik görevi ekranda tuş takımıyla çözülür.** Sistem klavyesi ve kaydırma kalktı; 1-9, geri, 0 ve onay tuşları kalan alanı doldurur. Yanlış cevapta girdi temizlenir.
+- **Bildirim ekleme/düzenleme tam sayfa.** Alt sayfa büyüdükçe kapanmaz olmuştu; bildirim artık alarm sayfası gibi açılır. Vakit ve "türetilmiş vakit" çipleri yerine tek "Ne zaman?" seçicisi: namaz vakitleri ve hesaplanan vakitler iki grupta, her seçeneğin yanında bugünkü saati; hesaplanan nokta seçilince formülü ("Akşam vaktinden 45 dk önce"), anlamı ve bugünkü saati gösterilir; altta "Sıradaki: yarın 04:12" önizlemesi.
+- Hatırlatıcı satırında etiket daha büyük ve kendi satırında; sonraki zaman ve kalan süre altında tek satırda.
+
+### Düzeltildi
+- **Alarm düzenlenince "Kurulamadı" çıkması ve eski saatin çalmaya devam etmesi (iOS).** AlarmKit var olan kaydı aynı kimlikle güncellemeyi reddediyor ("duplicate ID"); değişen kayıt artık yeni kimlikle kurulup eskisi kaldırılıyor. Kapat/aç geçici çözümü gerekmiyor.
+
 ## [0.20.1] - 2026-09-09
 
 ### Düzeltildi
