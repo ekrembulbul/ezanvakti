@@ -3022,6 +3022,12 @@ abstract class AppLocalizations {
   /// **'Yaklaşık bitiş: {time}'**
   String kerahatEndsAt(String time);
 
+  /// Ana ekranda kerahat yaklaşırken sayaç altındaki satır: başlangıç saati ve kalan süre.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kerahat {time} · {remaining}'**
+  String kerahatSoonLine(String time, String remaining);
+
   /// Güneş doğduktan sonraki kerahat aralığı.
   ///
   /// In tr, this message translates to:

@@ -187,6 +187,51 @@ void main() {
       );
     });
 
+    testWidgets(
+      'kerahat yaklaşırken sayaç altında başlangıç ve kalan süre yazar',
+      (tester) async {
+        final start = DateTime(2026, 9, 7, 19, 41);
+        final end = DateTime(2026, 9, 7, 20, 26);
+        var now = start.subtract(const Duration(minutes: 31));
+        await tester.pumpWidget(
+          wrapWithTheme(
+            CountdownHero(
+              nextPrayerTime: end,
+              nextPrayerName: 'Akşam',
+              clock: () => now,
+              kerahatIntervals: [
+                KerahatInterval(
+                  kind: KerahatKind.beforeMaghrib,
+                  start: start,
+                  end: end,
+                ),
+              ],
+            ),
+          ),
+        );
+        // 31 dakika kala henüz uyarı yok.
+        expect(find.byKey(const Key('kerahat_soon_line')), findsNothing);
+
+        now = start.subtract(const Duration(minutes: 20));
+        await tester.pump(const Duration(seconds: 2));
+        expect(find.byKey(const Key('kerahat_soon_line')), findsOneWidget);
+        expect(find.text('Kerahat 19:41 · 20 dk'), findsOneWidget);
+        expect(
+          tester.widget<Text>(find.text('Kerahat 19:41 · 20 dk')).style?.color,
+          tokensFor().kerahatText,
+        );
+        expect(find.byIcon(Icons.wb_twilight_rounded), findsOneWidget);
+        expect(find.text('Kerahat vakti'), findsNothing);
+        expect(tester.takeException(), isNull);
+
+        // Başlangıçta uyarı satırı gider, aktif kart gelir.
+        now = start;
+        await tester.pump(const Duration(seconds: 2));
+        expect(find.byKey(const Key('kerahat_soon_line')), findsNothing);
+        expect(find.text('Kerahat vakti'), findsOneWidget);
+      },
+    );
+
     testWidgets('Kalan sureyi SS:DD:SS olarak tek satirda gosterir', (
       tester,
     ) async {

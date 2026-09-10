@@ -487,6 +487,7 @@
   "notificationDurationLeft": "{duration} until {name}",
   "kerahatActiveTitle": "Disliked time",
   "kerahatEndsAt": "Ends around {time}",
+  "kerahatSoonLine": "Disliked time {time} · {remaining}",
   "kerahatAfterSunrise": "After sunrise",
   "kerahatBeforeDhuhr": "Before Dhuhr",
   "kerahatBeforeMaghrib": "Before sunset",

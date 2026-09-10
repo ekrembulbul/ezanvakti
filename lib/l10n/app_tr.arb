@@ -2250,6 +2250,18 @@
     "description": "Aktif kerahat aralığının yaklaşık bitiş saati; ana geri sayım sıradaki vakte kalan süreyi gösterir.",
     "placeholders": {"time": {"type": "String"}}
   },
+  "kerahatSoonLine": "Kerahat {time} · {remaining}",
+  "@kerahatSoonLine": {
+    "description": "Ana ekranda kerahat yaklaşırken sayaç altındaki satır: başlangıç saati ve kalan süre.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "remaining": {
+        "type": "String"
+      }
+    }
+  },
   "kerahatAfterSunrise": "Güneş sonrası",
   "@kerahatAfterSunrise": {"description": "Güneş doğduktan sonraki kerahat aralığı."},
   "kerahatBeforeDhuhr": "Öğle öncesi",

@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
+import '../../../core/utils/duration_formatter.dart';
+import '../../../features/prayer_times/domain/kerahat_status.dart';
 import '../../../features/prayer_times/domain/kerahat_times.dart';
 
 /// Saniye sınırının ne kadar ardından uyanılacağı.
@@ -95,25 +97,41 @@ class _CountdownHeroState extends State<CountdownHero> {
         '${two(left.inSeconds.remainder(60))}';
   }
 
-  KerahatInterval? _activeKerahat(DateTime now) {
-    for (final interval in widget.kerahatIntervals) {
-      if (interval.contains(now)) return interval;
-    }
-    return null;
-  }
-
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     final now = _now();
-    final active = _activeKerahat(now);
+    final status = KerahatWarning.resolve(widget.kerahatIntervals, now);
     final countdown = _countdown(
       context,
       now: now,
-      color: active == null ? tokens.accent : tokens.kerahatText,
+      color: status is KerahatActive ? tokens.kerahatText : tokens.accent,
     );
-    if (active == null) return countdown;
+    return switch (status) {
+      null => countdown,
+      // Yaklaşırken sayaç olduğu gibi kalır; altına kerahat renginde tek
+      // satır gelir. Kerahat girince kart devreye girer.
+      KerahatApproaching(:final interval) => _withSoonLine(
+        context,
+        countdown,
+        interval,
+        now,
+      ),
+      KerahatActive(:final interval) => _activeCard(
+        context,
+        countdown,
+        interval,
+      ),
+    };
+  }
 
+  /// Aktif kerahatte başlık, yaklaşık bitiş ve bordo yüzeyli kart.
+  Widget _activeCard(
+    BuildContext context,
+    Widget countdown,
+    KerahatInterval active,
+  ) {
+    final tokens = context.tokens;
     return Container(
       key: const Key('kerahat_active_hero'),
       width: double.infinity,
@@ -160,6 +178,63 @@ class _CountdownHeroState extends State<CountdownHero> {
           countdown,
         ],
       ),
+    );
+  }
+
+  /// Sayaç + altında "Kerahat 19:41 · 20 dk" satırı. Saniyelik tik satırı da
+  /// tazeler; kalan süre dakika hassasiyetinde yazılır.
+  Widget _withSoonLine(
+    BuildContext context,
+    Widget countdown,
+    KerahatInterval interval,
+    DateTime now,
+  ) {
+    final tokens = context.tokens;
+    final remaining = formatCompactDuration(
+      interval.start.difference(now),
+      context.l10n,
+    );
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        countdown,
+        const SizedBox(height: 14),
+        Container(
+          key: const Key('kerahat_soon_line'),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: tokens.kerahatSurface,
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(color: tokens.kerahatLine),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.wb_twilight_rounded,
+                size: 16,
+                color: tokens.kerahatText,
+              ),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  context.l10n.kerahatSoonLine(
+                    context.formatTime(interval.start),
+                    remaining,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTypography.rowSubtitle.copyWith(
+                    color: tokens.kerahatText,
+                    fontWeight: FontWeight.w600,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

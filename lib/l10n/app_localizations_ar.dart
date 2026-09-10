@@ -1667,6 +1667,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String kerahatSoonLine(String time, String remaining) {
+    return 'وقت الكراهة $time · $remaining';
+  }
+
+  @override
   String get kerahatAfterSunrise => 'بعد الشروق';
 
   @override
