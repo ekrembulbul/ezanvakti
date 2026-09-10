@@ -87,46 +87,32 @@ class ReminderRow extends StatelessWidget {
                           ],
                         ],
                       ),
-                      if (label != null ||
-                          detail != null ||
-                          remaining != null) ...[
+                      // Etiket kullanicinin verdigi ad; zaman bilgisiyle
+                      // ayni satirda kucuk kalinca kayboluyordu. Kendi
+                      // satirinda, ana zamana yakin puntoda; detay ve kalan
+                      // sure onun altina iner.
+                      if (label != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          label!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypography.rowTitle.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: tokens.textPrimary,
+                          ),
+                        ),
+                      ],
+                      if (detail != null || remaining != null) ...[
                         const SizedBox(height: 3),
-                        Wrap(
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          spacing: 8,
-                          runSpacing: 3,
-                          children: [
-                            if (label != null)
-                              Text(
-                                label!,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: AppTypography.rowSubtitle.copyWith(
-                                  color: tokens.textSecondary,
-                                ),
-                              ),
-                            if (detail != null)
-                              Text(
-                                detail!,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: AppTypography.rowSubtitle.copyWith(
-                                  color: tokens.textSecondary,
-                                ),
-                              ),
-                            if (remaining != null)
-                              Text(
-                                remaining!,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: AppTypography.rowSubtitle.copyWith(
-                                  color: tokens.textSecondary,
-                                  fontFeatures: const [
-                                    FontFeature.tabularFigures(),
-                                  ],
-                                ),
-                              ),
-                          ],
+                        Text(
+                          [detail, remaining].whereType<String>().join(' · '),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTypography.rowSubtitle.copyWith(
+                            color: tokens.textSecondary,
+                            fontFeatures: const [FontFeature.tabularFigures()],
+                          ),
                         ),
                       ],
                     ],

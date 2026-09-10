@@ -139,11 +139,10 @@ void main() {
 
     final days = find.text('Cum');
     final schedule = find.text('Öğle · 45 dk önce');
-    final remaining = find.text('1 gün');
     final label = find.text('Cuma namazı');
-    final details = find.text('yarın 12:15');
+    // Sonraki zaman ve kalan süre tek satırda, etiketin altında.
+    final details = find.text('yarın 12:15 · 1 gün');
     expect(days, findsOneWidget);
-    expect(remaining, findsOneWidget);
     expect(schedule, findsOneWidget);
     expect(label, findsOneWidget);
     expect(details, findsOneWidget);
@@ -153,6 +152,10 @@ void main() {
     );
     expect(
       tester.getTopLeft(schedule).dy,
+      lessThan(tester.getTopLeft(label).dy),
+    );
+    expect(
+      tester.getTopLeft(label).dy,
       lessThan(tester.getTopLeft(details).dy),
     );
   });

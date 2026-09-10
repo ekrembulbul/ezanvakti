@@ -43,4 +43,63 @@ void main() {
       },
     );
   }
+
+  testWidgets('etiket büyük ve ayrı satırda, zaman bilgisi altında', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      wrapWithTheme(
+        const Center(
+          child: SizedBox(
+            width: 360,
+            child: ReminderRow(
+              days: 'Her gün',
+              remaining: '1 sa 20 dk',
+              primary: '05:46',
+              label: 'Sahur',
+              detail: 'yarın',
+              trailing: Switch(value: true, onChanged: null),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final label = tester.widget<Text>(find.text('Sahur'));
+    expect(label.style?.fontSize, 16);
+    expect(label.style?.fontWeight, FontWeight.w600);
+
+    // Detay ve kalan süre tek satırda, etiketin altında.
+    final info = find.text('yarın · 1 sa 20 dk');
+    expect(info, findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('Sahur')).dy,
+      lessThan(tester.getTopLeft(info).dy),
+    );
+    expect(tester.widget<Text>(info).style?.fontSize, 13);
+  });
+
+  testWidgets('etiket yoksa yalnızca zaman bilgisi satırı çizilir', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      wrapWithTheme(
+        const Center(
+          child: SizedBox(
+            width: 360,
+            child: ReminderRow(
+              days: 'Her gün',
+              remaining: '1 sa 20 dk',
+              primary: '05:46',
+              trailing: Switch(value: true, onChanged: null),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('1 sa 20 dk'), findsOneWidget);
+  });
 }
