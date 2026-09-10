@@ -854,6 +854,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get widgetOpenApp => 'Open the app for prayer times';
 
   @override
+  String get widgetKerahat => 'Disliked time';
+
+  @override
+  String get widgetKerahatActive => 'Disliked time now';
+
+  @override
+  String widgetKerahatUntil(String time) {
+    return 'until $time';
+  }
+
+  @override
   String get widgetUpdateApp => 'Please update the app';
 
   @override

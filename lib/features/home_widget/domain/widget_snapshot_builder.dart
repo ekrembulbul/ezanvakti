@@ -2,6 +2,7 @@ import '../../../core/models/location.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../core/models/prayer_time.dart';
 import '../../../core/utils/hijri_formatter.dart';
+import '../../prayer_times/domain/kerahat_times.dart';
 import 'widget_snapshot.dart';
 
 /// Vakit listesini widget penceresine çeviren saf dönüşüm.
@@ -52,6 +53,11 @@ class WidgetSnapshotBuilder {
         maghrib: time.maghrib,
         isha: time.isha,
       ),
+      // Ana ekranla aynı hesap; widget kendi başına sabit tutmaz.
+      kerahat: [
+        for (final interval in KerahatTimes.forDay(time))
+          WidgetKerahatInterval(start: interval.start, end: interval.end),
+      ],
     );
   }
 }

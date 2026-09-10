@@ -98,6 +98,23 @@ void main() {
       ]);
     });
 
+    test('gunun kerahat araliklari uygulamayla ayni kuraldan hesaplanir', () {
+      final snapshot = WidgetSnapshotBuilder.build(
+        location: _location,
+        prayerTimes: _range(today, 1),
+        now: DateTime(2026, 8, 25, 14, 0),
+      );
+
+      final kerahat = snapshot.days.first.kerahat;
+      expect(kerahat, hasLength(3));
+      expect(kerahat[0].start, DateTime(2026, 8, 25, 5, 52));
+      expect(kerahat[0].end, DateTime(2026, 8, 25, 6, 37));
+      expect(kerahat[1].start, DateTime(2026, 8, 25, 13, 5));
+      expect(kerahat[1].end, DateTime(2026, 8, 25, 13, 15));
+      expect(kerahat[2].start, DateTime(2026, 8, 25, 19, 41));
+      expect(kerahat[2].end, DateTime(2026, 8, 25, 20, 26));
+    });
+
     test('hicri tarih HijriFormatter ciktisiyla ayni', () {
       final snapshot = WidgetSnapshotBuilder.build(
         location: _location,

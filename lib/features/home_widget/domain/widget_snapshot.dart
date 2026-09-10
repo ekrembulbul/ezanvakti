@@ -32,6 +32,19 @@ class WidgetDayTimes {
   };
 }
 
+/// Günün yaklaşık kerahat aralığı; başlangıç dahil, bitiş hariç.
+///
+/// Swift tarafı hesaplamaz: 45/10/45 dakikalık sabitler ve sınır kuralları
+/// tek yerde (`KerahatTimes`) kalsın, widget uygulamayla aynı aralığı göstersin.
+class WidgetKerahatInterval {
+  final DateTime start;
+  final DateTime end;
+
+  const WidgetKerahatInterval({required this.start, required this.end});
+
+  Map<String, String> toJson() => {'start': _hhmm(start), 'end': _hhmm(end)};
+}
+
 class WidgetSnapshotDay {
   final DateTime date;
   final WidgetDayTimes times;
@@ -43,16 +56,21 @@ class WidgetSnapshotDay {
   /// uygulamadan farklı tarih göstermesi kabul edilemez.
   final String hijri;
 
+  /// Günün kerahat aralıkları (v4); boş liste de geçerlidir.
+  final List<WidgetKerahatInterval> kerahat;
+
   const WidgetSnapshotDay({
     required this.date,
     required this.times,
     required this.hijri,
+    this.kerahat = const [],
   });
 
   Map<String, dynamic> toJson() => {
     'date': _yyyyMMdd(date),
     'hijri': hijri,
     'times': times.toJson(),
+    'kerahat': kerahat.map((interval) => interval.toJson()).toList(),
   };
 }
 
@@ -77,6 +95,12 @@ class WidgetLabels {
   final String durationHour;
   final String durationMinute;
 
+  /// Kerahat satırı (v4): yaklaşırken "Kerahat" + sistem sayacı, aktifken
+  /// "Kerahat vakti · bitiş {time}".
+  final String kerahat;
+  final String kerahatActive;
+  final String kerahatUntil;
+
   const WidgetLabels({
     required this.fajr,
     required this.sunrise,
@@ -92,6 +116,9 @@ class WidgetLabels {
     required this.durationHourMinute,
     required this.durationHour,
     required this.durationMinute,
+    required this.kerahat,
+    required this.kerahatActive,
+    required this.kerahatUntil,
   });
 
   Map<String, String> toJson() => {
@@ -109,16 +136,21 @@ class WidgetLabels {
     'durationHourMinute': durationHourMinute,
     'durationHour': durationHour,
     'durationMinute': durationMinute,
+    'kerahat': kerahat,
+    'kerahatActive': kerahatActive,
+    'kerahatUntil': kerahatUntil,
   };
 }
 
 class WidgetSnapshot {
   /// 2: günlere `hijri` alanı eklendi.
   /// 3: `labels` eklendi — widget metinleri uygulamanın dilinden geliyor.
+  /// 4: günlere `kerahat` aralıkları ve etiketlere kerahat metinleri eklendi.
   ///
-  /// Widget 1 ve 2'yi de kabul eder; etiket yoksa Türkçe varsayılana düşer.
-  /// Bilinmeyen sürümde widget "uygulamayı güncelleyin" durumuna geçer.
-  static const int schemaVersion = 3;
+  /// Widget 1–3'ü de kabul eder; etiket yoksa Türkçe varsayılana, kerahat
+  /// yoksa boş listeye düşer. Bilinmeyen sürümde widget "uygulamayı
+  /// güncelleyin" durumuna geçer.
+  static const int schemaVersion = 4;
 
   final String locationLabel;
 

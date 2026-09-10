@@ -849,6 +849,17 @@ class AppLocalizationsTr extends AppLocalizations {
   String get widgetOpenApp => 'Vakitler için uygulamayı aç';
 
   @override
+  String get widgetKerahat => 'Kerahat';
+
+  @override
+  String get widgetKerahatActive => 'Kerahat vakti';
+
+  @override
+  String widgetKerahatUntil(String time) {
+    return 'bitiş $time';
+  }
+
+  @override
   String get widgetUpdateApp => 'Uygulamayı güncelleyin';
 
   @override

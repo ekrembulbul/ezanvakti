@@ -18,9 +18,43 @@ void main() {
             maghrib: DateTime(2026, 8, 25, 20, 26),
             isha: DateTime(2026, 8, 25, 21, 58),
           ),
+          kerahat: [
+            WidgetKerahatInterval(
+              start: DateTime(2026, 8, 25, 5, 52),
+              end: DateTime(2026, 8, 25, 6, 37),
+            ),
+            WidgetKerahatInterval(
+              start: DateTime(2026, 8, 25, 19, 41),
+              end: DateTime(2026, 8, 25, 20, 26),
+            ),
+          ],
         ),
       ],
     );
+
+    test('kerahat araliklari gune HH:mm ciftleri olarak yazilir', () {
+      final day = (snapshot.toJson()['days'] as List).first;
+      expect(day['kerahat'], [
+        {'start': '05:52', 'end': '06:37'},
+        {'start': '19:41', 'end': '20:26'},
+      ]);
+    });
+
+    test('kerahat verilmezse bos liste yazilir', () {
+      final bare = WidgetSnapshot(
+        locationLabel: snapshot.locationLabel,
+        generatedAt: snapshot.generatedAt,
+        days: [
+          WidgetSnapshotDay(
+            date: DateTime(2026, 8, 25),
+            hijri: '13 Rebiülevvel 1448',
+            times: snapshot.days.first.times,
+          ),
+        ],
+      );
+      final day = (bare.toJson()['days'] as List).first;
+      expect(day['kerahat'], isEmpty);
+    });
 
     test('etiket verilmezse labels alani yazilmaz (v2 uyumlulugu)', () {
       expect(snapshot.toJson().containsKey('labels'), isFalse);
@@ -42,6 +76,9 @@ void main() {
         durationHourMinute: '{hours} h {minutes} min',
         durationHour: '{hours} h',
         durationMinute: '{minutes} min',
+        kerahat: 'Disliked time',
+        kerahatActive: 'Disliked time now',
+        kerahatUntil: 'until {time}',
       );
       final withLabels = WidgetSnapshot(
         locationLabel: snapshot.locationLabel,
@@ -52,10 +89,13 @@ void main() {
       final json = withLabels.toJson()['labels'] as Map<String, String>;
       expect(json['fajr'], 'Fajr');
       expect(json['siriAnswer'], contains('{prayer}'));
+      expect(json['kerahat'], 'Disliked time');
+      expect(json['kerahatActive'], 'Disliked time now');
+      expect(json['kerahatUntil'], contains('{time}'));
     });
 
-    test('schemaVersion 3 yazilir', () {
-      expect(snapshot.toJson()['schemaVersion'], 3);
+    test('schemaVersion 4 yazilir (kerahat araliklari ve etiketleri)', () {
+      expect(snapshot.toJson()['schemaVersion'], 4);
     });
 
     test('hicri tarih gune yazilir', () {

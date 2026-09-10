@@ -1119,6 +1119,20 @@
   "@widgetOpenApp": {
     "description": "Widget etiketi"
   },
+  "widgetKerahat": "Kerahat",
+  "@widgetKerahat": {
+    "description": "Widget'ta kerahat yaklaşırken satır başı; yanına sistem sayacı gelir."
+  },
+  "widgetKerahatActive": "Kerahat vakti",
+  "widgetKerahatUntil": "bitiş {time}",
+  "@widgetKerahatUntil": {
+    "description": "Widget'ta aktif kerahatin bitişi; {time} yer tutucusunu Swift doldurur.",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "widgetUpdateApp": "Uygulamayı güncelleyin",
   "@widgetUpdateApp": {
     "description": "Widget etiketi"

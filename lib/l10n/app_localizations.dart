@@ -1624,6 +1624,24 @@ abstract class AppLocalizations {
   /// **'Vakitler için uygulamayı aç'**
   String get widgetOpenApp;
 
+  /// Widget'ta kerahat yaklaşırken satır başı; yanına sistem sayacı gelir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kerahat'**
+  String get widgetKerahat;
+
+  /// No description provided for @widgetKerahatActive.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kerahat vakti'**
+  String get widgetKerahatActive;
+
+  /// Widget'ta aktif kerahatin bitişi; {time} yer tutucusunu Swift doldurur.
+  ///
+  /// In tr, this message translates to:
+  /// **'bitiş {time}'**
+  String widgetKerahatUntil(String time);
+
   /// Widget etiketi
   ///
   /// In tr, this message translates to:

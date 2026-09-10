@@ -845,6 +845,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get widgetOpenApp => 'افتح التطبيق لمعرفة الأوقات';
 
   @override
+  String get widgetKerahat => 'وقت الكراهة';
+
+  @override
+  String get widgetKerahatActive => 'وقت الكراهة الآن';
+
+  @override
+  String widgetKerahatUntil(String time) {
+    return 'حتى $time';
+  }
+
+  @override
   String get widgetUpdateApp => 'يرجى تحديث التطبيق';
 
   @override
