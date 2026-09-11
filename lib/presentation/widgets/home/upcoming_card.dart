@@ -229,6 +229,8 @@ class UpcomingCard extends StatelessWidget {
   String _clock(BuildContext context, DateTime time) =>
       context.formatTime(time);
 
+  /// Hatırlatıcı satırıyla aynı düzen: kullanıcının verdiği ad orta satırda
+  /// ana zamana yakın puntoda, gün/saat/kalan süre onun altında.
   Widget _details(
     BuildContext context, {
     required String important,
@@ -239,16 +241,19 @@ class UpcomingCard extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(important, maxLines: 1, overflow: TextOverflow.ellipsis),
         if (label != null) ...[
-          const SizedBox(height: 2),
           Text(
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: AppTypography.hint.copyWith(color: tokens.textSecondary),
+            style: AppTypography.rowTitle.copyWith(
+              fontWeight: FontWeight.w600,
+              color: tokens.textPrimary,
+            ),
           ),
+          const SizedBox(height: 2),
         ],
+        Text(important, maxLines: 1, overflow: TextOverflow.ellipsis),
       ],
     );
   }

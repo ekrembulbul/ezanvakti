@@ -197,6 +197,29 @@ void main() {
       expect(find.byType(Switch), findsOneWidget);
     });
 
+    testWidgets(
+      'Etiket orta satırda büyük, zaman bilgisi altında (hatırlatıcı satırıyla aynı)',
+      (tester) async {
+        await pumpCard(tester, alarm: (alarm: sahur, time: alarmAt));
+
+        final label = tester.widget<Text>(find.text('Sahur'));
+        expect(label.style?.fontSize, 16);
+        expect(label.style?.fontWeight, FontWeight.w600);
+
+        final title = find.text('İmsak · 30 dk önce');
+        final info = find.text('yarın 03:41 · 9 sa 59 dk');
+        expect(
+          tester.getTopLeft(title).dy,
+          lessThan(tester.getTopLeft(find.text('Sahur')).dy),
+        );
+        expect(
+          tester.getTopLeft(find.text('Sahur')).dy,
+          lessThan(tester.getTopLeft(info).dy),
+        );
+        expect(tester.takeException(), isNull);
+      },
+    );
+
     testWidgets('Görevli alarm ana zamanın yanında görev ikonunu gösterir', (
       tester,
     ) async {
