@@ -4,7 +4,7 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
-## [Unreleased]
+## [0.21.1] - 2026-09-11
 
 ### Değişti
 - **Seçici alt sayfası** (bildirim "Ne zaman?", alarm ses/görev/zorluk) artık durum çubuğunun altına girmiyor: üst güvenli alan korunur, yükseklik ekranın %75'i ile sınırlıdır, sürükleme tutamacı var; dışına dokununca seçim yapmadan kapanır.
