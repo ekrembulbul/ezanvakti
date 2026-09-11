@@ -29,7 +29,13 @@ class OptionItem<T> {
 }
 
 const Key kOptionSheetKey = Key('option_sheet');
+const Key kOptionSheetHandleKey = Key('option_sheet_handle');
 const Key kOptionValueKey = Key('option_value');
+
+/// Alt sayfanın ekrana oranla en büyük yüksekliği. Uzun listede (11 bildirim
+/// noktası + açıklamaları) sayfa boydan boya dolup durum çubuğunun altına
+/// giriyor ve dışında dokunacak yer kalmıyordu.
+const double _kSheetMaxHeightFraction = 0.75;
 
 /// Ayar satırı: solda etiket, sağda seçili değer ve chevron.
 ///
@@ -136,6 +142,9 @@ Future<T?> showOptionPicker<T>({
     context: context,
     backgroundColor: Colors.transparent,
     isScrollControlled: true,
+    // Durum çubuğunun altına girmesin; yükseklik sınırı sayfanın içinde
+    // (bkz. _OptionSheet), üstte her zaman dokunulup kapatılacak şerit kalır.
+    useSafeArea: true,
     builder: (context) =>
         _OptionSheet<T>(title: title, items: items, selected: selected),
   );
@@ -156,10 +165,16 @@ class _OptionSheet<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
 
+    // Sınır rota bağlamının MediaQuery'sinden okunur: çağıranın bağlamı bir
+    // sarmalayıcıyla daraltılmış olabilir.
+    final maxHeight =
+        MediaQuery.sizeOf(context).height * _kSheetMaxHeightFraction;
+
     return SafeArea(
       top: false,
       child: Container(
         key: kOptionSheetKey,
+        constraints: BoxConstraints(maxHeight: maxHeight),
         margin: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: tokens.backgroundStops[1],
@@ -169,8 +184,21 @@ class _OptionSheet<T> extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Tutamaç: sayfanın sürüklenerek kapanabildiğini söyler.
+            Center(
+              child: Container(
+                key: kOptionSheetHandleKey,
+                margin: const EdgeInsets.only(top: 10),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: tokens.border,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 4),
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 4),
               child: SectionLabel(title),
             ),
             Flexible(
