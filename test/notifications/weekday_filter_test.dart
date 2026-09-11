@@ -42,14 +42,17 @@ void main() {
       notificationService: service,
       storage: storage,
       // Testler kaynak dilde (Turkce) kosuyor; cihaz diline bagli olmasin.
-      localizations: (_) =>
-          AppLocalizations.delegate.load(const Locale('tr')),
+      localizations: (_) => AppLocalizations.delegate.load(const Locale('tr')),
+      // Fixture sabit tarihli; gercek saat gectikce gunler geride kalmasin.
+      clock: () => DateTime(2026, 9, 4, 10, 0),
     );
   });
 
   Future<void> schedule() => scheduler.scheduleNotifications(
     location: location,
-    prayerTimes: [for (var i = 0; i < 8; i++) dayAt(start.add(Duration(days: i)))],
+    prayerTimes: [
+      for (var i = 0; i < 8; i++) dayAt(start.add(Duration(days: i))),
+    ],
   );
 
   test('yalnizca Cuma satiri sadece cuma gunu planlanir', () async {

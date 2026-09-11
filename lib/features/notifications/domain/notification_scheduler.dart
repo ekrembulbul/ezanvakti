@@ -45,13 +45,19 @@ class NotificationScheduler {
   /// bu kadarını planlarız (öngörülemez OS davranışı yerine kontrollü kapama).
   static const int maxScheduledNotifications = 64;
 
+  /// Planın "şimdi"si. Testler sabitler: sabit tarihli fixture gerçek saate
+  /// göre geçmişe düşünce aynı test gündüz geçip akşam kırılıyordu.
+  final DateTime Function() clock;
+
   NotificationScheduler({
     required this.notificationService,
     required this.storage,
     Future<AppLocalizations> Function(Locale? preferred)? localizations,
     bool? quietWindowsEnabled,
+    DateTime Function()? clock,
   }) : localizations = localizations ?? defaultLocalizations,
-       quietWindowsEnabled = quietWindowsEnabled ?? Platform.isAndroid;
+       quietWindowsEnabled = quietWindowsEnabled ?? Platform.isAndroid,
+       clock = clock ?? DateTime.now;
 
   /// Varsayılan: cihaz dili; desteklenmiyorsa İngilizce (bkz.
   /// [LocaleResolver]). Kullanıcı uygulama içinde dil seçtiyse çağıran taraf
@@ -96,7 +102,7 @@ class NotificationScheduler {
 
     logger.debug('Found ${settings.length} notification settings');
 
-    final now = DateTime.now();
+    final now = clock();
     final cutoff = now.add(const Duration(days: scheduleDaysAhead));
 
     // Gece vakitleri (gece yarısı, son üçte bir) ertesi günün imsakını
