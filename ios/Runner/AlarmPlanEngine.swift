@@ -137,6 +137,8 @@ final class AlarmPlanEngine {
       }
     }
 
+    try stopStaleAlerts()
+
     for (id, uuid) in mapping {
       let record = missions.configurations[id]
       let root = record?.alarmId ?? String(id.split(separator: "#", maxSplits: 1).first ?? "")
@@ -301,6 +303,7 @@ final class AlarmPlanEngine {
       return nil
     }
     journal.record("stopped", at: clock(), configuration: missions.configurations[scheduleId])
+    stopAlertingSiblings(alarmId: stopped.session.configuration.alarmId, except: scheduleId)
     if let next = stopped.rearmAtMillis {
       do { try await rearm(stopped.session, at: next) }
       catch {
@@ -398,7 +401,53 @@ final class AlarmPlanEngine {
     guard let session else { return }
     try missions.finish(alarmId: alarmId)
     try cancelAuxiliaries(session.occurrenceId)
+    stopAlertingSiblings(alarmId: alarmId, except: nil)
     journal.record(aborted ? "abort" : "complete", at: clock(), configuration: session.configuration)
+  }
+
+  /// Aynı alarmın OS'ta hâlâ çalan diğer kayıtlarını susturur.
+  ///
+  /// 11 Eylül sabahı: cihaz uyanmayınca ana kayıt geç tetiklenip +5 yedeğiyle
+  /// üst üste çaldı; kullanıcı üstteki yedeği durdurdu, ana kayıt kilit
+  /// ekranında görünmeden "alerting" kaldı ve iOS onu 45 dakika sonra
+  /// yeniden gösterdi. Bir alarm aynı anda tek çalış için çalar; biri
+  /// durdurulduysa diğerleri kopyadır.
+  private func stopAlertingSiblings(alarmId: String, except keptId: String?) {
+    let states = (try? platform.alarms()) ?? [:]
+    for (id, uuid) in mapping where id != keptId && states[uuid] == .alerting {
+      guard let record = missions.configurations[id], record.alarmId == alarmId else { continue }
+      do {
+        try platform.stop(id: uuid)
+        journal.record("stop_sibling", at: clock(), configuration: record, scheduleId: id)
+      } catch {
+        journal.record("stop_sibling", at: clock(), configuration: record,
+          scheduleId: id, result: "failed", error: error)
+      }
+    }
+  }
+
+  /// Zinciri bitmiş ya da daha yeni bir çalışla geride kalmış alarmın OS'ta
+  /// "çalıyor" duran kaydı. Kimse durdurmadıysa iOS onu ileride yeniden
+  /// gösteriyor; uzlaştırma bunu susturur. Henüz kimsenin dokunmadığı bir
+  /// çalış (oturumu yok) ya da zinciri süren çalış korunur.
+  private func stopStaleAlerts() throws {
+    let now = clock()
+    let states = try platform.alarms()
+    for (id, uuid) in mapping where states[uuid] == .alerting {
+      guard let record = missions.configurations[id],
+        let session = missions.session(alarmId: record.alarmId) else { continue }
+      let fire = record.originalFireAtMillis ?? record.fireAtMillis
+      let olderOccurrence = record.repeatWeekdays.isEmpty && fire < session.firedAtMillis
+      let finished = !session.pending || !session.canContinue(at: now)
+      guard finished || olderOccurrence else { continue }
+      do {
+        try platform.stop(id: uuid)
+        journal.record("stop_stale", at: now, configuration: record, scheduleId: id)
+      } catch {
+        journal.record("stop_stale", at: now, configuration: record,
+          scheduleId: id, result: "failed", error: error)
+      }
+    }
   }
 
   func observe(_ states: [UUID: AlarmPlatformState]) {

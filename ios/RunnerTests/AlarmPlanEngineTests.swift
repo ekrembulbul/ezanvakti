@@ -26,7 +26,11 @@ private final class FakeAlarmPlatform: AlarmPlatform {
     records.removeValue(forKey: id)
     states.removeValue(forKey: id)
   }
-  func stop(id: UUID) throws { try cancel(id: id) }
+  func stop(id: UUID) throws {
+    operations.append("stop:" + (records[id]?.scheduleId ?? id.uuidString))
+    records.removeValue(forKey: id)
+    states.removeValue(forKey: id)
+  }
 }
 
 private final class AlarmTestClock { var now = 1_800_000_000_000.0 }
@@ -321,6 +325,72 @@ final class AlarmPlanEngineTests: XCTestCase {
     _ = try await engine.reconcile(records: [alarm], enabledAlarmIds: ["work"])
     XCTAssertNil(backend.records[oldId])
     XCTAssertEqual(backend.records.count, 1)
+  }
+
+  /// 11 Eylül sabahı: ana kayıt geç tetiklenip +5 yedeğiyle üst üste çaldı;
+  /// kullanıcı üstteki yedeği durdurdu, ana kayıt "alerting" kaldı ve iOS onu
+  /// 45 dakika sonra yeniden gösterdi.
+  @MainActor
+  func testStoppingAFallbackAlsoStopsTheAlertingPrimary() async throws {
+    let (engine, backend, clock) = fixture()
+    let primary = record("work", at: clock.now + 1000)
+    var ladder = primary.chainConfiguration(scheduleId: primary.scheduleId + "#ladder0",
+      fireAtMillis: primary.fireAtMillis + 300_000, originalFireAtMillis: primary.fireAtMillis)
+    ladder.isFallback = true
+    _ = try await engine.reconcile(records: [primary, ladder], enabledAlarmIds: ["work"])
+    clock.now = ladder.fireAtMillis + 1000
+    let primaryId = try XCTUnwrap(engine.mapping[primary.scheduleId])
+    backend.states[primaryId] = .alerting
+    backend.states[engine.mapping[ladder.scheduleId]!] = .alerting
+
+    _ = try await engine.stop(scheduleId: ladder.scheduleId)
+
+    XCTAssertTrue(backend.operations.contains("stop:" + primary.scheduleId), "\(backend.operations)")
+    XCTAssertNil(backend.records[primaryId])
+    XCTAssertTrue(engine.missions.session(alarmId: "work")!.pending, "zincir devam eder")
+  }
+
+  @MainActor
+  func testRefreshStopsAStaleAlertingRecordOfAFinishedOccurrence() async throws {
+    let (engine, backend, clock) = fixture()
+    let primary = record("work", at: clock.now + 1000)
+    _ = try await engine.reconcile(records: [primary], enabledAlarmIds: ["work"])
+    clock.now += 1001
+    _ = try await engine.stop(scheduleId: primary.scheduleId)
+    try engine.complete("work", expectedFireMillis: primary.fireAtMillis)
+    // OS tarafında kayıt hâlâ çalıyor görünüyor (fake'te durdurma sonrası
+    // yeniden işaretlenir): kimse susturmamış.
+    let primaryId = try XCTUnwrap(engine.mapping[primary.scheduleId])
+    backend.records[primaryId] = primary
+    backend.states[primaryId] = .alerting
+
+    _ = try await engine.reconcile(records: [], enabledAlarmIds: ["work"])
+
+    XCTAssertTrue(backend.operations.contains("stop:" + primary.scheduleId), "\(backend.operations)")
+    XCTAssertNil(backend.records[primaryId])
+    XCTAssertTrue(engine.journal.entries.contains { $0.operation == "stop_stale" })
+  }
+
+  @MainActor
+  func testRefreshKeepsTheAlertingRecordOfAPendingOccurrence() async throws {
+    let (engine, backend, clock) = fixture()
+    let primary = record("work", at: clock.now + 1000)
+    _ = try await engine.reconcile(records: [primary], enabledAlarmIds: ["work"])
+    clock.now += 1001
+    let primaryId = try XCTUnwrap(engine.mapping[primary.scheduleId])
+    backend.states[primaryId] = .alerting
+    backend.operations = []
+
+    // Henüz durdurulmadı: kullanıcı ona bakıyor olabilir, dokunulmaz.
+    _ = try await engine.reconcile(records: [primary], enabledAlarmIds: ["work"])
+    XCTAssertFalse(backend.operations.contains { $0.hasPrefix("stop:") }, "\(backend.operations)")
+
+    // Durduruldu ama zincir sürüyor (nöbetçi bekliyor): yine dokunulmaz.
+    _ = try await engine.stop(scheduleId: primary.scheduleId)
+    backend.states[primaryId] = .alerting
+    backend.operations = []
+    _ = try await engine.reconcile(records: [primary], enabledAlarmIds: ["work"])
+    XCTAssertFalse(backend.operations.contains { $0.hasPrefix("stop:") }, "\(backend.operations)")
   }
 
   @MainActor

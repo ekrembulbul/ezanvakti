@@ -4,6 +4,15 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [Unreleased]
+
+### Değişti
+- **Seçici alt sayfası** (bildirim "Ne zaman?", alarm ses/görev/zorluk) artık durum çubuğunun altına girmiyor: üst güvenli alan korunur, yükseklik ekranın %75'i ile sınırlıdır, sürükleme tutamacı var; dışına dokununca seçim yapmadan kapanır.
+- Ana ekrandaki "Sıradaki" kartında etiket orta satırda daha büyük; gün/saat/kalan süre en altta (hatırlatıcı satırıyla aynı düzen).
+
+### Düzeltildi
+- **Durdurulmuş alarmın "hayalet" tekrar çalması (iOS).** Cihaz uyanmayınca ana kayıt geç tetiklenip +5 dk yedeğiyle üst üste çalıyor; kullanıcı üstteki alerti durdurunca diğeri kilit ekranında görünmeden "çalıyor" kalıyor ve iOS onu ileride (11 Eylül'de 45 dk sonra, kerahat anında) yeniden gösteriyordu. Artık bir kayıt durdurulunca aynı alarmın çalan tüm kayıtları susturulur; görev bitince ve her uzlaştırmada zinciri bitmiş alarmın bayat alerti durdurulur.
+
 ## [0.21.0] - 2026-09-10
 
 ### Eklendi

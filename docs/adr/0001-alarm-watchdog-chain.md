@@ -30,6 +30,8 @@ Nöbetçi alarmlar ana alarmdan ayrı bir kimlik uzayında yaşar: `MissionChain
 
 **Mantık Dart tarafında durur.** Native taraf zincir değerlerini kalıcı depodan (Android `SharedPreferences`, iOS `UserDefaults`) okur ve yalnızca iki karşılaştırma yapar; karar mantığını taşımaz (`mission_chain.dart:5-7`).
 
+**11 Eylül eki — üst üste çalan kayıtlar.** Cihaz planlı uyanmayı kaçırınca ana kayıt geç tetiklenip +5 yedeğiyle aynı anda çalıyor; kullanıcı üstteki alerti durdurunca diğeri kilit ekranında görünmeden "alerting" kalıyor ve iOS onu ileride yeniden gösteriyordu (06:39, kerahat anı). Kural: bir alarm aynı anda tek çalış için çalar; bir kaydı durdurulduğunda aynı alarmın OS'ta çalan diğer kayıtları `stop` ile susturulur (`stop_sibling`), görev bitince de aynısı yapılır. Uzlaştırma, oturumu bitmiş ya da daha yeni bir çalışla geride kalmış alarmın bayat alertini durdurur (`stop_stale`); henüz kimsenin dokunmadığı bir çalış (oturumu yok) ve zinciri süren çalış korunur.
+
 ## Sonuçlar
 
 ### Olumlu
@@ -55,6 +57,8 @@ Nöbetçi alarmlar ana alarmdan ayrı bir kimlik uzayında yaşar: `MissionChain
 ## Doğrulanmamış noktalar
 
 ⚠️ `maxRearms = 40` ve `chainDeadlineMinutes = 60` değerlerinin ölçümle kalibre edildiğine dair kayıt yok. `mission_tuning.dart:4-6` bunları açıkça "tahmin" olarak işaretliyor: *"Başlangıç değerleri tahmindir; cihazda ölçülüp güncellenecek."* Cihaz ölçümü yapıldığında bu ADR güncellenmelidir.
+
+- **Cihaz alarm için uyanmayabiliyor (11 Eylül 2026, iPhone 17 / iOS 26).** `mobiletimerd` uyanmayı planladı ("Next wake date 02:48:50Z") ama cihaz 05:44–05:52 arasında hiç uyanmadı; alarmlar ancak bir Wi‑Fi paketi cihazı uyandırınca 5–10 dk geç çaldı (`build/alarm-device-audit-20260911`, yerel). Aynı gece 06:03:50 uyanması da kaçtı. Bizim planlamamızla ilgisi kurulamadı; yeniden görülürse Apple Feedback.
 
 ## Referanslar
 
