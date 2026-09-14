@@ -38,7 +38,9 @@ import '../widgets/reminders/alarms_section.dart';
 import '../widgets/reminders/notifications_section.dart';
 import 'alarm_edit_screen.dart';
 
-enum ReminderTab { notifications, alarms }
+/// Sıra segment ve gövde sırasıdır: alarmlar önce gelir, ekran da onlarla
+/// açılır — kullanıcı çoğunlukla alarmını yönetmeye geliyor.
+enum ReminderTab { alarms, notifications }
 
 enum _OrderAction { custom, nextFire, name, reorder }
 
@@ -69,7 +71,7 @@ class _RemindersScreenState extends State<RemindersScreen>
   bool _isReordering = false;
   Timer? _clockTimer;
 
-  ReminderTab _tab = ReminderTab.notifications;
+  ReminderTab _tab = ReminderTab.alarms;
   bool _hasPermission = false;
   bool _exactAlarmAllowed = true;
   bool _alarmSupported = true;
@@ -895,14 +897,14 @@ class _RemindersScreenState extends State<RemindersScreen>
               SlidingSegment<ReminderTab>(
                 items: [
                   SegmentItem(
-                    value: ReminderTab.notifications,
-                    label: context.l10n.remindersNotifications,
-                    icon: Icons.notifications_rounded,
-                  ),
-                  SegmentItem(
                     value: ReminderTab.alarms,
                     label: context.l10n.remindersAlarms,
                     icon: Icons.alarm_rounded,
+                  ),
+                  SegmentItem(
+                    value: ReminderTab.notifications,
+                    label: context.l10n.remindersNotifications,
+                    icon: Icons.notifications_rounded,
                   ),
                 ],
                 selected: _tab,
@@ -959,6 +961,34 @@ class _RemindersScreenState extends State<RemindersScreen>
         return IndexedStack(
           index: _tab.index,
           children: [
+            AlarmsSection(
+              key: ValueKey(_alarmListRevision),
+              now: now,
+              isReordering: _isReordering && _tab == ReminderTab.alarms,
+              onReorder: (oldIndex, newIndex) => _reorder(
+                ReminderListKind.alarms,
+                alarms.map((alarm) => alarm.id).toList(),
+                oldIndex,
+                newIndex,
+              ),
+              missionSessions: appState.missionSessions,
+              onDisableBlocked: _onDisableBlocked,
+              scheduleFailures: _scheduleFailures,
+              nextFireByAlarm: nextAlarmTimes,
+              skips: appState.skips,
+              onSkipChanged: _toggleSkip,
+              alarms: alarms,
+              isSupported: _alarmSupported,
+              isPermissionGranted: _alarmGranted,
+              onRequestPermission: () async {
+                await _alarmService.requestPermission();
+                await _refreshPermissions();
+              },
+              onToggle: _toggleAlarm,
+              onEdit: _addOrEditAlarm,
+              onDuplicate: _duplicateAlarm,
+              onDelete: _deleteAlarm,
+            ),
             NotificationsSection(
               now: now,
               preserveOrder: true,
@@ -994,34 +1024,6 @@ class _RemindersScreenState extends State<RemindersScreen>
                   unawaited(_openNotificationEditor(initial: setting)),
               onAddFridayReminder: _addFridayReminder,
               onDelete: _deleteNotification,
-            ),
-            AlarmsSection(
-              key: ValueKey(_alarmListRevision),
-              now: now,
-              isReordering: _isReordering && _tab == ReminderTab.alarms,
-              onReorder: (oldIndex, newIndex) => _reorder(
-                ReminderListKind.alarms,
-                alarms.map((alarm) => alarm.id).toList(),
-                oldIndex,
-                newIndex,
-              ),
-              missionSessions: appState.missionSessions,
-              onDisableBlocked: _onDisableBlocked,
-              scheduleFailures: _scheduleFailures,
-              nextFireByAlarm: nextAlarmTimes,
-              skips: appState.skips,
-              onSkipChanged: _toggleSkip,
-              alarms: alarms,
-              isSupported: _alarmSupported,
-              isPermissionGranted: _alarmGranted,
-              onRequestPermission: () async {
-                await _alarmService.requestPermission();
-                await _refreshPermissions();
-              },
-              onToggle: _toggleAlarm,
-              onEdit: _addOrEditAlarm,
-              onDuplicate: _duplicateAlarm,
-              onDelete: _deleteAlarm,
             ),
           ],
         );

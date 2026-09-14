@@ -361,6 +361,24 @@ abstract class AppLocalizations {
   /// Bölüm başlığı
   ///
   /// In tr, this message translates to:
+  /// **'Takvim'**
+  String get toolsCalendarSection;
+
+  /// Araç adı
+  ///
+  /// In tr, this message translates to:
+  /// **'Vakit takvimi'**
+  String get toolsCalendar;
+
+  /// Araç açıklaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Aylık vakitler ve imsakiye'**
+  String get toolsCalendarHint;
+
+  /// Bölüm başlığı
+  ///
+  /// In tr, this message translates to:
   /// **'Yön'**
   String get toolsDirection;
 

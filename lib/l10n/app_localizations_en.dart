@@ -143,6 +143,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get toolsTitle => 'Tools';
 
   @override
+  String get toolsCalendarSection => 'Calendar';
+
+  @override
+  String get toolsCalendar => 'Prayer calendar';
+
+  @override
+  String get toolsCalendarHint => 'Monthly times and imsakiye';
+
+  @override
   String get toolsDirection => 'Direction';
 
   @override

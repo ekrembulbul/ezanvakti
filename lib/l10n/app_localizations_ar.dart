@@ -143,6 +143,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String get toolsTitle => 'الأدوات';
 
   @override
+  String get toolsCalendarSection => 'التقويم';
+
+  @override
+  String get toolsCalendar => 'تقويم المواقيت';
+
+  @override
+  String get toolsCalendarHint => 'مواقيت الشهر والإمساكية';
+
+  @override
   String get toolsDirection => 'الاتجاه';
 
   @override

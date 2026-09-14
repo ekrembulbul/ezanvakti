@@ -143,6 +143,15 @@ class AppLocalizationsTr extends AppLocalizations {
   String get toolsTitle => 'Araçlar';
 
   @override
+  String get toolsCalendarSection => 'Takvim';
+
+  @override
+  String get toolsCalendar => 'Vakit takvimi';
+
+  @override
+  String get toolsCalendarHint => 'Aylık vakitler ve imsakiye';
+
+  @override
   String get toolsDirection => 'Yön';
 
   @override

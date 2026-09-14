@@ -14,9 +14,13 @@ import 'dhikr_screen.dart';
 import 'prayer_tracking_screen.dart';
 import 'qibla_screen.dart';
 
-/// Araçlar sekmesi: kıble, namaz takibi ve zikirmatik.
+/// Araçlar sekmesi: vakit takvimi, kıble, namaz takibi ve zikirmatik.
 class ToolsScreen extends StatelessWidget {
-  const ToolsScreen({super.key});
+  /// Vakit takvimini açar; sayfa ana orkestrasyonun (HomePage) verisiyle
+  /// kurulduğu için buradan yalnızca çağrılır. Null ise bölüm çizilmez.
+  final VoidCallback? onOpenCalendar;
+
+  const ToolsScreen({super.key, this.onOpenCalendar});
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +35,22 @@ class ToolsScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
           children: [
+            if (onOpenCalendar != null) ...[
+              SectionLabel(context.l10n.toolsCalendarSection),
+              const SizedBox(height: 10),
+              GroupedList(
+                children: [
+                  _row(
+                    context,
+                    icon: Icons.calendar_month_rounded,
+                    title: context.l10n.toolsCalendar,
+                    subtitle: context.l10n.toolsCalendarHint,
+                    onTap: onOpenCalendar,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 26),
+            ],
             SectionLabel(context.l10n.toolsDirection),
             const SizedBox(height: 10),
             GroupedList(

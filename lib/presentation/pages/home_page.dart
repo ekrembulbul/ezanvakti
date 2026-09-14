@@ -483,6 +483,26 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     }
   }
 
+  /// Takvim sekme değil, Vakitler ekranından ve Araçlar'dan açılan bir
+  /// sayfadır; aynı verinin ikinci görünümü olduğu için gezinmede yer almaz.
+  void _openCalendar() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => Consumer<AppState>(
+          builder: (context, appState, child) => CalendarScreen(
+            imsakiyeLoader: _imsakiyeLoader,
+            calculationRevision: _calendarRevision,
+            location: appState.activeLocation!,
+            prayerTimes: appState.prayerTimes,
+            onRefresh: _refreshData,
+            isLoading: appState.isLoading,
+            errorMessage: appState.errorMessage,
+          ),
+        ),
+      ),
+    );
+  }
+
   void _navigateToSettings() async {
     final appState = context.read<AppState>();
 
@@ -630,10 +650,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           icon: Icons.schedule_rounded,
         ),
         NavItem(
-          label: context.l10n.navCalendar,
-          icon: Icons.calendar_month_rounded,
-        ),
-        NavItem(
           label: context.l10n.navReminders,
           icon: Icons.notifications_rounded,
         ),
@@ -661,26 +677,14 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               onRefresh: _refreshData,
               onGpsRefresh: _manualGpsRefresh,
               onSettingsTap: _navigateToSettings,
-              onSeeReminders: () => setState(() => _tabIndex = 2),
+              onSeeReminders: () => setState(() => _tabIndex = 1),
+              onCalendarTap: _openCalendar,
               onLocationTap: _navigateToLocationList,
             );
           },
         ),
-        Consumer<AppState>(
-          builder: (context, appState, child) {
-            return CalendarScreen(
-              imsakiyeLoader: _imsakiyeLoader,
-              calculationRevision: _calendarRevision,
-              location: appState.activeLocation!,
-              prayerTimes: appState.prayerTimes,
-              onRefresh: _refreshData,
-              isLoading: appState.isLoading,
-              errorMessage: appState.errorMessage,
-            );
-          },
-        ),
         const RemindersScreen(),
-        const ToolsScreen(),
+        ToolsScreen(onOpenCalendar: _openCalendar),
       ],
     );
   }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../l10n/l10n_extensions.dart';
 import 'package:flutter/rendering.dart';
 
+import '../utils/directional_icons.dart';
+
 import '../../core/data/ramadan_periods.dart';
 import '../../features/ramadan/domain/imsakiye_repository.dart';
 import '../controllers/imsakiye_controller.dart';
@@ -266,8 +268,26 @@ class _CalendarAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      // Sekme olarak barindirildigi icin geri oku yok.
       automaticallyImplyLeading: false,
+      // Vakitler ve Araçlar'dan push ile açılır; geri oku diğer sayfalarla
+      // aynı biçimde (SimpleAppBar).
+      leading: Navigator.of(context).canPop()
+          ? IconButton(
+              icon: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: tokens.surface,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  context.backArrow,
+                  size: 18,
+                  color: tokens.textPrimary,
+                ),
+              ),
+              onPressed: () => Navigator.of(context).pop(),
+            )
+          : null,
       title: FittedBox(
         fit: BoxFit.scaleDown,
         child: Column(

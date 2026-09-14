@@ -209,6 +209,13 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// Ekran Alarmlar ile açılır; bildirim testleri segmenti kendisi çevirir.
+  Future<void> pumpNotifications(WidgetTester tester) async {
+    await pump(tester);
+    await tester.tap(find.text('Bildirimler'));
+    await tester.pumpAndSettle();
+  }
+
   for (final alarmFails in [true, false]) {
     testWidgets(
       'Bildirim hatasında alarm durum uyarısı yenilenir (alarmFails=$alarmFails)',
@@ -263,19 +270,20 @@ void main() {
     );
   }
 
-  testWidgets('Segment Alarmlar a gecince alarm bolumu gorunur', (
-    tester,
-  ) async {
-    appState.setAlarms(const [sahur]);
-    await pump(tester);
+  testWidgets(
+    'Ekran Alarmlar ile acilir; Bildirimlere gecince alarm gizlenir',
+    (tester) async {
+      appState.setAlarms(const [sahur]);
+      await pump(tester);
 
-    expect(find.textContaining('06:30'), findsNothing);
+      expect(find.textContaining('06:30'), findsOneWidget);
 
-    await tester.tap(find.text('Alarmlar'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('Bildirimler'));
+      await tester.pumpAndSettle();
 
-    expect(find.textContaining('06:30'), findsOneWidget);
-  });
+      expect(find.textContaining('06:30'), findsNothing);
+    },
+  );
 
   testWidgets(
     'Alarm sırası sürüklenir, yeniden açılınca korunur ve planlamayı değiştirmez',
@@ -340,7 +348,7 @@ void main() {
         label: 'Z hazırlık',
       );
       appState.setNotificationSettings(const [morning, noon]);
-      await pump(tester);
+      await pumpNotifications(tester);
       await tester.tap(find.byKey(const Key('reminder_sort_menu')));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Sırayı düzenle'));
@@ -507,7 +515,7 @@ void main() {
     );
     await storage.saveNotificationSettings(const [dhuhr]);
     appState.setNotificationSettings(const [dhuhr]);
-    await pump(tester);
+    await pumpNotifications(tester);
 
     // Onay sorulmuyor; kaydirmak dogrudan siliyor.
     await tester.drag(find.text('Öğle · Tam vaktinde'), const Offset(-400, 0));
@@ -567,7 +575,7 @@ void main() {
       appState.setNotificationSettings([setting]);
       appState.setPrayerTimes([day]);
       appState.setSkips({skip});
-      await pump(tester);
+      await pumpNotifications(tester);
       expect(find.textContaining('Cuma namazı'), findsOneWidget);
       expect(find.textContaining('12:15'), findsOneWidget);
       expect(tester.widget<Switch>(find.byType(Switch)).value, isFalse);
@@ -745,30 +753,31 @@ void main() {
       register(alarms: _UnsupportedAlarmService());
       await pump(tester);
 
-      expect(find.byIcon(Icons.add_rounded), findsOneWidget);
-      await tester.tap(find.text('Alarmlar'));
-      await tester.pumpAndSettle();
-
       expect(
         find.byIcon(Icons.add_rounded),
         findsNothing,
         reason: 'calmayacak alarm kurdurulmaz; ekle dugmesi de kapali',
       );
+      await tester.tap(find.text('Bildirimler'));
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.add_rounded), findsOneWidget);
     });
   });
 
-  testWidgets('Ekran acilisinda alarmlar AppState bos olsa da depodan yuklenir', (
-    tester,
-  ) async {
-    // Ana ekran alarmlari vakit istegiyle birlikte yukluyordu; ag yavassa
-    // Hatirlaticilar sekmesi bos gorunuyordu. Ekran kendi verisini tazeler.
-    await storage.saveAlarm(sahur);
-    appState.setAlarms(const []);
+  testWidgets(
+    'Ekran acilisinda alarmlar AppState bos olsa da depodan yuklenir',
+    (tester) async {
+      // Ana ekran alarmlari vakit istegiyle birlikte yukluyordu; ag yavassa
+      // Hatirlaticilar sekmesi bos gorunuyordu. Ekran kendi verisini tazeler.
+      await storage.saveAlarm(sahur);
+      appState.setAlarms(const []);
 
-    await pump(tester);
-    await tester.tap(find.text('Alarmlar'));
-    await tester.pumpAndSettle();
+      await pump(tester);
+      await tester.tap(find.text('Alarmlar'));
+      await tester.pumpAndSettle();
 
-    expect(find.textContaining('06:30'), findsOneWidget);
-  });
+      expect(find.textContaining('06:30'), findsOneWidget);
+    },
+  );
 }

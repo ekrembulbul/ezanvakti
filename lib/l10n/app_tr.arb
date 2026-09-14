@@ -151,6 +151,18 @@
   "@toolsTitle": {
     "description": "Ekran başlığı"
   },
+  "toolsCalendarSection": "Takvim",
+  "@toolsCalendarSection": {
+    "description": "Bölüm başlığı"
+  },
+  "toolsCalendar": "Vakit takvimi",
+  "@toolsCalendar": {
+    "description": "Araç adı"
+  },
+  "toolsCalendarHint": "Aylık vakitler ve imsakiye",
+  "@toolsCalendarHint": {
+    "description": "Araç açıklaması"
+  },
   "toolsDirection": "Yön",
   "@toolsDirection": {
     "description": "Bölüm başlığı"

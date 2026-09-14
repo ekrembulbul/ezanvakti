@@ -22,6 +22,28 @@ void main() {
     expect(find.text('Kıble'), findsOneWidget);
     expect(find.text('Namaz takibi'), findsOneWidget);
     expect(find.text('Zikirmatik'), findsOneWidget);
+    expect(
+      find.text('Vakit takvimi'),
+      findsNothing,
+      reason: 'takvim callback verilmeyince bolum cizilmez',
+    );
+  });
+
+  testWidgets('Takvim satiri callback verilince cizilir ve acar', (
+    tester,
+  ) async {
+    var opened = false;
+    tester.view.physicalSize = const Size(1206, 2622);
+    tester.view.devicePixelRatio = 3.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      wrapWithTheme(ToolsScreen(onOpenCalendar: () => opened = true)),
+    );
+    await tester.pump();
+
+    expect(find.text('Vakit takvimi'), findsOneWidget);
+    await tester.tap(find.text('Vakit takvimi'));
+    expect(opened, isTrue);
   });
 
   group('QiblaScreen', () {
@@ -80,9 +102,7 @@ void main() {
       await pumpQibla(
         tester,
         location: istanbul,
-        headings: Stream.value(
-          const HeadingReading(degrees: 10, accuracy: -1),
-        ),
+        headings: Stream.value(const HeadingReading(degrees: 10, accuracy: -1)),
       );
       await tester.pump();
       expect(find.byKey(kQiblaCalibrationKey), findsOneWidget);
@@ -93,9 +113,7 @@ void main() {
         tester,
         location: istanbul,
         // Istanbul kiblesi ~151; ayni yone bakan cihaz hizali sayilir.
-        headings: Stream.value(
-          const HeadingReading(degrees: 151, accuracy: 3),
-        ),
+        headings: Stream.value(const HeadingReading(degrees: 151, accuracy: 3)),
       );
       await tester.pump();
       expect(find.text('Kıbleye dönüksün'), findsOneWidget);
