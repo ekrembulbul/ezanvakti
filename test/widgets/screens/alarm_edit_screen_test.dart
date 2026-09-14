@@ -1,13 +1,26 @@
+import 'package:ezanvakti/core/di/service_locator.dart';
+import 'package:ezanvakti/core/interfaces/local_storage.dart';
 import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/core/models/alarm_mission.dart';
+import 'package:ezanvakti/core/models/qr_code_entry.dart';
 import 'package:ezanvakti/presentation/screens/alarm_edit_screen.dart';
+import 'package:ezanvakti/presentation/widgets/common/option_picker.dart';
 import 'package:ezanvakti/presentation/widgets/missions/qr_payload_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../support/fakes.dart';
 import '../theme_harness.dart';
 
 void main() {
+  late FakeStorage storage;
+
+  setUp(() {
+    // QR görevi seçilince kayıtlı kodlar depodan okunur.
+    storage = FakeStorage();
+    ServiceLocator().register<LocalStorage>(storage);
+  });
+
   Future<void> pumpEdit(
     WidgetTester tester, {
     Alarm? alarm,
@@ -147,6 +160,24 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    testWidgets('Matematik secilince zorluk sayfasi hemen acilir', (
+      tester,
+    ) async {
+      await pumpEdit(tester);
+      await tester.pumpAndSettle();
+
+      await pickMission(tester, 'Matematik');
+
+      expect(
+        find.byKey(kOptionSheetKey),
+        findsOneWidget,
+        reason:
+            'zorluk satiri gorev satirinin altinda kaliyor; kullanici '
+            'kaydirmadan secenegi gormeli',
+      );
+      expect(find.text('Ekstrem'), findsOneWidget);
+    });
+
     testWidgets('Yalnizca matematik gorevinde Zorluk satiri gorunur', (
       tester,
     ) async {
@@ -156,6 +187,14 @@ void main() {
       expect(find.text('Zorluk'), findsNothing);
 
       await pickMission(tester, 'Matematik');
+      // Hemen acilan zorluk sayfasi varsayilanla kapatilir.
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(kOptionSheetKey),
+          matching: find.text('Kolay'),
+        ),
+      );
+      await tester.pumpAndSettle();
       await revealBelowMission(tester);
       expect(find.text('Zorluk'), findsOneWidget);
       expect(find.text('Kolay'), findsOneWidget, reason: 'varsayilan seviye');
@@ -165,19 +204,40 @@ void main() {
       expect(find.text('Zorluk'), findsNothing);
     });
 
-    testWidgets('Secilen seviye kaydedilir', (tester) async {
+    testWidgets('Hemen acilan sayfadan secilen seviye kaydedilir', (
+      tester,
+    ) async {
       final saved = await openForResult(tester);
       await pickMission(tester, 'Matematik');
-      await revealBelowMission(tester);
 
-      await tester.tap(find.text('Zorluk'));
-      await tester.pumpAndSettle();
       await tester.tap(find.text('Ekstrem'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Kaydet'));
       await tester.pumpAndSettle();
 
       expect(saved()?.missionLevel, 4);
+    });
+
+    testWidgets('Zorluk satirindan sonradan da degistirilir', (tester) async {
+      final saved = await openForResult(tester);
+      await pickMission(tester, 'Matematik');
+      await tester.tap(
+        find.descendant(
+          of: find.byKey(kOptionSheetKey),
+          matching: find.text('Kolay'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await revealBelowMission(tester);
+
+      await tester.tap(find.text('Zorluk'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Zor'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Kaydet'));
+      await tester.pumpAndSettle();
+
+      expect(saved()?.missionLevel, 3);
     });
 
     testWidgets('Matematik disi gorevde seviye 1 olarak kaydedilir', (
@@ -253,6 +313,45 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('QR görevi için bir kod okut ya da yaz'), findsNothing);
+    });
+
+    testWidgets(
+      'Kayitli kod varsa secilince hemen listelenir ve alani doldurur',
+      (tester) async {
+        await storage.saveQrCode(
+          QrCodeEntry(
+            id: 'k1',
+            label: 'Mutfak kapısı',
+            payload: 'mutfak-kapisi',
+            createdAt: DateTime(2026, 9, 1),
+          ),
+        );
+        await pumpEdit(tester);
+        await tester.pumpAndSettle();
+
+        await pickQr(tester);
+
+        expect(
+          find.text('Mutfak kapısı'),
+          findsOneWidget,
+          reason: 'kayitli kod varken kullanici okutmak zorunda kalmamali',
+        );
+        await tester.tap(find.text('Mutfak kapısı'));
+        await tester.pumpAndSettle();
+
+        final field = tester.widget<TextField>(find.byKey(kQrPayloadFieldKey));
+        expect(field.controller?.text, 'mutfak-kapisi');
+      },
+    );
+
+    testWidgets('Kayitli kod yoksa liste acilmaz', (tester) async {
+      await pumpEdit(tester);
+      await tester.pumpAndSettle();
+
+      await pickQr(tester);
+
+      expect(find.byType(BottomSheet), findsNothing);
+      expect(find.byType(QrPayloadField), findsOneWidget);
     });
 
     testWidgets('Kod alani secimden sonra gorunur alana kaydirilir', (

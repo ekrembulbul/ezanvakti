@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import '../widgets/missions/qr_payload_field.dart';
 import '../../l10n/l10n_extensions.dart';
@@ -782,24 +783,54 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
             _maxSnoozes = kMaxSnoozeOptions.last;
           }
         });
-        if (v == AlarmMission.qr) _revealQrSection();
+        _offerMissionDetails(v);
       },
     );
+  }
+
+  /// Görev seçilir seçilmez ona ait ayar sunulur: Matematik'te zorluk sayfası,
+  /// QR'da kayıtlı kodlar. Bu satırlar görev satırının altında kalıyor ve
+  /// kullanıcı kaydırmadan var olduklarını fark etmiyordu.
+  void _offerMissionDetails(AlarmMission mission) {
+    switch (mission) {
+      case AlarmMission.math:
+        unawaited(_pickLevel());
+      case AlarmMission.qr:
+        unawaited(_offerSavedCodes());
+      case AlarmMission.none:
+      case AlarmMission.shake:
+        break;
+    }
+  }
+
+  int get _clampedLevel => _missionLevel.clamp(1, MathChallenge.maxLevel);
+
+  List<OptionItem<int>> _levelItems() => [
+    for (var level = 1; level <= MathChallenge.maxLevel; level++)
+      OptionItem(
+        value: level,
+        label: missionLevelLabel(level, context.l10n),
+        description: missionLevelHint(level, context.l10n),
+      ),
+  ];
+
+  /// Zorluk sayfasını doğrudan açar; satırın kendisi de aynı sayfayı kullanır.
+  Future<void> _pickLevel() async {
+    final picked = await showOptionPicker<int>(
+      context: context,
+      title: context.l10n.missionLevel,
+      items: _levelItems(),
+      selected: _clampedLevel,
+    );
+    if (picked != null && mounted) setState(() => _missionLevel = picked);
   }
 
   /// Matematik zorluğu. Yalnızca görev Matematik iken çizilir.
   Widget _levelSelector() {
     return OptionRow<int>(
       label: context.l10n.missionLevel,
-      selected: _missionLevel.clamp(1, MathChallenge.maxLevel),
-      items: [
-        for (var level = 1; level <= MathChallenge.maxLevel; level++)
-          OptionItem(
-            value: level,
-            label: missionLevelLabel(level, context.l10n),
-            description: missionLevelHint(level, context.l10n),
-          ),
-      ],
+      selected: _clampedLevel,
+      items: _levelItems(),
       onChanged: (v) => setState(() => _missionLevel = v),
     );
   }
@@ -846,19 +877,29 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
     nameController.dispose();
   }
 
-  /// Kayıtlı kodlar alt sayfası: dokunuş seçer, çöp ikonu siler (kodu görev
-  /// olarak kullanan alarm varsa önce uyarır), uzun basış yeniden adlandırır.
+  /// QR seçilince kayıtlı kod varsa hemen listelenir; yoksa yalnızca kod
+  /// bölümü görünür alana kaydırılır ve kullanıcı okutur ya da yazar.
+  Future<void> _offerSavedCodes() async {
+    _revealQrSection();
+    final codes = await ServiceLocator().get<LocalStorage>().getQrCodes();
+    if (!mounted || codes.isEmpty) return;
+    await _showSavedCodes(codes);
+  }
+
+  /// "Kayıtlı kodlardan seç" düğmesi: kütüphane boşsa bunu söyler.
   Future<void> _openSavedCodes() async {
-    final storage = ServiceLocator().get<LocalStorage>();
-    final codes = await storage.getQrCodes();
+    final codes = await ServiceLocator().get<LocalStorage>().getQrCodes();
     if (!mounted) return;
     if (codes.isEmpty) {
       _snack(context.l10n.qrLibraryEmpty);
       return;
     }
-    final alarms = await ServiceLocator().get<AlarmsManager>().getAlarms();
-    if (!mounted) return;
+    await _showSavedCodes(codes);
+  }
 
+  /// Kayıtlı kodlar alt sayfası: dokunuş seçer, çöp ikonu siler (kodu görev
+  /// olarak kullanan alarm varsa önce uyarır), uzun basış yeniden adlandırır.
+  Future<void> _showSavedCodes(List<QrCodeEntry> codes) async {
     final entries = List.of(codes);
     await showModalBottomSheet<void>(
       context: context,
@@ -891,7 +932,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                   trailing: IconButton(
                     icon: const Icon(Icons.delete_outline_rounded),
                     onPressed: () async {
-                      final removed = await _deleteCode(entry, alarms);
+                      final removed = await _deleteCode(entry);
                       if (removed) setSheetState(() => entries.remove(entry));
                     },
                   ),
@@ -937,7 +978,10 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
     return renamed;
   }
 
-  Future<bool> _deleteCode(QrCodeEntry entry, List<Alarm> alarms) async {
+  /// Alarmlar yalnızca silme anında okunur; listeyi göstermek için gerekmez.
+  Future<bool> _deleteCode(QrCodeEntry entry) async {
+    final alarms = await ServiceLocator().get<AlarmsManager>().getAlarms();
+    if (!mounted) return false;
     final users = alarmsUsingQrPayload(
       alarms,
       entry.payload,
