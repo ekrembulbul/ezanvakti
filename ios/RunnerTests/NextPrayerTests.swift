@@ -50,6 +50,25 @@ final class NextPrayerTests: XCTestCase {
         XCTAssertEqual(slot?.name, "İmsak")
     }
 
+    func testFollowingSlotIsTheNextOneOfTheSameDay() {
+        let day = day("2026-08-25")
+        let asr = NextPrayer.resolve(
+            days: [day], now: at(2026, 8, 25, 14, 0), calendar: calendar
+        )!
+        let following = NextPrayer.following(after: asr, in: day, calendar: calendar)
+        XCTAssertEqual(following?.name, "Akşam")
+        XCTAssertEqual(following?.date, at(2026, 8, 25, 20, 26))
+    }
+
+    func testFollowingSlotIsNilAfterIsha() {
+        let day = day("2026-08-25")
+        let isha = NextPrayer.resolve(
+            days: [day], now: at(2026, 8, 25, 21, 0), calendar: calendar
+        )!
+        XCTAssertEqual(isha.name, "Yatsı")
+        XCTAssertNil(NextPrayer.following(after: isha, in: day, calendar: calendar))
+    }
+
     func testReturnsNilWhenWindowExhausted() {
         let slot = NextPrayer.resolve(
             days: [day("2026-08-25")],

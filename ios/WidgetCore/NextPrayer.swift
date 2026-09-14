@@ -75,6 +75,18 @@ enum NextPrayer {
 
     /// `"yyyy-MM-dd"` + `"HH:mm"` → cihaz-yerel `Date`; bozuk biçimde nil.
     /// Kerahat aralıkları da aynı dönüşümü kullanır.
+    /// [slot]'tan sonra aynı gün gelen vakit; yoksa (`slot` Yatsı ise) nil.
+    /// Kilit ekranı geri sayım yerine bunu gösterir.
+    static func following(
+        after slot: PrayerSlot,
+        in day: SnapshotDay,
+        calendar: Calendar,
+        labels: SnapshotLabels? = nil
+    ) -> PrayerSlot? {
+        slots(days: [day], calendar: calendar, labels: labels)
+            .first { $0.date > slot.date }
+    }
+
     static func combine(day: String, time: String, calendar: Calendar) -> Date? {
         let dayParts = day.split(separator: "-").compactMap { Int($0) }
         let timeParts = time.split(separator: ":").compactMap { Int($0) }

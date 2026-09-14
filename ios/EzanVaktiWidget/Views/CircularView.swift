@@ -1,38 +1,35 @@
 import SwiftUI
 import WidgetKit
 
-/// Kilit ekranı halkası: vakte kalan oran + vaktin kısaltması.
+/// Kilit ekranı yuvarlağı: sıradaki vaktin kısaltması ve saati.
 ///
-/// Halkayı ve sayacı sistem çiziyor (`timerInterval`): widget'ın kendi
-/// kareleri dakikada bir yenilenemez, Always-On ekranda ise hiç yenilenmez.
+/// Halka yok: `ProgressView(timerInterval:)` da `Text(timerInterval:)` gibi
+/// sistemin sayacına dayanıyor ve kilitli cihazda kalan süre yanlış
+/// görünüyordu (2026-09-14 cihaz gözlemi). Kilit ekranı yalnız kare
+/// değişmeden doğru kalan bilgiyi gösterir; kare her vakit geçişinde yenilenir.
 struct CircularView: View {
     let entry: PrayerEntry
 
     var body: some View {
         switch entry.content {
         case let .ready(next, _, _, _, _, _):
-            // Halkayı ve süreyi sistem çiziyor: `ProgressView(timerInterval:)`
-            // Always-On ekranda da canlı kalır, widget kendi karesini
-            // yenilemek zorunda değildir.
-            ProgressView(
-                timerInterval: entry.date...next.date,
-                countsDown: true,
-                label: { Text(Self.abbreviation(next.name)) },
-                currentValueLabel: {
-                    Text(TimeFormatting.clock(next.date, preference: entry.timeFormat))
-                        .font(.system(size: 11, weight: .semibold))
-                }
-            )
-            .progressViewStyle(.circular)
-        case .noData, .needsUpdate:
-            ProgressView(value: 0) {
-                Text("—")
+            VStack(spacing: 0) {
+                Text(Self.abbreviation(next.name))
+                    .font(.system(size: 11, weight: .semibold))
+                    .widgetAccentable()
+                Text(TimeFormatting.clock(next.date, preference: entry.timeFormat))
+                    .font(.system(size: 15, weight: .semibold).monospacedDigit())
             }
-            .progressViewStyle(.circular)
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
+            .padding(.horizontal, 4)
+        case .noData, .needsUpdate:
+            Text("—")
+                .font(.system(size: 15, weight: .semibold))
         }
     }
 
-    /// Halkada tam ad sığmıyor; ilk üç harf yeterli ayrım veriyor
+    /// Yuvarlakta tam ad sığmıyor; ilk üç harf yeterli ayrım veriyor
     /// (İmsak/İkindi ilk harflerinde ayrışıyor).
     static func abbreviation(_ name: String) -> String {
         String(name.prefix(3))

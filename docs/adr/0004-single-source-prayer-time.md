@@ -10,7 +10,7 @@ Bir vakit üç ayrı yerde görünür ya da kullanılır:
 
 1. Uygulama ekranlarında (sıradaki vakit, sayaç, takvim)
 2. Bildirim ve alarm planlamasında
-3. Home widget ve kilit ekranı sayacında — üstelik **uygulama çalışmıyorken**
+3. Home widget ve kilit ekranı widget'ında — üstelik **uygulama çalışmıyorken**
 
 Bu üç yol farklı hesaplarla beslenirse ortaya en kötü hata sınıfı çıkar: ekranda bir saat görünürken alarmın başka bir saatte çalması. Kullanıcı için sessiz, güveni doğrudan yıkan bir hata.
 
