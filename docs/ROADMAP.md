@@ -10,7 +10,7 @@ Mevcut durum, kısa vadeli iyileştirmeler ve planlanan özellikler. Ürün sın
 - ✅ Aladhan (Diyanet method=13) kaynağı, SQLite cache, offline gösterim
 - ✅ Vakit bazlı bildirimler (tam vakit + X dk önce), izin yönetimi
 - ✅ Hicri tarih, karanlık tema
-- ✅ iOS widget: ana ekran (küçük/orta) ve kilit ekranı (dikdörtgen/satır içi)
+- ✅ iOS widget: ana ekran (küçük/orta) ve kilit ekranı (dikdörtgen)
 
 ## Kısa vadeli iyileştirmeler (teknik borç)
 

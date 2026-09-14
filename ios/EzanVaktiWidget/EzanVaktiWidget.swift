@@ -78,7 +78,6 @@ struct EzanVaktiWidgetEntryView: View {
         case .systemSmall: SmallView(entry: entry, alignment: entry.alignment)
         case .systemMedium: MediumView(entry: entry, alignment: entry.alignment)
         case .accessoryRectangular: RectangularView(entry: entry, alignment: entry.alignment)
-        case .accessoryCircular: CircularView(entry: entry)
         default: SmallView(entry: entry, alignment: entry.alignment)
         }
     }
@@ -102,7 +101,7 @@ struct EzanVaktiWidget: Widget {
         .configurationDisplayName("Prayer Times")
         .description("The next prayer and its countdown.")
         .supportedFamilies([
-            .systemSmall, .systemMedium, .accessoryRectangular, .accessoryCircular,
+            .systemSmall, .systemMedium, .accessoryRectangular,
         ])
     }
 }
