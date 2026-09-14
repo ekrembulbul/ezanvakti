@@ -47,6 +47,10 @@ const Color _kerahatLineDark = Color(0xFFA14158);
 const Color _kerahatSurfaceDark = Color(0xFF3C1F2A);
 const Color _kerahatTextDark = Color(0xFFFF9292);
 
+/// Onay yeşili: koyu zeminde açık, açık zeminde koyu ton; her palette aynı.
+const Color _successLight = Color(0xFF1F7A4D);
+const Color _successDark = Color(0xFF7BD8A4);
+
 /// Açık temada mürekkep = paletin Metin1 rengi. [ink] bu yüzden ayrı bir
 /// parametre değil, [textPrimary]'den türetilir.
 AppTokens _palette({
@@ -77,6 +81,7 @@ AppTokens _palette({
     kerahatLine: isDark ? _kerahatLineDark : _kerahatLineLight,
     kerahatSurface: isDark ? _kerahatSurfaceDark : _kerahatSurfaceLight,
     kerahatText: isDark ? _kerahatTextDark : _kerahatTextLight,
+    success: isDark ? _successDark : _successLight,
     selectedControl: accent.withValues(
       alpha: isDark ? _selectedControlDarkAlpha : _selectedControlLightAlpha,
     ),

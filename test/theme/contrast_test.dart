@@ -93,6 +93,15 @@ void main() {
           reason: '$label accent orani ${ratio.toStringAsFixed(2)}:1',
         );
       });
+      test('$label onay rengi metin esigini geciyor', () {
+        // Kıble hizalanınca "Kıbleye dönüksün" bu renkle yazılır.
+        final ratio = _contrastRatio(tokens.success, background);
+        expect(
+          ratio,
+          greaterThanOrEqualTo(_minTextRatio),
+          reason: '$label onay orani ${ratio.toStringAsFixed(2)}:1',
+        );
+      });
       test('$label kerahat alanında başlık ve alt bilgi okunabilir', () {
         for (final color in [tokens.kerahatText, tokens.textSecondary]) {
           expect(

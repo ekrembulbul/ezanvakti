@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/providers/app_state.dart';
 import 'package:ezanvakti/features/qibla/data/heading_service.dart';
 import 'package:ezanvakti/presentation/screens/qibla_screen.dart';
 import 'package:ezanvakti/presentation/screens/tools_screen.dart';
+import 'package:ezanvakti/presentation/widgets/qibla/qibla_compass.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -112,11 +115,73 @@ void main() {
       await pumpQibla(
         tester,
         location: istanbul,
-        // Istanbul kiblesi ~151; ayni yone bakan cihaz hizali sayilir.
+        // Istanbul kiblesi ~151.6; ayni yone bakan cihaz hizali sayilir.
         headings: Stream.value(const HeadingReading(degrees: 151, accuracy: 3)),
       );
       await tester.pump();
       expect(find.text('Kıbleye dönüksün'), findsOneWidget);
+      expect(find.byKey(kQiblaAlignedKey), findsOneWidget);
+    });
+
+    testWidgets('hizalaninca halka ve ibre onay rengine doner', (tester) async {
+      await pumpQibla(
+        tester,
+        location: istanbul,
+        headings: Stream.value(const HeadingReading(degrees: 151, accuracy: 3)),
+      );
+      await tester.pump();
+
+      final box =
+          tester
+                  .widget<AnimatedContainer>(find.byKey(kQiblaCompassKey))
+                  .decoration
+              as BoxDecoration;
+      expect(box.border!.top.color, tokensFor().success);
+    });
+
+    testWidgets('uc bucuk derece sapma artik hizali sayilmaz', (tester) async {
+      await pumpQibla(
+        tester,
+        location: istanbul,
+        // 151.6 - 148 = 3.6 derece: eski ±5 payinda onay veriyordu.
+        headings: Stream.value(const HeadingReading(degrees: 148, accuracy: 3)),
+      );
+      await tester.pump();
+      expect(find.text('Kıbleye dönüksün'), findsNothing);
+      expect(find.text('4° sağa dön'), findsOneWidget);
+
+      final box =
+          tester
+                  .widget<AnimatedContainer>(find.byKey(kQiblaCompassKey))
+                  .decoration
+              as BoxDecoration;
+      expect(box.border!.top.color, tokensFor().border);
+    });
+
+    testWidgets('hizadan cikis esigi giris esiginden genis (titreme yok)', (
+      tester,
+    ) async {
+      // sync: olay dinleyiciye hemen ulaşsın; tek pump ile kare çizilsin.
+      final headings = StreamController<HeadingReading>(sync: true);
+      addTearDown(headings.close);
+      await pumpQibla(tester, location: istanbul, headings: headings.stream);
+
+      headings.add(const HeadingReading(degrees: 151, accuracy: 3));
+      await tester.pump();
+      expect(find.byKey(kQiblaAlignedKey), findsOneWidget);
+
+      // 3.4 derece: giris esiginin ustunde ama cikis esiginin altinda.
+      headings.add(const HeadingReading(degrees: 155, accuracy: 3));
+      await tester.pump();
+      expect(find.byKey(kQiblaAlignedKey), findsOneWidget);
+
+      // 4.4 derece: hizadan cikilir.
+      headings.add(const HeadingReading(degrees: 156, accuracy: 3));
+      await tester.pump();
+      expect(find.byKey(kQiblaAlignedKey), findsNothing);
+      expect(find.text('4° sola dön'), findsOneWidget);
+
+      await tester.pumpAndSettle();
     });
   });
 }

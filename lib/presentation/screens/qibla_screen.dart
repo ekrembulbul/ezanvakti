@@ -1,6 +1,5 @@
 import 'dart:async';
 import '../../l10n/l10n_extensions.dart';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,19 +8,23 @@ import '../../core/models/location.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/tokens_context.dart';
 import '../../features/qibla/data/heading_service.dart';
+import '../../features/qibla/domain/qibla_alignment.dart';
 import '../../features/qibla/domain/qibla_direction.dart';
 import '../widgets/common/app_bar_widgets.dart';
 import '../widgets/common/app_surface.dart';
 import '../widgets/common/state_widgets.dart';
+import '../widgets/qibla/qibla_compass.dart';
 
-const Key kQiblaArrowKey = Key('qibla_arrow');
+export '../widgets/qibla/qibla_compass.dart' show kQiblaArrowKey;
+
 const Key kQiblaCalibrationKey = Key('qibla_calibration');
+const Key kQiblaAlignedKey = Key('qibla_aligned');
 
 /// Kıble pusulası.
 ///
 /// Açı konumdan hesaplanır (saf), yön cihazdan akar. İkisi hizalanınca
-/// (±[_kAlignedDegrees]) haptik geri bildirim verilir — kullanıcı ekrana
-/// bakmadan da hizalandığını anlasın.
+/// ([QiblaAlignment]) kadran onay rengine döner ve haptik geri bildirim
+/// verilir — kullanıcı ekrana bakmadan da hizalandığını anlasın.
 class QiblaScreen extends StatefulWidget {
   final Location? location;
 
@@ -34,15 +37,18 @@ class QiblaScreen extends StatefulWidget {
   State<QiblaScreen> createState() => _QiblaScreenState();
 }
 
-const double _kAlignedDegrees = 5;
-
 class _QiblaScreenState extends State<QiblaScreen> {
   StreamSubscription<HeadingReading>? _subscription;
   HeadingReading? _reading;
 
   /// Haptik yalnızca hizaya **girerken** verilir; hizada kalırken sürekli
   /// titretmek rahatsız edici olurdu.
-  bool _wasAligned = false;
+  bool _aligned = false;
+
+  /// İbrenin sürekli açısı (tur): fark ±180 sınırını geçerken en kısa yoldan
+  /// ilerler, yoksa animasyon ters yönde tam tur atar.
+  double _turns = 0;
+  double? _lastDelta;
 
   @override
   void initState() {
@@ -50,8 +56,10 @@ class _QiblaScreenState extends State<QiblaScreen> {
     final stream = widget.headings ?? const HeadingService().headings;
     _subscription = stream.listen((reading) {
       if (!mounted) return;
-      setState(() => _reading = reading);
-      _handleAlignment();
+      setState(() {
+        _reading = reading;
+        _track(_delta);
+      });
     });
   }
 
@@ -76,12 +84,18 @@ class _QiblaScreenState extends State<QiblaScreen> {
     return QiblaDirection.difference(reading.degrees, qibla);
   }
 
-  void _handleAlignment() {
-    final delta = _delta;
+  /// Yeni farkı ibre açısına ve hizalanma durumuna işler.
+  void _track(double? delta) {
     if (delta == null) return;
-    final aligned = delta.abs() <= _kAlignedDegrees;
-    if (aligned && !_wasAligned) HapticFeedback.mediumImpact();
-    _wasAligned = aligned;
+    final last = _lastDelta;
+    _turns = last == null
+        ? delta / 360
+        : _turns + QiblaAlignment.shortestStep(from: last, to: delta) / 360;
+    _lastDelta = delta;
+
+    final aligned = QiblaAlignment.resolve(delta: delta, wasAligned: _aligned);
+    if (aligned && !_aligned) HapticFeedback.mediumImpact();
+    _aligned = aligned;
   }
 
   @override
@@ -125,7 +139,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
             style: AppTypography.hint.copyWith(color: tokens.textTertiary),
           ),
           const SizedBox(height: 32),
-          _compass(delta, tokens.accent, tokens.surface, tokens.border),
+          QiblaCompass(turns: delta == null ? null : _turns, aligned: _aligned),
           const SizedBox(height: 32),
           if (reading == null)
             Text(
@@ -142,47 +156,40 @@ class _QiblaScreenState extends State<QiblaScreen> {
               style: AppTypography.rowSubtitle.copyWith(color: tokens.accent),
             )
           else
-            Text(
-              _directionText(delta),
-              style: AppTypography.rowTitle.copyWith(color: tokens.textPrimary),
-            ),
+            _directionLine(delta),
         ],
       ),
     );
   }
 
-  /// Hizalandıysa onay, değilse hangi yöne kaç derece dönüleceği.
+  /// Hizalandıysa onay rengiyle onay, değilse hangi yöne kaç derece dönüleceği.
+  Widget _directionLine(double? delta) {
+    final tokens = context.tokens;
+    if (delta != null && _aligned) {
+      return Row(
+        key: kQiblaAlignedKey,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.check_circle_rounded, size: 20, color: tokens.success),
+          const SizedBox(width: 8),
+          Text(
+            context.l10n.qiblaAligned,
+            style: AppTypography.rowTitle.copyWith(color: tokens.success),
+          ),
+        ],
+      );
+    }
+    return Text(
+      _directionText(delta),
+      style: AppTypography.rowTitle.copyWith(color: tokens.textPrimary),
+    );
+  }
+
   String _directionText(double? delta) {
     if (delta == null) return context.l10n.qiblaWaiting;
-    if (delta.abs() <= _kAlignedDegrees) return context.l10n.qiblaAligned;
     final degrees = delta.abs().round();
     return delta > 0
         ? context.l10n.qiblaTurnRight(degrees)
         : context.l10n.qiblaTurnLeft(degrees);
-  }
-
-  /// Ok, kıbleye olan **farkı** gösterir: cihaz döndükçe ok hedefe yaklaşır.
-  Widget _compass(
-    double? delta,
-    Color accent,
-    Color surface,
-    Color border,
-  ) {
-    return Container(
-      width: 220,
-      height: 220,
-      decoration: BoxDecoration(
-        color: surface,
-        shape: BoxShape.circle,
-        border: Border.all(color: border, width: 2),
-      ),
-      child: delta == null
-          ? Icon(Icons.explore_outlined, size: 64, color: border)
-          : Transform.rotate(
-              key: kQiblaArrowKey,
-              angle: delta * math.pi / 180,
-              child: Icon(Icons.navigation_rounded, size: 96, color: accent),
-            ),
-    );
   }
 }

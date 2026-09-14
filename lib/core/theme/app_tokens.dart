@@ -55,6 +55,10 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Kerahat başlıklarının yüzey üzerinde okunabilir metin rengi.
   final Color kerahatText;
 
+  /// Onay rengi: kıble hizalandığında halka, ibre ve metin. Vurgu renginden
+  /// ayrı tutulur ki "doğru yöndesin" anı paletten bağımsız aynı okunsun.
+  final Color success;
+
   /// Kayan segmentteki seçili hap'ın dolgusu.
   final Color selectedControl;
 
@@ -84,6 +88,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
     required this.kerahatLine,
     required this.kerahatSurface,
     required this.kerahatText,
+    required this.success,
     required this.selectedControl,
     required this.controlShadow,
     required this.backgroundStops,
@@ -115,6 +120,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
     Color? kerahatLine,
     Color? kerahatSurface,
     Color? kerahatText,
+    Color? success,
     Color? selectedControl,
     Color? controlShadow,
     List<Color>? backgroundStops,
@@ -135,6 +141,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
       kerahatLine: kerahatLine ?? this.kerahatLine,
       kerahatSurface: kerahatSurface ?? this.kerahatSurface,
       kerahatText: kerahatText ?? this.kerahatText,
+      success: success ?? this.success,
       selectedControl: selectedControl ?? this.selectedControl,
       controlShadow: controlShadow ?? this.controlShadow,
       backgroundStops: backgroundStops ?? this.backgroundStops,
@@ -164,6 +171,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
       kerahatLine: Color.lerp(kerahatLine, other.kerahatLine, t)!,
       kerahatSurface: Color.lerp(kerahatSurface, other.kerahatSurface, t)!,
       kerahatText: Color.lerp(kerahatText, other.kerahatText, t)!,
+      success: Color.lerp(success, other.success, t)!,
       selectedControl: Color.lerp(selectedControl, other.selectedControl, t)!,
       controlShadow: Color.lerp(controlShadow, other.controlShadow, t)!,
       backgroundStops: [
