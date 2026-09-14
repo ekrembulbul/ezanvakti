@@ -380,6 +380,68 @@ void main() {
       expect(opened, isTrue);
     });
 
+    testWidgets('GPS konumunda adın önünde hedef ikonu çizilir', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        wrapWithTheme(
+          HomeTopBar(
+            locationName: 'Kadıköy',
+            isGpsLocation: true,
+            onLocationTap: null,
+            onSettingsTap: () {},
+          ),
+        ),
+      );
+
+      expect(find.byKey(kHomeGpsIconKey), findsOneWidget);
+    });
+
+    testWidgets('Elle seçilen konumda GPS ikonu yok', (tester) async {
+      await tester.pumpWidget(
+        wrapWithTheme(
+          HomeTopBar(
+            locationName: 'Kadıköy',
+            onLocationTap: null,
+            onSettingsTap: () {},
+          ),
+        ),
+      );
+
+      expect(find.byKey(kHomeGpsIconKey), findsNothing);
+    });
+
+    testWidgets('Takvim düğmesi yalnızca callback verilince çizilir', (
+      tester,
+    ) async {
+      var opened = false;
+
+      await tester.pumpWidget(
+        wrapWithTheme(
+          HomeTopBar(
+            locationName: 'Kadıköy',
+            onLocationTap: null,
+            onSettingsTap: () {},
+            onCalendarTap: () => opened = true,
+          ),
+        ),
+      );
+
+      await tester.tap(find.byIcon(Icons.calendar_month_rounded));
+      expect(opened, isTrue);
+
+      await tester.pumpWidget(
+        wrapWithTheme(
+          HomeTopBar(
+            locationName: 'Kadıköy',
+            onLocationTap: null,
+            onSettingsTap: () {},
+          ),
+        ),
+      );
+      expect(find.byIcon(Icons.calendar_month_rounded), findsNothing);
+    });
+
     testWidgets('Ayarlar düğmesi çubuğun sağ kenarına yaslanır', (
       tester,
     ) async {

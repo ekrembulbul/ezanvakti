@@ -6,7 +6,9 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 import '../../../core/utils/hijri_formatter.dart';
 
-/// Ana ekranın üst çubuğu: konum · kerahat ayrıntıları · ayarlar.
+const Key kHomeGpsIconKey = Key('home_gps_icon');
+
+/// Ana ekranın üst çubuğu: konum · takvim · kerahat ayrıntıları · ayarlar.
 ///
 /// Uygulama ikonu ekranda gösterilmez; yalnızca launcher ve açılış ekranında
 /// kullanılır. Ayarlar girişi yalnızca burada; Takvim ve Hatırlatıcılar
@@ -20,13 +22,22 @@ class HomeTopBar extends StatelessWidget {
   /// Arka planda vakit yenilemesi sürerken ince bir gösterge çizilir.
   final bool isRefreshing;
 
+  /// Konum cihazdan (GPS) geliyorsa adın önüne hedef ikonu çizilir; kullanıcı
+  /// elle seçtiği şehirle canlı konumu ilk bakışta ayırt etsin.
+  final bool isGpsLocation;
+
+  /// Vakit takvimi kısayolu; null ise düğme çizilmez.
+  final VoidCallback? onCalendarTap;
+
   const HomeTopBar({
     super.key,
     required this.locationName,
     required this.onLocationTap,
     required this.onSettingsTap,
     this.onKerahatTap,
+    this.onCalendarTap,
     this.isRefreshing = false,
+    this.isGpsLocation = false,
   });
 
   @override
@@ -52,6 +63,15 @@ class HomeTopBar extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      if (isGpsLocation) ...[
+                        Icon(
+                          Icons.my_location_rounded,
+                          key: kHomeGpsIconKey,
+                          size: 16,
+                          color: tokens.accent,
+                        ),
+                        const SizedBox(width: 6),
+                      ],
                       Flexible(
                         child: Text(
                           locationName,
@@ -75,6 +95,14 @@ class HomeTopBar extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  if (onCalendarTap != null)
+                    IconButton(
+                      tooltip: context.l10n.navCalendar,
+                      onPressed: onCalendarTap,
+                      icon: const Icon(Icons.calendar_month_rounded),
+                      iconSize: 22,
+                      color: tokens.textSecondary,
+                    ),
                   if (onKerahatTap != null)
                     IconButton(
                       tooltip: context.l10n.kerahatSheetTitle,

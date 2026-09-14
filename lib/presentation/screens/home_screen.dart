@@ -36,6 +36,9 @@ class HomeScreen extends StatefulWidget {
   /// "Tümünü gör" — Hatırlatıcılar sekmesine geçer (push değil).
   final VoidCallback? onSeeReminders;
 
+  /// Üst çubuktaki takvim kısayolu; null ise düğme çizilmez.
+  final VoidCallback? onCalendarTap;
+
   final VoidCallback? onRefresh;
   final VoidCallback? onGpsRefresh;
   final VoidCallback? onLocationTap;
@@ -76,6 +79,7 @@ class HomeScreen extends StatefulWidget {
     this.dataSource = 'Aladhan API',
     this.onSettingsTap,
     this.onSeeReminders,
+    this.onCalendarTap,
     this.onRefresh,
     this.onGpsRefresh,
     this.onLocationTap,
@@ -131,8 +135,10 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               HomeTopBar(
                 locationName: widget.location.displayName,
+                isGpsLocation: widget.location.type == LocationType.gps,
                 onLocationTap: widget.onLocationTap,
                 onSettingsTap: widget.onSettingsTap ?? () {},
+                onCalendarTap: widget.onCalendarTap,
                 onKerahatTap:
                     kerahatIntervals.isEmpty ||
                         widget.isLoading ||
