@@ -704,7 +704,7 @@
   "@alarmFadeInHint": {
     "description": "Ayar aciklamasi"
   },
-  "alarmSnooze": "Ertele (snooze)",
+  "alarmSnooze": "Ertele",
   "@alarmSnooze": {
     "description": "Ayar"
   },

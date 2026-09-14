@@ -531,7 +531,7 @@ class AppLocalizationsTr extends AppLocalizations {
       'Alarm kısık başlar, birkaç saniyede tam sese çıkar.';
 
   @override
-  String get alarmSnooze => 'Ertele (snooze)';
+  String get alarmSnooze => 'Ertele';
 
   @override
   String get alarmSnoozeCount => 'Erteleme sayısı';

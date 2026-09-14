@@ -1045,7 +1045,7 @@ abstract class AppLocalizations {
   /// Ayar
   ///
   /// In tr, this message translates to:
-  /// **'Ertele (snooze)'**
+  /// **'Ertele'**
   String get alarmSnooze;
 
   /// Ayar
