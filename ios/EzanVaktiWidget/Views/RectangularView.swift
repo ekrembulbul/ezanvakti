@@ -5,8 +5,7 @@ import WidgetKit
 ///
 /// Yalnız sıradaki vakit ve saati; geri sayım yok. `Text(timerInterval:)`
 /// kilitli cihazda yanlış kalan süre gösteriyordu (2026-09-14 cihaz
-/// gözlemi). Satır üste yaslanır, sayacın yeri boş kalır; kare her vakit
-/// geçişinde yenilenir.
+/// gözlemi). Satır dikeyde ortalanır; kare her vakit geçişinde yenilenir.
 struct RectangularView: View {
     let entry: PrayerEntry
     let alignment: WidgetAlignment
@@ -44,10 +43,7 @@ struct RectangularView: View {
             .lineLimit(1)
             .minimumScaleFactor(0.8)
         }
-        .frame(
-            maxWidth: .infinity, maxHeight: .infinity,
-            alignment: Alignment(horizontal: alignment.horizontal, vertical: .top)
-        )
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment.frame)
         .multilineTextAlignment(alignment.textAlignment)
     }
 }
