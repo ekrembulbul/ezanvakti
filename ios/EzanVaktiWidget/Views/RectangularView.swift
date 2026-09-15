@@ -3,10 +3,13 @@ import WidgetKit
 
 /// Kilit ekranı ailelerinde sistem tek renge indirger; gradyan denenmez.
 ///
-/// Yalnız sıradaki vakit ve saati; geri sayım yok. `Text(timerInterval:)`
-/// kilitli cihazda yanlış kalan süre gösteriyordu (2026-09-14 cihaz
-/// gözlemi). Satır dikeyde ortalanır; kare her vakit geçişinde yenilenir.
+/// Sıradaki vakit, saati ve altında geri sayım. Always-On ekranda
+/// (`isLuminanceReduced`) sayaç çizilmez: `Text(timerInterval:)` orada yanlış
+/// kalan süre gösteriyordu (2026-09-14 cihaz gözlemi); tek satır dikeyde
+/// ortalanır. Kare her vakit geçişinde yenilenir.
 struct RectangularView: View {
+    @Environment(\.isLuminanceReduced) private var isLuminanceReduced
+
     let entry: PrayerEntry
     let alignment: WidgetAlignment
 
@@ -39,9 +42,16 @@ struct RectangularView: View {
                 Text(TimeFormatting.clock(next.date, preference: entry.timeFormat))
                     .monospacedDigit()
             }
-            .font(.system(size: 17, weight: .semibold))
+            .font(.system(size: isLuminanceReduced ? 17 : 15, weight: .semibold))
             .lineLimit(1)
             .minimumScaleFactor(0.8)
+
+            if !isLuminanceReduced {
+                Text(timerInterval: min(entry.date, next.date)...next.date, countsDown: true)
+                    .font(.system(size: 20, weight: .regular).monospacedDigit())
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment.frame)
         .multilineTextAlignment(alignment.textAlignment)

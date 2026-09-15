@@ -121,9 +121,10 @@ WidgetSnapshotBuilder (saf) ──▶ WidgetPublisher ──▶ App Group (tek J
   iOS'un `islamicUmmAlQura` takvimi uygulamanın kullandığı `hijri` paketinden
   gün kayabilir.
 - Timeline yalnızca **vakit sınırlarında** giriş üretir (48 saat ufuk). Geri
-  sayımı sistemin aralık sayacı (`Text(timerInterval:)`) çizer — Always-On'da
-  da; 0.5.4'te cihazda ölçüldü. Sayaç hedef tarihten hesaplandığı için hangi
-  girişin ekranda olduğu önemsiz.
+  sayımı sistemin aralık sayacı (`Text(timerInterval:)`) çizer. Sayaç hedef
+  tarihten hesaplandığı için hangi girişin ekranda olduğu önemsiz. Kilit
+  ekranı widget'ı Always-On'da (`isLuminanceReduced`) sayacı gizler: orada
+  yanlış kalan süre gösteriyordu (2026-09-14 cihaz gözlemi).
 - Hizalama `AppIntentConfiguration` ile widget ayarıdır.
 
 ## Zaman / timezone
