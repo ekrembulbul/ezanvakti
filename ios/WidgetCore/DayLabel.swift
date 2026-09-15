@@ -16,6 +16,16 @@ enum DayLabel {
         return formatter
     }()
 
+    /// Kerahat satırındaki kısa biçim: `"14 Eylül"` (çip yer kapladığı için
+    /// gün adı yok).
+    private static let shortFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "tr_TR")
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.dateFormat = "d MMMM"
+        return formatter
+    }()
+
     private static let parser: DateFormatter = {
         let parser = DateFormatter()
         parser.locale = Locale(identifier: "en_US_POSIX")
@@ -26,5 +36,10 @@ enum DayLabel {
     static func gregorian(_ day: SnapshotDay) -> String? {
         guard let date = parser.date(from: day.date) else { return nil }
         return formatter.string(from: date)
+    }
+
+    static func short(_ day: SnapshotDay) -> String? {
+        guard let date = parser.date(from: day.date) else { return nil }
+        return shortFormatter.string(from: date)
     }
 }

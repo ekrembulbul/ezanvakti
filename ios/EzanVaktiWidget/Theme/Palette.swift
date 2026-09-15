@@ -11,6 +11,29 @@ struct Palette {
     let kerahat: Color
     let backgroundStops: [Color]
 
+    /// Kerahat renkleri ve çizgi palet bağımsızdır; yalnız açık/koyu ayrımı
+    /// gerekir. Kurucunun sonuna düşer; koyu paletler yazmaz.
+    var isDark = true
+
+    /// `palettes.dart` kerahatLine / kerahatSurface ile birebir.
+    var kerahatLine: Color { Color(hex: isDark ? 0xA14158 : 0x8D243B) }
+    var kerahatSurface: Color { Color(hex: isDark ? 0x3C1F2A : 0xF9E9EC) }
+
+    /// Üst blok ile alt bloğu ayıran çizgi; açık zeminde daha soluk yeter.
+    var divider: Color { textSecondary.opacity(isDark ? 0.4 : 0.3) }
+
+    /// Kerahat sürerken zemin bordo tona kayar; tasarımdan örneklenen sabit
+    /// duraklar, kerahat renkleri gibi palet bağımsız.
+    private var kerahatBackgroundStops: [Color] {
+        isDark
+            ? [Color(hex: 0x4B1E30), Color(hex: 0x2A1421), Color(hex: 0x150C11)]
+            : [Color(hex: 0xE9B9C6), Color(hex: 0xF3D8DF), Color(hex: 0xFAEEF0)]
+    }
+
+    func kerahatBackgroundGradient(in size: CGSize) -> RadialGradient {
+        Self.gradient(stops: kerahatBackgroundStops, in: size)
+    }
+
     /// Zemin gradyanı. Geometri her palette aynı, yalnızca renkler değişir.
     ///
     /// Flutter karşılığı: `RadialGradient(center: Alignment(0.40, -1.08),
@@ -18,11 +41,15 @@ struct Palette {
     /// Alignment → UnitPoint dönüşümü: x = (0.40 + 1) / 2 = 0.70,
     /// y = (-1.08 + 1) / 2 = -0.04. Yarıçap kısa kenarın 1.25 katı.
     func backgroundGradient(in size: CGSize) -> RadialGradient {
+        Self.gradient(stops: backgroundStops, in: size)
+    }
+
+    private static func gradient(stops: [Color], in size: CGSize) -> RadialGradient {
         RadialGradient(
             gradient: Gradient(stops: [
-                .init(color: backgroundStops[0], location: 0.0),
-                .init(color: backgroundStops[1], location: 0.44),
-                .init(color: backgroundStops[2], location: 1.0),
+                .init(color: stops[0], location: 0.0),
+                .init(color: stops[1], location: 0.44),
+                .init(color: stops[2], location: 1.0),
             ]),
             center: UnitPoint(x: 0.70, y: -0.04),
             startRadius: 0,
@@ -95,7 +122,8 @@ struct Palette {
                 textPrimary: Color(hex: 0x0E1D2C),
                 textSecondary: Color(hex: 0x43596D),
                 kerahat: Color(hex: 0x8D243B),
-                backgroundStops: [Color(hex: 0xB8D2ED), Color(hex: 0xDCE9F7), Color(hex: 0xF3F8FC)]
+                backgroundStops: [Color(hex: 0xB8D2ED), Color(hex: 0xDCE9F7), Color(hex: 0xF3F8FC)],
+                isDark: false
             )
         case .afternoon: // SEDEF
             return Palette(
@@ -103,7 +131,8 @@ struct Palette {
                 textPrimary: Color(hex: 0x0F1C21),
                 textSecondary: Color(hex: 0x435A62),
                 kerahat: Color(hex: 0x8D243B),
-                backgroundStops: [Color(hex: 0xC2D8DE), Color(hex: 0xE2ECF0), Color(hex: 0xF4F9FA)]
+                backgroundStops: [Color(hex: 0xC2D8DE), Color(hex: 0xE2ECF0), Color(hex: 0xF4F9FA)],
+                isDark: false
             )
         case .evening: // GÜLKURUSU
             return Palette(
@@ -111,7 +140,8 @@ struct Palette {
                 textPrimary: Color(hex: 0x201A1E),
                 textSecondary: Color(hex: 0x5A4A50),
                 kerahat: Color(hex: 0x8D243B),
-                backgroundStops: [Color(hex: 0xEFCBD6), Color(hex: 0xF7E7EB), Color(hex: 0xFCF5F6)]
+                backgroundStops: [Color(hex: 0xEFCBD6), Color(hex: 0xF7E7EB), Color(hex: 0xFCF5F6)],
+                isDark: false
             )
         case .night: // LEYLAK
             return Palette(
@@ -119,7 +149,8 @@ struct Palette {
                 textPrimary: Color(hex: 0x1A1424),
                 textSecondary: Color(hex: 0x4F4260),
                 kerahat: Color(hex: 0x8D243B),
-                backgroundStops: [Color(hex: 0xD6C8E4), Color(hex: 0xEBE4F1), Color(hex: 0xF8F5FA)]
+                backgroundStops: [Color(hex: 0xD6C8E4), Color(hex: 0xEBE4F1), Color(hex: 0xF8F5FA)],
+                isDark: false
             )
         }
     }

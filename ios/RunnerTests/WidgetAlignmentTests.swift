@@ -2,8 +2,8 @@ import SwiftUI
 import XCTest
 
 final class WidgetAlignmentTests: XCTestCase {
-    func testDefaultIsLeading() {
-        XCTAssertEqual(WidgetAlignment.default, .leading)
+    func testDefaultIsCenter() {
+        XCTAssertEqual(WidgetAlignment.default, .center)
     }
 
     func testMapsToSwiftUIHorizontalAlignment() {

@@ -24,4 +24,12 @@ final class DayLabelTests: XCTestCase {
     func testMalformedDateReturnsNil() {
         XCTAssertNil(DayLabel.gregorian(day("bozuk")))
     }
+
+    func testShortLabelHasDayAndMonthOnly() {
+        XCTAssertEqual(DayLabel.short(day("2026-09-14")), "14 Eylül")
+    }
+
+    func testShortLabelMalformedReturnsNil() {
+        XCTAssertNil(DayLabel.short(day("bozuk")))
+    }
 }

@@ -71,6 +71,12 @@ struct PrayerEntry: TimelineEntry {
 
     /// Uygulamanın dilindeki etiketler; v3 öncesi payload'da nil.
     var labels: SnapshotLabels?
+
+    /// Zemin bordo tona yalnız kerahat sürerken kayar; yaklaşırken değil.
+    var isKerahatActive: Bool {
+        if case .active = kerahat { return true }
+        return false
+    }
 }
 
 enum PrayerTimeline {

@@ -10,7 +10,8 @@ enum WidgetAlignment: String, CaseIterable {
     case center
     case trailing
 
-    static let `default`: WidgetAlignment = .leading
+    /// Tasarım ortalı; elle hiza seçmiş kullanıcı etkilenmez.
+    static let `default`: WidgetAlignment = .center
 
     var horizontal: HorizontalAlignment {
         switch self {

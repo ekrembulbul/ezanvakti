@@ -17,7 +17,7 @@ struct EzanVaktiWidgetIntent: WidgetConfigurationIntent {
     static var title: LocalizedStringResource { "Ezan Vakti" }
     static var description: IntentDescription { "Sıradaki vakit ve geri sayım." }
 
-    @Parameter(title: "Hizalama", default: .leading)
+    @Parameter(title: "Hizalama", default: .center)
     var alignment: WidgetAlignment
 
     init() {}
