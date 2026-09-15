@@ -4,6 +4,25 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.22.0] - 2026-09-15
+
+### Eklendi
+- **Kerahat bandı (ana ekran).** Tarih satırının altında tam genişlik bant: kerahate 30 dakika kala çerçeveli "Kerahat 18:38'de başlar · 14 dk" (çubuk uyarı penceresinin geçen kısmını gösterir), kerahat girince dolgulu "Kerahat vakti · bitiş 19:23 · 33 dk" (çubuk aralığın geçen kısmı). Kerahatte sayaç kerahat rengine döner ve arkasında hafif parıltı belirir; hedefi yine sıradaki vakit. Sayacın altındaki eski satır ve bordo kart kalktı.
+- **Üst çubukta GPS ikonu ve takvim kısayolu.** Konum cihazdan geliyorsa adın önünde hedef ikonu; takvim düğmesi vakit takvimini açar.
+- **Kıble: daha hassas hizalanma ve onay efekti.** Hizalı sayılma payı ±2,5° (çıkış eşiği 4°, titreme yapmaz); hizalanınca halka, ibre ve metin onay rengine döner, kadran parıldar. Kadran çentikli, ibre gölgeli ok; ±180° sınırında en kısa yoldan döner.
+
+### Değişti
+- **iOS küçük ve orta widget yeni düzende.** Üstte ortalanmış tarih, hicri tarih ve konum; altında belirgin çizgi; altta vakit adı ile saat yan yana, geri sayım altında ince puntoda. Orta boyda vakit listesi genişledi. Kerahat yaklaşırken üst bloğun başına çerçeveli "Kerahat 18:38" şeridi gelir ve tarih satırı kısalır; kerahatte şerit dolgulu olur ("Kerahat vakti" / "Kerahat · bitiş 19:23") ve zemin bordo tona kayar. Şeritte canlı dakika yok. Varsayılan hiza ortalı; elle seçilmiş hiza korunur.
+- **Takvim alt gezinmeden çıktı.** Aynı vakit verisinin ikinci görünümü olan takvim, Vakitler üst çubuğundaki düğmeden ve Araçlar'daki "Vakit takvimi" satırından açılır. Hatırlatıcılar ekranı Alarmlar segmentiyle açılır.
+- **Alarm görevi seçilince zorluk / kayıtlı QR listesi hemen açılır.** Ek satırlar görev satırının altında gözden kaçıyordu; yerinde kalır, sonradan da değiştirilebilir.
+- **Kilit ekranı dikdörtgen widget'ı yalnız sıradaki vakti ve saatini gösterir** (dikeyde ortalı). Kilitli cihazda sistem sayacı doğru akmadığından geri sayım kaldırıldı.
+
+### Kaldırıldı
+- Yuvarlak kilit ekranı widget'ı: halkası da kilitli cihazda yanlış akan sayaca dayanıyordu.
+
+### Düzeltildi
+- Erteleme ayarının Türkçe etiketinden "(snooze)" kalktı.
+
 ## [0.21.1] - 2026-09-11
 
 ### Değişti
