@@ -29,75 +29,36 @@ struct MediumView: View {
         // sıradaki vakte göre seçiliyor.
         let slots = NextPrayer.slots(days: [day], calendar: .current)
 
-        return HStack(alignment: .top, spacing: 14) {
+        return HStack(spacing: 0) {
+            // Sol sütun küçük widget'ın aynısı; genişliği sabit ki liste
+            // cihazdan cihaza değişen artığı alsın.
             VStack(alignment: alignment.horizontal, spacing: 0) {
-                VStack(alignment: alignment.horizontal, spacing: 1) {
-                    if let gregorian = DayLabel.gregorian(day) {
-                        Text(gregorian)
-                    }
-                    Text(
-                        [
-                            day.hijri,
-                            isStale
-                                ? (entry.labels?.stale ?? "Güncel değil")
-                                : locationLabel,
-                        ]
-                            .compactMap { $0 }
-                            .joined(separator: " · ")
-                    )
-                }
-                .font(.system(size: 12))
-                .foregroundStyle(palette.textSecondary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-
-                Spacer(minLength: 4)
-
-                Text(
-                    (isTomorrow
-                        ? "\((entry.labels?.tomorrow ?? "Yarın").uppercased()) · "
-                        : "")
-                        + next.name.uppercased(with: Locale(identifier: "tr_TR"))
-                )
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(palette.accent)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-
-                Text(TimeFormatting.clock(next.date, preference: entry.timeFormat))
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundStyle(palette.textPrimary)
-
-                CountdownLabel(
-                    entry: entry,
-                    target: next.date,
-                    size: 24,
-                    color: palette.textPrimary
-                )
-
-                if let status = entry.kerahat {
-                    KerahatLine(
-                        entry: entry, status: status, color: palette.kerahat,
-                        showsStartTime: true
-                    )
-                    .padding(.top, 2)
-                }
+                WidgetHeader(
+                    entry: entry, day: day, palette: palette, alignment: alignment,
+                    locationLabel: locationLabel, isStale: isStale, compact: false)
+                WidgetDivider(color: palette.divider)
+                NextPrayerBlock(
+                    entry: entry, next: next, palette: palette,
+                    alignment: alignment, isTomorrow: isTomorrow)
+                Spacer(minLength: 0)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment.frame)
-            .multilineTextAlignment(alignment.textAlignment)
+            .frame(width: 158)
 
-            // Altı satır dikeyde yayılıp yüksekliğin tamamını kaplar; 0.5.0'da
-            // listenin altında ölü alan kalıyordu. Yatayda ise içeriğine
-            // sarılır: sütun genişliğin yarısını kaplayınca satırdaki Spacer
-            // adı sola, saati sağa itiyor ve arada bir uçurum kalıyordu.
+            Rectangle()
+                .fill(palette.textSecondary.opacity(0.2))
+                .frame(width: 1)
+                .padding(.leading, 14)
+                .padding(.trailing, 16)
+
+            // Altı satır dikeyde yayılıp yüksekliğin tamamını kaplar; sütun
+            // artan genişliği alır.
             VStack(spacing: 0) {
                 ForEach(Array(slots.enumerated()), id: \.element.name) { index, slot in
                     if index > 0 { Spacer(minLength: 0) }
                     row(slot: slot, next: next, palette: palette)
                 }
             }
-            .fixedSize(horizontal: true, vertical: false)
-            .frame(maxHeight: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .opacity(isStale ? 0.55 : 1)
     }

@@ -65,7 +65,9 @@ struct EzanVaktiWidgetEntryView: View {
             .containerBackground(for: .widget) {
                 switch family {
                 case .systemSmall, .systemMedium:
-                    PhaseBackground(phase: phase, appearance: entry.appearance)
+                    PhaseBackground(
+                        phase: phase, appearance: entry.appearance,
+                        kerahatActive: entry.isKerahatActive)
                 default:
                     AccessoryWidgetBackground()
                 }

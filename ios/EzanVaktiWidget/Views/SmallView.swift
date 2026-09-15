@@ -27,58 +27,16 @@ struct SmallView: View {
         let palette = Palette.resolve(entry.appearance, phase: phase, colorScheme: colorScheme)
 
         return VStack(alignment: alignment.horizontal, spacing: 0) {
-            // Üst blok: ikincil bilgi, küçük punto.
-            VStack(alignment: alignment.horizontal, spacing: 1) {
-                if let gregorian = DayLabel.gregorian(day) {
-                    Text(gregorian)
-                }
-                if let hijri = day.hijri {
-                    Text(hijri)
-                }
-                Text(
-                    isStale
-                        ? (entry.labels?.stale ?? "Güncel değil")
-                        : locationLabel)
-            }
-            .font(.system(size: 12))
-            .foregroundStyle(palette.textSecondary)
-            .lineLimit(1)
-            .minimumScaleFactor(0.8)
-
-            Spacer(minLength: 4)
-
-            // Alt blok: widget'ın asıl işi.
-            VStack(alignment: alignment.horizontal, spacing: 0) {
-                Text(
-                    (isTomorrow
-                        ? "\((entry.labels?.tomorrow ?? "Yarın").uppercased()) · "
-                        : "")
-                        + next.name.uppercased(with: Locale(identifier: "tr_TR"))
-                )
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(palette.accent)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-
-                Text(TimeFormatting.clock(next.date, preference: entry.timeFormat))
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundStyle(palette.textPrimary)
-
-                CountdownLabel(
-                    entry: entry,
-                    target: next.date,
-                    size: 26,
-                    color: palette.textPrimary
-                )
-
-                if let status = entry.kerahat {
-                    KerahatLine(entry: entry, status: status, color: palette.kerahat)
-                        .padding(.top, 2)
-                }
-            }
+            WidgetHeader(
+                entry: entry, day: day, palette: palette, alignment: alignment,
+                locationLabel: locationLabel, isStale: isStale, compact: true)
+            WidgetDivider(color: palette.divider)
+            NextPrayerBlock(
+                entry: entry, next: next, palette: palette,
+                alignment: alignment, isTomorrow: isTomorrow)
+            Spacer(minLength: 0)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment.frame)
-        .multilineTextAlignment(alignment.textAlignment)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .opacity(isStale ? 0.55 : 1)
     }
 }
