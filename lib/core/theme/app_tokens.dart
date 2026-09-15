@@ -55,6 +55,10 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// Kerahat başlıklarının yüzey üzerinde okunabilir metin rengi.
   final Color kerahatText;
 
+  /// Kerahatte sayacın arkasındaki parıltı; [kerahatLine]'ın alfası
+  /// düşürülmüş hâli (koyu temada daha belirgin).
+  final Color kerahatGlow;
+
   /// Onay rengi: kıble hizalandığında halka, ibre ve metin. Vurgu renginden
   /// ayrı tutulur ki "doğru yöndesin" anı paletten bağımsız aynı okunsun.
   final Color success;
@@ -88,6 +92,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
     required this.kerahatLine,
     required this.kerahatSurface,
     required this.kerahatText,
+    required this.kerahatGlow,
     required this.success,
     required this.selectedControl,
     required this.controlShadow,
@@ -120,6 +125,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
     Color? kerahatLine,
     Color? kerahatSurface,
     Color? kerahatText,
+    Color? kerahatGlow,
     Color? success,
     Color? selectedControl,
     Color? controlShadow,
@@ -141,6 +147,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
       kerahatLine: kerahatLine ?? this.kerahatLine,
       kerahatSurface: kerahatSurface ?? this.kerahatSurface,
       kerahatText: kerahatText ?? this.kerahatText,
+      kerahatGlow: kerahatGlow ?? this.kerahatGlow,
       success: success ?? this.success,
       selectedControl: selectedControl ?? this.selectedControl,
       controlShadow: controlShadow ?? this.controlShadow,
@@ -171,6 +178,7 @@ class AppTokens extends ThemeExtension<AppTokens> {
       kerahatLine: Color.lerp(kerahatLine, other.kerahatLine, t)!,
       kerahatSurface: Color.lerp(kerahatSurface, other.kerahatSurface, t)!,
       kerahatText: Color.lerp(kerahatText, other.kerahatText, t)!,
+      kerahatGlow: Color.lerp(kerahatGlow, other.kerahatGlow, t)!,
       success: Color.lerp(success, other.success, t)!,
       selectedControl: Color.lerp(selectedControl, other.selectedControl, t)!,
       controlShadow: Color.lerp(controlShadow, other.controlShadow, t)!,

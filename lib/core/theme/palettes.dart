@@ -47,6 +47,10 @@ const Color _kerahatLineDark = Color(0xFFA14158);
 const Color _kerahatSurfaceDark = Color(0xFF3C1F2A);
 const Color _kerahatTextDark = Color(0xFFFF9292);
 
+/// Kerahatte sayaç parıltısı: koyu zeminde daha belirgin.
+const double _kerahatGlowDarkAlpha = 0.34;
+const double _kerahatGlowLightAlpha = 0.16;
+
 /// Onay yeşili: koyu zeminde açık, açık zeminde koyu ton; her palette aynı.
 const Color _successLight = Color(0xFF1F7A4D);
 const Color _successDark = Color(0xFF7BD8A4);
@@ -81,6 +85,9 @@ AppTokens _palette({
     kerahatLine: isDark ? _kerahatLineDark : _kerahatLineLight,
     kerahatSurface: isDark ? _kerahatSurfaceDark : _kerahatSurfaceLight,
     kerahatText: isDark ? _kerahatTextDark : _kerahatTextLight,
+    kerahatGlow: isDark
+        ? _kerahatLineDark.withValues(alpha: _kerahatGlowDarkAlpha)
+        : _kerahatLineLight.withValues(alpha: _kerahatGlowLightAlpha),
     success: isDark ? _successDark : _successLight,
     selectedControl: accent.withValues(
       alpha: isDark ? _selectedControlDarkAlpha : _selectedControlLightAlpha,

@@ -34,6 +34,17 @@ void main() {
       ]);
     });
 
+    test('kerahatGlow kerahatLine renginin alfasi dusurulmus halidir', () {
+      for (final phase in DayPhase.values) {
+        final dark = paletteFor(phase, Brightness.dark);
+        final light = paletteFor(phase, Brightness.light);
+        expect(dark.kerahatGlow.a, closeTo(0.34, 0.001));
+        expect(light.kerahatGlow.a, closeTo(0.16, 0.001));
+        expect(dark.kerahatGlow.withValues(alpha: 1), dark.kerahatLine);
+        expect(light.kerahatGlow.withValues(alpha: 1), light.kerahatLine);
+      }
+    });
+
     test('Koyu Sabah paleti spec degerlerini tasir', () {
       final tokens = paletteFor(DayPhase.morning, Brightness.dark);
 

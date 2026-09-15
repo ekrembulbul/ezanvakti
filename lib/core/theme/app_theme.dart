@@ -44,9 +44,7 @@ class AppTheme {
         // ayari eziyor; ikisi ayni degeri vermeli.
         systemOverlayStyle: SystemUiOverlayStyle(
           statusBarColor: Colors.transparent,
-          statusBarIconBrightness: isDark
-              ? Brightness.light
-              : Brightness.dark,
+          statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
           statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
         ),
         centerTitle: true,
