@@ -6,15 +6,20 @@ import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
-import '../../../core/utils/duration_formatter.dart';
 import '../../../features/prayer_times/domain/kerahat_status.dart';
 import '../../../features/prayer_times/domain/kerahat_times.dart';
+import 'kerahat_band.dart';
 
 /// Saniye sınırının ne kadar ardından uyanılacağı.
 ///
 /// Tam sınırda uyanmak, timer'ın birkaç milisaniye erken tetiklenmesi
 /// durumunda hâlâ bir önceki saniyede örnekleme yapma riski taşır.
 const Duration kTickMargin = Duration(milliseconds: 20);
+
+const Key kKerahatGlowKey = Key('kerahat_glow');
+
+/// Parıltının sayaç kutusunu aşma payı; yerleşimi etkilemez.
+const EdgeInsets _kGlowBleed = EdgeInsets.fromLTRB(40, 60, 40, 80);
 
 /// [now]'dan bir sonraki duvar saati saniye sınırına kalan süre (+[kTickMargin]).
 ///
@@ -30,7 +35,8 @@ Duration delayToNextSecond(DateTime now) {
 
 /// Ana ekranın ortalanmış geri sayım bloğu.
 ///
-/// Aktif kerahatte başlık, bitiş saati ve kırmızı yüzeyle vurgulanır.
+/// Kerahat yaklaşırken ya da sürerken sayacın üstünde [KerahatBand] çizilir;
+/// kerahatte sayaç kerahat rengine döner.
 /// Büyük sayaç, `SONRAKİ · VAKİT` etiketinin gösterdiği zamana sayar.
 class CountdownHero extends StatefulWidget {
   final DateTime nextPrayerTime;
@@ -102,138 +108,58 @@ class _CountdownHeroState extends State<CountdownHero> {
     final tokens = context.tokens;
     final now = _now();
     final status = KerahatWarning.resolve(widget.kerahatIntervals, now);
+    final isActive = status is KerahatActive;
     final countdown = _countdown(
       context,
       now: now,
-      color: status is KerahatActive ? tokens.kerahatText : tokens.accent,
+      color: isActive ? tokens.kerahatText : tokens.accent,
     );
-    return switch (status) {
-      null => countdown,
-      // Yaklaşırken sayaç olduğu gibi kalır; altına kerahat renginde tek
-      // satır gelir. Kerahat girince kart devreye girer.
-      KerahatApproaching(:final interval) => _withSoonLine(
-        context,
-        countdown,
-        interval,
-        now,
-      ),
-      KerahatActive(:final interval) => _activeCard(
-        context,
-        countdown,
-        interval,
-      ),
-    };
-  }
+    if (status == null) return countdown;
 
-  /// Aktif kerahatte başlık, yaklaşık bitiş ve bordo yüzeyli kart.
-  Widget _activeCard(
-    BuildContext context,
-    Widget countdown,
-    KerahatInterval active,
-  ) {
-    final tokens = context.tokens;
-    return Container(
-      key: const Key('kerahat_active_hero'),
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-      decoration: BoxDecoration(
-        color: tokens.kerahatSurface,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: tokens.kerahatLine),
-        boxShadow: [
-          BoxShadow(
-            color: tokens.kerahatLine.withValues(alpha: 0.12),
-            blurRadius: 24,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Semantics(
-            liveRegion: true,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  context.l10n.kerahatActiveTitle,
-                  textAlign: TextAlign.center,
-                  style: AppTypography.reminderPrimary.copyWith(
-                    color: tokens.kerahatText,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  context.l10n.kerahatEndsAt(context.formatTime(active.end)),
-                  textAlign: TextAlign.center,
-                  style: AppTypography.rowSubtitle.copyWith(
-                    color: tokens.kerahatText,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 18),
-          countdown,
-        ],
-      ),
-    );
-  }
-
-  /// Sayaç + altında "Kerahat 19:41 · 20 dk" satırı. Saniyelik tik satırı da
-  /// tazeler; kalan süre dakika hassasiyetinde yazılır.
-  Widget _withSoonLine(
-    BuildContext context,
-    Widget countdown,
-    KerahatInterval interval,
-    DateTime now,
-  ) {
-    final tokens = context.tokens;
-    final remaining = formatCompactDuration(
-      interval.start.difference(now),
-      context.l10n,
-    );
+    // Bant tarih satırının altında, sayaçtan bağımsız tam genişlikte durur;
+    // iki durum iki ağırlık. Kerahatte sayaç kerahat rengine döner ve arkasına
+    // hafif parıltı gelir; hedefi yine sıradaki vakit.
     return Column(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        countdown,
-        const SizedBox(height: 14),
-        Container(
-          key: const Key('kerahat_soon_line'),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: tokens.kerahatSurface,
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: tokens.kerahatLine),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                Icons.wb_twilight_rounded,
-                size: 16,
-                color: tokens.kerahatText,
-              ),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  context.l10n.kerahatSoonLine(
-                    context.formatTime(interval.start),
-                    remaining,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTypography.rowSubtitle.copyWith(
-                    color: tokens.kerahatText,
-                    fontWeight: FontWeight.w600,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
+        KerahatBand(status: status, now: now),
+        const SizedBox(height: 20),
+        if (isActive) _withGlow(tokens.kerahatGlow, countdown) else countdown,
+      ],
+    );
+  }
+
+  /// Sayacın arkasındaki parıltı; kutusunu aşar, yerleşimi etkilemez.
+  Widget _withGlow(Color glow, Widget countdown) {
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.center,
+      children: [
+        Positioned(
+          left: -_kGlowBleed.left,
+          top: -_kGlowBleed.top,
+          right: -_kGlowBleed.right,
+          bottom: -_kGlowBleed.bottom,
+          child: IgnorePointer(
+            child: DecoratedBox(
+              key: kKerahatGlowKey,
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: const Alignment(0, -0.1),
+                  radius: 0.9,
+                  colors: [
+                    glow,
+                    glow.withValues(alpha: glow.a * 0.47),
+                    glow.withValues(alpha: 0),
+                  ],
+                  stops: const [0, 0.45, 0.78],
                 ),
               ),
-            ],
+            ),
           ),
         ),
+        countdown,
       ],
     );
   }

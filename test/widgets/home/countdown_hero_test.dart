@@ -3,6 +3,7 @@ import 'package:ezanvakti/core/theme/day_phase.dart';
 import 'package:ezanvakti/features/prayer_times/domain/kerahat_times.dart';
 import 'package:ezanvakti/presentation/widgets/home/countdown_hero.dart';
 import 'package:ezanvakti/presentation/widgets/home/home_top_bar.dart';
+import 'package:ezanvakti/presentation/widgets/home/kerahat_band.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -18,9 +19,13 @@ void main() {
   group('CountdownHero', () {
     for (final brightness in [Brightness.dark, Brightness.light]) {
       testWidgets(
-        '${brightness.name} kerahat ilk açılışta başlık ve sayaç rengiyle belirginleşir',
+        '${brightness.name} kerahatte bant dolgulu, sayaç kerahat renginde ve parıltılı',
         (tester) async {
           final now = DateTime(2026, 9, 7, 6, 35);
+          final tokens = tokensFor(
+            brightness: brightness,
+            phase: DayPhase.morning,
+          );
           await tester.pumpWidget(
             wrapWithTheme(
               CountdownHero(
@@ -43,26 +48,33 @@ void main() {
           final counter = tester.widget<Text>(
             find.byKey(const Key('countdown_value')),
           );
-          final title = tester.widget<Text>(find.text('Kerahat vakti'));
+          expect(counter.style?.color, tokens.kerahatText);
+          expect(find.text('Kerahat vakti · bitiş 07:00'), findsOneWidget);
+          expect(find.text('25 dk'), findsOneWidget);
+          final band = tester.widget<Container>(find.byKey(kKerahatBandKey));
+          expect((band.decoration! as BoxDecoration).color, tokens.kerahatLine);
           expect(
-            counter.style?.color,
-            tokensFor(
-              brightness: brightness,
-              phase: DayPhase.morning,
-            ).kerahatText,
+            tester
+                .widget<Text>(find.text('Kerahat vakti · bitiş 07:00'))
+                .style
+                ?.color,
+            Colors.white,
           );
           expect(
-            title.style?.fontSize,
-            greaterThanOrEqualTo(AppTypography.reminderPrimary.fontSize!),
-          );
-          expect(
-            tester.getRect(find.text('Kerahat vakti')).bottom,
+            tester.getRect(find.byKey(kKerahatBandKey)).bottom,
             lessThan(
               tester.getRect(find.byKey(const Key('countdown_value'))).top,
             ),
           );
-          expect(find.text('Yaklaşık bitiş: 07:00'), findsOneWidget);
-          expect(find.byIcon(Icons.warning_amber_rounded), findsNothing);
+          expect(find.byKey(kKerahatGlowKey), findsOneWidget);
+          final fill = tester.widget<FractionallySizedBox>(
+            find.ancestor(
+              of: find.byKey(kKerahatBandFillKey),
+              matching: find.byType(FractionallySizedBox),
+            ),
+          );
+          // 06:15–07:00 aralığının 20/45'i geçti.
+          expect(fill.widthFactor, closeTo(20 / 45, 0.001));
           expect(find.text('SONRAKİ'), findsOneWidget);
           expect(find.text('ÖĞLE'), findsOneWidget);
           expect(find.text('06:17:00'), findsOneWidget);
@@ -72,123 +84,67 @@ void main() {
     }
 
     for (final locale in [const Locale('tr'), const Locale('ar')]) {
-      testWidgets(
-        '${locale.languageCode} aktif kerahat uyarısı büyük metinde taşmaz',
-        (tester) async {
-          final now = DateTime(2026, 9, 7, 6, 15);
-          await tester.pumpWidget(
-            wrapWithTheme(
-              MediaQuery(
-                data: const MediaQueryData(textScaler: TextScaler.linear(2)),
-                child: SingleChildScrollView(
-                  child: Center(
-                    child: SizedBox(
-                      width: 280,
-                      child: CountdownHero(
-                        nextPrayerTime: DateTime(2026, 9, 7, 13),
-                        nextPrayerName: locale.languageCode == 'ar'
-                            ? 'الظهر'
-                            : 'Öğle',
-                        clock: () => now,
-                        kerahatIntervals: [
-                          KerahatInterval(
-                            kind: KerahatKind.afterSunrise,
-                            start: DateTime(2026, 9, 7, 6),
-                            end: DateTime(2026, 9, 7, 6, 45),
-                          ),
-                        ],
-                      ),
+      testWidgets('${locale.languageCode} kerahat bandı büyük metinde taşmaz', (
+        tester,
+      ) async {
+        final now = DateTime(2026, 9, 7, 6, 15);
+        await tester.pumpWidget(
+          wrapWithTheme(
+            MediaQuery(
+              data: const MediaQueryData(
+                textScaler: TextScaler.linear(2),
+                alwaysUse24HourFormat: true,
+              ),
+              child: SingleChildScrollView(
+                child: Center(
+                  child: SizedBox(
+                    width: 280,
+                    child: CountdownHero(
+                      nextPrayerTime: DateTime(2026, 9, 7, 13),
+                      nextPrayerName: locale.languageCode == 'ar'
+                          ? 'الظهر'
+                          : 'Öğle',
+                      clock: () => now,
+                      kerahatIntervals: [
+                        KerahatInterval(
+                          kind: KerahatKind.afterSunrise,
+                          start: DateTime(2026, 9, 7, 6),
+                          end: DateTime(2026, 9, 7, 6, 45),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
-              locale: locale,
             ),
-          );
-          expect(
-            find.text(
-              locale.languageCode == 'ar' ? 'وقت الكراهة' : 'Kerahat vakti',
-            ),
-            findsOneWidget,
-          );
-          expect(tester.takeException(), isNull);
-          await tester.drag(
-            find.byType(SingleChildScrollView),
-            const Offset(0, -400),
-          );
-          await tester.pumpAndSettle();
-          expect(
-            find.byKey(const Key('countdown_value')).hitTestable(),
-            findsOneWidget,
-          );
-          expect(tester.takeException(), isNull);
-        },
-      );
+            locale: locale,
+          ),
+        );
+        expect(find.byKey(kKerahatBandKey), findsOneWidget);
+        expect(
+          find.text(
+            locale.languageCode == 'ar'
+                ? 'وقت الكراهة · حتى 06:45'
+                : 'Kerahat vakti · bitiş 06:45',
+          ),
+          findsOneWidget,
+        );
+        expect(tester.takeException(), isNull);
+        await tester.drag(
+          find.byType(SingleChildScrollView),
+          const Offset(0, -400),
+        );
+        await tester.pumpAndSettle();
+        expect(
+          find.byKey(const Key('countdown_value')).hitTestable(),
+          findsOneWidget,
+        );
+        expect(tester.takeException(), isNull);
+      });
     }
 
-    testWidgets('kerahat uyarısı saniye tikinde başlar ve bitişte kaybolur', (
-      tester,
-    ) async {
-      final start = DateTime(2026, 9, 7, 6);
-      final end = start.add(const Duration(minutes: 45));
-      var now = start.subtract(const Duration(seconds: 1));
-      await tester.pumpWidget(
-        wrapWithTheme(
-          CountdownHero(
-            nextPrayerTime: DateTime(2026, 9, 7, 13),
-            nextPrayerName: 'Öğle',
-            clock: () => now,
-            kerahatIntervals: [
-              KerahatInterval(
-                kind: KerahatKind.afterSunrise,
-                start: start,
-                end: end,
-              ),
-            ],
-          ),
-        ),
-      );
-      expect(find.text('Kerahat vakti'), findsNothing);
-      expect(
-        tester
-            .widget<Text>(find.byKey(const Key('countdown_value')))
-            .style
-            ?.color,
-        tokensFor().accent,
-      );
-
-      now = start;
-      await tester.pump(const Duration(seconds: 2));
-      expect(find.text('Kerahat vakti'), findsOneWidget);
-      expect(
-        tester.widget<Text>(find.text('Kerahat vakti')).style?.color,
-        tokensFor().kerahatText,
-      );
-      expect(find.byKey(const Key('countdown_value')), findsOneWidget);
-      expect(find.text('Öğle vakti 13:00'), findsOneWidget);
-      expect(
-        tester
-            .widget<Text>(find.byKey(const Key('countdown_value')))
-            .style
-            ?.color,
-        tokensFor().kerahatText,
-      );
-
-      now = end;
-      await tester.pump(const Duration(seconds: 2));
-      expect(find.text('Kerahat vakti'), findsNothing);
-      expect(find.textContaining('Yaklaşık bitiş:'), findsNothing);
-      expect(
-        tester
-            .widget<Text>(find.byKey(const Key('countdown_value')))
-            .style
-            ?.color,
-        tokensFor().accent,
-      );
-    });
-
     testWidgets(
-      'kerahat yaklaşırken sayaç altında başlangıç ve kalan süre yazar',
+      'bant yaklaşırken çerçeveli, başlangıçta dolguya döner, bitişte kaybolur',
       (tester) async {
         final start = DateTime(2026, 9, 7, 19, 41);
         final end = DateTime(2026, 9, 7, 20, 26);
@@ -209,28 +165,93 @@ void main() {
             ),
           ),
         );
-        // 31 dakika kala henüz uyarı yok.
-        expect(find.byKey(const Key('kerahat_soon_line')), findsNothing);
+        // 31 dakika kala bant yok.
+        expect(find.byKey(kKerahatBandKey), findsNothing);
+        expect(find.byKey(kKerahatGlowKey), findsNothing);
 
         now = start.subtract(const Duration(minutes: 20));
         await tester.pump(const Duration(seconds: 2));
-        expect(find.byKey(const Key('kerahat_soon_line')), findsOneWidget);
-        expect(find.text('Kerahat 19:41 · 20 dk'), findsOneWidget);
+        expect(find.byKey(kKerahatBandKey), findsOneWidget);
+        expect(find.text("Kerahat 19:41'de başlar"), findsOneWidget);
+        expect(find.text('20 dk'), findsOneWidget);
         expect(
-          tester.widget<Text>(find.text('Kerahat 19:41 · 20 dk')).style?.color,
+          tester
+              .widget<Text>(find.text("Kerahat 19:41'de başlar"))
+              .style
+              ?.color,
           tokensFor().kerahatText,
         );
+        final band = tester.widget<Container>(find.byKey(kKerahatBandKey));
+        expect(
+          (band.decoration! as BoxDecoration).color,
+          tokensFor().kerahatSurface,
+        );
         expect(find.byIcon(Icons.wb_twilight_rounded), findsOneWidget);
-        expect(find.text('Kerahat vakti'), findsNothing);
-        expect(tester.takeException(), isNull);
+        final fill = tester.widget<FractionallySizedBox>(
+          find.ancestor(
+            of: find.byKey(kKerahatBandFillKey),
+            matching: find.byType(FractionallySizedBox),
+          ),
+        );
+        // 30 dakikalık pencerenin 10 dakikası geçti.
+        expect(fill.widthFactor, closeTo(10 / 30, 0.001));
+        expect(find.byKey(kKerahatGlowKey), findsNothing);
+        expect(
+          tester
+              .widget<Text>(find.byKey(const Key('countdown_value')))
+              .style
+              ?.color,
+          tokensFor().accent,
+        );
 
-        // Başlangıçta uyarı satırı gider, aktif kart gelir.
         now = start;
         await tester.pump(const Duration(seconds: 2));
-        expect(find.byKey(const Key('kerahat_soon_line')), findsNothing);
-        expect(find.text('Kerahat vakti'), findsOneWidget);
+        expect(find.text('Kerahat vakti · bitiş 20:26'), findsOneWidget);
+        expect(find.text('45 dk'), findsOneWidget);
+        expect(find.byKey(kKerahatGlowKey), findsOneWidget);
+        expect(
+          tester
+              .widget<Text>(find.byKey(const Key('countdown_value')))
+              .style
+              ?.color,
+          tokensFor().kerahatText,
+        );
+        expect(find.text('Akşam vakti 20:26'), findsOneWidget);
+
+        now = end;
+        await tester.pump(const Duration(seconds: 2));
+        expect(find.byKey(kKerahatBandKey), findsNothing);
+        expect(find.byKey(kKerahatGlowKey), findsNothing);
+        expect(
+          tester
+              .widget<Text>(find.byKey(const Key('countdown_value')))
+              .style
+              ?.color,
+          tokensFor().accent,
+        );
       },
     );
+
+    testWidgets('saat başı başlangıçta ek saate göre seçilir', (tester) async {
+      final start = DateTime(2026, 9, 7, 13);
+      await tester.pumpWidget(
+        wrapWithTheme(
+          CountdownHero(
+            nextPrayerTime: DateTime(2026, 9, 7, 13, 10),
+            nextPrayerName: 'Öğle',
+            clock: () => start.subtract(const Duration(minutes: 5)),
+            kerahatIntervals: [
+              KerahatInterval(
+                kind: KerahatKind.beforeDhuhr,
+                start: start,
+                end: DateTime(2026, 9, 7, 13, 10),
+              ),
+            ],
+          ),
+        ),
+      );
+      expect(find.text("Kerahat 13:00'te başlar"), findsOneWidget);
+    });
 
     testWidgets('Kalan sureyi SS:DD:SS olarak tek satirda gosterir', (
       tester,

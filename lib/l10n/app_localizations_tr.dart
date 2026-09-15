@@ -1691,16 +1691,13 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get kerahatActiveTitle => 'Kerahat vakti';
-
-  @override
-  String kerahatEndsAt(String time) {
-    return 'Yaklaşık bitiş: $time';
+  String kerahatStartsAt(String time) {
+    return 'Kerahat $time başlar';
   }
 
   @override
-  String kerahatSoonLine(String time, String remaining) {
-    return 'Kerahat $time · $remaining';
+  String kerahatActiveLine(String time) {
+    return 'Kerahat vakti · bitiş $time';
   }
 
   @override

@@ -3046,23 +3046,17 @@ abstract class AppLocalizations {
   /// **'{name} vaktine {duration} kaldı'**
   String notificationDurationLeft(String name, String duration);
 
-  /// Ana ekrandaki aktif kerahat durumu.
+  /// Ana ekran kerahat bandı, yaklaşırken: başlangıç saati. Türkçede time bulunma ekiyle gelir ("18:38'de"); ek Dart tarafında yalnız tr için eklenir.
   ///
   /// In tr, this message translates to:
-  /// **'Kerahat vakti'**
-  String get kerahatActiveTitle;
+  /// **'Kerahat {time} başlar'**
+  String kerahatStartsAt(String time);
 
-  /// Aktif kerahat aralığının yaklaşık bitiş saati; ana geri sayım sıradaki vakte kalan süreyi gösterir.
+  /// Ana ekran kerahat bandı, kerahatte: yaklaşık bitiş saati.
   ///
   /// In tr, this message translates to:
-  /// **'Yaklaşık bitiş: {time}'**
-  String kerahatEndsAt(String time);
-
-  /// Ana ekranda kerahat yaklaşırken sayaç altındaki satır: başlangıç saati ve kalan süre.
-  ///
-  /// In tr, this message translates to:
-  /// **'Kerahat {time} · {remaining}'**
-  String kerahatSoonLine(String time, String remaining);
+  /// **'Kerahat vakti · bitiş {time}'**
+  String kerahatActiveLine(String time);
 
   /// Güneş doğduktan sonraki kerahat aralığı.
   ///

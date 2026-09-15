@@ -1695,16 +1695,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get kerahatActiveTitle => 'Disliked time';
-
-  @override
-  String kerahatEndsAt(String time) {
-    return 'Ends around $time';
+  String kerahatStartsAt(String time) {
+    return 'Disliked time starts at $time';
   }
 
   @override
-  String kerahatSoonLine(String time, String remaining) {
-    return 'Disliked time $time · $remaining';
+  String kerahatActiveLine(String time) {
+    return 'Disliked time · until $time';
   }
 
   @override
