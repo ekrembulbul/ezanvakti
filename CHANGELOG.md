@@ -4,6 +4,16 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.22.1] - 2026-09-15
+
+### Değişti
+- **Kilit ekranı widget'ında geri sayım geri geldi.** Yalnız Always-On ekranda görünmez (orada yanlış akıyordu); yeri korunduğu için başlık ekran uyanınca zıplamaz.
+
+### Düzeltildi
+- Ana ekran üst çubuğunda ayarlar düğmesi sağa yaslı değil, takvim ve kerahat ikonlarıyla eşit aralıklı.
+- iOS widget'ta geri sayım seçilen hizaya uyar; sola yaslı kalıyordu.
+- iOS widget'ta hicri ay adı çeviri erişilemeden yazıldığında İngilizce çıkıyordu; artık Türkçe.
+
 ## [0.22.0] - 2026-09-15
 
 ### Eklendi
