@@ -1,19 +1,26 @@
+import 'package:flutter/widgets.dart';
 import 'package:hijri/hijri_calendar.dart';
 
 import '../../l10n/app_localizations.dart';
 
 /// Hicri tarihi biçimlendirir.
 ///
-/// Ay adları çeviriden gelir; [l10n] verilmezse paketin İngilizce adı
-/// kullanılır (widget snapshot'ı gibi çeviriye erişemeyen çağrılar için).
+/// Ay adları çeviriden gelir; [l10n] verilmezse kaynak dil (Türkçe)
+/// kullanılır. Widget snapshot'ı gibi çeviriye erişemeyen çağrılar için —
+/// paketin İngilizce adına düşmek widget'ın diğer Türkçe varsayılanlarıyla
+/// çelişiyordu.
 class HijriFormatter {
   const HijriFormatter._();
 
+  static final AppLocalizations _sourceLanguage = lookupAppLocalizations(
+    const Locale('tr'),
+  );
+
   static String format(DateTime date, [AppLocalizations? l10n]) {
     final hijri = HijriCalendar.fromDate(date);
-    final month = l10n == null
-        ? hijri.longMonthName
-        : _monthName(hijri.hMonth, l10n) ?? hijri.longMonthName;
+    final month =
+        _monthName(hijri.hMonth, l10n ?? _sourceLanguage) ??
+        hijri.longMonthName;
     return '${hijri.hDay} $month ${hijri.hYear}';
   }
 
