@@ -4,9 +4,10 @@ import WidgetKit
 /// Kilit ekranı ailelerinde sistem tek renge indirger; gradyan denenmez.
 ///
 /// Sıradaki vakit, saati ve altında geri sayım. Always-On ekranda
-/// (`isLuminanceReduced`) sayaç çizilmez: `Text(timerInterval:)` orada yanlış
-/// kalan süre gösteriyordu (2026-09-14 cihaz gözlemi); tek satır dikeyde
-/// ortalanır. Kare her vakit geçişinde yenilenir.
+/// (`isLuminanceReduced`) sayaç görünmez ama yeri korunur: `Text(timerInterval:)`
+/// orada yanlış kalan süre gösteriyordu (2026-09-14 cihaz gözlemi); başlık iki
+/// durumda da aynı yerde durur, ekran uyanınca zıplamaz. Kare her vakit
+/// geçişinde yenilenir.
 struct RectangularView: View {
     @Environment(\.isLuminanceReduced) private var isLuminanceReduced
 
@@ -42,16 +43,16 @@ struct RectangularView: View {
                 Text(TimeFormatting.clock(next.date, preference: entry.timeFormat))
                     .monospacedDigit()
             }
-            .font(.system(size: isLuminanceReduced ? 17 : 15, weight: .semibold))
+            .font(.system(size: 15, weight: .semibold))
             .lineLimit(1)
             .minimumScaleFactor(0.8)
 
-            if !isLuminanceReduced {
-                Text(timerInterval: min(entry.date, next.date)...next.date, countsDown: true)
-                    .font(.system(size: 20, weight: .regular).monospacedDigit())
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.6)
-            }
+            // `hidden` yerleşimi korur; `if` başlığı dikeyde kaydırırdı.
+            Text(timerInterval: min(entry.date, next.date)...next.date, countsDown: true)
+                .font(.system(size: 20, weight: .regular).monospacedDigit())
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+                .opacity(isLuminanceReduced ? 0 : 1)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment.frame)
         .multilineTextAlignment(alignment.textAlignment)
