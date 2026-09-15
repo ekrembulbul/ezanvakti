@@ -85,6 +85,9 @@ struct NextPrayerBlock: View {
                 entry: entry, target: next.date, size: 26,
                 color: palette.textPrimary, weight: .light)
         }
+        // `Text(timerInterval:)` sunulan genişliği doldurur; metnin kutu içi
+        // hizası ayrıca verilmezse sola yaslı kalıyor (2026-09-15 cihaz gözlemi).
+        .multilineTextAlignment(alignment.textAlignment)
         .frame(maxWidth: .infinity, alignment: alignment.frame)
     }
 }
