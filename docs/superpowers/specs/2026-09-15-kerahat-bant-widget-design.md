@@ -36,9 +36,9 @@ Oranlar `0..1` kırpılır. Metin `Semantics(liveRegion)`. Anahtarlar: `Key('ker
 
 ### Lokalizasyon
 
-- Yeni: `kerahatStartsAt` (tr `"Kerahat {time}{suffix} başlar"`, en `"Disliked time starts at {time}"`, ar `"يبدأ وقت الكراهة عند {time}"`), `kerahatActiveLine` (tr `"Kerahat vakti · bitiş {time}"`, en `"Disliked time · until {time}"`, ar `"وقت الكراهة · حتى {time}"`).
-- Kaldırılır: `kerahatSoonLine`, `kerahatActiveTitle`, `kerahatEndsAt` (başka kullanım yoksa; `flutter gen-l10n` + analyze doğrular).
-- **Türkçe bulunma eki**: saat okunuşunun son kelimesine göre (`turkishLocativeSuffix(hour, minute)` → `'de | 'da | 'te | 'ta`, `lib/core/utils/turkish_suffix.dart`, saf). Dakika > 0 ise dakika, değilse saat belirler; birler basamağı sıfır değilse birler (bir/iki/yedi/sekiz → de, üç/dört/beş → te, altı/dokuz → da), sıfırsa onlar (on/otuz/sıfır → da, yirmi/elli → de, kırk → ta). Yalnız tr mesajı `{suffix}` kullanır; en/ar yok sayar. 12 saatlik biçimde ek "PM" sonrasına düşer ("6:38 PM'de"); tr + 12 saat nadir, kabul edilen bedel.
+- Yeni: `kerahatStartsAt` (tr `"Kerahat {time} başlar"`, en `"Disliked time starts at {time}"`, ar `"يبدأ وقت الكراهة عند {time}"`), `kerahatActiveLine` (tr `"Kerahat vakti · bitiş {time}"`, en `"Disliked time · until {time}"`, ar `"وقت الكراهة · حتى {time}"`).
+- Kaldırıldı: `kerahatSoonLine`, `kerahatActiveTitle`, `kerahatEndsAt` (yalnız `countdown_hero.dart` kullanıyordu).
+- **Türkçe bulunma eki**: saat okunuşunun son kelimesine göre (`turkishLocativeSuffix(hour, minute)` → `'de | 'da | 'te | 'ta`, `lib/core/utils/turkish_suffix.dart`, saf). Dakika > 0 ise dakika, değilse saat belirler; birler basamağı sıfır değilse birler (bir/iki/yedi/sekiz → de, üç/dört/beş → te, altı/dokuz → da), sıfırsa onlar (on/otuz/sıfır → da, yirmi/elli → de, kırk → ta). Ek mesaja değil `{time}` değerine eklenir ve yalnız `tr` locale'inde (`KerahatBand._startLabel`): ARB yer tutucuları her dilde aynı kalmalı (`arb_consistency_test`). 12 saatlik biçimde ek "PM" sonrasına düşer ("6:38 PM'de"); tr + 12 saat nadir, kabul edilen bedel.
 
 ### Testler (Dart)
 
