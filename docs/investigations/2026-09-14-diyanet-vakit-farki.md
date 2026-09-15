@@ -71,3 +71,33 @@ türetilmiş vakitler yine okuma anında uygulanır. Karar kullanıcıya bırak�
 curl "https://api.aladhan.com/v1/calendar/2026/9?latitude=41.0082&longitude=28.9784&method=13&school=0"
 curl -A "Mozilla/5.0" "https://namazvakitleri.diyanet.gov.tr/tr-TR/9541"   # İstanbul; Şile 9547, Ankara 9206
 ```
+
+## Ek — 2026-09-15: teyit ve resmi API kısıtları
+
+Bugün İstanbul (`method=13`, ham koordinat) yeniden karşılaştırıldı; desen aynı
+(Diyanet − Aladhan): İmsak/Güneş/Öğle 0, **İkindi −1, Akşam +1, Yatsı +2 dk**.
+Diyanet ilçe sayfası `Yıllık Namaz Vakti` sekmesinde (`table#yourTable`) bugünden
+31 Aralık 2027'ye 403 satır veriyor; sütunlar `Miladi Tarih, Hicri Tarih, İmsak, Güneş,
+Öğle, İkindi, Akşam, Yatsı`. Sayfa `/tr-TR/<ilçeId>` → `/tr-TR/<ilçeId>/<slug>` 302 yapıyor.
+
+Resmi AwqatSalah REST API (https://awqatsalah.diyanet.gov.tr, kılavuz ve taahhüt formu
+aynı sayfadan indirildi):
+
+- Erişim: imzalı "Kullanıcı İstek ve Taahhüt Formu" (ad, TC kimlik, iletişim, uygulama
+  bilgisi) `dinisleriyk@diyanet.gov.tr` adresine gönderilir; onayla kullanıcı adı/şifre
+  verilir. Taahhüt: kimlik bilgisi 3. kişiyle paylaşılmaz → **uygulamaya gömülemez**.
+- Kimlik doğrulama: JWT access token 45 dk; refresh token 7 gün, her kullanımda döner.
+- Uçlar: `Place/{Countries,States,Cities}` (Türkiye'de "City" = ilçe; `CityDetail` koordinat
+  vermiyor, kıble açısı/Kâbe mesafesi veriyor), `PrayerTime/{Daily,Weekly,Monthly,Eid,Ramadan}/{cityId}`,
+  `POST PrayerTime/DateRange` (yıllık; yer bazında **ayda 10 istek**), `Quota/My`.
+- Kota: Developer rolü ilk 15 gün 100/gün; sonra Standart rol — genel olarak her endpoint,
+  parametresiyle birlikte **~5–10 istek/gün**. Kılavuz s.5: *"geliştiriciler mobil veya web
+  uygulamaları için kendi imkanları ile bu verileri host ederek kullanabileceklerdir."*
+  Yani cihazdan doğrudan çağrı tasarım gereği yok; **kendi hosting katmanı şart**.
+- Yanıt alanları: `fajr, sunrise, dhuhr, asr, maghrib, isha, astronomicalSunrise/Sunset,
+  hijriDate*, gregorianDate*, qiblaTime, greenwichMeanTimeZone`.
+
+Bu kısıtlar seçenek tablosunu daraltır: B seçeneği "runtime proxy" olmak zorunda değil;
+zamanlanmış bir iş (CI cron) ilçe başına aylık/yıllık JSON üretip statik olarak yayınlayabilir
+(GitHub Pages / Cloudflare Pages). Uygulama tarafı yalnızca `<host>/tr/<ilçeId>/<yıl>.json`
+okur; kaynak (resmi API ya da onay gelene dek ilçe sayfası) uygulamayı etkilemez. Karar bekliyor.
