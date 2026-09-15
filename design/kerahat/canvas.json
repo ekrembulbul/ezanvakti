@@ -1,0 +1,93 @@
+{
+  "artboards": [
+    {
+      "file": "Main.dc.html",
+      "title": "Ana ekran · koyu · yaklaşırken",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844
+    },
+    {
+      "file": "AnaEkranKoyuKerahatte.dc.html",
+      "title": "Ana ekran · koyu · kerahatte",
+      "x": 470,
+      "y": 0,
+      "w": 390,
+      "h": 844
+    },
+    {
+      "file": "WidgetKoyu.dc.html",
+      "title": "iOS widget · koyu",
+      "x": 940,
+      "y": 0,
+      "w": 760,
+      "h": 720
+    },
+    {
+      "file": "AnaEkranAcikYaklasirken.dc.html",
+      "title": "Ana ekran · açık · yaklaşırken",
+      "x": 0,
+      "y": 964,
+      "w": 390,
+      "h": 844
+    },
+    {
+      "file": "AnaEkranAcikKerahatte.dc.html",
+      "title": "Ana ekran · açık · kerahatte",
+      "x": 470,
+      "y": 964,
+      "w": 390,
+      "h": 844
+    },
+    {
+      "file": "WidgetAcik.dc.html",
+      "title": "iOS widget · açık",
+      "x": 940,
+      "y": 964,
+      "w": 760,
+      "h": 720
+    },
+    {
+      "file": "KilitEkrani.dc.html",
+      "title": "Kilit ekranı",
+      "x": 0,
+      "y": 1928,
+      "w": 520,
+      "h": 240
+    }
+  ],
+  "annotations": [
+    {
+      "id": "not-ana-ekran",
+      "x": 940,
+      "y": 780,
+      "w": 360,
+      "text": "ANA EKRAN — Kerahat, tarih satırının altında tam genişlik bir bant: yaklaşırken çerçeveli (\"Kerahat 18:38'de başlar · 14 dk\"), kerahatte dolgulu (\"Kerahat vakti · bitiş 19:23 · 33 dk\"). Çizgi yaklaşırken 30 dk'lık uyarı penceresinin, kerahatte aralığın geçen kısmını gösterir. Kerahatte ayrıca sayaç kerahat rengine döner (hedefi yine sıradaki vakit), arkada hafif parıltı; cetvel aynı rengi taşır.\nİlk bakış: bant hep aynı yerde, iki durum iki ağırlık. \"hue\" anahtarı amberi dener (akşam paletinde bordo ile erguvan birbirine yakın)."
+    },
+    {
+      "id": "not-widget",
+      "x": 1340,
+      "y": 780,
+      "w": 360,
+      "text": "WIDGET — Kerahat yokken üstte ortalanmış üç satır: gün adıyla miladi tarih (yılsız), yıllı hicri tarih ve konum; altında belirgin bir çizgi; altta vakit adı ile saati yan yana, geri sayım altında (26 pt, ince). Orta boyda vakit listesi genişledi, sol taraf küçük widget'ın aynısı. Kerahat yaklaşırken üst bölümün başına çerçeveli şerit gelir ve tarih satırı kısalır; kerahatte şerit dolgulu olur ve zemin bordo tona kayar. Şeritte canlı dakika yok, yalnız saat: widget dakikada bir yenilenemiyor."
+    },
+    {
+      "id": "not-acik-tema",
+      "x": 940,
+      "y": 1744,
+      "w": 360,
+      "text": "AÇIK TEMA — Akşam paleti (Gülkurusu). Aynı dil: yaklaşırken açık bordo yüzey ve bordo çerçeve, kerahatte dolgulu bordo bant ve beyaz yazı. Sayaç ve cetvel kerahat rengine döner ama akşam paletinin vurgusu da gül/bordo olduğu için fark ince; ilk bakış işaretini dolgulu bant ve şerit veriyor. Widget'ta kerahat zemini koyu gül tonuna kayar. \"hue\" anahtarı amberi dener, fark belirginleşir."
+    },
+    {
+      "id": "not-kilit",
+      "x": 600,
+      "y": 1928,
+      "w": 320,
+      "text": "KİLİT EKRANI — yalnız sıradaki vakit, dikeyde ortalı. Yuvarlak widget kaldırıldı (kodda yapıldı)."
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  }
+}
