@@ -114,8 +114,6 @@ class HomeTopBar extends StatelessWidget {
                   IconButton(
                     tooltip: context.l10n.settingsTitle,
                     onPressed: onSettingsTap,
-                    padding: EdgeInsets.zero,
-                    alignment: AlignmentDirectional.centerEnd,
                     icon: const Icon(Icons.settings_rounded),
                     iconSize: 22,
                     color: tokens.textSecondary,

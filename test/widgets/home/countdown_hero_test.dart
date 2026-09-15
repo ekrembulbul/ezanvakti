@@ -463,26 +463,47 @@ void main() {
       expect(find.byIcon(Icons.calendar_month_rounded), findsNothing);
     });
 
-    testWidgets('Ayarlar düğmesi çubuğun sağ kenarına yaslanır', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        wrapWithTheme(
-          const HomeTopBar(
-            locationName: 'Ankara, Ankara',
-            onLocationTap: null,
-            onSettingsTap: _noop,
+    testWidgets(
+      'Sağdaki ikonlar eşit aralıklı, ayarlar kendi kutusunda ortalı',
+      (tester) async {
+        await tester.pumpWidget(
+          wrapWithTheme(
+            const HomeTopBar(
+              locationName: 'Ankara, Ankara',
+              onLocationTap: null,
+              onSettingsTap: _noop,
+              onCalendarTap: _noop,
+              onKerahatTap: _noop,
+            ),
           ),
-        ),
-      );
+        );
 
-      final bar = tester.getRect(find.byType(HomeTopBar));
-      final gear = tester.getRect(
-        find.widgetWithIcon(IconButton, Icons.settings_rounded),
-      );
+        final bar = tester.getRect(find.byType(HomeTopBar));
+        final gearButton = tester.getRect(
+          find.widgetWithIcon(IconButton, Icons.settings_rounded),
+        );
+        final gearIcon = tester.getRect(find.byIcon(Icons.settings_rounded));
+        final kerahatIcon = tester.getRect(
+          find.byIcon(Icons.wb_twilight_rounded),
+        );
+        final calendarIcon = tester.getRect(
+          find.byIcon(Icons.calendar_month_rounded),
+        );
 
-      expect(gear.right, moreOrLessEquals(bar.right, epsilon: 0.5));
-    });
+        expect(gearButton.right, moreOrLessEquals(bar.right, epsilon: 0.5));
+        expect(
+          gearIcon.center.dx,
+          moreOrLessEquals(gearButton.center.dx, epsilon: 0.5),
+        );
+        expect(
+          gearIcon.center.dx - kerahatIcon.center.dx,
+          moreOrLessEquals(
+            kerahatIcon.center.dx - calendarIcon.center.dx,
+            epsilon: 0.5,
+          ),
+        );
+      },
+    );
   });
 
   group('HomeDateLine', () {
