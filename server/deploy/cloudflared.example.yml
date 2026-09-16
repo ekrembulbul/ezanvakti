@@ -1,0 +1,5 @@
+# Mevcut cloudflared tünel config'ine eklenecek ingress girdisi.
+ingress:
+  - hostname: api.<domain>
+    service: http://127.0.0.1:8080
+  - service: http_status:404
