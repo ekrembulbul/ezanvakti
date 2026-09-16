@@ -2231,7 +2231,7 @@ func fakeJWT(exp time.Time) string {
 	return enc([]byte(`{"alg":"HS256","typ":"JWT"}`)) + "." + enc(payload) + ".sig"
 }
 
-func envelope(data any) string {
+func okEnvelope(data any) string {
 	b, _ := json.Marshal(map[string]any{"data": data, "success": true, "message": nil})
 	return string(b)
 }
@@ -2257,7 +2257,7 @@ func (f *fakeDiyanet) handler() http.Handler {
 			return
 		}
 		f.logins.Add(1)
-		fmt.Fprint(w, envelope(map[string]string{"accessToken": fakeJWT(f.accessExp), "refreshToken": "R1"}))
+		fmt.Fprint(w, okEnvelope(map[string]string{"accessToken": fakeJWT(f.accessExp), "refreshToken": "R1"}))
 	})
 	mux.HandleFunc("GET /Auth/RefreshToken/{token}", func(w http.ResponseWriter, r *http.Request) {
 		f.refreshes.Add(1)
@@ -2265,7 +2265,7 @@ func (f *fakeDiyanet) handler() http.Handler {
 			w.WriteHeader(401)
 			return
 		}
-		fmt.Fprint(w, envelope(map[string]string{"accessToken": fakeJWT(f.accessExp), "refreshToken": "R2"}))
+		fmt.Fprint(w, okEnvelope(map[string]string{"accessToken": fakeJWT(f.accessExp), "refreshToken": "R2"}))
 	})
 	mux.HandleFunc("/api/", func(w http.ResponseWriter, r *http.Request) {
 		n := f.calls.Add(1)
@@ -2284,7 +2284,7 @@ func newClient(t *testing.T, srv *httptest.Server, opts ...Option) *Client {
 }
 
 func okContent(w http.ResponseWriter, _ *http.Request, _ int32) {
-	fmt.Fprint(w, envelope(map[string]any{"id": 333, "dayOfYear": 333, "verse": "v"}))
+	fmt.Fprint(w, okEnvelope(map[string]any{"id": 333, "dayOfYear": 333, "verse": "v"}))
 }
 
 func TestGet_LogsInThenSendsBearer(t *testing.T) {
