@@ -1,0 +1,5 @@
+data/
+deploy/.env
+/vakit
+*.test
+coverage.out
