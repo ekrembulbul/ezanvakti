@@ -174,3 +174,16 @@ func TestUnsupportedOperations(t *testing.T) {
 		t.Fatal(s.Name())
 	}
 }
+
+func TestPrayerTimes_SameCityTwoYearsDownloadsPageOnce(t *testing.T) {
+	s, agents := newSource(t)
+	if _, err := s.PrayerTimes(context.Background(), 9541, 2026); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.PrayerTimes(context.Background(), 9541, 2027); err != nil {
+		t.Fatal(err)
+	}
+	if len(*agents) != 1 {
+		t.Fatalf("expected a single page download, got %d", len(*agents))
+	}
+}

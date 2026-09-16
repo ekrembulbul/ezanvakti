@@ -43,6 +43,9 @@ type Source struct {
 
 	mu       sync.Mutex
 	lastCall time.Time
+	// Aynı ilçe sayfası art arda farklı yıllar için istenir; son sayfa bir kez indirilir.
+	lastPageCity int
+	lastPageDays []model.Day
 }
 
 type Option func(*Source)
@@ -177,17 +180,9 @@ func (s *Source) DailyContent(context.Context, time.Time) (*model.DailyContent, 
 // PrayerTimes, aylık ve yıllık tablolardaki istenen yıla ait günleri tarih sırasıyla döner;
 // aynı tarih iki tabloda varsa tek kayıt kalır. Yıl sayfada yoksa boş liste.
 func (s *Source) PrayerTimes(ctx context.Context, cityID, year int) ([]model.Day, error) {
-	body, err := s.fetch(ctx, "/tr-TR/"+strconv.Itoa(cityID))
+	all, err := s.cityPageDays(ctx, cityID)
 	if err != nil {
 		return nil, err
-	}
-	doc, err := html.Parse(bytes.NewReader(body))
-	if err != nil {
-		return nil, fmt.Errorf("web: parse city page %d: %w", cityID, err)
-	}
-	all, err := parsePrayerTables(doc)
-	if err != nil {
-		return nil, fmt.Errorf("web: city %d: %w", cityID, err)
 	}
 	byDate := make(map[string]model.Day)
 	yearPrefix := strconv.Itoa(year)
@@ -202,4 +197,31 @@ func (s *Source) PrayerTimes(ctx context.Context, cityID, year int) ([]model.Day
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].Date < out[j].Date })
 	return out, nil
+}
+
+// cityPageDays ilçe sayfasındaki tüm tablo günlerini döner; son ilçe hafızadan gelir.
+func (s *Source) cityPageDays(ctx context.Context, cityID int) ([]model.Day, error) {
+	s.mu.Lock()
+	if s.lastPageCity == cityID && s.lastPageDays != nil {
+		days := s.lastPageDays
+		s.mu.Unlock()
+		return days, nil
+	}
+	s.mu.Unlock()
+	body, err := s.fetch(ctx, "/tr-TR/"+strconv.Itoa(cityID))
+	if err != nil {
+		return nil, err
+	}
+	doc, err := html.Parse(bytes.NewReader(body))
+	if err != nil {
+		return nil, fmt.Errorf("web: parse city page %d: %w", cityID, err)
+	}
+	all, err := parsePrayerTables(doc)
+	if err != nil {
+		return nil, fmt.Errorf("web: city %d: %w", cityID, err)
+	}
+	s.mu.Lock()
+	s.lastPageCity, s.lastPageDays = cityID, all
+	s.mu.Unlock()
+	return all, nil
 }

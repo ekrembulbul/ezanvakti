@@ -30,6 +30,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 	switch args[0] {
 	case "serve":
 		return runServe(args[1:], stdout, stderr)
+	case "sync":
+		return runSync(args[1:], stdout, stderr)
 	case "version":
 		fmt.Fprintln(stdout, version)
 		return 0

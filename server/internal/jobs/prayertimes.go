@@ -25,8 +25,9 @@ const (
 func PrayerTimes(ctx context.Context, d Deps, cityIDs []int, years []int, batch int) (Result, error) {
 	var res Result
 	consecutiveErrors := 0
-	for _, year := range years {
-		for _, cityID := range cityIDs {
+	// İlçe-major sıra: aynı ilçenin yılları art arda istenir; web kaynağı tek sayfa indirir.
+	for _, cityID := range cityIDs {
+		for _, year := range years {
 			if res.Fetched >= batch {
 				res.Stopped = "batch"
 				d.Logger.Info("sync prayer-times batch limit reached", "batch", batch)
