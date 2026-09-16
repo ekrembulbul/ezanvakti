@@ -24,7 +24,7 @@ yayınlar; uygulama yalnızca bu sunucuyla konuşur.
 | K4 | Kaynak soyutlaması: `awqat` (resmî API, birincil) ve `web` (namazvakitleri.diyanet.gov.tr ilçe sayfası, onay öncesi ve fesih fallback'i) aynı `Source` arayüzü | API onayı beklenmeden çalışır; form "tek taraflı fesih" hakkı içeriyor |
 | K5 | Reverse proxy yok; Go yalnız `127.0.0.1:8080`'e bind, `cloudflared` tüneli `api.<domain>` → origin | Kullanıcının mevcut altyapısı; TLS/DNS/WAF/cache Cloudflare'de |
 | K6 | Sözleşme `/v1` altında, sürüm kırıcı değişiklik `/v2` | Uygulama mağaza sürümleri eski sözleşmeyi yıllarca çağırır |
-| K7 | Koordinatlar Diyanet'te yok → tek seferlik OSM/Nominatim eşlemesi `server/data/tr_cities_geo.json` olarak commit'lenir, elle gözden geçirilir | Uygulamada GPS → en yakın ilçe ve kıble için gerekli; ODbL atfı uygulamaya eklenir |
+| K7 | Koordinatlar Diyanet'te yok → tek seferlik OSM/Nominatim eşlemesi `server/assets/tr_cities_geo.json` olarak commit'lenir, elle gözden geçirilir | Uygulamada GPS → en yakın ilçe ve kıble için gerekli; ODbL atfı uygulamaya eklenir |
 
 ## Kapsam
 
@@ -44,8 +44,9 @@ GET /v1/places/countries/{countryId}/states
 GET /v1/places/states/{stateId}/cities
   [{ "id": 9541, "name": "İSTANBUL", "stateId": 539, "countryId": 2,
      "latitude": 41.0082, "longitude": 28.9784,
-     "qiblaAngle": 151, "distanceToKaaba": 2400 }, ...]
-  → latitude/longitude K7'den; qiblaAngle/distanceToKaaba CityDetail'den; yoksa null
+     "qiblaAngle": 151, "qiblaAngleMagnetic": 146, "distanceToKaaba": 2400 }, ...]
+  → latitude/longitude K7'den. qiblaAngle = Diyanet CityDetail `geographicQiblaAngle` (gerçek kuzey),
+    qiblaAngleMagnetic = CityDetail `qiblaAngle` (manyetik); distanceToKaaba km. Bilinmiyorsa null
 
 GET /v1/places/tr/cities
   → Türkiye'nin tüm ilçeleri tek dosyada, il adıyla zenginleştirilmiş
@@ -112,10 +113,10 @@ zarfındadır; `success=false` ya da HTTP ≠ 200 hata sayılır ve `message` lo
 |---|---|---|
 | Giriş | `POST /Auth/Login` `{ "email", "password" }` → `data.accessToken`, `data.refreshToken` | JWT; süre `exp` claim'inden okunur (site 45 dk, kılavuz 30 dk diyor — sabit yazılmaz) |
 | Yenileme | `GET /Auth/RefreshToken/{refreshToken}` → yeni çift | Refresh 7 gün, her kullanımda döner; **7 gün kullanılmazsa geçersiz** → tam giriş. Dosyada saklanır (`data/state/awqat_token.json`, `0600`) |
-| Ülkeler | `GET /api/v2/Place/Countries` | v2 üst kırılımı da döner; alan adları canlıda doğrulanır, uymazsa v1'e düşülür |
-| İller | `GET /api/v2/Place/States/{countryId}` | yalnız `enabled` ülkeler |
-| İlçeler | `GET /api/v2/Place/Cities/{stateId}` | |
-| İlçe detayı | `GET /api/Place/CityDetail/{cityId}` → `qiblaAngle`, `distanceToKaaba` | koordinat vermez |
+| Ülkeler | `GET /api/Place/Countries` → `[{id, code, name}]` | v1: şekli kılavuzda belgeli; `code` İngilizce ad olarak kullanılır. v2'ye gerek yok: il/ilçenin ebeveyni istekten biliniyor |
+| İller | `GET /api/Place/States/{countryId}` | yalnız `enabled` ülkeler |
+| İlçeler | `GET /api/Place/Cities/{stateId}` | |
+| İlçe detayı | `GET /api/Place/CityDetail/{cityId}` → `geographicQiblaAngle`, `qiblaAngle`, `distanceToKaaba` (string sayılar) | koordinat vermez; yalnız kıble bilgisi eksik ilçeler için çağrılır |
 | Yıllık vakit | `POST /api/PrayerTime/DateRange` `{ "cityId", "startDate", "endDate" }` (ISO 8601) | yer bazında ayda 10 istek; Hicri alanları dahil |
 | Dini günler | `GET /api/IslamicReligiousDay/ByYear?year=` | |
 | Günün içeriği | `GET /api/DailyContent` (bugün) · `GET /api/DailyContent/VerseHadithAndPrayer?date=&language=` (ileri günler) | `language` tam sayı enum, eşlemesi belgelenmemiş — canlıda doğrulanır; varsayılan dil kullanılır |
@@ -137,18 +138,30 @@ Davranış kuralları:
 
 ### VAK.3 — Web kaynağı (`internal/source/web`)
 
-Onay gelene kadar birincil, sonra fesih/kesinti fallback'i. Yalnız vakit tablosu; yer listesi ve
-dini günler için web kaynağı yoktur (bu veriler API onayına kadar `server/data/` altındaki
-tohum dosyalarından okunur; bkz. VAK.7).
+Onay gelene kadar birincil, sonra fesih/kesinti fallback'i. Yer listesi **ve** vakit tablosu verir;
+dini günler, günlük içerik ve kıble açısı için web karşılığı yoktur (`ErrUnsupported`; ilgili sync
+işleri web modunda uyarı loglayıp atlar). Tüm isteklerde tarayıcı `User-Agent` gönderilir.
 
-- `GET https://namazvakitleri.diyanet.gov.tr/tr-TR/{cityId}` → 302 → `/tr-TR/{cityId}/{slug}`; tarayıcı `User-Agent` şart.
-- `table#yourTable` ("Yıllık Namaz Vakti"): sütunlar `Miladi Tarih | Hicri Tarih | İmsak | Güneş | Öğle | İkindi | Akşam | Yatsı`;
-  bugünden ~15 ay ileriye (bugün: 15 Eyl 2026 → 31 Ara 2027, 403 satır). İstenen yıl için satırlar filtrelenir;
-  yıl tam değilse dosya `"complete": false` işaretiyle yazılır ve sonraki sync tamamlar.
-- Tarih ayrıştırma: `"15 Eylül 2026 Salı"` → Türkçe ay adı tablosu; Hicri: `"4 Rebiulahir 1448"` → ay adı tablosu
-  (Muharrem … Zilhicce, Diyanet yazımıyla) → `{day, month, year, monthName}`.
-- Parser, tablo başlığını **doğrular**; başlık beklenenden farklıysa hata verir (HTML değişikliği sessizce yanlış sütun okumaz).
-- Web kaynağıyla üretilen dosyada `astronomical*`, `qiblaTime` null; `source` yine `"diyanet"`, ek alan `"via": "web"`.
+- Ülkeler: `GET /tr-TR/9541` sayfasındaki `select.country-select` seçenekleri (`value`=id, metin=ad; 209 ülke, TÜRKİYE=2).
+  Sabit bir ilçe sayfası kullanılır çünkü liste her ilçe sayfasında aynıdır.
+- İller: `GET /tr-TR/home/GetRegList?ChangeType=country&CountryId={countryId}&Culture=tr-TR` →
+  `{"StateList":[{"SehirAdi","SehirAdiEn","SehirID"}]}` (TR: 81).
+- İlçeler: `GET /tr-TR/home/GetRegList?ChangeType=state&StateId={stateId}&Culture=tr-TR` →
+  `{"StateRegionList":[{"IlceAdi","IlceAdiEn","IlceID","IlceUrl"}]}`.
+- Vakitler: `GET /tr-TR/{cityId}` → 302 → `/tr-TR/{cityId}/{slug}`. Sayfada üç tablo var:
+  haftalık (7 gün), **aylık** (`aria-describedby="table-caption-monthly"`, bugünden +30 gün, 31 satır) ve
+  **yıllık** (`table#yourTable`, 15 Eyl 2026 itibarıyla yalnız **gelecek yıl** 2027, 365 satır; cari yılın
+  kalanı bu tabloda yok). Kaynak, aylık + yıllık tabloların satırlarını okur, istenen yıla ait olanları döndürür;
+  istenen yıl için satır yoksa boş liste (hata değil).
+- Sütunlar `Miladi Tarih | Hicri Tarih | İmsak | Güneş | Öğle | İkindi | Akşam | Yatsı`; parser başlığı **doğrular**,
+  farklıysa hata verir (HTML değişikliği sessizce yanlış sütun okumaz).
+- Tarih: `"15 Eylül 2026 Salı"` → Türkçe ay adı tablosu (gün adı yok sayılır); Hicri `"4 Rebiulahir 1448"` → Diyanet ay
+  adı tablosu (Muharrem, Safer, Rebiulevvel, Rebiulahir, Cemaziyelevvel, Cemaziyelahir, Recep, Şaban, Ramazan, Şevval,
+  Zilkade, Zilhicce) → `{day, month, year, monthName}`.
+- Web ile üretilen dosyada `astronomical*`, `qiblaTime` null; `source` yine `"diyanet"`, ek alan `"via": "web"`.
+
+Sonuç: web modunda gelecek yıl tek çekimde tamamlanır; cari yıl ise kayan 31 günlük pencerelerin
+**birikimli birleştirilmesiyle** dolar (bkz. VAK.4). Uygulama bu yüzden `complete=false` dosyalarla çalışabilmelidir.
 
 ### VAK.4 — Senkronizasyon işleri (`vakit sync <iş>`)
 
@@ -163,8 +176,8 @@ Hepsi idempotent; her çalıştırma `data/state/sync.json`'daki ilerlemeyi okur
 
 | İş | Yaptığı | Kota bütçesi |
 |---|---|---|
-| `places` | v2 Countries → enabled ülkeler için States → Cities → her ilçe için CityDetail (yalnız eksik olanlar) → `tr_cities_geo.json` ile birleştir → `places/*` yaz | bootstrap ~1 + 81 + 970; sonrası yalnız değişenler |
-| `prayer-times` | enabled ilçelerden verilen yılda dosyası olmayan/`complete=false` olanları sırayla `DateRange` ile çek (1 Ocak–31 Aralık) → doğrula → yaz; `--batch N` kadar sonra dur | ilçe/yıl başına 1; 970 ilçe ≈ 7 günde biter (`batch 150`) |
+| `places` | Countries → enabled ülkeler için States → Cities → her ilçe için CityDetail (yalnız eksik olanlar) → `tr_cities_geo.json` ile birleştir → `places/*` yaz | bootstrap ~1 + 81 + 970; sonrası yalnız değişenler |
+| `prayer-times` | enabled ilçeler × istenen yıllar için **eksik olanları** çek → mevcut dosyayla **tarih bazında birleştir** (yeni gün eski günün üstüne yazar) → doğrula → yaz; `--batch N` çekimden sonra dur. Eksik tanımı: dosya yok, `complete=false`, ya da (web) ufuk `< bugün + 21 gün`. API modunda `DateRange` 1 Ocak–31 Aralık tek çekimde tamamlar; web modunda aylık pencere + gelecek yıl tablosu birikir | API: ilçe/yıl başına 1; 970 ilçe ≈ 7 günde (`batch 150`). Web: kontrat yok; nezaket için 1 istek/sn ve ufuk kuralıyla günde ≈140 sayfa |
 | `religious-days` | `ByYear` → doğrula (tarihler artan, yıl içinde) → yaz | yılda 1 |
 | `daily-content` | bugün + `--ahead` gün için içerik → `daily-content/{yyyy}/{doy}.json`; var olan gün atlanır | günde ≤ 8 |
 | `quota` | `Quota/My` çıktısını yazdırır | 1 |
@@ -173,8 +186,9 @@ Hepsi idempotent; her çalıştırma `data/state/sync.json`'daki ilerlemeyi okur
 Kaynak seçimi: `VAKIT_SOURCE=awqat|web` (varsayılan `awqat`; kimlik bilgisi tanımlı değilse
 otomatik `web` ve uyarı logu). Yayınlanan dosya her zaman aynı şemadadır; uygulama kaynağı bilmez.
 
-Gelecek yıl verisi Diyanet'te yıl sonuna doğru yayınlanır; `DateRange` boş/kısmi dönerse dosya
-yazılmaz, `state`'e "henüz yok" notu düşer, sonraki çalıştırma yeniden dener.
+`complete` = dosyadaki gün sayısı yılın gün sayısına eşit. Kaynak istenen yıl için hiç gün döndürmezse dosya
+yazılmaz/değişmez, `state`'e "henüz yok" notu düşer, sonraki çalıştırma yeniden dener (Diyanet gelecek yılı
+yıl sonuna doğru yayınlar).
 
 ### VAK.5 — Doğrulama (yayın öncesi)
 
@@ -182,12 +196,13 @@ Bir dosya ancak tüm kurallar geçerse `data/` altına atomik olarak yazılır (
 Kural ihlali → dosya yazılmaz, `WARN` log (`city`, `year`, kural, örnek gün), `health` içinde
 `rejected` sayacı artar.
 
-1. Gün sayısı yılın uzunluğuna eşit (365/366) ya da `complete=false` ile kısmi yazım (yalnız web kaynağı).
-2. Tarihler ardışık, tekrar yok.
+1. Tüm tarihler istenen yıl içinde; tekrar yok; artan sıralı. Boşluk (gap) **izinli** — sync 31 günden uzun
+   dururca oluşabilir; uygulama eksik günü "veri yok" olarak ele alır. `complete` yalnız 365/366 günde `true`.
+2. Ardışık iki tarih arasında Hicri gün ya +1 artar ya 1'e döner (ay değişimi); ardışık olmayan çiftler kontrol edilmez.
 3. Her gün: `fajr < sunrise < dhuhr < asr < maghrib < isha` (dakika cinsinden, aynı gün).
 4. Önceki yılın aynı takvim günü varsa fark ≤ 5 dk (tüm vakitler). Aşarsa reddet: Diyanet'in kendi verisinde
    yıllar arası fark ±1–2 dk'dır; 5 dk üstü ayrıştırma hatasıdır.
-5. Hicri: gün 1–30, ay 1–12, ay adı tabloda; ardışık günlerde Hicri gün ya +1 artar ya 1'e döner.
+5. Hicri: gün 1–30, ay 1–12, ay adı tabloda.
 6. Dini günler: tarihler artan, hepsi istenen yılda, ad boş değil.
 
 ### VAK.6 — HTTP sunucusu (`vakit serve`)
@@ -195,8 +210,8 @@ Kural ihlali → dosya yazılmaz, `WARN` log (`city`, `year`, kural, örnek gün
 - Go 1.22+ `net/http` desen yönlendirme (`GET /v1/prayer-times/{cityId}/{year}`); yol parametreleri
   **sayı/tarih olarak ayrıştırılır**, dosya yolu bu değerlerden üretilir — kullanıcı girdisi dosya sistemine
   ham geçmez (path traversal imkânsız).
-- Yanıt `data/` altındaki dosyanın ham baytlarıdır; ETag dosya yazılırken hesaplanır ve yanında
-  `.etag` olarak saklanır (her istekte hash yok). `HEAD` desteklenir.
+- Yanıt `data/` altındaki dosyanın ham baytlarıdır; ETag okuma anında SHA-256 ile hesaplanır (dosyalar
+  ≤ 300 KB, maliyet ihmal edilebilir; Cloudflare zaten önbellekler). `HEAD` desteklenir.
 - Yalnız `127.0.0.1:8080` (`VAKIT_ADDR`); gövde okumaz; `ReadHeaderTimeout 5 s`, `WriteTimeout 15 s`,
   `MaxHeaderBytes 16 KB`.
 - Erişim logu (`log/slog`, JSON): `time, level, request_id, method, path, status, bytes, duration_ms, ip`
@@ -204,7 +219,7 @@ Kural ihlali → dosya yazılmaz, `WARN` log (`city`, `year`, kural, örnek gün
   `X-Request-Id` olarak döner.
 - Sync ve serve aynı `data/` dizinini paylaşır; `rename` atomik olduğu için okuyucu yarım dosya görmez.
 
-### VAK.7 — Depo düzeni, veri dizini, tohum dosyaları
+### VAK.7 — Depo düzeni ve veri dizini
 
 ```
 server/
@@ -216,8 +231,9 @@ server/
   internal/store/                data/ yolları, atomik yazma, ETag, sync state
   internal/httpapi/              yönlendirme, başlıklar, hata zarfı, erişim logu
   internal/sync/                 işler (places, prayer-times, ...)
-  data/tr_cities_geo.json        K7 — ilçe koordinatları (commit'li)
-  data/seed/places/...           API onayı öncesi yer listesi tohumu (Diyanet ID'leri; kaynağı belgelenir)
+  assets/tr_cities_geo.json      K7 — ilçe koordinatları (commit'li; `cmd/geocode-tr` üretir)
+  cmd/geocode-tr/main.go         tek seferlik Nominatim eşleme aracı
+  data/                          çalışma zamanı verisi, .gitignore'da
   deploy/Dockerfile              çok aşamalı: golang:1.2x → gcr.io/distroless/static
   deploy/compose.yml             vakit (serve) + ./data volume; sync için `compose run --rm vakit sync ...`
   deploy/cloudflared.example.yml ingress örneği: api.<domain> → http://127.0.0.1:8080
@@ -228,7 +244,7 @@ server/
 
 ```
 places/countries.json · places/countries/{id}/states.json · places/states/{id}/cities.json · places/tr/cities.json
-prayer-times/{cityId}/{year}.json (+ .etag)
+prayer-times/{cityId}/{year}.json
 religious-days/{year}.json
 daily-content/{yyyy}/{doy}.json
 state/sync.json · state/awqat_token.json (0600)
@@ -284,11 +300,9 @@ Boyut: ilçe-yıl dosyası ~25 KB (gzip Cloudflare'de) → 970 ilçe ≈ 25 MB/y
 
 ## Açık noktalar (implementasyonda doğrulanır)
 
-- v2 `Place/*` alan adları (OpenAPI yalnız `IResult` gösteriyor) — canlı yanıtla; uymazsa v1 + ayrı çağrılar.
 - `DateRange` yanıt gövdesi (`Daily` ile aynı varsayımı) ve boş/kısmi yıl davranışı.
 - Kota gerçek sayıları (`Quota/My`) — `VAKIT_SYNC_BATCH` buna göre ayarlanır; küresel günlük tavan varsa 970 ilçe daha uzun sürer.
 - `DailyContent` `language` enum eşlemesi.
-- Tohum yer listesi kaynağı: onay öncesi Diyanet ID'leri ilçe sayfası seçicilerinden ya da açık veri setinden alınır; hangisi olursa `data/seed/README.md`'de yazılır.
 - Go toolchain geliştirici makinesinde yok (`brew install go`); sunucuda Docker var, `cloudflared` çalışıyor.
 
 ## Referanslar
