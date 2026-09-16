@@ -84,3 +84,15 @@ dart format .                   # kod formatla
 flutter build apk --release     # Android release derleme
 flutter build ios --release     # iOS release derleme (imzalama Xcode'da)
 ```
+
+## Sunucu (`server/`)
+
+Diyanet verisini barındıran Go servisi ayrı bir modüldür; Flutter araçları bu dizini görmez.
+
+```bash
+brew install go
+cd server && make vet test      # gofmt + go vet + go test ./...
+make smoke                      # ağ: web kaynağıyla sync → serve → curl
+```
+
+Dağıtım, ortam değişkenleri, cron ve Cloudflare adımları: `server/README.md`.

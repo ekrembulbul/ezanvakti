@@ -45,6 +45,12 @@ Vakit kaynağı `PrayerTimeProvider` arayüzünün arkasındadır. Bugün tek im
 
 Uygulamanın geri kalanı `PrayerTimeProvider` arayüzüne bağlı olduğu için değişmeden çalışır. `AwqatSalahProvider` koordinat tabanlı Aladhan API'sini kullanır; namaz açıları konuma özel `method` (otorite, ör. Diyanet=13) ve `school` (İkindi mezhebi) parametreleriyle istenir.
 
+> **Sunucu (2026-09):** `server/` altındaki Go servisi (`vakit`) Diyanet Awqat Salah verisini
+> `/v1` sözleşmesiyle sunar — bkz. `docs/superpowers/specs/2026-09-15-vakit-api-sunucu-design.md`
+> ve `server/README.md`. Uygulama tarafındaki `DiyanetProvider` (Spec B, yazılacak) bu sözleşmeyi
+> tüketecek; Aladhan/Photon yalnız geçiş süresince kalır. Bu bölümdeki Aladhan/Photon açıklaması
+> mevcut sürümü anlatır.
+
 ## Lokasyon seçimi ve hesaplama parametreleri
 
 - **Adres araması:** `PhotonGeocodingService` (Photon/OpenStreetMap, anahtarsız, global, debounce + konum bias'lı typeahead). Sonuç `PlaceSuggestion` → `Location`'a çevrilir. Eski gömülü il/ilçe listesi kaldırıldı; vakit yalnızca koordinata bağlı olduğundan eksiksiz liste tutmaya gerek yok.

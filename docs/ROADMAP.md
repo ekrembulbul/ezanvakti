@@ -37,7 +37,7 @@ Son sürümlerde tamamlananlar (0.1.1–0.1.4):
 Açık kalanlar:
 
 - **Konum değişim konsolidasyonu — GPS yolu:** Manuel yol tamamlandı; GPS canlı akış yolu (`LocationMonitorController`) hâlâ doğrudan `locationRepository.setActiveLocation` kullanıyor. O da `LocationService.changeLocation`'a delege edilebilir (küçük takip).
-- **Diyanet birebir vakit:** Aladhan method=13 yaklaşık hesaptır; resmi tablo için Diyanet API'si + backend proxy gerekir (bkz. PRODUCT_SPEC).
+- **Diyanet birebir vakit:** Aladhan method=13 yaklaşık hesaptır. Karar (2026-09-15): tek kaynak Diyanet; veri kendi sunucumuzda (`server/`, Go, `/v1`) barındırılır, uygulama il/ilçe seçer. Spec A: `docs/superpowers/specs/2026-09-15-vakit-api-sunucu-design.md` (sunucu yazıldı); uygulama tarafı Spec B (yazılacak). API onayına kadar web kaynağı.
 
 > Kapatılan: Bildirim duplicate kontrolünün DB tabanlı hale getirilmesi **gerekli görülmedi** — `scheduleNotifications` her çalışmada başta `cancelAllNotifications()` çağırıyor ve ID'ler `(gün, vakit, ofset)`'ten deterministik üretiliyor (aynı ID platformda üzerine yazılır). Duplicate birikme yolu olmadığından DB'ye taşımak gereksiz karmaşıklık olurdu.
 

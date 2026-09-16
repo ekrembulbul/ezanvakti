@@ -1,6 +1,6 @@
 # vakit-api — Diyanet verisini barındıran sunucu (Spec A)
 
-- **Tarih:** 2026-09-15 · **Durum:** taslak, kullanıcı incelemesinde · **Branch:** `feature/vakit-api`
+- **Tarih:** 2026-09-15 · **Durum:** kabul edildi; implementasyon planı `docs/superpowers/plans/2026-09-16-vakit-api-sunucu.md` · **Branch:** `feature/vakit-api`
 - **Bağlam:** [Diyanet vakit farkı](../../investigations/2026-09-14-diyanet-vakit-farki.md),
   [Aladhan–resmi tablo karşılaştırması](../../investigations/2026-09-15-aladhan-resmi-tablo-farklari.md)
 - **Eşi:** Spec B (uygulama tarafı) bu belgedeki `/v1` sözleşmesine bağlıdır; ayrı yazılır.
@@ -19,7 +19,7 @@ yayınlar; uygulama yalnızca bu sunucuyla konuşur.
 | # | Karar | Gerekçe |
 |---|---|---|
 | K1 | Tek veri kaynağı Diyanet; ülke kapsamı sunucu config'i, başlangıçta yalnız Türkiye (`countryId=2`) | Birebir uyum yalnız resmî veriyle; Diyanet 202 ülkeyi aynı hiyerarşiyle veriyor, açmak konfigürasyon |
-| K2 | Dil Go, tek binary `vakit` (`serve` / `sync` alt komutları), yalnız stdlib (+ `golang.org/x/net/html`) | Küçük imaj, sıfır çalışma zamanı bağımlılığı, kullanıcı tercihi |
+| K2 | Dil Go (≥ 1.26, `x/net` gereği), tek binary `vakit` (`serve` / `sync` alt komutları), yalnız stdlib (+ `golang.org/x/net/html`) | Küçük imaj, sıfır çalışma zamanı bağımlılığı, kullanıcı tercihi |
 | K3 | Depolama: JSON dosyaları (`data/`), veritabanı yok | Tek erişim deseni "kayıt + yıl"; yedek = kopya; ETag doğal; Faz 3 (token deposu) gelince DB eklenir |
 | K4 | Kaynak soyutlaması: `awqat` (resmî API, birincil) ve `web` (namazvakitleri.diyanet.gov.tr ilçe sayfası, onay öncesi ve fesih fallback'i) aynı `Source` arayüzü | API onayı beklenmeden çalışır; form "tek taraflı fesih" hakkı içeriyor |
 | K5 | Reverse proxy yok; Go yalnız `127.0.0.1:8080`'e bind, `cloudflared` tüneli `api.<domain>` → origin | Kullanıcının mevcut altyapısı; TLS/DNS/WAF/cache Cloudflare'de |
@@ -230,7 +230,7 @@ server/
   internal/validate/             VAK.5 kuralları
   internal/store/                data/ yolları, atomik yazma, ETag, sync state
   internal/httpapi/              yönlendirme, başlıklar, hata zarfı, erişim logu
-  internal/sync/                 işler (places, prayer-times, ...)
+  internal/jobs/                 işler (places, prayer-times, ...) — stdlib `sync` ile ad çakışmasını önlemek için `jobs`
   assets/tr_cities_geo.json      K7 — ilçe koordinatları (commit'li; `cmd/geocode-tr` üretir)
   cmd/geocode-tr/main.go         tek seferlik Nominatim eşleme aracı
   data/                          çalışma zamanı verisi, .gitignore'da
