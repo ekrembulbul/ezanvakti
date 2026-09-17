@@ -235,9 +235,9 @@
   "locationAddTitle": "Add location",
   "locationEditTitle": "Edit location",
   "locationSearchHint": "Search by city, district or place",
-  "locationSearchPlaceholder": "Search city, district or place…",
+  "locationSearchPlaceholder": "Search province or district...",
   "locationSearchStart": "Start typing to search.",
-  "locationSearchNoResult": "No results.\nTry a different search or check your connection.",
+  "locationSearchNoResult": "No results.\nCheck the province or district name.",
   "locationGettingPosition": "Getting location…",
   "locationPermissionTitle": "Location permission",
   "locationPermissionBody": "Location access is needed to show prayer times for where you are. Granting it selects your city automatically.",
@@ -504,5 +504,7 @@
   "alarmChangeFailed": "The alarm change could not be completed. Try again.",
   "alarmCancellationPending": "The alarm could not be removed from the device",
   "settingsPrayerTune": "Time adjustment",
-  "dataSourceDiyanet": "Presidency of Religious Affairs (Diyanet)"
+  "dataSourceDiyanet": "Presidency of Religious Affairs (Diyanet)",
+  "placeAliasIncluded": "{alias} is included",
+  "locationNeedsInternet": "Adding a location needs an internet connection."
 }

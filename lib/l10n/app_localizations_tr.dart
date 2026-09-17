@@ -785,14 +785,14 @@ class AppLocalizationsTr extends AppLocalizations {
   String get locationSearchHint => 'Şehir, ilçe veya yer adıyla ara';
 
   @override
-  String get locationSearchPlaceholder => 'Şehir, ilçe veya yer ara...';
+  String get locationSearchPlaceholder => 'İl veya ilçe ara...';
 
   @override
   String get locationSearchStart => 'Aramak için yazmaya başlayın.';
 
   @override
   String get locationSearchNoResult =>
-      'Sonuç bulunamadı.\nFarklı bir arama deneyin veya bağlantınızı kontrol edin.';
+      'Sonuç bulunamadı.\nİl ya da ilçe adını kontrol et.';
 
   @override
   String get locationGettingPosition => 'Konum Alınıyor...';
@@ -1740,4 +1740,12 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get dataSourceDiyanet => 'Diyanet İşleri Başkanlığı';
+
+  @override
+  String placeAliasIncluded(String alias) {
+    return '$alias buna dahil';
+  }
+
+  @override
+  String get locationNeedsInternet => 'Konum eklemek için internet gerekli.';
 }

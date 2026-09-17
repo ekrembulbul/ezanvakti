@@ -1513,7 +1513,7 @@ abstract class AppLocalizations {
   /// Alan ipucu
   ///
   /// In tr, this message translates to:
-  /// **'Şehir, ilçe veya yer ara...'**
+  /// **'İl veya ilçe ara...'**
   String get locationSearchPlaceholder;
 
   /// Boş durum
@@ -1525,7 +1525,7 @@ abstract class AppLocalizations {
   /// Boş durum
   ///
   /// In tr, this message translates to:
-  /// **'Sonuç bulunamadı.\nFarklı bir arama deneyin veya bağlantınızı kontrol edin.'**
+  /// **'Sonuç bulunamadı.\nİl ya da ilçe adını kontrol et.'**
   String get locationSearchNoResult;
 
   /// Durum
@@ -3129,6 +3129,18 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Diyanet İşleri Başkanlığı'**
   String get dataSourceDiyanet;
+
+  /// Arama sonucunda eşanlam: seçilen ilçe bu adı kapsar
+  ///
+  /// In tr, this message translates to:
+  /// **'{alias} buna dahil'**
+  String placeAliasIncluded(String alias);
+
+  /// Arama/GPS çözümleme sunucuya ulaşamadı
+  ///
+  /// In tr, this message translates to:
+  /// **'Konum eklemek için internet gerekli.'**
+  String get locationNeedsInternet;
 }
 
 class _AppLocalizationsDelegate

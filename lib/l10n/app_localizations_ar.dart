@@ -781,14 +781,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get locationSearchHint => 'ابحث بالمدينة أو المنطقة أو المكان';
 
   @override
-  String get locationSearchPlaceholder => 'ابحث عن مدينة أو منطقة أو مكان…';
+  String get locationSearchPlaceholder => 'ابحث عن محافظة أو قضاء...';
 
   @override
   String get locationSearchStart => 'ابدأ الكتابة للبحث.';
 
   @override
   String get locationSearchNoResult =>
-      'لا توجد نتائج.\nجرّب بحثًا آخر أو تحقق من اتصالك.';
+      'لا توجد نتائج.\nتحقق من اسم المحافظة أو القضاء.';
 
   @override
   String get locationGettingPosition => 'جارٍ تحديد الموقع…';
@@ -1728,4 +1728,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dataSourceDiyanet => 'رئاسة الشؤون الدينية (ديانت)';
+
+  @override
+  String placeAliasIncluded(String alias) {
+    return 'يشمل $alias';
+  }
+
+  @override
+  String get locationNeedsInternet => 'إضافة موقع تتطلب اتصالاً بالإنترنت.';
 }

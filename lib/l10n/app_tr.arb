@@ -1038,7 +1038,7 @@
   "@locationSearchHint": {
     "description": "Alan ipucu"
   },
-  "locationSearchPlaceholder": "Şehir, ilçe veya yer ara...",
+  "locationSearchPlaceholder": "İl veya ilçe ara...",
   "@locationSearchPlaceholder": {
     "description": "Alan ipucu"
   },
@@ -1046,7 +1046,7 @@
   "@locationSearchStart": {
     "description": "Boş durum"
   },
-  "locationSearchNoResult": "Sonuç bulunamadı.\nFarklı bir arama deneyin veya bağlantınızı kontrol edin.",
+  "locationSearchNoResult": "Sonuç bulunamadı.\nİl ya da ilçe adını kontrol et.",
   "@locationSearchNoResult": {
     "description": "Boş durum"
   },
@@ -2303,5 +2303,9 @@
   "settingsPrayerTune": "Vakit düzeltme",
   "@settingsPrayerTune": {"description": "Ayarlar satırı: vakit başına ± dakika düzeltmesi ekranı"},
   "dataSourceDiyanet": "Diyanet İşleri Başkanlığı",
-  "@dataSourceDiyanet": {"description": "Ayarlar > Bilgi > Veri kaynağı değeri"}
+  "@dataSourceDiyanet": {"description": "Ayarlar > Bilgi > Veri kaynağı değeri"},
+  "placeAliasIncluded": "{alias} buna dahil",
+  "@placeAliasIncluded": {"description": "Arama sonucunda eşanlam: seçilen ilçe bu adı kapsar", "placeholders": {"alias": {"type": "String"}}},
+  "locationNeedsInternet": "Konum eklemek için internet gerekli.",
+  "@locationNeedsInternet": {"description": "Arama/GPS çözümleme sunucuya ulaşamadı"}
 }

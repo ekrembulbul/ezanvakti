@@ -788,14 +788,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get locationSearchHint => 'Search by city, district or place';
 
   @override
-  String get locationSearchPlaceholder => 'Search city, district or place…';
+  String get locationSearchPlaceholder => 'Search province or district...';
 
   @override
   String get locationSearchStart => 'Start typing to search.';
 
   @override
   String get locationSearchNoResult =>
-      'No results.\nTry a different search or check your connection.';
+      'No results.\nCheck the province or district name.';
 
   @override
   String get locationGettingPosition => 'Getting location…';
@@ -1746,4 +1746,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dataSourceDiyanet => 'Presidency of Religious Affairs (Diyanet)';
+
+  @override
+  String placeAliasIncluded(String alias) {
+    return '$alias is included';
+  }
+
+  @override
+  String get locationNeedsInternet =>
+      'Adding a location needs an internet connection.';
 }

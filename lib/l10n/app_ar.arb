@@ -235,9 +235,9 @@
   "locationAddTitle": "إضافة موقع",
   "locationEditTitle": "تعديل الموقع",
   "locationSearchHint": "ابحث بالمدينة أو المنطقة أو المكان",
-  "locationSearchPlaceholder": "ابحث عن مدينة أو منطقة أو مكان…",
+  "locationSearchPlaceholder": "ابحث عن محافظة أو قضاء...",
   "locationSearchStart": "ابدأ الكتابة للبحث.",
-  "locationSearchNoResult": "لا توجد نتائج.\nجرّب بحثًا آخر أو تحقق من اتصالك.",
+  "locationSearchNoResult": "لا توجد نتائج.\nتحقق من اسم المحافظة أو القضاء.",
   "locationGettingPosition": "جارٍ تحديد الموقع…",
   "locationPermissionTitle": "إذن الموقع",
   "locationPermissionBody": "نحتاج إذن الموقع لعرض أوقات الصلاة حسب مكانك. بالسماح سيتم اختيار مدينتك تلقائيًا.",
@@ -504,5 +504,7 @@
   "alarmChangeFailed": "تعذّر إكمال تغيير المنبّه. حاول مجددًا.",
   "alarmCancellationPending": "تعذّر إزالة المنبّه من الجهاز",
   "settingsPrayerTune": "تعديل الأوقات",
-  "dataSourceDiyanet": "رئاسة الشؤون الدينية (ديانت)"
+  "dataSourceDiyanet": "رئاسة الشؤون الدينية (ديانت)",
+  "placeAliasIncluded": "يشمل {alias}",
+  "locationNeedsInternet": "إضافة موقع تتطلب اتصالاً بالإنترنت."
 }
