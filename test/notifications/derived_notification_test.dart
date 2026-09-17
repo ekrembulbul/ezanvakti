@@ -8,10 +8,12 @@ import 'package:ezanvakti/core/models/general_settings.dart';
 import 'package:ezanvakti/core/models/religious_day.dart';
 import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart';
+import 'package:ezanvakti/core/models/hijri_date.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/features/notifications/domain/notification_scheduler.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../support/hijri_fixtures.dart';
 import 'fakes/notification_storage.dart';
 import 'fakes/recording_notification_service.dart';
 
@@ -177,29 +179,32 @@ void main() {
   });
 
   group('dini gunler', () {
-    /// Planlama penceresi 7 gun oldugu icin sabit bir tarih kullanilamaz:
-    /// bugunden sonraki ilk dini gunu bulup onu iceren pencereyi kuruyoruz.
+    /// Pencere bugünden başlar; 5. gün Miraç (27 Recep) olacak şekilde
+    /// sahte Hicri verilir: dini günler artık günlerin Hicri'sinden türer.
     late ReligiousDay target;
+    late List<PrayerTime> windowDays;
 
     setUp(() {
       final today = DateTime.now();
-      final upcoming = ReligiousDays.forRange(
-        DateTime(today.year, today.month, today.day + 1),
-        DateTime(today.year, today.month, today.day + 300),
-      );
-      target = upcoming.first;
+      final start = DateTime(today.year, today.month, today.day);
+      windowDays = withSequentialHijri([
+        for (var i = 0; i < 9; i++)
+          dayAt(DateTime(start.year, start.month, start.day + i)),
+      ], const HijriDate(day: 22, month: 7, year: 1448));
+      target = ReligiousDays.fromDays(windowDays).first;
+      expect(target.id, ReligiousDayId.miraj);
+      // Planlayıcı vakit bildirimi hiç yoksa erken döner; dinî gün adayları
+      // ancak en az bir vakit bildirimi varken işlenir.
+      storage.settings = [
+        const NotificationSetting(
+          prayerType: PrayerType.maghrib,
+          isActive: true,
+        ),
+      ];
     });
 
-    /// Hedef gunu ve bir oncesini kapsayan, **bugunden baslayan** pencere.
-    List<PrayerTime> window() {
-      final today = DateTime.now();
-      final start = DateTime(today.year, today.month, today.day);
-      final dayCount = target.date.difference(start).inDays + 2;
-      return [
-        for (var i = 0; i < dayCount; i++)
-          dayAt(DateTime(start.year, start.month, start.day + i)),
-      ];
-    }
+    /// Hedef günü ve bir öncesini kapsayan, **bugünden başlayan** pencere.
+    List<PrayerTime> window() => windowDays;
 
     Future<void> scheduleWindow() => scheduler.scheduleNotifications(
       location: location,
@@ -208,7 +213,12 @@ void main() {
 
     test('ayar kapaliyken dini gun bildirimi planlanmaz', () async {
       await scheduleWindow();
-      expect(service.calls, isEmpty);
+      expect(
+        service.calls.where(
+          (call) => call.title == l10n.religiousDayName(target.id),
+        ),
+        isEmpty,
+      );
     });
 
     test('ayar acikken gun aksam vaktinde planlanir', () async {

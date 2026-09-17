@@ -1,70 +1,78 @@
 import 'package:ezanvakti/core/data/religious_days.dart';
+import 'package:ezanvakti/core/models/hijri_date.dart';
+import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/core/models/religious_day.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../support/fakes.dart';
+import '../support/hijri_fixtures.dart';
+
 void main() {
-  List<ReligiousDay> range(DateTime start, DateTime end) =>
-      ReligiousDays.forRange(start, end);
+  /// [start]'tan itibaren [count] gün, ilk günün Hicri'si [first].
+  List<PrayerTime> days(DateTime start, int count, HijriDate first) =>
+      withSequentialHijri(
+        List.generate(
+          count,
+          (i) =>
+              prayerTimeFor(DateTime(start.year, start.month, start.day + i)),
+        ),
+        first,
+      );
 
-  test('Ramazan baslangici hicri takvimden bulunur', () {
-    // 1448 Ramazan 1 = 8 Subat 2027 (tabular hicri hesap).
-    final days = range(DateTime(2027, 2, 1), DateTime(2027, 2, 20));
-    final ramadan = days.where((d) => d.kind == ReligiousDayKind.ramadanStart);
-    expect(ramadan, hasLength(1));
-    expect(ramadan.first.date, DateTime(2027, 2, 8));
+  test('Ramazan baslangici ve Kadir Gecesi Diyanet Hicrisinden bulunur', () {
+    // 8 Şubat 2027 = 1 Ramazan; 6 Mart = 27 Ramazan (30 günlük sahte ay).
+    final list = ReligiousDays.fromDays(
+      days(
+        DateTime(2027, 2, 6),
+        40,
+        const HijriDate(day: 29, month: 8, year: 1448),
+      ),
+    );
+    final ramadan = list
+        .where((d) => d.kind == ReligiousDayKind.ramadanStart)
+        .single;
+    expect(ramadan.date, DateTime(2027, 2, 8));
+    final qadr = list.where((d) => d.id == ReligiousDayId.qadr).single;
+    expect(qadr.date, DateTime(2027, 3, 6));
+    final eid = list.where((d) => d.kind == ReligiousDayKind.bayram).single;
+    expect(
+      eid.date,
+      DateTime(2027, 3, 10),
+    ); // 30 günlük sahte Ramazan → 1 Şevval
   });
 
-  test('Kadir Gecesi Ramazan 27 de', () {
-    final days = range(DateTime(2027, 2, 1), DateTime(2027, 3, 15));
-    final qadr = days.where((d) => d.id == ReligiousDayId.qadr);
-    expect(qadr, hasLength(1));
-    expect(qadr.first.date, DateTime(2027, 3, 6));
+  test('Regaib: Recep ayinin ilk Persembesi', () {
+    // 1 Recep = 9 Ocak 2027 (Cumartesi); ilk Perşembe 14 Ocak.
+    final list = ReligiousDays.fromDays(
+      days(
+        DateTime(2027, 1, 9),
+        10,
+        const HijriDate(day: 1, month: 7, year: 1448),
+      ),
+    );
+    final regaib = list.where((d) => d.id == ReligiousDayId.regaib).single;
+    expect(regaib.date, DateTime(2027, 1, 14));
   });
 
-  test('Ramazan Bayrami Sevval 1 de', () {
-    final days = range(DateTime(2027, 3, 1), DateTime(2027, 3, 20));
-    final eid = days.where((d) => d.kind == ReligiousDayKind.bayram);
-    expect(eid, isNotEmpty);
-    expect(eid.first.date, DateTime(2027, 3, 9));
-  });
-
-  test('aralik disindaki gunler donmez', () {
-    final days = range(DateTime(2027, 5, 1), DateTime(2027, 5, 10));
-    for (final day in days) {
-      expect(day.date.isBefore(DateTime(2027, 5, 1)), isFalse);
-      expect(day.date.isAfter(DateTime(2027, 5, 10)), isFalse);
+  test('Hicrisi olmayan gunler yok sayilir; sonuc sirali ve tekrarsiz', () {
+    final base = List.generate(
+      5,
+      (i) => prayerTimeFor(DateTime(2027, 2, 6 + i)),
+    );
+    expect(ReligiousDays.fromDays(base), isEmpty);
+    final list = ReligiousDays.fromDays(
+      days(
+        DateTime(2026, 1, 1),
+        400,
+        const HijriDate(day: 12, month: 7, year: 1447),
+      ),
+    );
+    for (var i = 1; i < list.length; i++) {
+      expect(list[i].date.isBefore(list[i - 1].date), isFalse);
     }
-  });
-
-  test('sonuclar tarihe gore sirali ve tekrarsiz', () {
-    final days = range(DateTime(2026, 9, 1), DateTime(2028, 9, 1));
-    expect(days, isNotEmpty);
-    for (var i = 1; i < days.length; i++) {
-      expect(days[i].date.isBefore(days[i - 1].date), isFalse);
-    }
-    final keys = days.map((d) => '${d.date}-${d.id.name}').toSet();
-    expect(keys.length, days.length);
-  });
-
-  test('Regaib Recep ayinin ilk persembesi', () {
-    final days = range(DateTime(2026, 12, 1), DateTime(2027, 1, 31));
-    final regaib = days.where((d) => d.id == ReligiousDayId.regaib);
-    expect(regaib, hasLength(1));
-    expect(regaib.first.date.weekday, DateTime.thursday);
-  });
-
-  test('tum kayitlar hesaplanmis olarak isaretli', () {
-    final days = range(DateTime(2026, 9, 1), DateTime(2027, 9, 1));
-    expect(days.every((d) => d.isEstimated), isTrue);
-  });
-
-  test('bir yillik aralikta tum kandil ve bayramlar bulunur', () {
-    // Hicri yil miladi yildan kisa oldugu icin bazi gunler iki kez dusebilir;
-    // en az bir tam hicri yil kapsandigindan hepsi bulunmali.
-    final days = range(DateTime(2026, 9, 1), DateTime(2027, 9, 1));
-    final ids = days.map((d) => d.id).toSet();
-    for (final expected in ReligiousDayId.values) {
-      expect(ids, contains(expected), reason: expected.name);
-    }
+    expect(
+      list.map((d) => '${d.date}-${d.id.name}').toSet(),
+      hasLength(list.length),
+    );
   });
 }

@@ -30,7 +30,6 @@ import '../screens/calendar_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/quiet_windows_screen.dart';
 import '../screens/tools_screen.dart';
-import 'package:hijri/hijri_calendar.dart';
 import '../../features/home_widget/domain/widget_labels_factory.dart';
 import '../../features/ramadan/domain/ramadan_mode.dart';
 import '../screens/calculation_settings_screen.dart';
@@ -205,8 +204,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     final settings = await ServiceLocator()
         .get<LocalStorage>()
         .getGeneralSettings();
-    final active = settings.ramadanMode && RamadanMode.isActive(DateTime.now());
     if (!mounted) return;
+    final todayHijri = context.read<AppState>().todaysPrayerTime?.hijri;
+    final active = settings.ramadanMode && RamadanMode.isActiveFor(todayHijri);
     setState(() => _ramadanActive = active);
     if (active) await _maybeOfferRamadanReminders();
   }
@@ -215,7 +215,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// sormaz — ısrarcı olmak istemiyoruz.
   Future<void> _maybeOfferRamadanReminders() async {
     final storage = ServiceLocator().get<LocalStorage>();
-    final hijriYear = HijriCalendar.fromDate(DateTime.now()).hYear.toString();
+    final year = context.read<AppState>().todaysPrayerTime?.hijri?.year;
+    if (year == null) return; // Hicri verisi yok: sormayı erteliyoruz
+    final hijriYear = year.toString();
     final asked = await storage.getSetting(_ramadanPromptKey);
     if (asked == hijriYear || !mounted) return;
     await storage.setSetting(_ramadanPromptKey, hijriYear);
@@ -424,6 +426,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       );
 
       logger.debug('Prayer data loaded: ${data.all.length} days');
+
+      // Ramazan modu bugünün Hicri'sinden okunur; veri yeni geldi.
+      if (mounted) await _refreshRamadanMode();
 
       await ServiceLocator().get<ReminderRescheduler>().reschedule(
         location: location,

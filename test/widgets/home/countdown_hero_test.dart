@@ -1,3 +1,4 @@
+import 'package:ezanvakti/core/models/hijri_date.dart';
 import 'package:ezanvakti/core/theme/app_typography.dart';
 import 'package:ezanvakti/core/theme/day_phase.dart';
 import 'package:ezanvakti/features/prayer_times/domain/kerahat_times.dart';
@@ -509,11 +510,25 @@ void main() {
   group('HomeDateLine', () {
     testWidgets('Miladi ve hicri tarihi ayrac ile yazar', (tester) async {
       await tester.pumpWidget(
+        wrapWithTheme(
+          HomeDateLine(
+            date: DateTime(2026, 8, 1),
+            hijri: const HijriDate(day: 18, month: 2, year: 1448),
+          ),
+        ),
+      );
+
+      expect(find.textContaining('1 Ağustos 2026'), findsOneWidget);
+      expect(find.textContaining('18 Safer 1448'), findsOneWidget);
+    });
+
+    testWidgets('Hicri yoksa yalniz miladi tarihi yazar', (tester) async {
+      await tester.pumpWidget(
         wrapWithTheme(HomeDateLine(date: DateTime(2026, 8, 1))),
       );
 
       expect(find.textContaining('1 Ağustos 2026'), findsOneWidget);
-      expect(find.textContaining('Safer'), findsOneWidget);
+      expect(find.textContaining('Safer'), findsNothing);
     });
   });
 }

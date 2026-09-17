@@ -285,8 +285,7 @@ class NotificationScheduler {
     required AppLocalizations l10n,
   }) {
     if (byDate.isEmpty) return;
-    final days = byDate.keys.toList()..sort();
-    final religiousDays = ReligiousDays.forRange(days.first, days.last);
+    final religiousDays = ReligiousDays.fromDays(byDate.values);
 
     for (final day in religiousDays) {
       final prayerTime = byDate[day.date];

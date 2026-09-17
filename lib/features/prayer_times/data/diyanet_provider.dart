@@ -43,7 +43,7 @@ class DiyanetProvider implements PrayerTimeProvider {
   });
 
   @override
-  String get providerName => 'Diyanet (vakit-api)';
+  String get providerName => 'Diyanet API';
 
   @override
   Future<List<PrayerTime>> fetchPrayerTimes({
@@ -148,7 +148,7 @@ class DiyanetProvider implements PrayerTimeProvider {
         additionalData: {'year': year},
       );
       throw ParseException(
-        message: 'vakit-api year payload is malformed',
+        message: 'Diyanet API year payload is malformed',
         originalError: e,
         stackTrace: stackTrace,
         context: 'DiyanetProvider._parseYear',
@@ -161,7 +161,7 @@ class DiyanetProvider implements PrayerTimeProvider {
         additionalData: {'year': year},
       );
       throw ParseException(
-        message: 'vakit-api year payload has unexpected types',
+        message: 'Diyanet API year payload has unexpected types',
         originalError: e,
         stackTrace: stackTrace,
         context: 'DiyanetProvider._parseYear',

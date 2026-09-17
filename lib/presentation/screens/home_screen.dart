@@ -203,7 +203,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         children: [
           const SizedBox(height: 8),
-          HomeDateLine(date: today.date),
+          HomeDateLine(date: today.date, hijri: today.hijri),
           const SizedBox(height: 20),
           if (nextTime != null && nextName != null)
             CountdownHero(
