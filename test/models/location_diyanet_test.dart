@@ -42,6 +42,20 @@ void main() {
       ).displayName,
       'İstanbul (Merkez)',
     );
+    // displayLabel yoksa yedek yol: il merkezinde tekrar eden ad tek yazılır,
+    // boş ilçe yalnız ili bırakır.
+    expect(
+      const Location(
+        id: 'a',
+        province: 'Ankara',
+        district: 'Ankara',
+      ).displayName,
+      'Ankara',
+    );
+    expect(
+      const Location(id: 'b', province: 'Ankara', district: '  ').displayName,
+      'Ankara',
+    );
   });
 
   test('JSON gidis-donus yeni alanlari korur, eski JSON okunur', () {

@@ -768,8 +768,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get locationsEmpty => 'No locations added yet';
 
   @override
-  String get locationsEmptyHint =>
-      'Detect automatically with GPS or\nsearch for an address';
+  String get locationsEmptyHint => 'Search your district or use your location';
 
   @override
   String get locationsSwipeHint =>
@@ -805,7 +804,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get locationPermissionBody =>
-      'Location access is needed to show prayer times for where you are. Granting it selects your city automatically.';
+      'Location permission is needed to find your district and show its prayer times. Your location is used only to find the nearest district.';
 
   @override
   String get locationPermissionAllow => 'Allow';
@@ -1759,4 +1758,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get locationNoCoverage =>
       'This area isn\'t supported yet; search and pick your district.';
+
+  @override
+  String locationGpsConfirm(String place) {
+    return 'Times will be shown for $place';
+  }
+
+  @override
+  String get actionConfirm => 'Confirm';
+
+  @override
+  String get locationEditChangeDistrict => 'Change district';
 }

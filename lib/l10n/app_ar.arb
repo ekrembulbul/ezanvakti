@@ -229,7 +229,7 @@
   "locationsLoading": "جارٍ تحميل المواقع…",
   "locationsLoadFailed": "تعذّر تحميل المواقع: {error}",
   "locationsEmpty": "لم تتم إضافة مواقع بعد",
-  "locationsEmptyHint": "حدّد تلقائيًا عبر GPS أو\nابحث عن عنوان",
+  "locationsEmptyHint": "ابحث عن قضائك أو استخدم موقعك",
   "locationsSwipeHint": "اسحب الصف لحذف موقع غير نشط.",
   "locationActive": "نشط",
   "locationAddTitle": "إضافة موقع",
@@ -240,7 +240,7 @@
   "locationSearchNoResult": "لا توجد نتائج.\nتحقق من اسم المحافظة أو القضاء.",
   "locationGettingPosition": "جارٍ تحديد الموقع…",
   "locationPermissionTitle": "إذن الموقع",
-  "locationPermissionBody": "نحتاج إذن الموقع لعرض أوقات الصلاة حسب مكانك. بالسماح سيتم اختيار مدينتك تلقائيًا.",
+  "locationPermissionBody": "يلزم إذن الموقع للعثور على قضائك وعرض أوقاته. يُستخدم موقعك فقط للعثور على أقرب قضاء.",
   "locationPermissionAllow": "اسمح",
   "locationServicesOff": "خدمات الموقع مغلقة. يرجى تشغيلها.",
   "locationPermissionDenied": "تم رفض إذن الموقع نهائيًا. امنحه من الإعدادات.",
@@ -507,5 +507,8 @@
   "dataSourceDiyanet": "رئاسة الشؤون الدينية (ديانت)",
   "placeAliasIncluded": "يشمل {alias}",
   "locationNeedsInternet": "إضافة موقع تتطلب اتصالاً بالإنترنت.",
-  "locationNoCoverage": "هذه المنطقة غير مدعومة بعد؛ ابحث عن قضائك واختره."
+  "locationNoCoverage": "هذه المنطقة غير مدعومة بعد؛ ابحث عن قضائك واختره.",
+  "locationGpsConfirm": "ستُعرض الأوقات لـ {place}",
+  "actionConfirm": "تأكيد",
+  "locationEditChangeDistrict": "تغيير القضاء"
 }

@@ -229,7 +229,7 @@
   "locationsLoading": "Loading locations…",
   "locationsLoadFailed": "Could not load locations: {error}",
   "locationsEmpty": "No locations added yet",
-  "locationsEmptyHint": "Detect automatically with GPS or\nsearch for an address",
+  "locationsEmptyHint": "Search your district or use your location",
   "locationsSwipeHint": "Swipe a row to delete a location that is not active.",
   "locationActive": "ACTIVE",
   "locationAddTitle": "Add location",
@@ -240,7 +240,7 @@
   "locationSearchNoResult": "No results.\nCheck the province or district name.",
   "locationGettingPosition": "Getting location…",
   "locationPermissionTitle": "Location permission",
-  "locationPermissionBody": "Location access is needed to show prayer times for where you are. Granting it selects your city automatically.",
+  "locationPermissionBody": "Location permission is needed to find your district and show its prayer times. Your location is used only to find the nearest district.",
   "locationPermissionAllow": "Allow",
   "locationServicesOff": "Location services are off. Please turn them on.",
   "locationPermissionDenied": "Location permission is permanently denied. Grant it from Settings.",
@@ -507,5 +507,8 @@
   "dataSourceDiyanet": "Presidency of Religious Affairs (Diyanet)",
   "placeAliasIncluded": "{alias} is included",
   "locationNeedsInternet": "Adding a location needs an internet connection.",
-  "locationNoCoverage": "This area isn't supported yet; search and pick your district."
+  "locationNoCoverage": "This area isn't supported yet; search and pick your district.",
+  "locationGpsConfirm": "Times will be shown for {place}",
+  "actionConfirm": "Confirm",
+  "locationEditChangeDistrict": "Change district"
 }

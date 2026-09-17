@@ -3,6 +3,8 @@ import '../../l10n/l10n_extensions.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/tokens_context.dart';
 import '../../core/models/location.dart';
+import '../../features/location/data/gps_location_service.dart';
+import '../../features/location/data/places_api.dart';
 import '../../features/location/domain/location_repository.dart';
 import '../widgets/common/app_bar_widgets.dart';
 import '../widgets/common/app_surface.dart';
@@ -15,12 +17,16 @@ import 'location_edit_screen.dart';
 
 class LocationListScreen extends StatefulWidget {
   final LocationRepository locationRepository;
+  final PlacesApi placesApi;
+  final GpsLocationService gpsService;
   final Location? currentLocation;
   final Function(Location) onLocationSelected;
 
   const LocationListScreen({
     super.key,
     required this.locationRepository,
+    required this.placesApi,
+    required this.gpsService,
     required this.currentLocation,
     required this.onLocationSelected,
   });
@@ -60,6 +66,8 @@ class _LocationListScreenState extends State<LocationListScreen> {
       MaterialPageRoute(
         builder: (context) => LocationAddScreen(
           locationRepository: widget.locationRepository,
+          placesApi: widget.placesApi,
+          gpsService: widget.gpsService,
           fromLocationList: true,
         ),
       ),
@@ -79,6 +87,7 @@ class _LocationListScreenState extends State<LocationListScreen> {
       MaterialPageRoute(
         builder: (context) => LocationEditScreen(
           locationRepository: widget.locationRepository,
+          placesApi: widget.placesApi,
           location: location,
         ),
       ),

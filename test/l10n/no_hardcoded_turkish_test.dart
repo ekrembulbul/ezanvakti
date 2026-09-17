@@ -67,8 +67,6 @@ void main() {
 
   /// Çevrilmemesi **doğru** olan yerler.
   const allowed = <String, String>{
-    'lib/features/location/data/photon_geocoding_service.dart':
-        'User-Agent başlığı sunucuya gider, kullanıcıya gösterilmez.',
     'lib/presentation/services/calendar_share_service.dart':
         'Dosya adı ASCII bir slug; çeviriyle değişmemesi gerekiyor.',
   };

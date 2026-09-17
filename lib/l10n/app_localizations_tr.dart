@@ -765,8 +765,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get locationsEmpty => 'Henüz konum eklenmedi';
 
   @override
-  String get locationsEmptyHint =>
-      'GPS ile otomatik tespit edin veya\nadres arayarak konum seçin';
+  String get locationsEmptyHint => 'İlçeni ara ya da konumunu kullan';
 
   @override
   String get locationsSwipeHint =>
@@ -802,7 +801,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get locationPermissionBody =>
-      'Namaz vakitlerini bulunduğunuz konuma göre gösterebilmek için konum iznine ihtiyaç var. İzni vererek bulunduğunuz il/ilçe otomatik seçilecektir.';
+      'Bulunduğun ilçeyi bulup vakitleri ona göre göstermek için konum iznine ihtiyaç var. Konumun yalnız en yakın ilçeyi bulmak için kullanılır.';
 
   @override
   String get locationPermissionAllow => 'İzin Ver';
@@ -1752,4 +1751,15 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get locationNoCoverage =>
       'Bu bölge henüz desteklenmiyor; ilçeni ara ve seç.';
+
+  @override
+  String locationGpsConfirm(String place) {
+    return 'Vakitler $place için gösterilecek';
+  }
+
+  @override
+  String get actionConfirm => 'Onayla';
+
+  @override
+  String get locationEditChangeDistrict => 'İlçeyi değiştir';
 }

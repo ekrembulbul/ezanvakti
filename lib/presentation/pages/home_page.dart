@@ -34,6 +34,7 @@ import '../screens/prayer_tune_screen.dart';
 import '../screens/location_list_screen.dart';
 import '../screens/reminders_screen.dart';
 import '../../features/location/data/gps_location_service.dart';
+import '../../features/location/data/places_api.dart';
 import '../utils/location_error_text.dart';
 import '../services/data_loader_service.dart';
 import '../services/day_rollover.dart';
@@ -563,6 +564,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       MaterialPageRoute(
         builder: (context) => LocationListScreen(
           locationRepository: locationRepository,
+          placesApi: ServiceLocator().get<PlacesApi>(),
+          gpsService: _locationService,
           currentLocation: appState.activeLocation,
           onLocationSelected: (location) async {
             await _switchLocation(location);

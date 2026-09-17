@@ -5,21 +5,27 @@ import '../../core/models/location.dart';
 import '../../core/theme/app_tokens.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/tokens_context.dart';
+import '../../features/location/data/places_api.dart';
 import '../../features/location/domain/location_repository.dart';
 import '../widgets/common/app_bar_widgets.dart';
 import '../widgets/common/app_surface.dart';
+import '../widgets/location/place_search_panel.dart';
 
-/// Kayıtlı bir konumun özel adını düzenler.
+/// Kayıtlı bir konumun özel adını ve ilçesini düzenler.
 ///
-/// Konumun yeri (ilçe/koordinat) burada değişmez; güncellenmiş konum geri
-/// döndürülür ki çağıran taraf (aktifse) ekranı tazeleyebilsin.
+/// İlçe değişirse kayıt kimliği korunur, koordinat yeni ilçenin merkezi olur
+/// (GPS kaydında cihaz koordinatı kalır) ve o kimliğin vakit önbelleği
+/// temizlenir. Güncellenmiş konum geri döndürülür ki çağıran taraf (aktifse)
+/// yeniden yükleyip planlamayı tazeleyebilsin.
 class LocationEditScreen extends StatefulWidget {
   final LocationRepository locationRepository;
+  final PlacesApi placesApi;
   final Location location;
 
   const LocationEditScreen({
     super.key,
     required this.locationRepository,
+    required this.placesApi,
     required this.location,
   });
 
@@ -29,6 +35,10 @@ class LocationEditScreen extends StatefulWidget {
 
 class _LocationEditScreenState extends State<LocationEditScreen> {
   late final TextEditingController _customNameController;
+
+  /// Arama panelinden seçilen yeni ilçe; `null` ise ilçe değişmiyor.
+  PlaceMatch? _replacement;
+  bool _picking = false;
 
   @override
   void initState() {
@@ -47,14 +57,34 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
     super.dispose();
   }
 
+  /// Kaydedilecek konum: ilçe değiştiyse yeni ilçe (kimlik ve GPS koordinatı
+  /// korunur), değilse mevcut kayıt.
+  Location _base() {
+    final original = widget.location;
+    final replacement = _replacement;
+    if (replacement == null) return original;
+    final keepDeviceCoordinates = original.type == LocationType.gps;
+    return replacement.toLocation(
+      type: original.type,
+      id: original.id,
+      latitude: keepDeviceCoordinates ? original.latitude : null,
+      longitude: keepDeviceCoordinates ? original.longitude : null,
+    );
+  }
+
   Future<void> _save() async {
     final customName = _customNameController.text.trim();
+    final base = _base();
     // copyWith `??` ile null'ı yazamaz: özel ad silindiyse açık kurulum.
     final updated = customName.isEmpty
-        ? _withoutCustomName(widget.location)
-        : widget.location.copyWith(customName: customName);
+        ? _withoutCustomName(base)
+        : base.copyWith(customName: customName);
+    final districtChanged = updated.cityId != widget.location.cityId;
 
     try {
+      if (districtChanged) {
+        await widget.locationRepository.clearPrayerTimeCache(updated.id);
+      }
       await widget.locationRepository.updateLocation(updated);
       if (mounted) Navigator.of(context).pop(updated);
     } catch (e) {
@@ -98,29 +128,76 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
       body: AppSurface(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Expanded(
-                child: ListView(
-                  children: [
-                    _buildLocationHeader(),
-                    const SizedBox(height: 24),
-                    _buildCustomNameField(),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              _buildSaveButton(),
-            ],
-          ),
+          child: _picking ? _buildPicker() : _buildForm(),
         ),
       ),
     );
   }
 
+  Widget _buildForm() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: ListView(
+            children: [
+              _buildLocationHeader(),
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: () => setState(() => _picking = true),
+                  icon: const Icon(Icons.search_rounded, size: 16),
+                  label: Text(context.l10n.locationEditChangeDistrict),
+                  style: TextButton.styleFrom(foregroundColor: tokens.accent),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _buildCustomNameField(),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        _buildSaveButton(),
+      ],
+    );
+  }
+
+  Widget _buildPicker() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: PlaceSearchPanel(
+            api: widget.placesApi,
+            onSelected: (match) => setState(() {
+              _replacement = match;
+              _picking = false;
+            }),
+          ),
+        ),
+        const SizedBox(height: 12),
+        OutlinedButton(
+          onPressed: () => setState(() => _picking = false),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: tokens.textSecondary,
+            side: BorderSide(color: tokens.border),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+          child: Text(context.l10n.actionBack),
+        ),
+      ],
+    );
+  }
+
   Widget _buildLocationHeader() {
-    final location = widget.location;
+    // Yeni ilçe seçildiyse başlık onu gösterir; özel ad kaydettikten sonra.
+    final location = _replacement == null
+        ? widget.location
+        : _withoutCustomName(_base());
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

@@ -1477,7 +1477,7 @@ abstract class AppLocalizations {
   /// Boş durum
   ///
   /// In tr, this message translates to:
-  /// **'GPS ile otomatik tespit edin veya\nadres arayarak konum seçin'**
+  /// **'İlçeni ara ya da konumunu kullan'**
   String get locationsEmptyHint;
 
   /// İpucu
@@ -1543,7 +1543,7 @@ abstract class AppLocalizations {
   /// Diyalog gövdesi
   ///
   /// In tr, this message translates to:
-  /// **'Namaz vakitlerini bulunduğunuz konuma göre gösterebilmek için konum iznine ihtiyaç var. İzni vererek bulunduğunuz il/ilçe otomatik seçilecektir.'**
+  /// **'Bulunduğun ilçeyi bulup vakitleri ona göre göstermek için konum iznine ihtiyaç var. Konumun yalnız en yakın ilçeyi bulmak için kullanılır.'**
   String get locationPermissionBody;
 
   /// Düğme
@@ -3147,6 +3147,24 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bu bölge henüz desteklenmiyor; ilçeni ara ve seç.'**
   String get locationNoCoverage;
+
+  /// GPS çözümleme sonrası onay bandı
+  ///
+  /// In tr, this message translates to:
+  /// **'Vakitler {place} için gösterilecek'**
+  String locationGpsConfirm(String place);
+
+  /// Onay düğmesi
+  ///
+  /// In tr, this message translates to:
+  /// **'Onayla'**
+  String get actionConfirm;
+
+  /// Konum düzenleme: ilçe arama panelini açar
+  ///
+  /// In tr, this message translates to:
+  /// **'İlçeyi değiştir'**
+  String get locationEditChangeDistrict;
 }
 
 class _AppLocalizationsDelegate

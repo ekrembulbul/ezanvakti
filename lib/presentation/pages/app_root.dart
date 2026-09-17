@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../../core/providers/app_state.dart';
 import '../../core/di/service_locator.dart';
 import '../../core/theme/tokens_context.dart';
+import '../../features/location/data/gps_location_service.dart';
+import '../../features/location/data/places_api.dart';
 import '../../features/location/domain/location_repository.dart';
 import '../screens/location_add_screen.dart';
 import 'home_page.dart';
@@ -63,8 +65,12 @@ class _AppRootState extends State<AppRoot> {
         if (appState.hasActiveLocation) {
           return HomePage(key: ValueKey(appState.activeLocation?.id));
         } else {
-          final locationRepository = ServiceLocator().get<LocationRepository>();
-          return LocationAddScreen(locationRepository: locationRepository);
+          final locator = ServiceLocator();
+          return LocationAddScreen(
+            locationRepository: locator.get<LocationRepository>(),
+            placesApi: locator.get<PlacesApi>(),
+            gpsService: locator.get<GpsLocationService>(),
+          );
         }
       },
     );

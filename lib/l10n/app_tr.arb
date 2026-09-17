@@ -1014,7 +1014,7 @@
   "@locationsEmpty": {
     "description": "Boş durum"
   },
-  "locationsEmptyHint": "GPS ile otomatik tespit edin veya\nadres arayarak konum seçin",
+  "locationsEmptyHint": "İlçeni ara ya da konumunu kullan",
   "@locationsEmptyHint": {
     "description": "Boş durum"
   },
@@ -1058,7 +1058,7 @@
   "@locationPermissionTitle": {
     "description": "Diyalog başlığı"
   },
-  "locationPermissionBody": "Namaz vakitlerini bulunduğunuz konuma göre gösterebilmek için konum iznine ihtiyaç var. İzni vererek bulunduğunuz il/ilçe otomatik seçilecektir.",
+  "locationPermissionBody": "Bulunduğun ilçeyi bulup vakitleri ona göre göstermek için konum iznine ihtiyaç var. Konumun yalnız en yakın ilçeyi bulmak için kullanılır.",
   "@locationPermissionBody": {
     "description": "Diyalog gövdesi"
   },
@@ -2309,5 +2309,11 @@
   "locationNeedsInternet": "Konum eklemek için internet gerekli.",
   "@locationNeedsInternet": {"description": "Arama/GPS çözümleme sunucuya ulaşamadı"},
   "locationNoCoverage": "Bu bölge henüz desteklenmiyor; ilçeni ara ve seç.",
-  "@locationNoCoverage": {"description": "GPS koordinatı sunucunun kapsamı (Türkiye) dışında"}
+  "@locationNoCoverage": {"description": "GPS koordinatı sunucunun kapsamı (Türkiye) dışında"},
+  "locationGpsConfirm": "Vakitler {place} için gösterilecek",
+  "@locationGpsConfirm": {"description": "GPS çözümleme sonrası onay bandı", "placeholders": {"place": {"type": "String"}}},
+  "actionConfirm": "Onayla",
+  "@actionConfirm": {"description": "Onay düğmesi"},
+  "locationEditChangeDistrict": "İlçeyi değiştir",
+  "@locationEditChangeDistrict": {"description": "Konum düzenleme: ilçe arama panelini açar"}
 }

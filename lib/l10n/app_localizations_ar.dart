@@ -763,7 +763,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get locationsEmpty => 'لم تتم إضافة مواقع بعد';
 
   @override
-  String get locationsEmptyHint => 'حدّد تلقائيًا عبر GPS أو\nابحث عن عنوان';
+  String get locationsEmptyHint => 'ابحث عن قضائك أو استخدم موقعك';
 
   @override
   String get locationsSwipeHint => 'اسحب الصف لحذف موقع غير نشط.';
@@ -798,7 +798,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get locationPermissionBody =>
-      'نحتاج إذن الموقع لعرض أوقات الصلاة حسب مكانك. بالسماح سيتم اختيار مدينتك تلقائيًا.';
+      'يلزم إذن الموقع للعثور على قضائك وعرض أوقاته. يُستخدم موقعك فقط للعثور على أقرب قضاء.';
 
   @override
   String get locationPermissionAllow => 'اسمح';
@@ -1740,4 +1740,15 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get locationNoCoverage =>
       'هذه المنطقة غير مدعومة بعد؛ ابحث عن قضائك واختره.';
+
+  @override
+  String locationGpsConfirm(String place) {
+    return 'ستُعرض الأوقات لـ $place';
+  }
+
+  @override
+  String get actionConfirm => 'تأكيد';
+
+  @override
+  String get locationEditChangeDistrict => 'تغيير القضاء';
 }
