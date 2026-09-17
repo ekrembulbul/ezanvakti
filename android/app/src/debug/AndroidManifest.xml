@@ -4,4 +4,8 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Yalnızca debug: yerel vakit-api sunucusu düz HTTP (10.0.2.2:8080) ile
+         konuşur; Android 9+ cleartext'i varsayılan olarak engeller. Release
+         manifest'ine merge edilmez; üretim adresi HTTPS'tir. -->
+    <application android:usesCleartextTraffic="true" />
 </manifest>

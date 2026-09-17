@@ -107,6 +107,10 @@ Android emülatöründe host makine için:
 flutter run --dart-define=VAKIT_API_BASE_URL=http://10.0.2.2:8080
 ```
 
+Düz HTTP yalnız debug'da çalışır: `android/app/src/debug/AndroidManifest.xml` cleartext'e izin verir,
+release manifest'i vermez (üretim adresi HTTPS). iOS simülatöründe `127.0.0.1` için ATS istisnası
+gerekirse yalnız debug yapılandırmasına eklenir.
+
 Sürüm derlemeleri üretim adresini GitHub Actions'tan alır: `.github/workflows/android-play.yml` ve
 `ios-testflight.yml`, `flutter build ...` komutuna `--dart-define=VAKIT_API_BASE_URL=${{ vars.VAKIT_API_BASE_URL }}`
 geçer ve değişken boşsa build'i durdurur. Değeri GitHub → Settings → Secrets and variables → Actions →
