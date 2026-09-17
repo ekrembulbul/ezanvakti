@@ -79,12 +79,13 @@ class PrayerTimesRepository {
       );
 
       if (remoteTimes.isNotEmpty) {
-        // Önbelleğe **ham** veri yazılır; düzeltme okurken uygulanır.
+        // Önbelleğe **ham** veri yazılır; düzeltme okurken uygulanır. Sağlayıcı
+        // yılın tamamını verebilir (Diyanet): hepsi yazılır, pencere kesilir.
         logger.debug('Saving ${remoteTimes.length} days to cache');
         await _saveCache(remoteTimes, location.id, generation);
       }
 
-      return await _tuned(remoteTimes);
+      return await _tuned(_withinWindow(remoteTimes, startDate, endDate));
     } catch (e) {
       logger.warning('Remote fetch failed, attempting fallback to cache', e);
       final cachedTimes = await storage.getPrayerTimes(
@@ -228,6 +229,23 @@ class PrayerTimesRepository {
 
     final difference = DateTime.now().difference(lastUpdate);
     return difference > staleDuration;
+  }
+
+  /// Sağlayıcı istenen aralıktan fazlasını döndüğünde (yıllık dosya) çağırana
+  /// yalnız [start]–[end] arasındaki günler verilir.
+  static List<PrayerTime> _withinWindow(
+    List<PrayerTime> times,
+    DateTime start,
+    DateTime end,
+  ) {
+    final from = DateTime(start.year, start.month, start.day);
+    final to = DateTime(end.year, end.month, end.day);
+    return times
+        .where((t) {
+          final day = DateTime(t.date.year, t.date.month, t.date.day);
+          return !day.isBefore(from) && !day.isAfter(to);
+        })
+        .toList(growable: false);
   }
 
   bool _isCacheComplete(
