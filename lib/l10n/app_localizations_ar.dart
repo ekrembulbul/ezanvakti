@@ -1736,4 +1736,8 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get locationNeedsInternet => 'إضافة موقع تتطلب اتصالاً بالإنترنت.';
+
+  @override
+  String get locationNoCoverage =>
+      'هذه المنطقة غير مدعومة بعد؛ ابحث عن قضائك واختره.';
 }

@@ -1,10 +1,12 @@
 import 'dart:async';
+
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:geolocator/geolocator.dart';
-import 'package:geocoding/geocoding.dart' hide Location;
+
 import '../../../core/models/location.dart';
 import '../../../core/utils/app_logger.dart';
-import '../../../l10n/device_localizations.dart';
-import '../data/gps_label.dart';
+import '../data/gps_location_service.dart';
+import '../data/places_api.dart';
 import 'location_repository.dart';
 
 /// GPS karşılaştırması için gereken tek şey koordinat; `Position`'ın kalan
@@ -45,13 +47,14 @@ bool isSignificantLocationChange({
   return distance >= kSignificantDistanceMeters;
 }
 
+/// Arka planda GPS'i izler; önemli bir yer değişiminde koordinatı sunucuda
+/// ilçeye çözer. Vakit ilçeye bağlı olduğu için yalnız `cityId` değişince
+/// konum "değişmiş" sayılır: önbellek temizlenir ve [onLocationChanged]
+/// yayılır. Aynı ilçe içindeki hareket sessizce koordinatı tazeler (kıble).
 class LocationMonitorService {
   final LocationRepository locationRepository;
+  final GpsLocationService gps;
   final AppLogger logger = AppLogger();
-
-  // GPS konumu tek satır olarak saklanır; saveOrUpdateGpsLocation aynı kaydı
-  // günceller, bu yüzden sabit bir kimlik yeterli.
-  static const String _gpsLocationId = 'gps';
 
   StreamSubscription<Position>? _positionStreamSubscription;
   Coordinates? _lastCoordinates;
@@ -60,7 +63,7 @@ class LocationMonitorService {
   final _locationChangeController = StreamController<Location>.broadcast();
   Stream<Location> get onLocationChanged => _locationChangeController.stream;
 
-  LocationMonitorService({required this.locationRepository});
+  LocationMonitorService({required this.locationRepository, required this.gps});
 
   Future<void> startMonitoring() async {
     logger.debug('Starting GPS location monitoring');
@@ -80,8 +83,7 @@ class LocationMonitorService {
 
       // Referansı kayıtlı konumdan tohumla. Aksi halde açılıştaki ilk fix
       // karşılaştıracak bir şey bulamayıp her zaman "önemli değişim" sayılır;
-      // kullanıcı yerinden kımıldamasa bile önbellek yenilenir ve ekran
-      // yeniden yüklenir.
+      // kullanıcı yerinden kımıldamasa bile sunucuya sorulur.
       final latitude = gpsLocation.latitude;
       final longitude = gpsLocation.longitude;
       if (latitude != null && longitude != null) {
@@ -95,7 +97,10 @@ class LocationMonitorService {
               distanceFilter: 1000, // Update every 1km movement
             ),
           ).listen(
-            _onPositionChanged,
+            (position) => handleFix((
+              latitude: position.latitude,
+              longitude: position.longitude,
+            )),
             onError: (error) {
               logger.error('Location stream error', error);
             },
@@ -113,96 +118,65 @@ class LocationMonitorService {
         permission == LocationPermission.whileInUse;
   }
 
-  Future<void> _onPositionChanged(Position position) async {
+  /// Bir GPS fix'ini işler. Akıştan çağrılır; testler doğrudan çağırır.
+  @visibleForTesting
+  Future<void> handleFix(Coordinates current, {DateTime? now}) async {
+    final at = now ?? DateTime.now();
     try {
-      final current = (
-        latitude: position.latitude,
-        longitude: position.longitude,
-      );
       if (!isSignificantLocationChange(
         previous: _lastCoordinates,
         current: current,
         lastUpdate: _lastUpdateTime,
-        now: DateTime.now(),
+        now: at,
       )) {
         return;
       }
 
-      // Note: GPS coordinates are intentionally not logged (privacy).
+      // Koordinat log'lanmaz (gizlilik).
       logger.debug('Significant location change detected');
 
-      final newLocation = await _getLocationFromCoordinates(
-        position.latitude,
-        position.longitude,
-      );
-
-      if (newLocation != null) {
-        final existingGpsLocation = await locationRepository.getGpsLocation();
-
-        if (existingGpsLocation != null &&
-            existingGpsLocation.province == newLocation.province &&
-            existingGpsLocation.district == newLocation.district) {
-          logger.debug('GPS location unchanged, skipping update');
-          _lastCoordinates = current;
-          _lastUpdateTime = DateTime.now();
-          return;
-        }
-
-        final gpsLocation = newLocation.copyWith(
-          type: LocationType.gps,
-          latitude: position.latitude,
-          longitude: position.longitude,
+      final existing = await locationRepository.getGpsLocation();
+      final GpsResolution resolution;
+      try {
+        resolution = await gps.resolve(
+          current.latitude,
+          current.longitude,
+          customName: existing?.customName,
         );
-
-        final saved = await locationRepository.saveOrUpdateGpsLocation(
-          gpsLocation,
-        );
-
+      } on NoCoverageException {
+        // Türkiye dışı: eski ilçe kalır; bu fix referans olur, tekrar sorulmaz.
+        logger.info('GPS fix outside coverage; keeping previous district');
         _lastCoordinates = current;
-        _lastUpdateTime = DateTime.now();
-
-        // Repository, koordinat değişiminde tüm dönemlerin cache'ini yeni
-        // konum yayımlanmadan önce geçersizleştirir. Home'un kısa yükleme
-        // penceresi gelecekteki imsakiye aylarını tek başına yenileyemez.
-        _locationChangeController.add(saved);
-
-        logger.debug('GPS location updated: ${saved.displayName}');
+        _lastUpdateTime = at;
+        return;
+      } on Exception catch (e) {
+        // Ağ yok: referans güncellenmez, bir sonraki fix yeniden dener.
+        logger.debug('GPS resolve skipped', e);
+        return;
       }
+
+      _lastCoordinates = current;
+      _lastUpdateTime = at;
+
+      final saved = await locationRepository.saveOrUpdateGpsLocation(
+        resolution.location,
+      );
+      if (existing != null && existing.cityId == saved.cityId) {
+        // Aynı ilçe: koordinat kıble için yazıldı; önbellek ve planlama geçerli.
+        final active = await locationRepository.getActiveLocation();
+        if (active?.id == saved.id) {
+          await locationRepository.setActiveLocation(saved);
+        }
+        logger.debug('GPS district unchanged, coordinates refreshed');
+        return;
+      }
+
+      // Repository ilçe değişiminde önbelleği yeni konum yayımlanmadan önce
+      // geçersizleştirdi; dinleyici vakitleri yeniden çeker.
+      _locationChangeController.add(saved);
+      logger.debug('GPS location updated: ${saved.displayName}');
     } catch (e) {
       logger.error('Failed to process location change', e);
-    }
-  }
-
-  Future<Location?> _getLocationFromCoordinates(
-    double latitude,
-    double longitude,
-  ) async {
-    try {
-      List<Placemark> placemarks = await placemarkFromCoordinates(
-        latitude,
-        longitude,
-      );
-
-      if (placemarks.isEmpty) return null;
-
-      final l10n = await deviceLocalizations();
-      final label = resolveGpsLabel(
-        placemarks.first,
-        fallbackLabel: l10n.locationTypeGps,
-      );
-
-      // Ham GPS koordinatı doğrudan kullanılır; il/ilçe yalnızca etikettir.
-      return Location(
-        id: _gpsLocationId,
-        province: label.province,
-        district: label.district,
-        latitude: latitude,
-        longitude: longitude,
-        type: LocationType.gps,
-      );
-    } catch (e) {
-      logger.error('Reverse geocoding failed', e);
-      return null;
     }
   }
 

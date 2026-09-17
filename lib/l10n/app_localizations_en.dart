@@ -1755,4 +1755,8 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get locationNeedsInternet =>
       'Adding a location needs an internet connection.';
+
+  @override
+  String get locationNoCoverage =>
+      'This area isn\'t supported yet; search and pick your district.';
 }

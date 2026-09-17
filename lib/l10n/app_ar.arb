@@ -506,5 +506,6 @@
   "settingsPrayerTune": "تعديل الأوقات",
   "dataSourceDiyanet": "رئاسة الشؤون الدينية (ديانت)",
   "placeAliasIncluded": "يشمل {alias}",
-  "locationNeedsInternet": "إضافة موقع تتطلب اتصالاً بالإنترنت."
+  "locationNeedsInternet": "إضافة موقع تتطلب اتصالاً بالإنترنت.",
+  "locationNoCoverage": "هذه المنطقة غير مدعومة بعد؛ ابحث عن قضائك واختره."
 }

@@ -506,5 +506,6 @@
   "settingsPrayerTune": "Time adjustment",
   "dataSourceDiyanet": "Presidency of Religious Affairs (Diyanet)",
   "placeAliasIncluded": "{alias} is included",
-  "locationNeedsInternet": "Adding a location needs an internet connection."
+  "locationNeedsInternet": "Adding a location needs an internet connection.",
+  "locationNoCoverage": "This area isn't supported yet; search and pick your district."
 }

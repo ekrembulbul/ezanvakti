@@ -2307,5 +2307,7 @@
   "placeAliasIncluded": "{alias} buna dahil",
   "@placeAliasIncluded": {"description": "Arama sonucunda eşanlam: seçilen ilçe bu adı kapsar", "placeholders": {"alias": {"type": "String"}}},
   "locationNeedsInternet": "Konum eklemek için internet gerekli.",
-  "@locationNeedsInternet": {"description": "Arama/GPS çözümleme sunucuya ulaşamadı"}
+  "@locationNeedsInternet": {"description": "Arama/GPS çözümleme sunucuya ulaşamadı"},
+  "locationNoCoverage": "Bu bölge henüz desteklenmiyor; ilçeni ara ve seç.",
+  "@locationNoCoverage": {"description": "GPS koordinatı sunucunun kapsamı (Türkiye) dışında"}
 }

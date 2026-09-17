@@ -3141,6 +3141,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Konum eklemek için internet gerekli.'**
   String get locationNeedsInternet;
+
+  /// GPS koordinatı sunucunun kapsamı (Türkiye) dışında
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu bölge henüz desteklenmiyor; ilçeni ara ve seç.'**
+  String get locationNoCoverage;
 }
 
 class _AppLocalizationsDelegate

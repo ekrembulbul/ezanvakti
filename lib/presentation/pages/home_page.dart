@@ -1,5 +1,4 @@
 import 'dart:async';
-import '../../l10n/app_localizations.dart';
 import '../../l10n/l10n_extensions.dart';
 import 'package:flutter/foundation.dart';
 
@@ -34,7 +33,8 @@ import '../../features/ramadan/domain/ramadan_mode.dart';
 import '../screens/prayer_tune_screen.dart';
 import '../screens/location_list_screen.dart';
 import '../screens/reminders_screen.dart';
-import '../services/location_service.dart';
+import '../../features/location/data/gps_location_service.dart';
+import '../utils/location_error_text.dart';
 import '../services/data_loader_service.dart';
 import '../services/day_rollover.dart';
 import '../../core/interfaces/widget_publisher.dart';
@@ -91,7 +91,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     _imsakiyeLoader = ImsakiyeRepository(
       ServiceLocator().get<PrayerTimesRepository>(),
     ).load;
-    _locationService = GpsLocationService();
+    _locationService = ServiceLocator().get<GpsLocationService>();
     _dataLoaderService = DataLoaderService(
       prayerTimesRepository: ServiceLocator().get<PrayerTimesRepository>(),
       notificationService: ServiceLocator().get<NotificationService>(),
@@ -313,13 +313,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     try {
       logger.debug('Manual GPS refresh triggered');
 
-      final gpsLocation = await _locationService.getCurrentGpsLocation(
-        fallbackLabel: l10n.gpsFallbackLabel,
-      );
+      final resolution = await _locationService.locate();
 
       final locationRepository = ServiceLocator().get<LocationRepository>();
       final savedLocation = await locationRepository.saveOrUpdateGpsLocation(
-        gpsLocation,
+        resolution.location,
       );
       await locationRepository.setActiveLocation(savedLocation);
       appState.setActiveLocation(savedLocation);
@@ -331,7 +329,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           ..clearSnackBars()
           ..showSnackBar(
             SnackBar(
-              content: Text(context.l10n.gpsUpdated(gpsLocation.displayName)),
+              content: Text(context.l10n.gpsUpdated(savedLocation.displayName)),
             ),
           );
       }
@@ -344,7 +342,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           ..clearSnackBars()
           ..showSnackBar(
             SnackBar(
-              content: Text(l10n.errorGpsRefresh(_gpsErrorText(l10n, e))),
+              content: Text(l10n.errorGpsRefresh(locationErrorText(l10n, e))),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
@@ -354,16 +352,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         setState(() => _isRefreshingGps = false);
       }
     }
-  }
-
-  /// GPS servisi kullaniciya gosterilecek metni degil, kararli bir teshis
-  /// anahtari firlatir; karsiligi burada seciliyor.
-  String _gpsErrorText(AppLocalizations l10n, Object error) {
-    final text = error.toString().replaceAll('Exception: ', '');
-    if (text == GpsLocationService.permissionRequiredKey) {
-      return l10n.errorLocationPermission;
-    }
-    return text;
   }
 
   /// Vakit penceresini yükler ve bildirim/alarm planlamasını tazeler.

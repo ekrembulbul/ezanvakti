@@ -1748,4 +1748,8 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get locationNeedsInternet => 'Konum eklemek için internet gerekli.';
+
+  @override
+  String get locationNoCoverage =>
+      'Bu bölge henüz desteklenmiyor; ilçeni ara ve seç.';
 }
