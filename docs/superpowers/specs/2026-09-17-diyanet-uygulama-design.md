@@ -23,7 +23,7 @@ uygulama değişmeden gelir (ülke seçici o zaman eklenir).
 | B5 | Hicri tarih yalnız Diyanet verisinden; `hijri` paketi kaldırılır, veri olmayan gün için tahmin yapılmaz | Bir gün kayma (1 Ramazan 1447 örneği) bitmeli (kullanıcı kararı) |
 | B6 | Aladhan sağlayıcısı, Photon adres araması, cihaz ters-geocode'u, yöntem katalogları ve ülke→yöntem varsayılanları silinir | Ölü yol bırakılmaz; üçüncü tarafa koordinat gitmez |
 | B7 | Mevcut kayıtlar güncelleme sonrası ilk açılışta sunucuda ada göre eşlenir; belirsizler tek seferlik doğrulama ekranında seçtirilir; Türkiye dışı kayıtlar desteklenmez | Kullanıcı veri kaybetmeden geçer |
-| B8 | Sunucu adresi derleme zamanı sabiti (`--dart-define=VAKIT_API_BASE_URL`, varsayılan üretim adresi); TLS Cloudflare'de | Yerel sunucuya karşı geliştirme |
+| B8 | Sunucu adresi derleme zamanı sabiti (`--dart-define=VAKIT_API_BASE_URL`; varsayılan yerel geliştirme adresi `http://127.0.0.1:8080`, üretim adresi sürüm derlemesinde define ile geçilir — domain kurulum sonrası); TLS Cloudflare'de | Yerel sunucuya karşı geliştirme |
 
 ## Kapsam
 

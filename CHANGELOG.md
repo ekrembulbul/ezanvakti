@@ -4,6 +4,15 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [Unreleased]
+
+### Değişti
+- Vakit veri katmanı Diyanet il/ilçe modeline hazırlandı: konumlar Diyanet ilçe kimliği taşır, vakitler `vakit-api`'den yıllık dosya olarak Hicri tarihle birlikte önbelleğe alınır (şema 15). Hicri tarih artık cihazda hesaplanmaz, Diyanet verisinden gösterilir; veri yoksa gösterilmez. Ramazan modu ve dinî gün bildirimleri de aynı veriden beslenir.
+- Kayıtlı konumları Diyanet ilçesine eşleyen migrasyon servisi eklendi; ekranı ve sağlayıcı geçişi sonraki adımda.
+
+### Kaldırıldı
+- `hijri` paketi (tabular Hicri hesabı; Diyanet takviminden bir gün sapabiliyordu).
+
 ## [0.22.1] - 2026-09-15
 
 ### Değişti

@@ -96,3 +96,17 @@ make smoke                      # ağ: web kaynağıyla sync → serve → curl
 ```
 
 Dağıtım, ortam değişkenleri, cron ve Cloudflare adımları: `server/README.md`.
+
+### Uygulamayı yerel sunucuya bağlamak
+
+Uygulama vakit ve yer verisini `vakit-api`'den alır. Adres derleme zamanında verilir; varsayılan
+`http://127.0.0.1:8080` (iOS simülatörü, host makinede `make smoke` ya da `vakit serve` çalışırken).
+Android emülatöründe host makine için:
+
+```bash
+flutter run --dart-define=VAKIT_API_BASE_URL=http://10.0.2.2:8080
+```
+
+Sürüm derlemeleri üretim adresini geçer: `--dart-define=VAKIT_API_BASE_URL=https://api.<domain>`
+(`scripts/release_tag.sh` bu değeri Plan B2'de alacak). Değer `lib/core/config/vakit_api_config.dart`
+içinde okunur; kaynağa üretim adresi gömülmez.
