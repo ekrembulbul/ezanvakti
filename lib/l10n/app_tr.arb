@@ -2315,5 +2315,21 @@
   "actionConfirm": "Onayla",
   "@actionConfirm": {"description": "Onay düğmesi"},
   "locationEditChangeDistrict": "İlçeyi değiştir",
-  "@locationEditChangeDistrict": {"description": "Konum düzenleme: ilçe arama panelini açar"}
+  "@locationEditChangeDistrict": {"description": "Konum düzenleme: ilçe arama panelini açar"},
+  "migrationTitle": "Konumlarını doğrula",
+  "@migrationTitle": {"description": "Tek seferlik konum doğrulama ekranı başlığı"},
+  "migrationIntro": "Vakitler artık Diyanet'in ilçe tablosundan geliyor. Aşağıdaki kayıtlı konumlar için doğru ilçeyi seç.",
+  "@migrationIntro": {"description": "Doğrulama ekranı açıklaması"},
+  "migrationAmbiguousHint": "Birden fazla eşleşme var; doğru ilçeyi seç.",
+  "@migrationAmbiguousHint": {"description": "Belirsiz eşleşme kartı alt satırı"},
+  "migrationUnsupported": "Bu konum artık desteklenmiyor.",
+  "@migrationUnsupported": {"description": "Sunucuda karşılığı olmayan (Türkiye dışı) konum"},
+  "migrationSearchOther": "Başka ilçe ara",
+  "@migrationSearchOther": {"description": "Doğrulama kartında arama panelini açan düğme"},
+  "migrationActiveCannotDelete": "Aktif konum silinemez; bir ilçe seç.",
+  "@migrationActiveCannotDelete": {"description": "Aktif konum kartında Sil yerine gösterilen ipucu"},
+  "locationNeedsVerification": "Bu konum için ilçe doğrulaması gerekiyor. İnternete bağlanıp yeniden dene.",
+  "@locationNeedsVerification": {"description": "Ana ekran: eşlenmemiş aktif konum, çevrimdışı"},
+  "actionSelect": "Seç",
+  "@actionSelect": {"description": "Seçim düğmesi"}
 }

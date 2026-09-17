@@ -1762,4 +1762,32 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get locationEditChangeDistrict => 'İlçeyi değiştir';
+
+  @override
+  String get migrationTitle => 'Konumlarını doğrula';
+
+  @override
+  String get migrationIntro =>
+      'Vakitler artık Diyanet\'in ilçe tablosundan geliyor. Aşağıdaki kayıtlı konumlar için doğru ilçeyi seç.';
+
+  @override
+  String get migrationAmbiguousHint =>
+      'Birden fazla eşleşme var; doğru ilçeyi seç.';
+
+  @override
+  String get migrationUnsupported => 'Bu konum artık desteklenmiyor.';
+
+  @override
+  String get migrationSearchOther => 'Başka ilçe ara';
+
+  @override
+  String get migrationActiveCannotDelete =>
+      'Aktif konum silinemez; bir ilçe seç.';
+
+  @override
+  String get locationNeedsVerification =>
+      'Bu konum için ilçe doğrulaması gerekiyor. İnternete bağlanıp yeniden dene.';
+
+  @override
+  String get actionSelect => 'Seç';
 }

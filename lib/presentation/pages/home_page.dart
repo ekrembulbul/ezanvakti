@@ -32,6 +32,8 @@ import '../../features/home_widget/domain/widget_labels_factory.dart';
 import '../../features/ramadan/domain/ramadan_mode.dart';
 import '../screens/prayer_tune_screen.dart';
 import '../screens/location_list_screen.dart';
+import '../screens/location_migration_screen.dart';
+import '../../features/location/domain/location_migration_service.dart';
 import '../screens/reminders_screen.dart';
 import '../../features/location/data/gps_location_service.dart';
 import '../../features/location/data/places_api.dart';
@@ -383,6 +385,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       return;
     }
 
+    if (!location.isMapped) {
+      // Eski kayıt henüz Diyanet ilçesine bağlanmadı (açılışta ağ yoktu);
+      // vakit çekilemez. Mesaj gösterilir, eşleme yeniden denenir.
+      appState.setError(context.l10n.locationNeedsVerification);
+      appState.setRefreshing(false);
+      await _verifyLocation();
+      return;
+    }
+
     appState.setRefreshing(true);
     appState.clearError();
 
@@ -439,6 +450,39 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       logger.error('Failed to load prayer data', e);
       appState.setError(mounted ? context.l10n.errorDataLoad(e) : e.toString());
       appState.setRefreshing(false);
+    }
+  }
+
+  /// Eşlenmemiş aktif konumu yeniden eşlemeyi dener; belirsizse doğrulama
+  /// ekranını açar. Hata sessizce kalır (mesaj zaten ekranda), yenileme
+  /// tekrar dener.
+  Future<void> _verifyLocation() async {
+    final locator = ServiceLocator();
+    final repository = locator.get<LocationRepository>();
+    try {
+      final report = await locator.get<LocationMigrationService>().run();
+      if (!mounted) return;
+      if (report.needsUserInput) {
+        await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => LocationMigrationScreen(
+              report: report,
+              locationRepository: repository,
+              placesApi: locator.get<PlacesApi>(),
+              onFinished: () async {
+                if (mounted) Navigator.of(context).pop();
+              },
+            ),
+          ),
+        );
+      }
+      final active = await repository.getActiveLocation();
+      if (!mounted || active == null || !active.isMapped) return;
+      context.read<AppState>().setActiveLocation(active);
+      context.read<AppState>().clearError();
+      await _loadPrayerData(forceRefresh: true);
+    } catch (e) {
+      AppLogger().warning('Location verification deferred', e);
     }
   }
 

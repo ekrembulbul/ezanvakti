@@ -510,5 +510,13 @@
   "locationNoCoverage": "هذه المنطقة غير مدعومة بعد؛ ابحث عن قضائك واختره.",
   "locationGpsConfirm": "ستُعرض الأوقات لـ {place}",
   "actionConfirm": "تأكيد",
-  "locationEditChangeDistrict": "تغيير القضاء"
+  "locationEditChangeDistrict": "تغيير القضاء",
+  "migrationTitle": "تحقق من مواقعك",
+  "migrationIntro": "أوقات الصلاة تأتي الآن من جداول الأقضية لدى ديانت. اختر القضاء الصحيح للمواقع المحفوظة أدناه.",
+  "migrationAmbiguousHint": "هناك أكثر من تطابق؛ اختر القضاء الصحيح.",
+  "migrationUnsupported": "هذا الموقع لم يعد مدعومًا.",
+  "migrationSearchOther": "ابحث عن قضاء آخر",
+  "migrationActiveCannotDelete": "لا يمكن حذف الموقع النشط؛ اختر قضاءً.",
+  "locationNeedsVerification": "يحتاج هذا الموقع إلى التحقق من قضائه. اتصل بالإنترنت وحاول مجددًا.",
+  "actionSelect": "اختيار"
 }

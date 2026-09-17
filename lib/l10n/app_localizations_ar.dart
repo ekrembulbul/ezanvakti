@@ -1751,4 +1751,32 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get locationEditChangeDistrict => 'تغيير القضاء';
+
+  @override
+  String get migrationTitle => 'تحقق من مواقعك';
+
+  @override
+  String get migrationIntro =>
+      'أوقات الصلاة تأتي الآن من جداول الأقضية لدى ديانت. اختر القضاء الصحيح للمواقع المحفوظة أدناه.';
+
+  @override
+  String get migrationAmbiguousHint =>
+      'هناك أكثر من تطابق؛ اختر القضاء الصحيح.';
+
+  @override
+  String get migrationUnsupported => 'هذا الموقع لم يعد مدعومًا.';
+
+  @override
+  String get migrationSearchOther => 'ابحث عن قضاء آخر';
+
+  @override
+  String get migrationActiveCannotDelete =>
+      'لا يمكن حذف الموقع النشط؛ اختر قضاءً.';
+
+  @override
+  String get locationNeedsVerification =>
+      'يحتاج هذا الموقع إلى التحقق من قضائه. اتصل بالإنترنت وحاول مجددًا.';
+
+  @override
+  String get actionSelect => 'اختيار';
 }

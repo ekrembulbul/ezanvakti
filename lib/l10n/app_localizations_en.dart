@@ -1769,4 +1769,32 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get locationEditChangeDistrict => 'Change district';
+
+  @override
+  String get migrationTitle => 'Verify your locations';
+
+  @override
+  String get migrationIntro =>
+      'Prayer times now come from Diyanet\'s district tables. Pick the right district for the saved locations below.';
+
+  @override
+  String get migrationAmbiguousHint =>
+      'More than one match; pick the right district.';
+
+  @override
+  String get migrationUnsupported => 'This location is no longer supported.';
+
+  @override
+  String get migrationSearchOther => 'Search another district';
+
+  @override
+  String get migrationActiveCannotDelete =>
+      'The active location can\'t be deleted; pick a district.';
+
+  @override
+  String get locationNeedsVerification =>
+      'This location needs its district verified. Connect to the internet and try again.';
+
+  @override
+  String get actionSelect => 'Select';
 }

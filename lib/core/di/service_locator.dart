@@ -7,6 +7,7 @@ import '../../features/prayer_times/data/diyanet_provider.dart';
 import '../../features/prayer_times/data/sqlite_storage.dart';
 import '../../features/prayer_times/domain/prayer_times_repository.dart';
 import '../../features/prayer_times/domain/offline_state_manager.dart';
+import '../../features/location/domain/location_migration_service.dart';
 import '../../features/location/domain/location_repository.dart';
 import '../../features/location/domain/location_service.dart';
 import '../../features/location/domain/location_monitor_service.dart';
@@ -100,6 +101,14 @@ class ServiceLocator {
       clearPrayerCache: prayerTimesRepository.clearCacheForLocation,
     );
     register<LocationRepository>(locationRepository);
+
+    register<LocationMigrationService>(
+      LocationMigrationService(
+        storage: localStorage,
+        api: placesApi,
+        clearPrayerCache: prayerTimesRepository.clearCacheForLocation,
+      ),
+    );
 
     final notificationService = FlutterLocalNotificationService();
     await notificationService.init();

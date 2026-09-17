@@ -3165,6 +3165,54 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'İlçeyi değiştir'**
   String get locationEditChangeDistrict;
+
+  /// Tek seferlik konum doğrulama ekranı başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Konumlarını doğrula'**
+  String get migrationTitle;
+
+  /// Doğrulama ekranı açıklaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Vakitler artık Diyanet\'in ilçe tablosundan geliyor. Aşağıdaki kayıtlı konumlar için doğru ilçeyi seç.'**
+  String get migrationIntro;
+
+  /// Belirsiz eşleşme kartı alt satırı
+  ///
+  /// In tr, this message translates to:
+  /// **'Birden fazla eşleşme var; doğru ilçeyi seç.'**
+  String get migrationAmbiguousHint;
+
+  /// Sunucuda karşılığı olmayan (Türkiye dışı) konum
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu konum artık desteklenmiyor.'**
+  String get migrationUnsupported;
+
+  /// Doğrulama kartında arama panelini açan düğme
+  ///
+  /// In tr, this message translates to:
+  /// **'Başka ilçe ara'**
+  String get migrationSearchOther;
+
+  /// Aktif konum kartında Sil yerine gösterilen ipucu
+  ///
+  /// In tr, this message translates to:
+  /// **'Aktif konum silinemez; bir ilçe seç.'**
+  String get migrationActiveCannotDelete;
+
+  /// Ana ekran: eşlenmemiş aktif konum, çevrimdışı
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu konum için ilçe doğrulaması gerekiyor. İnternete bağlanıp yeniden dene.'**
+  String get locationNeedsVerification;
+
+  /// Seçim düğmesi
+  ///
+  /// In tr, this message translates to:
+  /// **'Seç'**
+  String get actionSelect;
 }
 
 class _AppLocalizationsDelegate

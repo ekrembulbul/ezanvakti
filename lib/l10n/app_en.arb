@@ -510,5 +510,13 @@
   "locationNoCoverage": "This area isn't supported yet; search and pick your district.",
   "locationGpsConfirm": "Times will be shown for {place}",
   "actionConfirm": "Confirm",
-  "locationEditChangeDistrict": "Change district"
+  "locationEditChangeDistrict": "Change district",
+  "migrationTitle": "Verify your locations",
+  "migrationIntro": "Prayer times now come from Diyanet's district tables. Pick the right district for the saved locations below.",
+  "migrationAmbiguousHint": "More than one match; pick the right district.",
+  "migrationUnsupported": "This location is no longer supported.",
+  "migrationSearchOther": "Search another district",
+  "migrationActiveCannotDelete": "The active location can't be deleted; pick a district.",
+  "locationNeedsVerification": "This location needs its district verified. Connect to the internet and try again.",
+  "actionSelect": "Select"
 }
