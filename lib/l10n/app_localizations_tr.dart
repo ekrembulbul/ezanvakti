@@ -1734,4 +1734,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get alarmCancellationPending => 'Cihazdaki alarm kaydı kaldırılamadı';
+
+  @override
+  String get settingsPrayerTune => 'Vakit düzeltme';
 }

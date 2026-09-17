@@ -1740,4 +1740,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get alarmCancellationPending =>
       'The alarm could not be removed from the device';
+
+  @override
+  String get settingsPrayerTune => 'Time adjustment';
 }

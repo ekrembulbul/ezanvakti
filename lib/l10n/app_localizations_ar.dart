@@ -1722,4 +1722,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get alarmCancellationPending => 'تعذّر إزالة المنبّه من الجهاز';
+
+  @override
+  String get settingsPrayerTune => 'تعديل الأوقات';
 }

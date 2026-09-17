@@ -10,7 +10,6 @@ import '../../core/theme/app_tokens.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/tokens_context.dart';
 import '../../core/models/location.dart' as app_location;
-import '../../core/models/regional_defaults.dart';
 import '../../core/providers/app_state.dart';
 import '../../features/location/data/gps_label.dart';
 import '../../features/location/data/photon_geocoding_service.dart';
@@ -56,7 +55,6 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
   bool _searchAttempted = false;
 
   app_location.Location? _selectedPlace;
-  String? _selectedCountryCode;
 
   // Sonuçları kullanıcının yakınına önceleyen opsiyonel bias.
   double? _biasLatitude;
@@ -130,16 +128,12 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
     FocusScope.of(context).unfocus();
     setState(() {
       _selectedPlace = suggestion.toLocation();
-      _selectedCountryCode = suggestion.countryCode;
       _searchResults = [];
     });
   }
 
   void _clearSelection() {
-    setState(() {
-      _selectedPlace = null;
-      _selectedCountryCode = null;
-    });
+    setState(() => _selectedPlace = null);
   }
 
   Future<void> _detectLocation() async {
@@ -192,7 +186,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
         longitude: position.longitude,
         type: app_location.LocationType.gps,
       );
-      await _saveAndReturn(gpsLocation, countryCode: label.countryCode);
+      await _saveAndReturn(gpsLocation);
     } catch (e) {
       setState(
         () => _locationError = e.toString().replaceAll('Exception: ', ''),
@@ -272,14 +266,8 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
     return result ?? false;
   }
 
-  Future<void> _saveAndReturn(
-    app_location.Location location, {
-    String? countryCode,
-  }) async {
+  Future<void> _saveAndReturn(app_location.Location location) async {
     try {
-      final isFirstLocation =
-          (await widget.locationRepository.getSavedLocations()).isEmpty;
-
       // Seçilen hesaplama parametreleriyle taze veri çekilsin diye, bu kimliğe
       // ait eski (olası geçersiz) önbellek temizlenir. Silinip yeniden eklenen
       // bir yerin vakit kayıtları konumla birlikte silinmediğinden bu gerekli.
@@ -289,16 +277,6 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
         await widget.locationRepository.saveOrUpdateGpsLocation(location);
       } else {
         await widget.locationRepository.saveLocation(location);
-      }
-
-      // İlk konum: global hesaplama varsayılanını ülkeye göre belirle. Kullanıcı
-      // sonradan Ayarlar > Hesaplama'dan değiştirebilir. Eşleşme yoksa mevcut
-      // varsayılan (Diyanet) korunur.
-      if (isFirstLocation) {
-        final regional = RegionalDefaults.settingsForCountryCode(countryCode);
-        if (regional != null) {
-          await widget.locationRepository.saveCalculationSettings(regional);
-        }
       }
 
       await widget.locationRepository.setActiveLocation(location);
@@ -324,21 +302,18 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
     }
 
     final customName = _customNameController.text.trim();
-    // Yeni konum global hesaplama ayarını miras alır (override yok); gerekirse
-    // sonradan düzenleme ekranından konuma özel ayarlanabilir.
     final location = place.copyWith(
       type: app_location.LocationType.manual,
       customName: customName.isEmpty ? null : customName,
     );
 
-    await _saveAndReturn(location, countryCode: _selectedCountryCode);
+    await _saveAndReturn(location);
   }
 
   void _resetManualSelection() {
     setState(() {
       _showManualSelection = false;
       _selectedPlace = null;
-      _selectedCountryCode = null;
       _searchResults = [];
       _isSearching = false;
       _searchAttempted = false;
@@ -607,27 +582,6 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
         ),
         const SizedBox(height: 8),
         _buildCustomNameField(),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Icon(
-              Icons.info_outline_rounded,
-              size: 15,
-              color: tokens.textTertiary,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                context.l10n.locationCalculationFromGlobal,
-                style: TextStyle(
-                  color: tokens.textTertiary,
-                  fontSize: 12,
-                  height: 1.4,
-                ),
-              ),
-            ),
-          ],
-        ),
       ],
     );
   }
@@ -701,10 +655,7 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
             ),
             child: Text(
               context.l10n.actionSave,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
             ),
           ),
         ),

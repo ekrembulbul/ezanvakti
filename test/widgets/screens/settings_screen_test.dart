@@ -1,6 +1,7 @@
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
 import 'package:ezanvakti/core/models/fasting_log.dart';
-import 'package:ezanvakti/core/models/notification_setting.dart' show PrayerType;
+import 'package:ezanvakti/core/models/notification_setting.dart'
+    show PrayerType;
 import 'package:ezanvakti/core/models/prayer_log.dart';
 import 'package:ezanvakti/core/models/quiet_window.dart';
 import 'package:ezanvakti/core/models/general_settings.dart';
@@ -15,7 +16,6 @@ import 'package:provider/provider.dart';
 import '../theme_harness.dart';
 
 class _InMemoryStorage implements LocalStorage {
-
   final Map<String, String> _rawSettings = {};
 
   @override
@@ -123,7 +123,10 @@ class _InMemoryStorage implements LocalStorage {
 const _location = Location(id: '1', province: 'İstanbul', district: 'Kadıköy');
 
 void main() {
-  Future<void> pumpSettings(WidgetTester tester, {VoidCallback? onCalc}) async {
+  Future<void> pumpSettings(
+    WidgetTester tester, {
+    VoidCallback? onPrayerTune,
+  }) async {
     // Ekran bolum bolum uzuyor; alt bolumlerin (Gorunum/Bilgi) testte
     // gorunur kalmasi icin yuzey uzun tutuluyor. Boyut yetmezse
     // `scrollToSettingsRow` ile kaydirilir.
@@ -144,7 +147,7 @@ void main() {
         child: wrapWithTheme(
           SettingsScreen(
             currentLocation: _location,
-            onCalculationSettings: onCalc,
+            onPrayerTune: onPrayerTune,
           ),
         ),
       ),
@@ -160,19 +163,21 @@ void main() {
     expect(find.text('BİLGİ'), findsOneWidget);
   });
 
-  testWidgets('Konum ve hesaplama satirlari gorunur', (tester) async {
+  testWidgets('Konum ve vakit duzeltme satirlari gorunur', (tester) async {
     await pumpSettings(tester);
 
     expect(find.text('Konum'), findsOneWidget);
-    expect(find.text('Hesaplama'), findsOneWidget);
+    expect(find.text('Vakit düzeltme'), findsOneWidget);
     expect(find.text('Kadıköy, İstanbul'), findsOneWidget);
   });
 
-  testWidgets('Hesaplama satirina dokunmak callback tetikler', (tester) async {
+  testWidgets('Vakit duzeltme satirina dokunmak callback tetikler', (
+    tester,
+  ) async {
     var tapped = false;
-    await pumpSettings(tester, onCalc: () => tapped = true);
+    await pumpSettings(tester, onPrayerTune: () => tapped = true);
 
-    await tester.tap(find.text('Hesaplama'));
+    await tester.tap(find.text('Vakit düzeltme'));
     expect(tapped, isTrue);
   });
 

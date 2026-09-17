@@ -3117,6 +3117,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Cihazdaki alarm kaydı kaldırılamadı'**
   String get alarmCancellationPending;
+
+  /// Ayarlar satırı: vakit başına ± dakika düzeltmesi ekranı
+  ///
+  /// In tr, this message translates to:
+  /// **'Vakit düzeltme'**
+  String get settingsPrayerTune;
 }
 
 class _AppLocalizationsDelegate

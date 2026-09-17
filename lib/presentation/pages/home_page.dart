@@ -13,7 +13,6 @@ import '../../core/interfaces/alarm_service.dart';
 import '../../core/models/mission_stop_event.dart';
 import '../screens/mission_launcher.dart';
 import '../../core/models/location.dart';
-import '../../core/models/calculation_settings.dart';
 import '../../core/interfaces/local_storage.dart';
 import '../../core/utils/app_logger.dart';
 import '../../features/prayer_times/domain/prayer_times_repository.dart';
@@ -32,7 +31,7 @@ import '../screens/quiet_windows_screen.dart';
 import '../screens/tools_screen.dart';
 import '../../features/home_widget/domain/widget_labels_factory.dart';
 import '../../features/ramadan/domain/ramadan_mode.dart';
-import '../screens/calculation_settings_screen.dart';
+import '../screens/prayer_tune_screen.dart';
 import '../screens/location_list_screen.dart';
 import '../screens/reminders_screen.dart';
 import '../services/location_service.dart';
@@ -516,7 +515,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         builder: (context) => SettingsScreen(
           currentLocation: appState.activeLocation!,
           onChangeLocation: _navigateToLocationList,
-          onCalculationSettings: _navigateToCalculationSettings,
+          onPrayerTune: _navigateToPrayerTune,
           onQuietWindows: _navigateToQuietWindows,
           onNotificationPrefsChanged: _rescheduleReminders,
         ),
@@ -544,31 +543,21 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     );
   }
 
-  void _navigateToCalculationSettings() async {
+  void _navigateToPrayerTune() async {
     final storage = ServiceLocator().get<LocalStorage>();
     final current = await storage.getCalculationSettings();
     if (!mounted) return;
 
-    final result = await Navigator.of(context).push<CalculationSettings>(
+    final tune = await Navigator.of(context).push<Map<PrayerType, int>>(
       MaterialPageRoute(
-        builder: (context) => CalculationSettingsScreen(initial: current),
+        builder: (_) => PrayerTuneScreen(initial: current.tune),
       ),
     );
+    if (tune == null || mapEquals(tune, current.tune)) return;
 
-    if (result == null || result == current) return;
-
-    await storage.saveCalculationSettings(result);
-
-    // Yalnızca vakit düzeltmesi değiştiyse önbellek hâlâ geçerli: düzeltme
-    // okurken uygulanıyor. Gereksiz yeniden fetch, rate limit riskidir.
-    final onlyTuneChanged =
-        result.copyWith(tune: current.tune) == current &&
-        !mapEquals(result.tune, current.tune);
-    if (onlyTuneChanged) {
-      await _reloadAfterTuneChange();
-      return;
-    }
-    await _applyGlobalCalculationChange();
+    await storage.saveCalculationSettings(current.copyWith(tune: tune));
+    // Veri aynı, yalnızca okunuşu değişti (ADR 0004): önbellek geçerli.
+    await _reloadAfterTuneChange();
   }
 
   /// Düzeltme değişti: veri aynı, yalnızca okunuşu değişti. Ekran, bildirim,
@@ -576,20 +565,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   Future<void> _reloadAfterTuneChange() async {
     if (mounted) setState(() => _calendarRevision++);
     await _loadPrayerData();
-  }
-
-  Future<void> _applyGlobalCalculationChange() async {
-    final appState = context.read<AppState>();
-    // Global ayar değişti: tüm "inherit" konumların önbelleği geçersiz.
-    await ServiceLocator().get<PrayerTimesRepository>().clearAllCache();
-    if (mounted) setState(() => _calendarRevision++);
-    await ServiceLocator().get<NotificationService>().cancelAllNotifications();
-
-    appState.clearPrayerTimes();
-    appState.setTodaysPrayerTime(null);
-    appState.setTomorrowsPrayerTime(null);
-
-    await _loadPrayerData(forceRefresh: true);
   }
 
   void _navigateToLocationList() async {

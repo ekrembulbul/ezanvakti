@@ -20,7 +20,7 @@ class SettingsScreen extends StatefulWidget {
   final Location currentLocation;
   final String dataSource;
   final VoidCallback? onChangeLocation;
-  final VoidCallback? onCalculationSettings;
+  final VoidCallback? onPrayerTune;
   final VoidCallback? onQuietWindows;
 
   /// Bildirim tercihleri değişince planlamayı tazelemek için.
@@ -34,7 +34,7 @@ class SettingsScreen extends StatefulWidget {
     required this.currentLocation,
     this.dataSource = 'Aladhan API',
     this.onChangeLocation,
-    this.onCalculationSettings,
+    this.onPrayerTune,
     this.onQuietWindows,
     this.onNotificationPrefsChanged,
     this.onPrivacy,
@@ -88,8 +88,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 _row(
                   icon: Icons.tune_rounded,
-                  title: context.l10n.settingsCalculation,
-                  onTap: widget.onCalculationSettings,
+                  title: context.l10n.settingsPrayerTune,
+                  onTap: widget.onPrayerTune,
                 ),
               ],
             ),

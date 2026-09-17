@@ -2299,5 +2299,7 @@
   "kerahatSourceName": "Kaynak: Diyanet Din İşleri Yüksek Kurulu",
   "@kerahatSourceName": {"description": "Kerahat açıklamasının kaynak adı."},
   "alarmChangeFailed": "Alarm değişikliği tamamlanamadı. Yeniden dene.",
-  "alarmCancellationPending": "Cihazdaki alarm kaydı kaldırılamadı"
+  "alarmCancellationPending": "Cihazdaki alarm kaydı kaldırılamadı",
+  "settingsPrayerTune": "Vakit düzeltme",
+  "@settingsPrayerTune": {"description": "Ayarlar satırı: vakit başına ± dakika düzeltmesi ekranı"}
 }

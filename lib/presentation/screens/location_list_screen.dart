@@ -86,7 +86,7 @@ class _LocationListScreenState extends State<LocationListScreen> {
     if (!mounted || updated == null) return;
 
     if (widget.currentLocation?.id == updated.id) {
-      // Aktif konumun parametreleri değişti: yeniden yükle + bildirimleri planla.
+      // Aktif konumun adı değişti: ekran ve planlama güncel adı alsın.
       widget.onLocationSelected(updated);
       Navigator.popUntil(context, (route) => route.isFirst);
     } else {
@@ -234,8 +234,8 @@ class _LocationListScreenState extends State<LocationListScreen> {
               widget.onLocationSelected(location);
               Navigator.popUntil(context, (route) => route.isFirst);
             },
-      // Aktif konum da duzenlenebilmeli (hesaplama parametreleri); rozet
-      // ayar ikonunun yerini almaz, yanina gelir.
+      // Aktif konum da duzenlenebilmeli (ozel ad); rozet duzenleme ikonunun
+      // yerini almaz, yanina gelir.
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -285,7 +285,7 @@ class _LocationListScreenState extends State<LocationListScreen> {
           color: tokens.surface,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(Icons.tune_rounded, size: 18, color: tokens.accent),
+        child: Icon(Icons.edit_outlined, size: 18, color: tokens.accent),
       ),
     );
   }
