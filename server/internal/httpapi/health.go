@@ -77,7 +77,7 @@ func (h *handler) health(w http.ResponseWriter, r *http.Request) {
 		writeError(w, errMethod)
 		return
 	}
-	state, err := h.st.LoadState()
+	state, err := h.states.LoadSyncState()
 	if err != nil {
 		h.logger.Error("health: state unreadable", "err", err.Error())
 		writeError(w, errInternal)

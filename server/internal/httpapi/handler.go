@@ -28,16 +28,22 @@ type Options struct {
 	StartedAt time.Time
 }
 
+// StateLoader, health için sync durumunu sağlar (internal/db uygular).
+type StateLoader interface {
+	LoadSyncState() (*store.SyncState, error)
+}
+
 type handler struct {
 	st     *store.Store
+	states StateLoader
 	opts   Options
 	logger *slog.Logger
 }
 
 type resolver func(r *http.Request) (rel string, err *apiError)
 
-func NewHandler(st *store.Store, opts Options, logger *slog.Logger) http.Handler {
-	h := &handler{st: st, opts: opts, logger: logger}
+func NewHandler(st *store.Store, states StateLoader, opts Options, logger *slog.Logger) http.Handler {
+	h := &handler{st: st, states: states, opts: opts, logger: logger}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/v1/places/countries", h.file(cacheWeekly, func(*http.Request) (string, *apiError) {
 		return store.CountriesPath(), nil

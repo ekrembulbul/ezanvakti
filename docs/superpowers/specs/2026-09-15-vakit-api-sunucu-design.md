@@ -19,8 +19,8 @@ yayınlar; uygulama yalnızca bu sunucuyla konuşur.
 | # | Karar | Gerekçe |
 |---|---|---|
 | K1 | Tek veri kaynağı Diyanet; ülke kapsamı sunucu config'i, başlangıçta yalnız Türkiye (`countryId=2`) | Birebir uyum yalnız resmî veriyle; Diyanet 202 ülkeyi aynı hiyerarşiyle veriyor, açmak konfigürasyon |
-| K2 | Dil Go (≥ 1.26, `x/net` gereği), tek binary `vakit` (`serve` / `sync` alt komutları), yalnız stdlib (+ `golang.org/x/net/html`) | Küçük imaj, sıfır çalışma zamanı bağımlılığı, kullanıcı tercihi |
-| K3 | Depolama: JSON dosyaları (`data/`), veritabanı yok | Tek erişim deseni "kayıt + yıl"; yedek = kopya; ETag doğal; Faz 3 (token deposu) gelince DB eklenir |
+| K2 | Dil Go (≥ 1.26, `x/net` gereği), tek binary `vakit` (`serve` / `sync` alt komutları), stdlib + `golang.org/x/net/html` + `modernc.org/sqlite` (saf Go, CGO yok) | Küçük imaj, sıfır çalışma zamanı bağımlılığı, kullanıcı tercihi |
+| K3 | Yayın verisi (vakit, yer listeleri, dinî günler, içerik) JSON dosyaları; değişken durum gömülü **SQLite** (`state/vakit.db`, saf Go sürücü, gömülü SQL migration'lar, WAL) — Faz 1'de sync durumu, ileride cihaz token'ı/hesap | Tek erişim deseni "kayıt + yıl" için dosya + ETag + Cloudflare cache yeter; ileriki fazlar DB'yi sıfırdan kurmasın diye şema sürümleme ilk günden var (2026-09-17 kararı: kullanıcı) |
 | K4 | Kaynak soyutlaması: `awqat` (resmî API, birincil) ve `web` (namazvakitleri.diyanet.gov.tr ilçe sayfası, onay öncesi ve fesih fallback'i) aynı `Source` arayüzü | API onayı beklenmeden çalışır; form "tek taraflı fesih" hakkı içeriyor |
 | K5 | Reverse proxy yok; Go yalnız `127.0.0.1:8080`'e bind, `cloudflared` tüneli `api.<domain>` → origin | Kullanıcının mevcut altyapısı; TLS/DNS/WAF/cache Cloudflare'de |
 | K6 | Sözleşme `/v1` altında, sürüm kırıcı değişiklik `/v2` | Uygulama mağaza sürümleri eski sözleşmeyi yıllarca çağırır |
@@ -165,7 +165,7 @@ Sonuç: web modunda gelecek yıl tek çekimde tamamlanır; cari yıl ise kayan 3
 
 ### VAK.4 — Senkronizasyon işleri (`vakit sync <iş>`)
 
-Hepsi idempotent; her çalıştırma `data/state/sync.json`'daki ilerlemeyi okur/günceller. Cron (host):
+Hepsi idempotent; her çalıştırma ilerlemeyi SQLite'tan (`state/vakit.db`) okur/günceller. Cron (host):
 
 ```
 0 3 * * *   vakit sync prayer-times --year <bu yıl> --year <gelecek yıl> --batch 150
@@ -228,7 +228,8 @@ server/
   internal/source/               Source arayüzü; awqat/, web/ uygulamaları; fixture'lar
   internal/model/                yayın şemaları (/v1 gövdeleri), Hicri ay tablosu
   internal/validate/             VAK.5 kuralları
-  internal/store/                data/ yolları, atomik yazma, ETag, sync state
+  internal/store/                data/ yolları, atomik yazma, ETag, sync state tipleri
+  internal/db/                   SQLite: açma (WAL), gömülü migration'lar, sync durumu yükle/kaydet
   internal/httpapi/              yönlendirme, başlıklar, hata zarfı, erişim logu
   internal/jobs/                 işler (places, prayer-times, ...) — stdlib `sync` ile ad çakışmasını önlemek için `jobs`
   assets/tr_cities_geo.json      K7 — ilçe koordinatları (commit'li; `cmd/geocode-tr` üretir)
@@ -247,7 +248,7 @@ places/countries.json · places/countries/{id}/states.json · places/states/{id}
 prayer-times/{cityId}/{year}.json
 religious-days/{year}.json
 daily-content/{yyyy}/{doy}.json
-state/sync.json · state/awqat_token.json (0600)
+state/vakit.db (+ -wal/-shm) · state/awqat_token.json (0600)
 ```
 
 Boyut: ilçe-yıl dosyası ~25 KB (gzip Cloudflare'de) → 970 ilçe ≈ 25 MB/yıl.

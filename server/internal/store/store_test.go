@@ -72,7 +72,7 @@ func TestPaths(t *testing.T) {
 		PrayerTimesPath(9541, 2026): "prayer-times/9541/2026.json",
 		ReligiousDaysPath(2026):     "religious-days/2026.json",
 		DailyContentPath(time.Date(2026, 9, 15, 0, 0, 0, 0, time.UTC)): "daily-content/2026/258.json",
-		StatePath(): "state/sync.json",
+		DBPath(): "state/vakit.db",
 	}
 	for got, want := range cases {
 		if got != want {
@@ -81,24 +81,5 @@ func TestPaths(t *testing.T) {
 	}
 	if CityYearKey(9541, 2026) != "9541/2026" {
 		t.Error("CityYearKey")
-	}
-}
-
-func TestState_RoundTripAndEmptyDefault(t *testing.T) {
-	st := New(t.TempDir())
-	s, err := st.LoadState()
-	if err != nil || s == nil || s.PrayerTimes == nil {
-		t.Fatalf("empty state should load with maps initialised: %v %v", s, err)
-	}
-	s.PrayerTimes[CityYearKey(9541, 2026)] = CityYearState{Days: 31, Horizon: "2026-10-15"}
-	if err := st.SaveState(s); err != nil {
-		t.Fatal(err)
-	}
-	again, err := st.LoadState()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if again.PrayerTimes["9541/2026"].Days != 31 {
-		t.Fatalf("state not persisted: %+v", again)
 	}
 }

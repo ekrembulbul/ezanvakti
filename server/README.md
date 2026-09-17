@@ -70,6 +70,13 @@ Cloudflare panelinde:
 
 Doğrulama: `curl -I https://api.<domain>/v1/health` → 200; ikinci istekte vakit ucunda `cf-cache-status: HIT`.
 
+## Veri düzeni ve yedek
+
+`VAKIT_DATA_DIR` altında: yayın dosyaları (`places/`, `prayer-times/`, `religious-days/`, `daily-content/`)
+ve `state/vakit.db` (SQLite, WAL: yanında `-wal`/`-shm` olabilir) + `state/awqat_token.json`.
+Şema gömülü migration'larla sürümlenir; `serve` ve `sync` açılışta bekleyenleri uygular.
+Yedek: sync çalışmıyorken klasörü kopyalamak yeter (`docker compose run --rm vakit sync verify` çıkışını bekle).
+
 ## Veri lisansı
 
 İlçe koordinatları © OpenStreetMap contributors (ODbL), `assets/tr_cities_geo.json`.

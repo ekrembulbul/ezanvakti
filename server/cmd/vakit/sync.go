@@ -19,6 +19,7 @@ import (
 
 	"vakit/internal/awqat"
 	"vakit/internal/config"
+	"vakit/internal/db"
 	"vakit/internal/geo"
 	"vakit/internal/httpapi"
 	"vakit/internal/jobs"
@@ -111,7 +112,13 @@ func runSync(args []string, stdout, stderr io.Writer) int {
 		return 0
 	}
 
-	state, err := st.LoadState()
+	database, err := db.Open(filepath.Join(st.Root, filepath.FromSlash(store.DBPath())))
+	if err != nil {
+		fmt.Fprintln(stderr, err)
+		return 1
+	}
+	defer database.Close()
+	state, err := database.LoadSyncState()
 	if err != nil {
 		fmt.Fprintln(stderr, err)
 		return 1
@@ -172,7 +179,7 @@ func runSync(args []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 
-	if saveErr := st.SaveState(state); saveErr != nil {
+	if saveErr := database.SaveSyncState(state); saveErr != nil {
 		logger.Error("sync state could not be saved", "err", saveErr.Error())
 		if jobErr == nil {
 			jobErr = saveErr

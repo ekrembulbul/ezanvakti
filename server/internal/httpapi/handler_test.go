@@ -6,10 +6,12 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
+	"vakit/internal/db"
 	"vakit/internal/model"
 	"vakit/internal/store"
 )
@@ -24,14 +26,21 @@ func newTestHandler(t *testing.T) (http.Handler, *store.Store) {
 		t.Fatal(err)
 	}
 	_ = st.WriteJSON(store.CountriesPath(), []model.Country{{ID: 2, Name: "TÜRKİYE", NameEn: "TURKEY", Enabled: true}})
-	state, _ := st.LoadState()
+	database, err := db.Open(filepath.Join(st.Root, store.DBPath()))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = database.Close() })
+	state := store.NewSyncState()
 	state.PrayerTimes[store.CityYearKey(9541, 2026)] = store.CityYearState{Days: 1, Horizon: "2026-09-15",
 		LastFetchedAt: time.Date(2026, 9, 15, 20, 0, 0, 0, time.UTC)}
 	state.PrayerTimes[store.CityYearKey(9547, 2026)] = store.CityYearState{Days: 365, Complete: true,
 		LastFetchedAt: time.Date(2026, 9, 16, 3, 0, 0, 0, time.UTC)}
-	_ = st.SaveState(state)
+	if err := database.SaveSyncState(state); err != nil {
+		t.Fatal(err)
+	}
 	logger := NewLogger(io.Discard, slog.LevelDebug)
-	return NewHandler(st, Options{Version: "test", StartedAt: time.Now()}, logger), st
+	return NewHandler(st, database, Options{Version: "test", StartedAt: time.Now()}, logger), st
 }
 
 func get(t *testing.T, h http.Handler, method, target string, hdr map[string]string) *httptest.ResponseRecorder {

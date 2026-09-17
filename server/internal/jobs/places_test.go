@@ -19,11 +19,7 @@ func f64(v float64) *float64 { return &v }
 func testDeps(t *testing.T, src source.Source) Deps {
 	t.Helper()
 	st := store.New(t.TempDir())
-	state, err := st.LoadState()
-	if err != nil {
-		t.Fatal(err)
-	}
-	return Deps{Source: src, Store: st, State: state, Logger: slog.New(slog.NewTextHandler(io.Discard, nil)),
+	return Deps{Source: src, Store: st, State: store.NewSyncState(), Logger: slog.New(slog.NewTextHandler(io.Discard, nil)),
 		Now: func() time.Time { return time.Date(2026, 9, 16, 3, 0, 0, 0, time.UTC) }, Geo: geo.Index{9541: {Latitude: 41.0082, Longitude: 28.9784}}}
 }
 

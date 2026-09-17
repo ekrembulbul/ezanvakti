@@ -8,10 +8,12 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
 	"vakit/internal/config"
+	"vakit/internal/db"
 	"vakit/internal/httpapi"
 	"vakit/internal/store"
 )
@@ -31,7 +33,14 @@ func runServe(_ []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	logger := httpapi.NewLogger(stdout, cfg.LogLevel)
-	handler := httpapi.NewHandler(store.New(cfg.DataDir), httpapi.Options{Version: version, StartedAt: time.Now()}, logger)
+	st := store.New(cfg.DataDir)
+	database, err := db.Open(filepath.Join(st.Root, filepath.FromSlash(store.DBPath())))
+	if err != nil {
+		fmt.Fprintln(stderr, err)
+		return 1
+	}
+	defer database.Close()
+	handler := httpapi.NewHandler(st, database, httpapi.Options{Version: version, StartedAt: time.Now()}, logger)
 	srv := &http.Server{
 		Addr: cfg.Addr, Handler: handler,
 		ReadHeaderTimeout: readHeaderTimeout, WriteTimeout: writeTimeout, IdleTimeout: idleTimeout,
