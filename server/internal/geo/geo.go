@@ -4,6 +4,7 @@ package geo
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"vakit/assets"
 )
@@ -50,3 +51,32 @@ func Parse(data []byte) (Index, error) {
 }
 
 func Load() (Index, error) { return Parse(assets.TRCitiesGeo) }
+
+// LoadFile gömülü koordinat dosyasının tamamını (görünen adlar dahil) döner.
+func LoadFile() (File, error) {
+	var f File
+	if err := json.Unmarshal(assets.TRCitiesGeo, &f); err != nil {
+		return File{}, fmt.Errorf("geo: decode: %w", err)
+	}
+	return f, nil
+}
+
+// DisplayNames: ilçe id → OSM'deki yazım (displayName'in ilk bileşeni, ör. "Çubuk").
+// Yalnız Diyanet adıyla aynı ada katlanan kayıtlar kullanılır; farklıysa Diyanet adı kalır.
+func (f File) DisplayNames(sameName func(diyanet, osm string) bool) map[int]string {
+	out := make(map[int]string, len(f.Cities))
+	for _, e := range f.Cities {
+		if e.Review || e.DisplayName == "" {
+			continue
+		}
+		first := e.DisplayName
+		if i := strings.Index(first, ","); i >= 0 {
+			first = first[:i]
+		}
+		first = strings.TrimSpace(first)
+		if first != "" && sameName(e.Name, first) {
+			out[e.CityID] = first
+		}
+	}
+	return out
+}

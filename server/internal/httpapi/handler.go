@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"vakit/internal/model"
+	"vakit/internal/placeindex"
 	"vakit/internal/store"
 )
 
@@ -36,6 +37,7 @@ type StateLoader interface {
 type handler struct {
 	st     *store.Store
 	states StateLoader
+	places *placeindex.Cache
 	opts   Options
 	logger *slog.Logger
 }
@@ -43,7 +45,7 @@ type handler struct {
 type resolver func(r *http.Request) (rel string, err *apiError)
 
 func NewHandler(st *store.Store, states StateLoader, opts Options, logger *slog.Logger) http.Handler {
-	h := &handler{st: st, states: states, opts: opts, logger: logger}
+	h := &handler{st: st, states: states, places: placeindex.NewCache(st), opts: opts, logger: logger}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/v1/places/countries", h.file(cacheWeekly, func(*http.Request) (string, *apiError) {
 		return store.CountriesPath(), nil
@@ -65,6 +67,8 @@ func NewHandler(st *store.Store, states StateLoader, opts Options, logger *slog.
 	mux.HandleFunc("/v1/places/tr/cities", h.file(cacheWeekly, func(*http.Request) (string, *apiError) {
 		return store.TRCitiesPath(), nil
 	}))
+	mux.HandleFunc("/v1/places/search", h.placesSearch)
+	mux.HandleFunc("/v1/places/resolve", h.placesResolve)
 	mux.HandleFunc("/v1/prayer-times/{cityId}/{year}", h.file(cacheDaily, func(r *http.Request) (string, *apiError) {
 		id, err := pathID(r, "cityId")
 		if err != nil {

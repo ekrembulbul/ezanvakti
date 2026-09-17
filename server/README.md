@@ -24,6 +24,17 @@ Tasarım: `docs/superpowers/specs/2026-09-15-vakit-api-sunucu-design.md`.
 | `VAKIT_SYNC_INTERVAL` | `500ms` | istekler arası bekleme (web kaynağında en az 1 s) |
 | `VAKIT_LOG_LEVEL` | `info` | `debug` \| `info` \| `warn` \| `error` |
 
+## Uygulamanın kullandığı uçlar
+
+    GET /v1/places/search?q=sile&limit=10      il/ilçe arama (Türkçe duyarsız, eşanlamlı: Kadıköy → İstanbul)
+    GET /v1/places/resolve?lat=41.17&lon=29.6  GPS → en yakın ilçe (60 km dışı: 404 NO_COVERAGE)
+    GET /v1/prayer-times/{cityId}/{year}       yıllık vakitler + Hicri
+    GET /v1/religious-days/{year}              dinî günler (API onayı sonrası)
+    GET /v1/daily-content/{YYYY-MM-DD}         günün ayet/hadis/duası (API onayı sonrası)
+    GET /v1/health
+
+Gizlilik: arama metni ve koordinat loglanmaz; koordinat ~100 m'ye yuvarlanır, saklanmaz.
+
 ## Komutlar
 
     vakit serve

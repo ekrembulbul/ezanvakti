@@ -53,6 +53,24 @@ GET /v1/places/tr/cities
     [{ ...city, "stateName": "İSTANBUL" }]
   → uygulamadaki seçici, GPS→ilçe eşlemesi ve gömülü asset bu dosyadan üretilir
 
+GET /v1/places/search?q={metin}&limit={1..25}     (2026-09-17 eki — uygulama gömülü liste taşımaz)
+  { "query": "sile", "results": [
+      { "id": 9547, "name": "Şile", "stateName": "İstanbul", "displayName": "Şile, İstanbul",
+        "stateId": 539, "countryId": 2, "isCentre": false, "latitude": 41.17, "longitude": 29.61,
+        "qiblaAngle": 151, "qiblaAngleMagnetic": 146, "distanceToKaaba": 2400,
+        "matchedAlias": "Kadıköy" }, ... ] }
+  → Türkçe karakter/büyük-küçük harf duyarsız; ilçe adı öneki > eşanlam > il adı > içerir sırası; il merkezi
+    "İstanbul (Merkez)"; boş sorgu = büyük iller. Adlar OSM yazımıyla ("Çubuk"), Diyanet'in "CUBUK"u değil.
+    matchedAlias: Diyanet'te ayrı olmayan büyükşehir merkez ilçesi (Kadıköy → İstanbul kaydı); tablo sunucuda
+    gömülü (assets/tr_place_aliases.json, 6 büyükşehir; genişletilebilir). q ≤ 64 karakter.
+    Cache-Control: public, max-age=3600 (Cloudflare sorguya göre cache'ler). Sorgu metni loglanmaz.
+
+GET /v1/places/resolve?lat={enlem}&lon={boylam}
+  { "city": { ...search sonucu ile aynı alanlar... }, "distanceKm": 1.2 }
+  → en yakın ilçe merkezi (haversine). En yakın ilçe 60 km'den uzaksa 404 NO_COVERAGE. Koordinat ~100 m'ye
+    yuvarlanır, saklanmaz, loglanmaz (erişim logu yalnız yol yazar). Cache-Control: no-store.
+  → İlçe listesi henüz senkronlanmadıysa her iki uç 503 NOT_READY + Retry-After: 300.
+
 GET /v1/prayer-times/{cityId}/{year}
   { "schemaVersion": 1, "source": "diyanet", "generatedAt": "2026-09-15T20:00:00Z",
     "cityId": 9541, "year": 2026,
@@ -101,7 +119,9 @@ Hata zarfı (CLAUDE.md standardı), her zaman JSON:
 | 400 | `INVALID_PARAMETER` — yıl 2000–2100 dışı, tarih biçimi bozuk, id sayı değil |
 | 404 | `NOT_FOUND` — bilinmeyen yol, ilçe, yıl, tarih |
 | 405 | `METHOD_NOT_ALLOWED` — GET/HEAD dışı |
+| 404 | `NO_COVERAGE` — resolve: en yakın ilçe 60 km'den uzak (Türkiye dışı) |
 | 500 | `INTERNAL` — dosya okunamadı; ayrıntı yalnız log'da |
+| 503 | `NOT_READY` — ilçe listesi henüz senkronlanmadı (`Retry-After: 300`) |
 
 ### VAK.2 — Diyanet Awqat Salah istemcisi (`internal/awqat`)
 
@@ -232,7 +252,8 @@ server/
   internal/db/                   SQLite: açma (WAL), gömülü migration'lar, sync durumu yükle/kaydet
   internal/httpapi/              yönlendirme, başlıklar, hata zarfı, erişim logu
   internal/jobs/                 işler (places, prayer-times, ...) — stdlib `sync` ile ad çakışmasını önlemek için `jobs`
-  assets/tr_cities_geo.json      K7 — ilçe koordinatları (commit'li; `cmd/geocode-tr` üretir)
+  assets/tr_cities_geo.json      K7 — ilçe koordinatları ve OSM yazımları (commit'li; `cmd/geocode-tr` üretir)
+  assets/tr_place_aliases.json   Diyanet'te ayrı olmayan büyükşehir merkez ilçeleri → Diyanet kaydı
   cmd/geocode-tr/main.go         tek seferlik Nominatim eşleme aracı
   data/                          çalışma zamanı verisi, .gitignore'da
   deploy/Dockerfile              çok aşamalı: golang:1.2x → gcr.io/distroless/static

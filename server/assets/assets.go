@@ -7,3 +7,8 @@ import _ "embed"
 //
 //go:embed tr_cities_geo.json
 var TRCitiesGeo []byte
+
+// TRPlaceAliases: Diyanet'te ayrı olmayan (büyükşehir merkez) ilçelerin Diyanet kaydına eşlemesi.
+//
+//go:embed tr_place_aliases.json
+var TRPlaceAliases []byte

@@ -1,0 +1,217 @@
+{
+ "note": "Diyanet büyükşehir merkez ilçelerini ayrı listelemez; resmi ilçe adı → Diyanet kaydı. Kaynak: T.C. İçişleri Bakanlığı ilçe listesi ile Diyanet listesinin farkı (2026-09-17).",
+ "aliases": [
+  {
+   "name": "Adalar",
+   "cityId": 9541
+  },
+  {
+   "name": "Ataşehir",
+   "cityId": 9541
+  },
+  {
+   "name": "Bağcılar",
+   "cityId": 9541
+  },
+  {
+   "name": "Bahçelievler",
+   "cityId": 9541
+  },
+  {
+   "name": "Bakırköy",
+   "cityId": 9541
+  },
+  {
+   "name": "Bayrampaşa",
+   "cityId": 9541
+  },
+  {
+   "name": "Beşiktaş",
+   "cityId": 9541
+  },
+  {
+   "name": "Beykoz",
+   "cityId": 9541
+  },
+  {
+   "name": "Beyoğlu",
+   "cityId": 9541
+  },
+  {
+   "name": "Esenler",
+   "cityId": 9541
+  },
+  {
+   "name": "Eyüpsultan",
+   "cityId": 9541
+  },
+  {
+   "name": "Eyüp",
+   "cityId": 9541
+  },
+  {
+   "name": "Fatih",
+   "cityId": 9541
+  },
+  {
+   "name": "Gaziosmanpaşa",
+   "cityId": 9541
+  },
+  {
+   "name": "Güngören",
+   "cityId": 9541
+  },
+  {
+   "name": "Kadıköy",
+   "cityId": 9541
+  },
+  {
+   "name": "Kağıthane",
+   "cityId": 9541
+  },
+  {
+   "name": "Sarıyer",
+   "cityId": 9541
+  },
+  {
+   "name": "Şişli",
+   "cityId": 9541
+  },
+  {
+   "name": "Ümraniye",
+   "cityId": 9541
+  },
+  {
+   "name": "Üsküdar",
+   "cityId": 9541
+  },
+  {
+   "name": "Zeytinburnu",
+   "cityId": 9541
+  },
+  {
+   "name": "Altındağ",
+   "cityId": 9206
+  },
+  {
+   "name": "Çankaya",
+   "cityId": 9206
+  },
+  {
+   "name": "Etimesgut",
+   "cityId": 9206
+  },
+  {
+   "name": "Gölbaşı",
+   "cityId": 9206
+  },
+  {
+   "name": "Keçiören",
+   "cityId": 9206
+  },
+  {
+   "name": "Mamak",
+   "cityId": 9206
+  },
+  {
+   "name": "Pursaklar",
+   "cityId": 9206
+  },
+  {
+   "name": "Sincan",
+   "cityId": 9206
+  },
+  {
+   "name": "Yenimahalle",
+   "cityId": 9206
+  },
+  {
+   "name": "Balçova",
+   "cityId": 9560
+  },
+  {
+   "name": "Bayraklı",
+   "cityId": 9560
+  },
+  {
+   "name": "Bornova",
+   "cityId": 9560
+  },
+  {
+   "name": "Buca",
+   "cityId": 9560
+  },
+  {
+   "name": "Çiğli",
+   "cityId": 9560
+  },
+  {
+   "name": "Gaziemir",
+   "cityId": 9560
+  },
+  {
+   "name": "Karabağlar",
+   "cityId": 9560
+  },
+  {
+   "name": "Karşıyaka",
+   "cityId": 9560
+  },
+  {
+   "name": "Konak",
+   "cityId": 9560
+  },
+  {
+   "name": "Narlıdere",
+   "cityId": 9560
+  },
+  {
+   "name": "Gürsu",
+   "cityId": 9335
+  },
+  {
+   "name": "Nilüfer",
+   "cityId": 9335
+  },
+  {
+   "name": "Osmangazi",
+   "cityId": 9335
+  },
+  {
+   "name": "Yıldırım",
+   "cityId": 9335
+  },
+  {
+   "name": "Döşemealtı",
+   "cityId": 9225
+  },
+  {
+   "name": "Kepez",
+   "cityId": 9225
+  },
+  {
+   "name": "Konyaaltı",
+   "cityId": 9225
+  },
+  {
+   "name": "Muratpaşa",
+   "cityId": 9225
+  },
+  {
+   "name": "Başiskele",
+   "cityId": 9654
+  },
+  {
+   "name": "Derince",
+   "cityId": 9654
+  },
+  {
+   "name": "Gölcük",
+   "cityId": 9654
+  },
+  {
+   "name": "İzmit",
+   "cityId": 9654
+  }
+ ]
+}
