@@ -22,6 +22,19 @@ class Location {
   /// Konuma özel yüksek enlem düzeltmesi override'ı. `null` ise global ayar.
   final int? latitudeAdjustmentMethod;
 
+  /// Diyanet ilçe kimliği (`vakit-api` `cityId`). `null` = henüz eşlenmemiş
+  /// (eski kayıt); vakit çekilemez, migrasyon bekler.
+  final int? cityId;
+
+  /// Diyanet il kimliği.
+  final int? stateId;
+
+  /// Diyanet ülke kimliği (Türkiye = 2).
+  final int? countryId;
+
+  /// Sunucunun ürettiği görünen ad ("Şile, İstanbul" / "İstanbul (Merkez)").
+  final String? displayLabel;
+
   const Location({
     required this.id,
     required this.province,
@@ -33,7 +46,14 @@ class Location {
     this.method,
     this.school,
     this.latitudeAdjustmentMethod,
+    this.cityId,
+    this.stateId,
+    this.countryId,
+    this.displayLabel,
   });
+
+  /// Konum bir Diyanet ilçesine bağlı mı?
+  bool get isMapped => cityId != null;
 
   /// Bu konumun override'larını global [settings] ile birleştirip somut
   /// (null olmayan method/school) bir konum döner. Önbellek kimliği değişmez;
@@ -65,6 +85,9 @@ class Location {
     if (customName != null && customName!.isNotEmpty) {
       return customName!;
     }
+    if (displayLabel != null && displayLabel!.isNotEmpty) {
+      return displayLabel!;
+    }
 
     final parts = <String>[];
     for (final part in [district, province]) {
@@ -86,6 +109,10 @@ class Location {
       'method': method,
       'school': school,
       'latitudeAdjustmentMethod': latitudeAdjustmentMethod,
+      'cityId': cityId,
+      'stateId': stateId,
+      'countryId': countryId,
+      'displayLabel': displayLabel,
     };
   }
 
@@ -105,6 +132,10 @@ class Location {
       method: json['method'] as int?,
       school: json['school'] as int?,
       latitudeAdjustmentMethod: json['latitudeAdjustmentMethod'] as int?,
+      cityId: json['cityId'] as int?,
+      stateId: json['stateId'] as int?,
+      countryId: json['countryId'] as int?,
+      displayLabel: json['displayLabel'] as String?,
     );
   }
 
@@ -119,6 +150,10 @@ class Location {
     int? method,
     int? school,
     int? latitudeAdjustmentMethod,
+    int? cityId,
+    int? stateId,
+    int? countryId,
+    String? displayLabel,
   }) {
     return Location(
       id: id ?? this.id,
@@ -132,6 +167,10 @@ class Location {
       school: school ?? this.school,
       latitudeAdjustmentMethod:
           latitudeAdjustmentMethod ?? this.latitudeAdjustmentMethod,
+      cityId: cityId ?? this.cityId,
+      stateId: stateId ?? this.stateId,
+      countryId: countryId ?? this.countryId,
+      displayLabel: displayLabel ?? this.displayLabel,
     );
   }
 
@@ -149,7 +188,11 @@ class Location {
           customName == other.customName &&
           method == other.method &&
           school == other.school &&
-          latitudeAdjustmentMethod == other.latitudeAdjustmentMethod;
+          latitudeAdjustmentMethod == other.latitudeAdjustmentMethod &&
+          cityId == other.cityId &&
+          stateId == other.stateId &&
+          countryId == other.countryId &&
+          displayLabel == other.displayLabel;
 
   @override
   int get hashCode => Object.hash(
@@ -163,6 +206,10 @@ class Location {
     method,
     school,
     latitudeAdjustmentMethod,
+    cityId,
+    stateId,
+    countryId,
+    displayLabel,
   );
 
   @override
