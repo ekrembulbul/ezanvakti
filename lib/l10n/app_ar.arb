@@ -503,5 +503,6 @@
   "kerahatSourceName": "المصدر: المجلس الأعلى للشؤون الدينية في ديانت",
   "alarmChangeFailed": "تعذّر إكمال تغيير المنبّه. حاول مجددًا.",
   "alarmCancellationPending": "تعذّر إزالة المنبّه من الجهاز",
-  "settingsPrayerTune": "تعديل الأوقات"
+  "settingsPrayerTune": "تعديل الأوقات",
+  "dataSourceDiyanet": "رئاسة الشؤون الدينية (ديانت)"
 }

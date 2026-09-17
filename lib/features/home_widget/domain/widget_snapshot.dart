@@ -3,7 +3,7 @@
 /// Saatler `"HH:mm"`, tarihler `"yyyy-MM-dd"` olarak serileştirilir; offset'li
 /// ISO timestamp **bilerek** kullanılmaz. Uygulama vakitleri timezone
 /// taşımayan cihaz-yerel wall-clock olarak üretiyor
-/// (`awqat_salah_provider.dart:407`); offset yazmak widget'a uygulamada
+/// (`diyanet_provider.dart`, `_parseDay`); offset yazmak widget'a uygulamada
 /// olmayan bir timezone semantiği uydurmak olurdu.
 class WidgetDayTimes {
   final DateTime fajr;

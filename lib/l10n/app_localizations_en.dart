@@ -1743,4 +1743,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsPrayerTune => 'Time adjustment';
+
+  @override
+  String get dataSourceDiyanet => 'Presidency of Religious Affairs (Diyanet)';
 }

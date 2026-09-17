@@ -1,7 +1,8 @@
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
-import '../../features/prayer_times/data/awqat_salah_provider.dart';
+import '../../features/location/data/places_api.dart';
+import '../../features/prayer_times/data/diyanet_provider.dart';
 import '../../features/prayer_times/data/sqlite_storage.dart';
 import '../../features/prayer_times/domain/prayer_times_repository.dart';
 import '../../features/prayer_times/domain/offline_state_manager.dart';
@@ -65,15 +66,22 @@ class ServiceLocator {
     register<http.Client>(httpClient);
     logger.debug('HTTP Client registered');
 
-    logger.debug('Initializing Prayer Time Provider (Aladhan)');
-    final prayerTimeProvider = AwqatSalahProvider(httpClient: httpClient);
-    logger.debug('Prayer Time Provider registered');
-    register<PrayerTimeProvider>(prayerTimeProvider);
-
     logger.debug('Initializing Local Storage (SQLite)');
     final localStorage = SqliteStorage();
     register<LocalStorage>(localStorage);
     logger.debug('Local Storage registered');
+
+    final placesApi = PlacesApi(client: httpClient);
+    register<PlacesApi>(placesApi);
+
+    // Sağlayıcı ETag'leri depoda tutar; depo önce kurulur.
+    logger.debug('Initializing Prayer Time Provider (Diyanet / vakit-api)');
+    final PrayerTimeProvider prayerTimeProvider = DiyanetProvider(
+      client: httpClient,
+      storage: localStorage,
+    );
+    register<PrayerTimeProvider>(prayerTimeProvider);
+    logger.debug('Prayer Time Provider registered');
 
     final prayerTimesRepository = PrayerTimesRepository(
       provider: prayerTimeProvider,

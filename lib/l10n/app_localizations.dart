@@ -3123,6 +3123,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Vakit düzeltme'**
   String get settingsPrayerTune;
+
+  /// Ayarlar > Bilgi > Veri kaynağı değeri
+  ///
+  /// In tr, this message translates to:
+  /// **'Diyanet İşleri Başkanlığı'**
+  String get dataSourceDiyanet;
 }
 
 class _AppLocalizationsDelegate

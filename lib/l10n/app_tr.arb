@@ -2301,5 +2301,7 @@
   "alarmChangeFailed": "Alarm değişikliği tamamlanamadı. Yeniden dene.",
   "alarmCancellationPending": "Cihazdaki alarm kaydı kaldırılamadı",
   "settingsPrayerTune": "Vakit düzeltme",
-  "@settingsPrayerTune": {"description": "Ayarlar satırı: vakit başına ± dakika düzeltmesi ekranı"}
+  "@settingsPrayerTune": {"description": "Ayarlar satırı: vakit başına ± dakika düzeltmesi ekranı"},
+  "dataSourceDiyanet": "Diyanet İşleri Başkanlığı",
+  "@dataSourceDiyanet": {"description": "Ayarlar > Bilgi > Veri kaynağı değeri"}
 }

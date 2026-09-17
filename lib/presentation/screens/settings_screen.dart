@@ -18,7 +18,6 @@ import '../widgets/settings/notification_prefs_section.dart';
 
 class SettingsScreen extends StatefulWidget {
   final Location currentLocation;
-  final String dataSource;
   final VoidCallback? onChangeLocation;
   final VoidCallback? onPrayerTune;
   final VoidCallback? onQuietWindows;
@@ -32,7 +31,6 @@ class SettingsScreen extends StatefulWidget {
   const SettingsScreen({
     super.key,
     required this.currentLocation,
-    this.dataSource = 'Aladhan API',
     this.onChangeLocation,
     this.onPrayerTune,
     this.onQuietWindows,
@@ -126,10 +124,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 10),
             GroupedList(
               children: [
+                // Kurum adı uzun; sağ değer yerine alt satırda kırpılarak yazılır.
                 _row(
                   icon: Icons.cloud_download_rounded,
                   title: context.l10n.settingsDataSource,
-                  value: widget.dataSource,
+                  subtitle: context.l10n.dataSourceDiyanet,
                 ),
                 _row(
                   icon: Icons.lock_rounded,
@@ -146,11 +145,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  /// Ayar satırı: sağda değer metni, dokunulabilirse ok.
+  /// Ayar satırı: sağda değer metni (ya da alt satırda açıklama),
+  /// dokunulabilirse ok.
   Widget _row({
     required IconData icon,
     required String title,
     String? value,
+    String? subtitle,
     VoidCallback? onTap,
   }) {
     final tokens = context.tokens;
@@ -158,6 +159,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return GroupedRow(
       icon: icon,
       title: Text(title),
+      subtitle: subtitle == null ? null : Text(subtitle),
       onTap: onTap,
       trailing: Row(
         mainAxisSize: MainAxisSize.min,

@@ -503,5 +503,6 @@
   "kerahatSourceName": "Source: Diyanet High Council of Religious Affairs",
   "alarmChangeFailed": "The alarm change could not be completed. Try again.",
   "alarmCancellationPending": "The alarm could not be removed from the device",
-  "settingsPrayerTune": "Time adjustment"
+  "settingsPrayerTune": "Time adjustment",
+  "dataSourceDiyanet": "Presidency of Religious Affairs (Diyanet)"
 }

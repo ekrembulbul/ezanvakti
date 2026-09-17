@@ -1725,4 +1725,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settingsPrayerTune => 'تعديل الأوقات';
+
+  @override
+  String get dataSourceDiyanet => 'رئاسة الشؤون الدينية (ديانت)';
 }

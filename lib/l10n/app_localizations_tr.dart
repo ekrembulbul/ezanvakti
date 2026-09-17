@@ -1737,4 +1737,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get settingsPrayerTune => 'Vakit düzeltme';
+
+  @override
+  String get dataSourceDiyanet => 'Diyanet İşleri Başkanlığı';
 }

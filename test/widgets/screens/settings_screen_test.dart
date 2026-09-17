@@ -187,7 +187,7 @@ void main() {
     await pumpSettings(tester);
 
     expect(find.text('Veri kaynağı'), findsOneWidget);
-    expect(find.text('Aladhan API'), findsOneWidget);
+    expect(find.text('Diyanet İşleri Başkanlığı'), findsOneWidget);
     expect(find.text('Gizlilik'), findsOneWidget);
   });
 
