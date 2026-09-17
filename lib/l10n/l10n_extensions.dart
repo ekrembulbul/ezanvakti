@@ -87,9 +87,10 @@ extension L10nLabels on AppLocalizations {
     LocationType.manual => locationTypeManual,
   };
 
-  String timeFormatLabel(TimeFormatPreference preference) => switch (preference) {
-    TimeFormatPreference.system => timeFormatSystem,
-    TimeFormatPreference.h24 => timeFormat24,
-    TimeFormatPreference.h12 => timeFormat12,
-  };
+  String timeFormatLabel(TimeFormatPreference preference) =>
+      switch (preference) {
+        TimeFormatPreference.system => timeFormatSystem,
+        TimeFormatPreference.h24 => timeFormat24,
+        TimeFormatPreference.h12 => timeFormat12,
+      };
 }
