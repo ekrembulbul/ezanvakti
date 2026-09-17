@@ -1,6 +1,6 @@
 # Diyanet il/ilçe modeli — uygulama tarafı (Spec B)
 
-- **Tarih:** 2026-09-17 · **Durum:** kabul edildi (sözlü, 2026-09-17) · **Branch:** `feature/vakit-api`
+- **Tarih:** 2026-09-17 · **Durum:** kabul edildi (sözlü, 2026-09-17), uygulandı (Plan B1 + B2) · **Branch:** `feature/vakit-api`
 - **Eşi:** [Spec A — vakit-api sunucusu](2026-09-15-vakit-api-sunucu-design.md); bu belge oradaki `/v1` sözleşmesini tüketir.
 - **Bağlam:** [Diyanet vakit farkı](../../investigations/2026-09-14-diyanet-vakit-farki.md), [Aladhan–resmi tablo karşılaştırması](../../investigations/2026-09-15-aladhan-resmi-tablo-farklari.md)
 
@@ -87,6 +87,13 @@ Eşleme tamamlanan konumun önbelleği temizlenir ve yeniden çekilir. Migrasyon
 ### UYG.9 — Bildirim, alarm, widget
 
 Sözleşmeler değişmez (görünen ad + vakit listesi). Widget snapshot'ındaki Hicri metni artık Diyanet verisinden gelir; veri yoksa `null` (Swift tarafı zaten opsiyonel). Dinî gün bildirimleri UYG.5'teki kaynaktan beslenir.
+
+## Uygulamadaki sapmalar (Plan B2, 2026-09-17)
+
+1. **`PrayerTimeProvider` arayüzü sadeleşmedi** (UYG.4 "fetchYear(cityId, year)"): `DiyanetProvider` mevcut `fetchPrayerTimes(location, start, end)` arayüzünü uygular ve `cityId`'yi `Location`'dan okur; depo sözleşmesi değişmedi. Arayüz değişikliği altı sahte sağlayıcıyı ve depo testlerini tarardı, kazancı yoktu.
+2. **Düzeltme ayarının depo anahtarı `calculation_settings` kaldı:** `PrayerTuneSettings.fromJson` yalnız `tune`'u okur; mevcut kullanıcıların düzeltmesi korunur.
+3. **Doğrulama ekranında aktif konum silinemez** (UYG.7 "Sil" yalnız aktif olmayanlarda): liste ekranındaki kuralla aynı; aktif konum seçilir ya da başka ilçeyle değiştirilir.
+4. **Konum düzenleme ekranı** özel ad + "İlçeyi değiştir" (arama paneli ekranın içinde); GPS kaydında cihaz koordinatı korunur.
 
 ## Kapsam dışı
 

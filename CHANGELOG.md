@@ -6,11 +6,23 @@ proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
 ## [Unreleased]
 
+### Eklendi
+- **Konum ekleme yeniden:** il/ilçe araması sunucuda (`vakit-api`); kutu boşken büyük iller hemen listelenir, eşanlamlar alt satırda ("Kadıköy buna dahil"). "Konumumu kullan" cihaz koordinatını sunucuda en yakın ilçeye çözer ve onay bandıyla gösterir ("Vakitler Şile, İstanbul için gösterilecek — Onayla / Değiştir"). Türkiye dışı koordinat ve ağ hatası anlaşılır metinle bildirilir.
+- Konum düzenlemede "İlçeyi değiştir" (kayıt kimliği ve özel ad korunur).
+- Güncelleme sonrası ilk açılışta eski kayıtlar Diyanet ilçesine eşlenir; belirsiz/desteklenmeyenler için tek seferlik "Konumlarını doğrula" ekranı.
+- Ayarlar > Bilgi: "İlçe koordinatları © OpenStreetMap katkıcıları".
+
 ### Değişti
-- Vakit veri katmanı Diyanet il/ilçe modeline hazırlandı: konumlar Diyanet ilçe kimliği taşır, vakitler `vakit-api`'den yıllık dosya olarak Hicri tarihle birlikte önbelleğe alınır (şema 15). Hicri tarih artık cihazda hesaplanmaz, Diyanet verisinden gösterilir; veri yoksa gösterilmez. Ramazan modu ve dinî gün bildirimleri de aynı veriden beslenir.
-- Kayıtlı konumları Diyanet ilçesine eşleyen migrasyon servisi eklendi; ekranı ve sağlayıcı geçişi sonraki adımda.
+- **Tek vakit kaynağı Diyanet İşleri Başkanlığı** (ADR 0006): vakitler kendi sunucumuzdan (`vakit-api`) ilçe-yıl dosyası olarak gelir ve Hicri tarihle birlikte önbelleğe alınır (şema 15); Aladhan hesabındaki mevsimsel ±1–2 dk fark biter. Hicri tarih cihazda hesaplanmaz; veri yoksa gösterilmez. Ramazan modu ve dinî gün bildirimleri aynı veriden beslenir.
+- Konum artık bir Diyanet ilçesidir; koordinat yalnız kıble içindir (GPS'te cihazın, seçilmiş konumda ilçe merkezinin). GPS izleme yalnız ilçe değişince vakitleri yeniler; aynı ilçe içinde koordinat sessizce tazelenir.
+- Ayarlar'da "Hesaplama" yerine "Vakit düzeltme": yalnız vakit başına ± dakika kaldı (mevcut düzeltme korunur). Veri kaynağı satırı "Diyanet İşleri Başkanlığı".
+- Gizlilik özeti, ayarlar alt yazısı ve konum izni açıklamaları yeni akışa göre: sunucuya yalnız arama metni ve ~100 m'ye yuvarlanmış koordinat gider, saklanmaz.
+
+### Düzeltildi
+- Vakit düzeltmesi açıkken günün Hicri tarihi düşüyordu.
 
 ### Kaldırıldı
+- Aladhan sağlayıcısı, Photon/OpenStreetMap adres araması, cihaz ters-geocode'u (`geocoding`), hesap yöntemi/İkindi mezhebi/yüksek enlem seçicileri ve ülkeye göre hesap varsayılanları.
 - `hijri` paketi (tabular Hicri hesabı; Diyanet takviminden bir gün sapabiliyordu).
 
 ## [0.22.1] - 2026-09-15

@@ -69,8 +69,17 @@ jobs:
           storeFile=$RUNNER_TEMP/upload.jks
           EOF
 
+      - name: Sunucu adresi (VAKIT_API_BASE_URL) tanimli mi
+        env:
+          VAKIT_API_BASE_URL: ${{ vars.VAKIT_API_BASE_URL }}
+        run: |
+          if [ -z "$VAKIT_API_BASE_URL" ]; then
+            echo "HATA: repository variable VAKIT_API_BASE_URL tanimli degil (Settings > Secrets and variables > Actions > Variables)." >&2
+            exit 1
+          fi
+
       - name: AAB derle (imzali release)
-        run: flutter build appbundle --release
+        run: flutter build appbundle --release --dart-define=VAKIT_API_BASE_URL=${{ vars.VAKIT_API_BASE_URL }}
 
       - name: Play service account anahtarini yaz
         env:
