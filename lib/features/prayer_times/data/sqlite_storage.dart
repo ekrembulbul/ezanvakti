@@ -37,7 +37,7 @@ class SqliteStorage implements LocalStorage {
 
     return await openDatabase(
       path,
-      version: 14,
+      version: 15,
       onCreate: _onCreate,
       onUpgrade: onUpgrade,
     );
@@ -55,6 +55,9 @@ class SqliteStorage implements LocalStorage {
         asr TEXT NOT NULL,
         maghrib TEXT NOT NULL,
         isha TEXT NOT NULL,
+        hijri_day INTEGER,
+        hijri_month INTEGER,
+        hijri_year INTEGER,
         UNIQUE(location_id, date)
       )
     ''');
@@ -80,7 +83,11 @@ class SqliteStorage implements LocalStorage {
         created_at TEXT NOT NULL,
         method INTEGER,
         school INTEGER,
-        latitude_adjustment INTEGER
+        latitude_adjustment INTEGER,
+        city_id INTEGER,
+        state_id INTEGER,
+        country_id INTEGER,
+        display_label TEXT
       )
     ''');
 
@@ -324,6 +331,22 @@ class SqliteStorage implements LocalStorage {
         'ALTER TABLE alarms ADD COLUMN fade_in INTEGER NOT NULL DEFAULT 0',
       );
     }
+    if (oldVersion < 15) {
+      // Diyanet il/ilçe modeli: konum ilçe kimliği, vakit satırı Hicri tarih
+      // taşır. Eski kayıtlar NULL kalır; migrasyon servisi eşler, Hicri
+      // yeniden çekimle dolar.
+      await db.execute('ALTER TABLE locations ADD COLUMN city_id INTEGER');
+      await db.execute('ALTER TABLE locations ADD COLUMN state_id INTEGER');
+      await db.execute('ALTER TABLE locations ADD COLUMN country_id INTEGER');
+      await db.execute('ALTER TABLE locations ADD COLUMN display_label TEXT');
+      await db.execute('ALTER TABLE prayer_times ADD COLUMN hijri_day INTEGER');
+      await db.execute(
+        'ALTER TABLE prayer_times ADD COLUMN hijri_month INTEGER',
+      );
+      await db.execute(
+        'ALTER TABLE prayer_times ADD COLUMN hijri_year INTEGER',
+      );
+    }
   }
 
   @override
@@ -349,6 +372,9 @@ class SqliteStorage implements LocalStorage {
         'asr': prayerTime.asr.toIso8601String(),
         'maghrib': prayerTime.maghrib.toIso8601String(),
         'isha': prayerTime.isha.toIso8601String(),
+        'hijri_day': prayerTime.hijri?.day,
+        'hijri_month': prayerTime.hijri?.month,
+        'hijri_year': prayerTime.hijri?.year,
       }, conflictAlgorithm: ConflictAlgorithm.replace);
     }
 
@@ -1097,6 +1123,10 @@ class SqliteStorage implements LocalStorage {
         method: row['method'] as int?,
         school: row['school'] as int?,
         latitudeAdjustmentMethod: row['latitude_adjustment'] as int?,
+        cityId: row['city_id'] as int?,
+        stateId: row['state_id'] as int?,
+        countryId: row['country_id'] as int?,
+        displayLabel: row['display_label'] as String?,
       );
     }).toList();
   }
@@ -1116,6 +1146,10 @@ class SqliteStorage implements LocalStorage {
       'method': location.method,
       'school': location.school,
       'latitude_adjustment': location.latitudeAdjustmentMethod,
+      'city_id': location.cityId,
+      'state_id': location.stateId,
+      'country_id': location.countryId,
+      'display_label': location.displayLabel,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
@@ -1134,6 +1168,10 @@ class SqliteStorage implements LocalStorage {
         'method': location.method,
         'school': location.school,
         'latitude_adjustment': location.latitudeAdjustmentMethod,
+        'city_id': location.cityId,
+        'state_id': location.stateId,
+        'country_id': location.countryId,
+        'display_label': location.displayLabel,
       },
       where: 'id = ?',
       whereArgs: [location.id],
