@@ -295,12 +295,6 @@ abstract class AppLocalizations {
   /// Ayar satırı
   ///
   /// In tr, this message translates to:
-  /// **'Hesaplama'**
-  String get settingsCalculation;
-
-  /// Ayar satırı
-  ///
-  /// In tr, this message translates to:
   /// **'Veri kaynağı'**
   String get settingsDataSource;
 
@@ -1327,32 +1321,14 @@ abstract class AppLocalizations {
   /// Ekran başlığı
   ///
   /// In tr, this message translates to:
-  /// **'Konumlar'**
-  String get locationTitle;
-
-  /// Ekran başlığı
-  ///
-  /// In tr, this message translates to:
   /// **'Konum ekle'**
   String get locationAdd;
-
-  /// Alan ipucu
-  ///
-  /// In tr, this message translates to:
-  /// **'Şehir ara'**
-  String get locationSearch;
 
   /// Düğme
   ///
   /// In tr, this message translates to:
   /// **'Konumumu kullan'**
   String get locationUseGps;
-
-  /// Boş durum
-  ///
-  /// In tr, this message translates to:
-  /// **'Kayıtlı konum yok'**
-  String get locationEmpty;
 
   /// Paylaşım metni
   ///
@@ -1507,20 +1483,8 @@ abstract class AppLocalizations {
   /// Alan ipucu
   ///
   /// In tr, this message translates to:
-  /// **'Şehir, ilçe veya yer adıyla ara'**
-  String get locationSearchHint;
-
-  /// Alan ipucu
-  ///
-  /// In tr, this message translates to:
   /// **'İl veya ilçe ara...'**
   String get locationSearchPlaceholder;
-
-  /// Boş durum
-  ///
-  /// In tr, this message translates to:
-  /// **'Aramak için yazmaya başlayın.'**
-  String get locationSearchStart;
 
   /// Boş durum
   ///
@@ -1570,12 +1534,6 @@ abstract class AppLocalizations {
   /// **'Konum güncellendi'**
   String get locationUpdated;
 
-  /// Hata
-  ///
-  /// In tr, this message translates to:
-  /// **'Lütfen bir konum seçin'**
-  String get locationSelectFirst;
-
   /// Alan başlığı
   ///
   /// In tr, this message translates to:
@@ -1588,24 +1546,6 @@ abstract class AppLocalizations {
   /// **'Örn: Ev, İş, Anne Evi'**
   String get locationCustomNameHint;
 
-  /// Ayar
-  ///
-  /// In tr, this message translates to:
-  /// **'Genel hesaplama ayarını kullan'**
-  String get locationUseGlobalCalculation;
-
-  /// Ayar açıklaması
-  ///
-  /// In tr, this message translates to:
-  /// **'Kapatırsan bu konuma özel yöntem/mezhep seçebilirsin'**
-  String get locationUseGlobalCalculationHint;
-
-  /// Bilgi notu
-  ///
-  /// In tr, this message translates to:
-  /// **'Hesaplama yöntemi genel ayardan alınır. Bu konuma özel değiştirmek için kaydettikten sonra düzenleyin.'**
-  String get locationCalculationFromGlobal;
-
   /// Düğme
   ///
   /// In tr, this message translates to:
@@ -1617,12 +1557,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Geri alınamadı: {error}'**
   String locationUndoFailed(Object error);
-
-  /// Atıf
-  ///
-  /// In tr, this message translates to:
-  /// **'© OpenStreetMap katkıcıları'**
-  String get osmAttribution;
 
   /// Widget etiketi
   ///
@@ -1827,78 +1761,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Kurban Bayramı'**
   String get religiousEidAdha;
-
-  /// İkindi mezhebi
-  ///
-  /// In tr, this message translates to:
-  /// **'Şafi (Standart)'**
-  String get asrShafi;
-
-  /// İkindi mezhebi
-  ///
-  /// In tr, this message translates to:
-  /// **'Hanefi'**
-  String get asrHanafi;
-
-  /// Enlem düzeltmesi
-  ///
-  /// In tr, this message translates to:
-  /// **'Otomatik'**
-  String get latAuto;
-
-  /// Enlem düzeltmesi
-  ///
-  /// In tr, this message translates to:
-  /// **'Gece ortası'**
-  String get latMidnight;
-
-  /// Enlem düzeltmesi
-  ///
-  /// In tr, this message translates to:
-  /// **'Gecenin yedide biri'**
-  String get latOneSeventh;
-
-  /// Enlem düzeltmesi
-  ///
-  /// In tr, this message translates to:
-  /// **'Açı tabanlı'**
-  String get latAngle;
-
-  /// Ayar
-  ///
-  /// In tr, this message translates to:
-  /// **'Hesaplama Yöntemi'**
-  String get calcMethodLabel;
-
-  /// Ayar
-  ///
-  /// In tr, this message translates to:
-  /// **'İkindi (Mezhep)'**
-  String get calcAsrLabel;
-
-  /// Bölüm
-  ///
-  /// In tr, this message translates to:
-  /// **'Gelişmiş'**
-  String get calcAdvanced;
-
-  /// Ayar
-  ///
-  /// In tr, this message translates to:
-  /// **'Yüksek Enlem Düzeltmesi'**
-  String get calcLatitudeLabel;
-
-  /// Bilgi notu
-  ///
-  /// In tr, this message translates to:
-  /// **'Tüm konumlar için varsayılan ayar. Bir konum kendi ayarını seçmediği sürece bu kullanılır.'**
-  String get calcGlobalNote;
-
-  /// Bölüm
-  ///
-  /// In tr, this message translates to:
-  /// **'Vakit düzeltmeleri'**
-  String get calcTuneSection;
 
   /// Bilgi notu
   ///
@@ -2569,13 +2431,13 @@ abstract class AppLocalizations {
   /// Alt bilgi
   ///
   /// In tr, this message translates to:
-  /// **'Vakitler cihazınızda saklanır, dışarı gönderilmez.'**
+  /// **'Vakitler cihazında saklanır; sunucuya yalnız ilçe araması ve konum çözümleme gider.'**
   String get settingsFooter;
 
   /// Gizlilik metni
   ///
   /// In tr, this message translates to:
-  /// **'Konumunuz yalnızca namaz vakitlerini hesaplamak için kullanılır ve cihazınızda saklanır. Vakit verisi Aladhan API üzerinden koordinatla sorgulanır; kişisel bilgi gönderilmez.'**
+  /// **'Konumun ve kayıtlı ilçelerin cihazında saklanır. Arama metni ve konum çözümleme için yaklaşık koordinat (~100 m) yalnızca bize ait vakit sunucusuna gönderilir; sunucu bunları saklamaz ve kimliğinle ilişkilendirmez. Vakit verisi Diyanet İşleri Başkanlığı\'ndan alınır.'**
   String get privacyBody;
 
   /// Saat dilimi
@@ -2752,12 +2614,6 @@ abstract class AppLocalizations {
   /// **'Otomatik konum tespiti'**
   String get locationAutoDetect;
 
-  /// GPS ile konum bulma dugmesi.
-  ///
-  /// In tr, this message translates to:
-  /// **'GPS ile Bul'**
-  String get locationFindWithGps;
-
   /// Kayitli konum sayisi basligi.
   ///
   /// In tr, this message translates to:
@@ -2787,12 +2643,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'kez daha salla'**
   String get missionShakeRemaining;
-
-  /// Adres cozulemedigindeki GPS konum etiketi.
-  ///
-  /// In tr, this message translates to:
-  /// **'GPS Konumu'**
-  String get gpsFallbackLabel;
 
   /// Sabit saatli alarm bolumunun basligi.
   ///
@@ -2908,23 +2758,11 @@ abstract class AppLocalizations {
   /// **'Manuel'**
   String get locationTypeManual;
 
-  /// Adres arama secenegi basligi.
-  ///
-  /// In tr, this message translates to:
-  /// **'Adres Ara'**
-  String get locationSearchAddress;
-
   /// Konum kaydedilemedigindeki uyari.
   ///
   /// In tr, this message translates to:
   /// **'Kaydedilemedi: {error}'**
   String locationSaveFailed(String error);
-
-  /// Konumun genel hesaplama ayarini gosteren satir.
-  ///
-  /// In tr, this message translates to:
-  /// **'Genel ayar: {method} · {school}'**
-  String locationGlobalCalculation(String method, String school);
 
   /// Surum numarasi okunamadiginda gosterilir.
   ///
@@ -3213,6 +3051,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Seç'**
   String get actionSelect;
+
+  /// Ayarlar > Bilgi altındaki atıf satırı
+  ///
+  /// In tr, this message translates to:
+  /// **'İlçe koordinatları © OpenStreetMap katkıcıları'**
+  String get osmDistrictAttribution;
 }
 
 class _AppLocalizationsDelegate

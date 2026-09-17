@@ -135,6 +135,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   title: context.l10n.settingsPrivacy,
                   onTap: widget.onPrivacy ?? _showPrivacy,
                 ),
+                // Sunucudaki ilçe koordinatları OSM'den; atıf lisans gereği.
+                _row(
+                  icon: Icons.map_outlined,
+                  title: context.l10n.osmDistrictAttribution,
+                ),
               ],
             ),
             const SizedBox(height: 24),

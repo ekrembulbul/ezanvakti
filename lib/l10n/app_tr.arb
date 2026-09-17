@@ -107,10 +107,6 @@
   "@settingsLocation": {
     "description": "Ayar satırı"
   },
-  "settingsCalculation": "Hesaplama",
-  "@settingsCalculation": {
-    "description": "Ayar satırı"
-  },
   "settingsDataSource": "Veri kaynağı",
   "@settingsDataSource": {
     "description": "Ayar satırı"
@@ -896,25 +892,13 @@
   "@snackUndo": {
     "description": "Eylem"
   },
-  "locationTitle": "Konumlar",
-  "@locationTitle": {
-    "description": "Ekran başlığı"
-  },
   "locationAdd": "Konum ekle",
   "@locationAdd": {
     "description": "Ekran başlığı"
   },
-  "locationSearch": "Şehir ara",
-  "@locationSearch": {
-    "description": "Alan ipucu"
-  },
   "locationUseGps": "Konumumu kullan",
   "@locationUseGps": {
     "description": "Düğme"
-  },
-  "locationEmpty": "Kayıtlı konum yok",
-  "@locationEmpty": {
-    "description": "Boş durum"
   },
   "shareCaption": "{location} · {period} namaz vakitleri",
   "@shareCaption": {
@@ -1034,17 +1018,9 @@
   "@locationEditTitle": {
     "description": "Ekran başlığı"
   },
-  "locationSearchHint": "Şehir, ilçe veya yer adıyla ara",
-  "@locationSearchHint": {
-    "description": "Alan ipucu"
-  },
   "locationSearchPlaceholder": "İl veya ilçe ara...",
   "@locationSearchPlaceholder": {
     "description": "Alan ipucu"
-  },
-  "locationSearchStart": "Aramak için yazmaya başlayın.",
-  "@locationSearchStart": {
-    "description": "Boş durum"
   },
   "locationSearchNoResult": "Sonuç bulunamadı.\nİl ya da ilçe adını kontrol et.",
   "@locationSearchNoResult": {
@@ -1078,10 +1054,6 @@
   "@locationUpdated": {
     "description": "Bildirim mesajı"
   },
-  "locationSelectFirst": "Lütfen bir konum seçin",
-  "@locationSelectFirst": {
-    "description": "Hata"
-  },
   "locationCustomName": "Özel İsim (Opsiyonel)",
   "@locationCustomName": {
     "description": "Alan başlığı"
@@ -1089,18 +1061,6 @@
   "locationCustomNameHint": "Örn: Ev, İş, Anne Evi",
   "@locationCustomNameHint": {
     "description": "Alan ipucu"
-  },
-  "locationUseGlobalCalculation": "Genel hesaplama ayarını kullan",
-  "@locationUseGlobalCalculation": {
-    "description": "Ayar"
-  },
-  "locationUseGlobalCalculationHint": "Kapatırsan bu konuma özel yöntem/mezhep seçebilirsin",
-  "@locationUseGlobalCalculationHint": {
-    "description": "Ayar açıklaması"
-  },
-  "locationCalculationFromGlobal": "Hesaplama yöntemi genel ayardan alınır. Bu konuma özel değiştirmek için kaydettikten sonra düzenleyin.",
-  "@locationCalculationFromGlobal": {
-    "description": "Bilgi notu"
   },
   "locationChange": "Değiştir",
   "@locationChange": {
@@ -1114,10 +1074,6 @@
         "type": "Object"
       }
     }
-  },
-  "osmAttribution": "© OpenStreetMap katkıcıları",
-  "@osmAttribution": {
-    "description": "Atıf"
   },
   "widgetTomorrow": "Yarın",
   "@widgetTomorrow": {
@@ -1285,54 +1241,6 @@
   "religiousEidAdha": "Kurban Bayramı",
   "@religiousEidAdha": {
     "description": "Dini gün"
-  },
-  "asrShafi": "Şafi (Standart)",
-  "@asrShafi": {
-    "description": "İkindi mezhebi"
-  },
-  "asrHanafi": "Hanefi",
-  "@asrHanafi": {
-    "description": "İkindi mezhebi"
-  },
-  "latAuto": "Otomatik",
-  "@latAuto": {
-    "description": "Enlem düzeltmesi"
-  },
-  "latMidnight": "Gece ortası",
-  "@latMidnight": {
-    "description": "Enlem düzeltmesi"
-  },
-  "latOneSeventh": "Gecenin yedide biri",
-  "@latOneSeventh": {
-    "description": "Enlem düzeltmesi"
-  },
-  "latAngle": "Açı tabanlı",
-  "@latAngle": {
-    "description": "Enlem düzeltmesi"
-  },
-  "calcMethodLabel": "Hesaplama Yöntemi",
-  "@calcMethodLabel": {
-    "description": "Ayar"
-  },
-  "calcAsrLabel": "İkindi (Mezhep)",
-  "@calcAsrLabel": {
-    "description": "Ayar"
-  },
-  "calcAdvanced": "Gelişmiş",
-  "@calcAdvanced": {
-    "description": "Bölüm"
-  },
-  "calcLatitudeLabel": "Yüksek Enlem Düzeltmesi",
-  "@calcLatitudeLabel": {
-    "description": "Ayar"
-  },
-  "calcGlobalNote": "Tüm konumlar için varsayılan ayar. Bir konum kendi ayarını seçmediği sürece bu kullanılır.",
-  "@calcGlobalNote": {
-    "description": "Bilgi notu"
-  },
-  "calcTuneSection": "Vakit düzeltmeleri",
-  "@calcTuneSection": {
-    "description": "Bölüm"
   },
   "calcTuneHint": "Vakitleri elindeki takvime göre birkaç dakika kaydırabilirsin. Bildirimler, alarmlar ve widget da kaydırılmış vakti kullanır.",
   "@calcTuneHint": {
@@ -1854,11 +1762,11 @@
       }
     }
   },
-  "settingsFooter": "Vakitler cihazınızda saklanır, dışarı gönderilmez.",
+  "settingsFooter": "Vakitler cihazında saklanır; sunucuya yalnız ilçe araması ve konum çözümleme gider.",
   "@settingsFooter": {
     "description": "Alt bilgi"
   },
-  "privacyBody": "Konumunuz yalnızca namaz vakitlerini hesaplamak için kullanılır ve cihazınızda saklanır. Vakit verisi Aladhan API üzerinden koordinatla sorgulanır; kişisel bilgi gönderilmez.",
+  "privacyBody": "Konumun ve kayıtlı ilçelerin cihazında saklanır. Arama metni ve konum çözümleme için yaklaşık koordinat (~100 m) yalnızca bize ait vakit sunucusuna gönderilir; sunucu bunları saklamaz ve kimliğinle ilişkilendirmez. Vakit verisi Diyanet İşleri Başkanlığı'ndan alınır.",
   "@privacyBody": {
     "description": "Gizlilik metni"
   },
@@ -2029,10 +1937,6 @@
   "@locationAutoDetect": {
     "description": "GPS secenegi alt metni."
   },
-  "locationFindWithGps": "GPS ile Bul",
-  "@locationFindWithGps": {
-    "description": "GPS ile konum bulma dugmesi."
-  },
   "locationsCount": "{count} konum",
   "@locationsCount": {
     "description": "Kayitli konum sayisi basligi.",
@@ -2070,10 +1974,6 @@
   "missionShakeRemaining": "kez daha salla",
   "@missionShakeRemaining": {
     "description": "Sallama gorevinde kalan sallama sayisinin alt metni."
-  },
-  "gpsFallbackLabel": "GPS Konumu",
-  "@gpsFallbackLabel": {
-    "description": "Adres cozulemedigindeki GPS konum etiketi."
   },
   "alarmFixedSection": "Saat",
   "@alarmFixedSection": {
@@ -2173,27 +2073,11 @@
   "@locationTypeManual": {
     "description": "Elle eklenen konumun tur etiketi."
   },
-  "locationSearchAddress": "Adres Ara",
-  "@locationSearchAddress": {
-    "description": "Adres arama secenegi basligi."
-  },
   "locationSaveFailed": "Kaydedilemedi: {error}",
   "@locationSaveFailed": {
     "description": "Konum kaydedilemedigindeki uyari.",
     "placeholders": {
       "error": {
-        "type": "String"
-      }
-    }
-  },
-  "locationGlobalCalculation": "Genel ayar: {method} · {school}",
-  "@locationGlobalCalculation": {
-    "description": "Konumun genel hesaplama ayarini gosteren satir.",
-    "placeholders": {
-      "method": {
-        "type": "String"
-      },
-      "school": {
         "type": "String"
       }
     }
@@ -2331,5 +2215,7 @@
   "locationNeedsVerification": "Bu konum için ilçe doğrulaması gerekiyor. İnternete bağlanıp yeniden dene.",
   "@locationNeedsVerification": {"description": "Ana ekran: eşlenmemiş aktif konum, çevrimdışı"},
   "actionSelect": "Seç",
-  "@actionSelect": {"description": "Seçim düğmesi"}
+  "@actionSelect": {"description": "Seçim düğmesi"},
+  "osmDistrictAttribution": "İlçe koordinatları © OpenStreetMap katkıcıları",
+  "@osmDistrictAttribution": {"description": "Ayarlar > Bilgi altındaki atıf satırı"}
 }

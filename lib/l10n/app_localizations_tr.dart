@@ -109,9 +109,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get settingsLocation => 'Konum';
 
   @override
-  String get settingsCalculation => 'Hesaplama';
-
-  @override
   String get settingsDataSource => 'Veri kaynağı';
 
   @override
@@ -683,19 +680,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get snackUndo => 'Geri al';
 
   @override
-  String get locationTitle => 'Konumlar';
-
-  @override
   String get locationAdd => 'Konum ekle';
 
   @override
-  String get locationSearch => 'Şehir ara';
-
-  @override
   String get locationUseGps => 'Konumumu kullan';
-
-  @override
-  String get locationEmpty => 'Kayıtlı konum yok';
 
   @override
   String shareCaption(Object location, Object period) {
@@ -781,13 +769,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get locationEditTitle => 'Konumu Düzenle';
 
   @override
-  String get locationSearchHint => 'Şehir, ilçe veya yer adıyla ara';
-
-  @override
   String get locationSearchPlaceholder => 'İl veya ilçe ara...';
-
-  @override
-  String get locationSearchStart => 'Aramak için yazmaya başlayın.';
 
   @override
   String get locationSearchNoResult =>
@@ -817,24 +799,10 @@ class AppLocalizationsTr extends AppLocalizations {
   String get locationUpdated => 'Konum güncellendi';
 
   @override
-  String get locationSelectFirst => 'Lütfen bir konum seçin';
-
-  @override
   String get locationCustomName => 'Özel İsim (Opsiyonel)';
 
   @override
   String get locationCustomNameHint => 'Örn: Ev, İş, Anne Evi';
-
-  @override
-  String get locationUseGlobalCalculation => 'Genel hesaplama ayarını kullan';
-
-  @override
-  String get locationUseGlobalCalculationHint =>
-      'Kapatırsan bu konuma özel yöntem/mezhep seçebilirsin';
-
-  @override
-  String get locationCalculationFromGlobal =>
-      'Hesaplama yöntemi genel ayardan alınır. Bu konuma özel değiştirmek için kaydettikten sonra düzenleyin.';
 
   @override
   String get locationChange => 'Değiştir';
@@ -843,9 +811,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String locationUndoFailed(Object error) {
     return 'Geri alınamadı: $error';
   }
-
-  @override
-  String get osmAttribution => '© OpenStreetMap katkıcıları';
 
   @override
   String get widgetTomorrow => 'Yarın';
@@ -958,43 +923,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get religiousEidAdha => 'Kurban Bayramı';
-
-  @override
-  String get asrShafi => 'Şafi (Standart)';
-
-  @override
-  String get asrHanafi => 'Hanefi';
-
-  @override
-  String get latAuto => 'Otomatik';
-
-  @override
-  String get latMidnight => 'Gece ortası';
-
-  @override
-  String get latOneSeventh => 'Gecenin yedide biri';
-
-  @override
-  String get latAngle => 'Açı tabanlı';
-
-  @override
-  String get calcMethodLabel => 'Hesaplama Yöntemi';
-
-  @override
-  String get calcAsrLabel => 'İkindi (Mezhep)';
-
-  @override
-  String get calcAdvanced => 'Gelişmiş';
-
-  @override
-  String get calcLatitudeLabel => 'Yüksek Enlem Düzeltmesi';
-
-  @override
-  String get calcGlobalNote =>
-      'Tüm konumlar için varsayılan ayar. Bir konum kendi ayarını seçmediği sürece bu kullanılır.';
-
-  @override
-  String get calcTuneSection => 'Vakit düzeltmeleri';
 
   @override
   String get calcTuneHint =>
@@ -1394,11 +1322,11 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get settingsFooter =>
-      'Vakitler cihazınızda saklanır, dışarı gönderilmez.';
+      'Vakitler cihazında saklanır; sunucuya yalnız ilçe araması ve konum çözümleme gider.';
 
   @override
   String get privacyBody =>
-      'Konumunuz yalnızca namaz vakitlerini hesaplamak için kullanılır ve cihazınızda saklanır. Vakit verisi Aladhan API üzerinden koordinatla sorgulanır; kişisel bilgi gönderilmez.';
+      'Konumun ve kayıtlı ilçelerin cihazında saklanır. Arama metni ve konum çözümleme için yaklaşık koordinat (~100 m) yalnızca bize ait vakit sunucusuna gönderilir; sunucu bunları saklamaz ve kimliğinle ilişkilendirmez. Vakit verisi Diyanet İşleri Başkanlığı\'ndan alınır.';
 
   @override
   String dstSummer(Object offset) {
@@ -1507,9 +1435,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get locationAutoDetect => 'Otomatik konum tespiti';
 
   @override
-  String get locationFindWithGps => 'GPS ile Bul';
-
-  @override
   String locationsCount(int count) {
     return '$count konum';
   }
@@ -1529,9 +1454,6 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get missionShakeRemaining => 'kez daha salla';
-
-  @override
-  String get gpsFallbackLabel => 'GPS Konumu';
 
   @override
   String get alarmFixedSection => 'Saat';
@@ -1599,16 +1521,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get locationTypeManual => 'Manuel';
 
   @override
-  String get locationSearchAddress => 'Adres Ara';
-
-  @override
   String locationSaveFailed(String error) {
     return 'Kaydedilemedi: $error';
-  }
-
-  @override
-  String locationGlobalCalculation(String method, String school) {
-    return 'Genel ayar: $method · $school';
   }
 
   @override
@@ -1790,4 +1704,8 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get actionSelect => 'Seç';
+
+  @override
+  String get osmDistrictAttribution =>
+      'İlçe koordinatları © OpenStreetMap katkıcıları';
 }

@@ -189,6 +189,7 @@ void main() {
     expect(find.text('Veri kaynağı'), findsOneWidget);
     expect(find.text('Diyanet İşleri Başkanlığı'), findsOneWidget);
     expect(find.text('Gizlilik'), findsOneWidget);
+    expect(find.textContaining('OpenStreetMap'), findsOneWidget);
   });
 
   testWidgets('Gorunum bolumu tema secicisini icerir', (tester) async {
@@ -206,7 +207,7 @@ void main() {
     await tester.tap(find.text('Gizlilik'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('cihazınızda saklanır'), findsWidgets);
+    expect(find.textContaining('vakit sunucusuna'), findsWidgets);
     expect(find.text('Tamam'), findsOneWidget);
   });
 }
