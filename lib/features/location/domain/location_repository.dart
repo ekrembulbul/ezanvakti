@@ -1,6 +1,5 @@
 import '../../../core/interfaces/local_storage.dart';
 import '../../../core/models/location.dart';
-import '../../../core/models/calculation_settings.dart';
 
 class LocationRepository {
   final LocalStorage storage;
@@ -31,24 +30,11 @@ class LocationRepository {
     await storage.deleteLocation(locationId);
   }
 
-  /// Bir konumun önbellekteki vakitlerini siler. Yeni bir konum eklenirken veya
-  /// hesaplama parametreleri değişirken çağrılır; bir sonraki yükleme güncel
-  /// parametrelerle yeniden çeker.
+  /// Bir konumun önbellekteki vakitlerini siler. Yeni bir konum eklenirken
+  /// veya konumun ilçesi değişirken çağrılır; bir sonraki yükleme yeniden çeker.
   Future<void> clearPrayerTimeCache(String locationId) async {
     await (_clearPrayerCache?.call(locationId) ??
         storage.deletePrayerTimesForLocation(locationId));
-  }
-
-  /// Uygulama genelindeki varsayılan hesaplama ayarını döner. Konum düzenleme
-  /// ekranı "genel ayarı kullan" durumunda etkin değerleri göstermek için kullanır.
-  Future<CalculationSettings> getCalculationSettings() async {
-    return await storage.getCalculationSettings();
-  }
-
-  /// Uygulama genelindeki varsayılan hesaplama ayarını kaydeder. İlk konum
-  /// eklenirken bölgesel varsayılanı atamak için kullanılır.
-  Future<void> saveCalculationSettings(CalculationSettings settings) async {
-    await storage.saveCalculationSettings(settings);
   }
 
   Future<void> updateLocation(Location location) async {
@@ -64,12 +50,8 @@ class LocationRepository {
     final existingGps = await getGpsLocation();
     if (existingGps != null) {
       final updatedLocation = location.copyWith(id: existingGps.id);
-      if (existingGps.latitude != updatedLocation.latitude ||
-          existingGps.longitude != updatedLocation.longitude ||
-          existingGps.method != updatedLocation.method ||
-          existingGps.school != updatedLocation.school ||
-          existingGps.latitudeAdjustmentMethod !=
-              updatedLocation.latitudeAdjustmentMethod) {
+      // Vakit ilçeye bağlı: koordinat aynı ilçe içinde oynasa önbellek geçerli.
+      if (existingGps.cityId != updatedLocation.cityId) {
         await clearPrayerTimeCache(existingGps.id);
       }
       await storage.updateLocation(updatedLocation);

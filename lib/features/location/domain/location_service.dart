@@ -20,18 +20,21 @@ class LocationService {
 
   Future<void> changeLocation(Location newLocation) async {
     final oldLocation = await locationRepository.getActiveLocation();
-
     final sameLocation = oldLocation?.id == newLocation.id;
-    final calcParamsChanged =
-        oldLocation != null && _calcParamsChanged(oldLocation, newLocation);
+    final districtChanged =
+        oldLocation != null && oldLocation.cityId != newLocation.cityId;
 
-    // Konum ve hesaplama parametreleri aynıysa yapılacak iş yok.
-    if (sameLocation && !calcParamsChanged) {
+    if (sameLocation && !districtChanged) {
+      // Aynı ilçe: koordinat/ad tazelenir (kıble), önbellek ve bildirimler
+      // geçerli kalır.
+      if (oldLocation != newLocation) {
+        await locationRepository.setActiveLocation(newLocation);
+      }
       return;
     }
 
-    // Aynı id'nin koordinat veya hesap girdileri değişince tüm cache geçersizdir.
-    if (sameLocation && calcParamsChanged) {
+    // Aynı id'nin ilçesi değişince (GPS başka ilçeye geçti) önbellek geçersiz.
+    if (sameLocation && districtChanged) {
       await prayerTimesRepository.clearCacheForLocation(newLocation.id);
     }
 
@@ -43,13 +46,5 @@ class LocationService {
     // ve konum değişiminde çift çekim olmaz. Ağ erişimi gerektirmediğinden bu işlem
     // offline'da da güvenle tamamlanır; eski konumun bildirimleri ortada kalmaz.
     await notificationService?.cancelAllNotifications();
-  }
-
-  bool _calcParamsChanged(Location a, Location b) {
-    return a.method != b.method ||
-        a.latitude != b.latitude ||
-        a.longitude != b.longitude ||
-        a.school != b.school ||
-        a.latitudeAdjustmentMethod != b.latitudeAdjustmentMethod;
   }
 }

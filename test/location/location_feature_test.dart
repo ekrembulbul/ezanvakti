@@ -9,7 +9,7 @@ import 'package:ezanvakti/core/interfaces/local_storage.dart';
 import 'package:ezanvakti/core/models/abort_state.dart';
 import 'package:ezanvakti/core/models/mission_session.dart';
 import 'package:ezanvakti/core/models/alarm.dart';
-import 'package:ezanvakti/core/models/calculation_settings.dart';
+import 'package:ezanvakti/core/models/prayer_tune_settings.dart';
 import 'package:ezanvakti/core/models/appearance_settings.dart';
 import 'package:ezanvakti/core/interfaces/notification_service.dart';
 import 'package:ezanvakti/core/interfaces/prayer_time_provider.dart';
@@ -32,7 +32,6 @@ PrayerTime _samplePrayerTime() => PrayerTime(
 );
 
 class MockLocalStorage implements LocalStorage {
-
   final Map<String, String> _rawSettings = {};
 
   @override
@@ -236,15 +235,14 @@ class MockLocalStorage implements LocalStorage {
     _prayerTimesCache.clear();
   }
 
-  CalculationSettings _calculationSettings = CalculationSettings.defaults;
+  PrayerTuneSettings _tuneSettings = PrayerTuneSettings.none;
 
   @override
-  Future<CalculationSettings> getCalculationSettings() async =>
-      _calculationSettings;
+  Future<PrayerTuneSettings> getPrayerTuneSettings() async => _tuneSettings;
 
   @override
-  Future<void> saveCalculationSettings(CalculationSettings settings) async {
-    _calculationSettings = settings;
+  Future<void> savePrayerTuneSettings(PrayerTuneSettings settings) async {
+    _tuneSettings = settings;
   }
 
   @override
@@ -399,7 +397,6 @@ class MockLocalStorage implements LocalStorage {
   Future<void> saveAbortState(AbortState state) async {
     _abortState = state;
   }
-
 
   Map<String, List<PrayerTime>> get cacheForTesting => _prayerTimesCache;
 }
@@ -783,19 +780,21 @@ void main() {
     });
 
     test(
-      'Same location with changed calc params clears cache and reschedules',
+      'Same id with changed district clears cache and cancels notifications',
       () async {
         const base = Location(
-          id: '9635',
+          id: 'gps',
           province: 'İstanbul',
-          district: 'Kadıköy',
-          latitude: 40.9828,
-          longitude: 29.0227,
+          district: 'Şile',
+          type: LocationType.gps,
+          cityId: 9547,
+          latitude: 41.17,
+          longitude: 29.61,
         );
 
         await locationService.changeLocation(base);
 
-        // Onbellekte bu konuma ait vakit bulunsun; parametre degisince temizlenmeli.
+        // Onbellekte bu konuma ait vakit bulunsun; ilce degisince temizlenmeli.
         await storage.savePrayerTimes([
           PrayerTime(
             fajr: DateTime(2024, 1, 1, 5, 30),
@@ -812,18 +811,61 @@ void main() {
         provider.fetchCallCount = 0;
         notificationService.cancelAllCallCount = 0;
 
-        // Aynı konum, farklı hesaplama yöntemi/mezhebi.
-        final changed = base.copyWith(method: 3, school: 0);
-        await locationService.changeLocation(changed);
+        // Aynı GPS kaydı başka bir ilçeye taşındı.
+        final moved = base.copyWith(
+          province: 'Ankara',
+          district: 'Ankara',
+          cityId: 9206,
+          latitude: 39.9,
+          longitude: 32.8,
+        );
+        await locationService.changeLocation(moved);
 
-        // Onbellek temizlendi, bildirimler iptal edildi, parametreler guncellendi.
         expect(storage.cacheForTesting.containsKey(base.id), isFalse);
         expect(notificationService.cancelAllCallCount, equals(1));
         // changeLocation veri cekmez; yeniden cekim presentation katmaninda olur.
         expect(provider.fetchCallCount, equals(0));
         final active = await locationService.getActiveLocation();
-        expect(active!.method, equals(3));
-        expect(active.school, equals(0));
+        expect(active!.cityId, equals(9206));
+      },
+    );
+
+    test(
+      'Same id and district with new coordinates only refreshes the active record',
+      () async {
+        const base = Location(
+          id: 'gps',
+          province: 'İstanbul',
+          district: 'Şile',
+          type: LocationType.gps,
+          cityId: 9547,
+          latitude: 41.17,
+          longitude: 29.61,
+        );
+
+        await locationService.changeLocation(base);
+        await storage.savePrayerTimes([
+          PrayerTime(
+            fajr: DateTime(2024, 1, 1, 5, 30),
+            sunrise: DateTime(2024, 1, 1, 7, 0),
+            dhuhr: DateTime(2024, 1, 1, 13, 15),
+            asr: DateTime(2024, 1, 1, 16, 30),
+            maghrib: DateTime(2024, 1, 1, 19, 0),
+            isha: DateTime(2024, 1, 1, 20, 30),
+            date: DateTime(2024, 1, 1),
+          ),
+        ], base.id);
+        notificationService.cancelAllCallCount = 0;
+
+        final nudged = base.copyWith(latitude: 41.18);
+        await locationService.changeLocation(nudged);
+
+        // Vakit ilçeye bağlı: önbellek ve bildirimler geçerli, koordinat kıble
+        // için tazelendi.
+        expect(storage.cacheForTesting.containsKey(base.id), isTrue);
+        expect(notificationService.cancelAllCallCount, equals(0));
+        final active = await locationService.getActiveLocation();
+        expect(active!.latitude, equals(41.18));
       },
     );
 

@@ -1,5 +1,7 @@
-import 'package:ezanvakti/core/models/notification_setting.dart' show PrayerType;
-import 'package:ezanvakti/core/models/calculation_settings.dart';
+import 'package:ezanvakti/core/models/notification_setting.dart'
+    show PrayerType;
+import 'package:ezanvakti/core/models/hijri_date.dart';
+import 'package:ezanvakti/core/models/prayer_tune_settings.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/features/prayer_times/domain/prayer_time_tuner.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -36,24 +38,44 @@ void main() {
     expect(tuned.asr, base.asr);
   });
 
-  test('CalculationSettings tune JSON round-trip: sifirlar yazilmaz', () {
-    const settings = CalculationSettings(
-      method: 13,
-      school: 0,
-      tune: {PrayerType.fajr: -2, PrayerType.asr: 0},
+  test('PrayerTuneSettings JSON round-trip: sifirlar yazilmaz', () {
+    const settings = PrayerTuneSettings(
+      tune: {PrayerType.fajr: 2, PrayerType.isha: 0, PrayerType.asr: -1},
     );
     final json = settings.toJson();
-    expect((json['tune'] as Map).containsKey('asr'), isFalse);
-    final restored = CalculationSettings.fromJson(json);
-    expect(restored.tune, {PrayerType.fajr: -2});
-    expect(restored, settings.copyWith(tune: const {PrayerType.fajr: -2}));
+    expect(json['tune'], {'fajr': 2, 'asr': -1});
+    expect(
+      PrayerTuneSettings.fromJson(json),
+      const PrayerTuneSettings(tune: {PrayerType.fajr: 2, PrayerType.asr: -1}),
+    );
+  });
+
+  test('Eski calculation_settings JSON okunur; method/school yok sayilir', () {
+    final settings = PrayerTuneSettings.fromJson({
+      'method': 13,
+      'school': 0,
+      'tune': {'fajr': 3},
+    });
+    expect(settings.tune, {PrayerType.fajr: 3});
+    expect(settings.toJson().containsKey('method'), isFalse);
+    expect(PrayerTuneSettings.fromJson({}), PrayerTuneSettings.none);
+  });
+
+  test('Duzeltme uygulanan gun Hicri tarihini korur', () {
+    final day = base.copyWith(
+      hijri: const HijriDate(day: 18, month: 2, year: 1448),
+    );
+    final tuned = PrayerTimeTuner.applyOne(day, const {PrayerType.fajr: 2});
+    expect(tuned.fajr, base.fajr.add(const Duration(minutes: 2)));
+    expect(tuned.hijri, day.hijri);
   });
 
   test('liste hali her gune uygular', () {
     final second = base.copyWith(date: DateTime(2026, 9, 1));
-    final tuned = PrayerTimeTuner.apply([base, second], const {
-      PrayerType.maghrib: 1,
-    });
+    final tuned = PrayerTimeTuner.apply(
+      [base, second],
+      const {PrayerType.maghrib: 1},
+    );
     expect(tuned, hasLength(2));
     expect(tuned[1].maghrib, second.maghrib.add(const Duration(minutes: 1)));
   });

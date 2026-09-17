@@ -545,7 +545,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   void _navigateToPrayerTune() async {
     final storage = ServiceLocator().get<LocalStorage>();
-    final current = await storage.getCalculationSettings();
+    final current = await storage.getPrayerTuneSettings();
     if (!mounted) return;
 
     final tune = await Navigator.of(context).push<Map<PrayerType, int>>(
@@ -555,7 +555,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     );
     if (tune == null || mapEquals(tune, current.tune)) return;
 
-    await storage.saveCalculationSettings(current.copyWith(tune: tune));
+    await storage.savePrayerTuneSettings(current.copyWith(tune: tune));
     // Veri aynı, yalnızca okunuşu değişti (ADR 0004): önbellek geçerli.
     await _reloadAfterTuneChange();
   }

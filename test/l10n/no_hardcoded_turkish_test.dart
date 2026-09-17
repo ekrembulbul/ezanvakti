@@ -19,11 +19,40 @@ void main() {
   /// Listeye yalnızca İngilizce'de başka anlamı olmayan kelimeler girer —
   /// "Alarm" gibi iki dilde de aynı yazılanlar yanlış alarm üretir.
   const asciiTurkishWords = <String>[
-    'Ayarlar', 'Kapat', 'Ertele', 'Iptal', 'Tamam', 'Kaydet', 'Vazgec',
-    'Duzenle', 'Ekle', 'Yenile', 'Devam', 'Geri', 'Namaz', 'Vakit',
-    'Vakitler', 'Ezan', 'Konum', 'Sehir', 'Ilce', 'Bildirim', 'Bugun',
-    'Yarin', 'Dun', 'Simdi', 'Hata', 'Uyari', 'Acik', 'Kapali', 'Yok',
-    'Evet', 'Hayir', 'hak', 'kez', 'dk',
+    'Ayarlar',
+    'Kapat',
+    'Ertele',
+    'Iptal',
+    'Tamam',
+    'Kaydet',
+    'Vazgec',
+    'Duzenle',
+    'Ekle',
+    'Yenile',
+    'Devam',
+    'Geri',
+    'Namaz',
+    'Vakit',
+    'Vakitler',
+    'Ezan',
+    'Konum',
+    'Sehir',
+    'Ilce',
+    'Bildirim',
+    'Bugun',
+    'Yarin',
+    'Dun',
+    'Simdi',
+    'Hata',
+    'Uyari',
+    'Acik',
+    'Kapali',
+    'Yok',
+    'Evet',
+    'Hayir',
+    'hak',
+    'kez',
+    'dk',
   ];
   final asciiTurkish = RegExp(
     r'\b(?:' + asciiTurkishWords.join('|') + r')\b',
@@ -31,12 +60,13 @@ void main() {
   );
 
   /// Tek ve çift tırnaklı string literal'ler.
-  final literal = RegExp(r"'((?:[^'\\]|\\.)*)'|" r'"((?:[^"\\]|\\.)*)"');
+  final literal = RegExp(
+    r"'((?:[^'\\]|\\.)*)'|"
+    r'"((?:[^"\\]|\\.)*)"',
+  );
 
   /// Çevrilmemesi **doğru** olan yerler.
   const allowed = <String, String>{
-    'lib/core/models/calculation_params.dart':
-        'Kurum adları özel isimdir: "Diyanet İşleri Başkanlığı" çevrilmez.',
     'lib/features/location/data/photon_geocoding_service.dart':
         'User-Agent başlığı sunucuya gider, kullanıcıya gösterilmez.',
     'lib/presentation/services/calendar_share_service.dart':

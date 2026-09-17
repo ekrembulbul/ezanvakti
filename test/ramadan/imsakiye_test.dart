@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ezanvakti/core/data/ramadan_periods.dart';
-import 'package:ezanvakti/core/models/calculation_settings.dart';
+import 'package:ezanvakti/core/models/prayer_tune_settings.dart';
 import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart';
@@ -89,8 +89,8 @@ void main() {
       final repository = ImsakiyeRepository(
         PrayerTimesRepository(provider: provider, storage: storage),
       );
-      await storage.saveCalculationSettings(
-        CalculationSettings.defaults.copyWith(tune: {PrayerType.fajr: 3}),
+      await storage.savePrayerTuneSettings(
+        const PrayerTuneSettings(tune: {PrayerType.fajr: 3}),
       );
       final period = ramadanPeriods[2];
       final times = await repository.load(location: location, period: period);

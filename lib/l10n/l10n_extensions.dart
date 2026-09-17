@@ -1,6 +1,5 @@
 import 'package:flutter/widgets.dart';
 
-import '../core/models/calculation_params.dart';
 import '../features/alarms/domain/abort_gate.dart';
 import '../core/models/derived_time.dart';
 import '../core/models/location.dart';
@@ -76,18 +75,6 @@ extension L10nLabels on AppLocalizations {
     ReligiousDayId.eidFitr => religiousEidFitr,
     ReligiousDayId.arafah => religiousArafah,
     ReligiousDayId.eidAdha => religiousEidAdha,
-  };
-
-  String asrSchoolLabel(AsrSchool school) => switch (school) {
-    AsrSchool.shafi => asrShafi,
-    AsrSchool.hanafi => asrHanafi,
-  };
-
-  String latitudeAdjustmentLabel(LatitudeAdjustment value) => switch (value) {
-    LatitudeAdjustment.auto => latAuto,
-    LatitudeAdjustment.middleOfNight => latMidnight,
-    LatitudeAdjustment.oneSeventh => latOneSeventh,
-    LatitudeAdjustment.angleBased => latAngle,
   };
 
   String abortPhrase(AbortPhrase phrase) => switch (phrase) {

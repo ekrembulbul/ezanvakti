@@ -10,7 +10,7 @@ import 'package:ezanvakti/core/interfaces/local_storage.dart';
 import 'package:ezanvakti/core/models/abort_state.dart';
 import 'package:ezanvakti/core/models/mission_session.dart';
 import 'package:ezanvakti/core/models/alarm.dart';
-import 'package:ezanvakti/core/models/calculation_settings.dart';
+import 'package:ezanvakti/core/models/prayer_tune_settings.dart';
 import 'package:ezanvakti/core/models/appearance_settings.dart';
 import 'package:ezanvakti/core/interfaces/notification_service.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
@@ -59,7 +59,6 @@ class MockPrayerTimeProvider implements PrayerTimeProvider {
 }
 
 class MockLocalStorage implements LocalStorage {
-
   final Map<String, String> _rawSettings = {};
 
   @override
@@ -239,15 +238,14 @@ class MockLocalStorage implements LocalStorage {
     _prayerTimesCache.clear();
   }
 
-  CalculationSettings _calculationSettings = CalculationSettings.defaults;
+  PrayerTuneSettings _tuneSettings = PrayerTuneSettings.none;
 
   @override
-  Future<CalculationSettings> getCalculationSettings() async =>
-      _calculationSettings;
+  Future<PrayerTuneSettings> getPrayerTuneSettings() async => _tuneSettings;
 
   @override
-  Future<void> saveCalculationSettings(CalculationSettings settings) async {
-    _calculationSettings = settings;
+  Future<void> savePrayerTuneSettings(PrayerTuneSettings settings) async {
+    _tuneSettings = settings;
   }
 
   @override
@@ -398,7 +396,6 @@ class MockLocalStorage implements LocalStorage {
   Future<void> saveAbortState(AbortState state) async {
     _abortState = state;
   }
-
 }
 
 class MockNotificationService implements NotificationService {
