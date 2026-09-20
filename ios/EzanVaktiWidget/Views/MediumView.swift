@@ -10,8 +10,10 @@ struct MediumView: View {
         switch entry.content {
         case .noData:
             MessageView(text: "Vakitler için uygulamayı aç", phase: .fallback, appearance: entry.appearance)
+                .modifier(HomeContentInsets(hasRibbon: false))
         case .needsUpdate:
             MessageView(text: "Uygulamayı güncelleyin", phase: .fallback, appearance: entry.appearance)
+                .modifier(HomeContentInsets(hasRibbon: false))
         case let .ready(next, day, phase, locationLabel, isStale, isTomorrow):
             ready(
                 next: next, day: day, phase: phase,
@@ -28,38 +30,50 @@ struct MediumView: View {
         // Liste sıradaki vaktin gününü gösterir; `day` bu yüzden timeline'da
         // sıradaki vakte göre seçiliyor.
         let slots = NextPrayer.slots(days: [day], calendar: .current)
+        let kerahat = entry.kerahat
+        // Sağ sütun ile ayraç kerahatte de şeridin üstünde alt payını korur;
+        // yalnız sol sütun şeride bitişik biter.
+        let listBottom = kerahat == nil ? 0 : WidgetInsets.vertical
 
-        return HStack(spacing: 0) {
-            // Sol sütun küçük widget'ın aynısı; genişliği sabit ki liste
-            // cihazdan cihaza değişen artığı alsın.
-            VStack(alignment: alignment.horizontal, spacing: 0) {
-                WidgetHeader(
-                    entry: entry, day: day, palette: palette, alignment: alignment,
-                    locationLabel: locationLabel, isStale: isStale)
-                WidgetDivider(color: palette.divider)
-                CenteredBelowDivider {
-                    NextPrayerBlock(
-                        entry: entry, next: next, palette: palette,
-                        alignment: alignment, isTomorrow: isTomorrow)
+        return VStack(spacing: 0) {
+            HStack(spacing: 0) {
+                // Sol sütun küçük widget'ın aynısı; genişliği sabit ki liste
+                // cihazdan cihaza değişen artığı alsın.
+                VStack(alignment: alignment.horizontal, spacing: 0) {
+                    WidgetHeader(
+                        entry: entry, day: day, palette: palette, alignment: alignment,
+                        locationLabel: locationLabel, isStale: isStale)
+                    WidgetDivider(color: palette.divider)
+                    CenteredBelowDivider(hasRibbon: kerahat != nil) {
+                        NextPrayerBlock(
+                            entry: entry, next: next, palette: palette,
+                            alignment: alignment, isTomorrow: isTomorrow)
+                    }
                 }
-            }
-            .frame(width: 158)
+                .frame(width: 158)
 
-            Rectangle()
-                .fill(palette.textSecondary.opacity(0.2))
-                .frame(width: 1)
-                .padding(.leading, 14)
-                .padding(.trailing, 16)
+                Rectangle()
+                    .fill(palette.textSecondary.opacity(0.2))
+                    .frame(width: 1)
+                    .padding(.leading, 14)
+                    .padding(.trailing, 16)
+                    .padding(.bottom, listBottom)
 
-            // Altı satır dikeyde yayılıp yüksekliğin tamamını kaplar; sütun
-            // artan genişliği alır.
-            VStack(spacing: 0) {
-                ForEach(Array(slots.enumerated()), id: \.element.name) { index, slot in
-                    if index > 0 { Spacer(minLength: 0) }
-                    row(slot: slot, next: next, palette: palette)
+                // Altı satır dikeyde yayılıp yüksekliğin tamamını kaplar; sütun
+                // artan genişliği alır.
+                VStack(spacing: 0) {
+                    ForEach(Array(slots.enumerated()), id: \.element.name) { index, slot in
+                        if index > 0 { Spacer(minLength: 0) }
+                        row(slot: slot, next: next, palette: palette)
+                    }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.bottom, listBottom)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .modifier(HomeContentInsets(hasRibbon: kerahat != nil))
+            if let status = kerahat {
+                KerahatRibbon(entry: entry, status: status, palette: palette)
+            }
         }
         .opacity(isStale ? 0.55 : 1)
     }

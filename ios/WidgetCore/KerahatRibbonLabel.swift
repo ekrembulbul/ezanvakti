@@ -1,11 +1,11 @@
 import Foundation
 
-/// Widget'taki kerahat çipinin içeriği: tek kelime ve sistem sayacının hedefi.
+/// Widget'taki kerahat şeridinin içeriği: tek kelime ve sistem sayacının hedefi.
 ///
-/// Saf tutuluyor ki XCTest'te sınansın; görünüm (`KerahatChip`) etiketi yazar,
-/// sonuna sistem sayacını ekler. Saat ya da bitiş yazılmaz: sayaç zaten
+/// Saf tutuluyor ki XCTest'te sınansın; görünüm (`KerahatRibbon`) etiketi
+/// yazar, sonuna sistem sayacını ekler. Saat ya da bitiş yazılmaz: sayaç zaten
 /// yaklaşırken başlangıca, kerahatte bitişe sayar (2026-09-19 tasarımı).
-enum KerahatChipLabel {
+enum KerahatRibbonLabel {
     /// Her iki durumda da tek kelime; etiket snapshot'la gelir, yoksa Türkçe.
     static func text(labels: SnapshotLabels?) -> String {
         labels?.kerahat ?? "Kerahat"

@@ -2,10 +2,33 @@ import SwiftUI
 import WidgetKit
 
 // Küçük widget'ın ve orta widget'ın sol sütununun ortak parçaları.
-// Sıra: üst blok · çizgi · vakit adı ile saat yan yana · ince sayaç.
+// Sıra: üst blok · çizgi · vakit adı ile saat yan yana · ince sayaç; kerahat
+// yaklaşırken ya da sürerken en altta, kenar payının dışında `KerahatRibbon`.
 
-/// Üst blok: kerahat yokken tarih, hicri tarih ve konum; kerahat yaklaşırken ya
-/// da sürerken çip ve tek satırda kısa tarih ile konum.
+/// Ana ekran ailelerinin kendi kenar payı; sistemin payı kapalı
+/// (`contentMarginsDisabled`). Dikeyde 12: sistemin 16'sı üç satır tarih,
+/// çizgi, vakit satırı, sayaç ve kerahat şeridini birlikte sığdırmıyordu.
+/// Yatayda sistemin değeri (`widgetContentMargins`) aynen kullanılır.
+enum WidgetInsets {
+    static let vertical: CGFloat = 12
+}
+
+/// Ana ekran içeriğinin payı: üstte 12, yatayda sistemin değeri; altta
+/// kerahat yokken 12, kerahatte 0 — şerit içeriğin hemen altına bitişir.
+struct HomeContentInsets: ViewModifier {
+    @Environment(\.widgetContentMargins) private var margins
+    let hasRibbon: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .padding(.top, WidgetInsets.vertical)
+            .padding(.bottom, hasRibbon ? 0 : WidgetInsets.vertical)
+            .padding(.leading, margins.leading)
+            .padding(.trailing, margins.trailing)
+    }
+}
+
+/// Üst blok: tarih, hicri tarih ve konum — kerahatte de aynı üç satır.
 struct WidgetHeader: View {
     let entry: PrayerEntry
     let day: SnapshotDay
@@ -20,19 +43,13 @@ struct WidgetHeader: View {
 
     var body: some View {
         VStack(alignment: alignment.horizontal, spacing: 1) {
-            if let status = entry.kerahat {
-                KerahatChip(entry: entry, status: status, palette: palette)
-                    .padding(.bottom, 5)
-                Text([DayLabel.short(day), place].compactMap { $0 }.joined(separator: " · "))
-            } else {
-                if let gregorian = DayLabel.gregorian(day) {
-                    Text(gregorian)
-                }
-                if let hijri = day.hijri {
-                    Text(hijri)
-                }
-                Text(place)
+            if let gregorian = DayLabel.gregorian(day) {
+                Text(gregorian)
             }
+            if let hijri = day.hijri {
+                Text(hijri)
+            }
+            Text(place)
         }
         .font(.system(size: 12))
         .foregroundStyle(palette.textSecondary)
@@ -94,20 +111,24 @@ struct NextPrayerBlock: View {
     }
 }
 
-/// Alt bloğu çizgi ile widget'ın görünen alt kenarı arasında dikeyde ortalar.
-/// İçerik alanı sistemin kenar boşluğunda biter; blok o boşluk kadar üstten
-/// pay alınca içeriği görünen kenara göre tam ortaya düşer (2026-09-20, B2).
+/// Alt bloğu çizgi ile altındaki sınır arasında dikeyde ortalar.
+///
+/// Kerahat yokken sınır widget'ın görünen alt kenarıdır: içerik alt kenar
+/// payında bittiğinden blok o pay kadar üstten pay alınca görünen kenara göre
+/// tam ortaya düşer (2026-09-20, B2). Kerahatte sınır şeridin üst kenarıdır ve
+/// içerik şeride bitişik biter; pay yok.
 struct CenteredBelowDivider<Content: View>: View {
-    @Environment(\.widgetContentMargins) private var margins
+    private let topPadding: CGFloat
     private let content: Content
 
-    init(@ViewBuilder content: () -> Content) {
+    init(hasRibbon: Bool, @ViewBuilder content: () -> Content) {
+        topPadding = hasRibbon ? 0 : WidgetInsets.vertical
         self.content = content()
     }
 
     var body: some View {
         Spacer(minLength: 0)
-        content.padding(.top, margins.bottom)
+        content.padding(.top, topPadding)
         Spacer(minLength: 0)
     }
 }

@@ -10,8 +10,10 @@ struct SmallView: View {
         switch entry.content {
         case .noData:
             MessageView(text: "Vakitler için uygulamayı aç", phase: .fallback, appearance: entry.appearance)
+                .modifier(HomeContentInsets(hasRibbon: false))
         case .needsUpdate:
             MessageView(text: "Uygulamayı güncelleyin", phase: .fallback, appearance: entry.appearance)
+                .modifier(HomeContentInsets(hasRibbon: false))
         case let .ready(next, day, phase, locationLabel, isStale, isTomorrow):
             ready(
                 next: next, day: day, phase: phase,
@@ -25,16 +27,23 @@ struct SmallView: View {
         locationLabel: String, isStale: Bool, isTomorrow: Bool
     ) -> some View {
         let palette = Palette.resolve(entry.appearance, phase: phase, colorScheme: colorScheme)
+        let kerahat = entry.kerahat
 
-        return VStack(alignment: alignment.horizontal, spacing: 0) {
-            WidgetHeader(
-                entry: entry, day: day, palette: palette, alignment: alignment,
-                locationLabel: locationLabel, isStale: isStale)
-            WidgetDivider(color: palette.divider)
-            CenteredBelowDivider {
-                NextPrayerBlock(
-                    entry: entry, next: next, palette: palette,
-                    alignment: alignment, isTomorrow: isTomorrow)
+        return VStack(spacing: 0) {
+            VStack(alignment: alignment.horizontal, spacing: 0) {
+                WidgetHeader(
+                    entry: entry, day: day, palette: palette, alignment: alignment,
+                    locationLabel: locationLabel, isStale: isStale)
+                WidgetDivider(color: palette.divider)
+                CenteredBelowDivider(hasRibbon: kerahat != nil) {
+                    NextPrayerBlock(
+                        entry: entry, next: next, palette: palette,
+                        alignment: alignment, isTomorrow: isTomorrow)
+                }
+            }
+            .modifier(HomeContentInsets(hasRibbon: kerahat != nil))
+            if let status = kerahat {
+                KerahatRibbon(entry: entry, status: status, palette: palette)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)

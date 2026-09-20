@@ -1,9 +1,14 @@
 import SwiftUI
 
-/// Üst bloğun başındaki kerahat şeridi: ikon · "Kerahat" · sistem sayacı.
-/// Yaklaşırken turuncu çerçeveli ve sayaç başlangıca, kerahatte bordo dolgulu
-/// ve sayaç bitişe sayar. Alt bloktaki sayaç bundan bağımsız, sıradaki vakte.
-struct KerahatChip: View {
+/// Widget'ın en altındaki tam genişlik kerahat şeridi: ikon · "Kerahat" · sistem
+/// sayacı. Kenar payının dışında durur; köşelerini widget'ın kendi yuvarlağı
+/// kırpar (2026-09-20 tasarımı: üst bloktaki kapsül tarihi tek satıra
+/// indiriyordu, tarih artık her durumda üç satır). Yaklaşırken turuncu zemin
+/// ve üstte turuncu çizgi, sayaç başlangıca; kerahatte bordo dolgu ve sayaç
+/// bitişe. Alt bloktaki sayaç bundan bağımsız, sıradaki vakte.
+struct KerahatRibbon: View {
+    static let height: CGFloat = 26
+
     let entry: PrayerEntry
     let status: KerahatStatus
     let palette: Palette
@@ -13,9 +18,9 @@ struct KerahatChip: View {
 
     /// Pencere 30 dk, aralıklar 45 dk altı: sayaç hep dk:sn.
     private var countdown: Text {
-        let target = KerahatChipLabel.countdownTarget(status: status)
+        let target = KerahatRibbonLabel.countdownTarget(status: status)
         return Text(timerInterval: min(entry.date, target)...target, countsDown: true)
-            .font(.system(size: 11, weight: .bold).monospacedDigit())
+            .font(.system(size: 13, weight: .bold).monospacedDigit())
     }
 
     var body: some View {
@@ -23,16 +28,20 @@ struct KerahatChip: View {
         // yaslıyor (2026-09-15 cihaz gözlemi); ikon, kelime ve sayaç aynı
         // metinde birleşince ortalı hiza bütününe uygulanır.
         (Text(Image(systemName: "sun.horizon"))
-            + Text(verbatim: " \(KerahatChipLabel.text(labels: entry.labels)) ")
+            + Text(verbatim: " \(KerahatRibbonLabel.text(labels: entry.labels)) ")
             + countdown)
-            .font(.system(size: 11, weight: .semibold))
+            .font(.system(size: 13, weight: .semibold))
             .lineLimit(1)
             .minimumScaleFactor(0.7)
             .multilineTextAlignment(.center)
             .foregroundStyle(foreground)
             .frame(maxWidth: .infinity)
-            .frame(height: 22)
-            .background(Capsule().fill(isActive ? palette.kerahatLine : palette.kerahatSoonSurface))
-            .overlay(Capsule().strokeBorder(isActive ? palette.kerahatLine : palette.kerahatSoonLine, lineWidth: 1))
+            .frame(height: Self.height)
+            .background(isActive ? palette.kerahatLine : palette.kerahatSoonSurface)
+            .overlay(alignment: .top) {
+                if !isActive {
+                    palette.kerahatSoonLine.frame(height: 1)
+                }
+            }
     }
 }

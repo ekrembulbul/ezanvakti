@@ -1,6 +1,6 @@
 import XCTest
 
-final class KerahatChipLabelTests: XCTestCase {
+final class KerahatRibbonLabelTests: XCTestCase {
     private let zone = TimeZone(identifier: "Europe/Istanbul")!
 
     private func at(_ hour: Int, _ minute: Int) -> Date {
@@ -21,16 +21,16 @@ final class KerahatChipLabelTests: XCTestCase {
 
     func testLabelIsTheSingleWordFromSnapshot() throws {
         XCTAssertEqual(
-            KerahatChipLabel.text(labels: try labels(#"{"kerahat":"Disliked time"}"#)),
+            KerahatRibbonLabel.text(labels: try labels(#"{"kerahat":"Disliked time"}"#)),
             "Disliked time")
     }
 
     func testLabelFallsBackToTurkishWithoutLabels() {
-        XCTAssertEqual(KerahatChipLabel.text(labels: nil), "Kerahat")
+        XCTAssertEqual(KerahatRibbonLabel.text(labels: nil), "Kerahat")
     }
 
     func testCountdownTargetIsStartWhileApproachingAndEndWhileActive() {
-        XCTAssertEqual(KerahatChipLabel.countdownTarget(status: approaching), at(18, 38))
-        XCTAssertEqual(KerahatChipLabel.countdownTarget(status: active), at(19, 23))
+        XCTAssertEqual(KerahatRibbonLabel.countdownTarget(status: approaching), at(18, 38))
+        XCTAssertEqual(KerahatRibbonLabel.countdownTarget(status: active), at(19, 23))
     }
 }
