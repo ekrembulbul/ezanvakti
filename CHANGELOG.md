@@ -4,6 +4,18 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.23.0] - 2026-09-20
+
+### Değişti
+- **Kerahat bandı ve widget çipi sadeleşti.** İkisi de yalnız "Kerahat" yazar; yanında saniyesi akan dk:sn sayaç — yaklaşırken başlangıca, kerahatte bitişe sayar. Başlangıç saati, "vakti" ve "bitiş" metinleri kalktı. Yaklaşırken turuncu çerçeve, kerahatte bordo dolgu. Büyük sayaç değişmedi, sıradaki vakte sayar. Bant büyük metin ölçeğinde taşmaz; satır sığmazsa küçülür.
+- iOS widget'ta alt blok (vakit adı, saati ve sayaç) çizgi ile alt kenar arasında dikeyde ortalı; altta boş şerit kalmıyor.
+
+### Düzeltildi
+- Ertelenmiş alarmda görev başlatılamıyordu: ertelemedeyken alarmı kapatma/atlama görev ekranına gider, görev cihazda reddedilip "tekrar dene" çubuğu çıkıyordu. Artık erteleme sırasında görev başlar ve ertelemeyi erken bitirir.
+
+### Teknik not
+- Xcode 27 ile iOS derlemesi: eklenti pod'ları podspec'lerindeki eski iOS tabanıyla (9.0–14.0) geldiğinden Xcode 27 derlemeyi hata ile kesiyordu; pod'lar uygulamanın tabanına (17.0) çekildi.
+
 ## [0.22.1] - 2026-09-15
 
 ### Değişti
