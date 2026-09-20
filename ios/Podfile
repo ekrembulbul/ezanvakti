@@ -39,5 +39,10 @@ end
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
+    # Pod'lar kendi podspec'lerindeki eski tabani (9.0-14.0) tasir; Xcode 27
+    # 15.0 altini hata sayar. Uygulama zaten 17.0 istiyor, pod'lari da oraya cek.
+    target.build_configurations.each do |config|
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '17.0'
+    end
   end
 end
