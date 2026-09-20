@@ -6,6 +6,19 @@ Kaynak tasarım: [Kerahat Tasarımı canvas'ı](https://claude.ai/artifact/PFLN8
 
 Kerahat altyapısı Tur 7 (§7, `2026-09-10-tur7-…-design.md`) ile kuruldu: `KerahatWarning.resolve` (30 dk önceden `approaching`, aralıkta `active`), snapshot v4 `days[].kerahat`, Swift `KerahatStatus` ve timeline anları. Bu tur **yalnızca sunum katmanını** değiştirir; kural, snapshot şeması ve timeline anları aynen kalır. ADR değişikliği yok (0004 "widget hesap yapmaz" korunur).
 
+## Revizyon — 2026-09-19
+
+Ekrem'in cihaz geri bildirimiyle sunum sadeleşti; yerleşim, timeline anları ve payload şeması (v4) aynı kaldı:
+
+- **Metin tek kelime:** bant ve çip yalnız "Kerahat" yazar; başlangıç saati, "vakti", "bitiş {time}" ve Türkçe bulunma eki kalktı (`kerahatStartsAt`, `kerahatActiveLine`, `widgetKerahatActive`, `widgetKerahatUntil`, `turkish_suffix.dart` silindi; yeni anahtar `kerahatBandLabel`).
+- **Canlı sayaç:** kelimenin yanında dk:sn sayaç — yaklaşırken başlangıca, kerahatte bitişe. Ana ekranda `formatMinutesSeconds` ile saniyelik tik (`CountdownHero` zaten tikliyor); widget'ta `Text(timerInterval:)` (yenileme gerekmez). Büyük sayaç değişmedi: sıradaki vakte sayar.
+- **Bant düzeni:** ortalı tek satır ikon · Kerahat · sayaç; altında çubuk aynı.
+- **Renk:** yaklaşırken turuncu aile (`kerahatSoonLine/Surface/Text`; koyu `#E0832E` / `#3B2412` / `#FFB45C`, açık `#C9681C` / `#FDEFE1` / `#A9540E`), kerahatte bordo dolgu aynen. Cetvel ve büyük sayaç bordo kalır.
+- **Widget alt blok:** çizgi ile alt kenar arasında dikeyde ortalı (altta boş şerit kalıyordu).
+- Çip metni artık `KerahatChipLabel.text(labels:)` + `countdownTarget(status:)`; `compact` ayrımı kalktı. Not: akşam ve öğle kerahatinde bitiş sıradaki vakit olduğundan çip/bant sayacı ile büyük sayaç aynı değeri gösterir; yalnız sabah kerahatinde ayrışır.
+
+Aşağıdaki bölümler 15 Eylül tasarımını anlatır; çelişen yerlerde bu revizyon geçerlidir.
+
 ## 1. Ana ekran — kerahat bandı
 
 ### Yerleşim

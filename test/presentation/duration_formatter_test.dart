@@ -24,4 +24,22 @@ void main() {
     expect(formatCompactDuration(const Duration(seconds: 59), l10n), '<1dk');
     expect(formatCompactMinutes(0, l10n), '0 dk');
   });
+
+  test(
+    'dakika:saniye sayacı; saatten uzun süre saat ekler, geçmiş sıfırlanır',
+    () {
+      expect(
+        formatMinutesSeconds(const Duration(minutes: 14, seconds: 32)),
+        '14:32',
+      );
+      expect(formatMinutesSeconds(const Duration(minutes: 45)), '45:00');
+      expect(formatMinutesSeconds(const Duration(seconds: 5)), '00:05');
+      expect(formatMinutesSeconds(Duration.zero), '00:00');
+      expect(formatMinutesSeconds(const Duration(seconds: -3)), '00:00');
+      expect(
+        formatMinutesSeconds(const Duration(hours: 1, minutes: 2, seconds: 3)),
+        '1:02:03',
+      );
+    },
+  );
 }

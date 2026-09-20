@@ -866,14 +866,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get widgetKerahat => 'Disliked time';
 
   @override
-  String get widgetKerahatActive => 'Disliked time now';
-
-  @override
-  String widgetKerahatUntil(String time) {
-    return 'until $time';
-  }
-
-  @override
   String get widgetUpdateApp => 'Please update the app';
 
   @override
@@ -1695,14 +1687,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String kerahatStartsAt(String time) {
-    return 'Disliked time starts at $time';
-  }
-
-  @override
-  String kerahatActiveLine(String time) {
-    return 'Disliked time · until $time';
-  }
+  String get kerahatBandLabel => 'Disliked time';
 
   @override
   String get kerahatAfterSunrise => 'After sunrise';

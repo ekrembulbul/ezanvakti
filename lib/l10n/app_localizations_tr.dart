@@ -861,14 +861,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get widgetKerahat => 'Kerahat';
 
   @override
-  String get widgetKerahatActive => 'Kerahat vakti';
-
-  @override
-  String widgetKerahatUntil(String time) {
-    return 'bitiş $time';
-  }
-
-  @override
   String get widgetUpdateApp => 'Uygulamayı güncelleyin';
 
   @override
@@ -1691,14 +1683,7 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String kerahatStartsAt(String time) {
-    return 'Kerahat $time başlar';
-  }
-
-  @override
-  String kerahatActiveLine(String time) {
-    return 'Kerahat vakti · bitiş $time';
-  }
+  String get kerahatBandLabel => 'Kerahat';
 
   @override
   String get kerahatAfterSunrise => 'Güneş sonrası';

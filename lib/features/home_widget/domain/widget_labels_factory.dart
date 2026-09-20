@@ -24,6 +24,4 @@ WidgetLabels widgetLabelsFrom(AppLocalizations l10n) => WidgetLabels(
   durationHour: l10n.durationHour('{hours}'),
   durationMinute: l10n.durationMinute('{minutes}'),
   kerahat: l10n.widgetKerahat,
-  kerahatActive: l10n.widgetKerahatActive,
-  kerahatUntil: l10n.widgetKerahatUntil('{time}'),
 );

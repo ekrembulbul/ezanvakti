@@ -19,6 +19,11 @@ struct Palette {
     var kerahatLine: Color { Color(hex: isDark ? 0xA14158 : 0x8D243B) }
     var kerahatSurface: Color { Color(hex: isDark ? 0x3C1F2A : 0xF9E9EC) }
 
+    /// Kerahat yaklaşırken çip turuncu; `palettes.dart` kerahatSoon* ile birebir.
+    var kerahatSoonLine: Color { Color(hex: isDark ? 0xE0832E : 0xC9681C) }
+    var kerahatSoonSurface: Color { Color(hex: isDark ? 0x3B2412 : 0xFDEFE1) }
+    var kerahatSoonText: Color { Color(hex: isDark ? 0xFFB45C : 0xA9540E) }
+
     /// Üst blok ile alt bloğu ayıran çizgi; açık zeminde daha soluk yeter.
     var divider: Color { textSecondary.opacity(isDark ? 0.4 : 0.3) }
 

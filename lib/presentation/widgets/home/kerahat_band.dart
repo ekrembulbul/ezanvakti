@@ -3,14 +3,13 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 import '../../../core/utils/duration_formatter.dart';
-import '../../../core/utils/turkish_suffix.dart';
 import '../../../features/prayer_times/domain/kerahat_status.dart';
 import '../../../features/prayer_times/domain/kerahat_times.dart';
 import '../../../l10n/l10n_extensions.dart';
-import '../../utils/time_format_context.dart';
 
 const Key kKerahatBandKey = Key('kerahat_band');
 const Key kKerahatBandFillKey = Key('kerahat_band_fill');
+const Key kKerahatBandCountdownKey = Key('kerahat_band_countdown');
 
 const double _kRadius = 14;
 const double _kBarHeight = 4;
@@ -25,10 +24,12 @@ const double _kActiveShadowAlpha = 0.35;
 
 /// Tarih satırının altındaki tam genişlik kerahat bandı.
 ///
-/// İki durum, iki ağırlık: yaklaşırken çerçeveli ve açık zeminli, kerahatte
-/// dolgulu. Çubuk yaklaşırken 30 dakikalık uyarı penceresinin, kerahatte
-/// aralığın geçen kısmını gösterir. Saati ve yeniden çizimi `CountdownHero`
-/// verir; bant kendi zamanlayıcısını tutmaz.
+/// Ortada tek satır: ikon · "Kerahat" · sayaç. Sayaç yaklaşırken başlangıca,
+/// kerahatte bitişe saniye saniye sayar (dk:sn); büyük sayaç bundan
+/// bağımsız, sıradaki vakte sayar. Yaklaşırken turuncu çerçeveli, kerahatte
+/// bordo dolgulu. Çubuk yaklaşırken 30 dakikalık uyarı penceresinin,
+/// kerahatte aralığın geçen kısmını gösterir. Saati ve yeniden çizimi
+/// `CountdownHero` verir; bant kendi zamanlayıcısını tutmaz.
 class KerahatBand extends StatelessWidget {
   final KerahatStatus status;
   final DateTime now;
@@ -48,28 +49,14 @@ class KerahatBand extends StatelessWidget {
     return (now.difference(interval.start).inSeconds / total).clamp(0.0, 1.0);
   }
 
-  /// Başlangıç saati; Türkçede bulunma ekiyle ("18:38'de"). Ek yalnız tr'de
-  /// anlamlı olduğundan mesaja değil buraya konur: ARB yer tutucuları her
-  /// dilde aynı kalır.
-  static String _startLabel(BuildContext context, DateTime start) {
-    final time = context.formatTime(start);
-    if (Localizations.localeOf(context).languageCode != 'tr') return time;
-    return time + turkishLocativeSuffix(hour: start.hour, minute: start.minute);
-  }
-
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
-    final l10n = context.l10n;
     final interval = status.interval;
     final isActive = status is KerahatActive;
-    final foreground = isActive ? Colors.white : tokens.kerahatText;
-    final text = isActive
-        ? l10n.kerahatActiveLine(context.formatTime(interval.end))
-        : l10n.kerahatStartsAt(_startLabel(context, interval.start));
-    final remaining = formatCompactDuration(
+    final foreground = isActive ? Colors.white : tokens.kerahatSoonText;
+    final remaining = formatMinutesSeconds(
       (isActive ? interval.end : interval.start).difference(now),
-      l10n,
     );
     final progress = isActive
         ? activeProgress(interval, now)
@@ -79,9 +66,11 @@ class KerahatBand extends StatelessWidget {
       key: kKerahatBandKey,
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
       decoration: BoxDecoration(
-        color: isActive ? tokens.kerahatLine : tokens.kerahatSurface,
+        color: isActive ? tokens.kerahatLine : tokens.kerahatSoonSurface,
         borderRadius: BorderRadius.circular(_kRadius),
-        border: Border.all(color: tokens.kerahatLine),
+        border: Border.all(
+          color: isActive ? tokens.kerahatLine : tokens.kerahatSoonLine,
+        ),
         boxShadow: isActive
             ? [
                 BoxShadow(
@@ -98,47 +87,50 @@ class KerahatBand extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Icon(Icons.wb_twilight_rounded, size: 16, color: foreground),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Semantics(
+          // Satır büyük metin ölçeğinde sığmazsa kırpmak yerine küçülür:
+          // "Kerahat" yarım kalmasın, sayaç hep görünsün.
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.wb_twilight_rounded, size: 16, color: foreground),
+                const SizedBox(width: 8),
+                Semantics(
                   liveRegion: true,
                   child: Text(
-                    text,
+                    context.l10n.kerahatBandLabel,
                     maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     style: AppTypography.rowSubtitle.copyWith(
                       color: foreground,
                       fontWeight: FontWeight.w600,
                       fontVariations: const [FontVariation('wght', 600)],
-                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                remaining,
-                style: AppTypography.hint.copyWith(
-                  color: foreground,
-                  fontWeight: FontWeight.w700,
-                  fontVariations: const [FontVariation('wght', 700)],
-                  fontFeatures: const [FontFeature.tabularFigures()],
+                const SizedBox(width: 8),
+                Text(
+                  remaining,
+                  key: kKerahatBandCountdownKey,
+                  style: AppTypography.heroSubtitle.copyWith(
+                    color: foreground,
+                    fontWeight: FontWeight.w700,
+                    fontVariations: const [FontVariation('wght', 700)],
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 8),
           _ProgressBar(
             progress: progress,
             fill: isActive
                 ? Colors.white.withValues(alpha: _kActiveFillAlpha)
-                : tokens.kerahatText,
+                : tokens.kerahatSoonText,
             track: isActive
                 ? Colors.black.withValues(alpha: _kActiveTrackAlpha)
-                : tokens.kerahatText.withValues(alpha: _kTrackAlpha),
+                : tokens.kerahatSoonText.withValues(alpha: _kTrackAlpha),
           ),
         ],
       ),

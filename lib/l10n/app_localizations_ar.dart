@@ -857,14 +857,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get widgetKerahat => 'وقت الكراهة';
 
   @override
-  String get widgetKerahatActive => 'وقت الكراهة الآن';
-
-  @override
-  String widgetKerahatUntil(String time) {
-    return 'حتى $time';
-  }
-
-  @override
   String get widgetUpdateApp => 'يرجى تحديث التطبيق';
 
   @override
@@ -1679,14 +1671,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String kerahatStartsAt(String time) {
-    return 'يبدأ وقت الكراهة عند $time';
-  }
-
-  @override
-  String kerahatActiveLine(String time) {
-    return 'وقت الكراهة · حتى $time';
-  }
+  String get kerahatBandLabel => 'وقت الكراهة';
 
   @override
   String get kerahatAfterSunrise => 'بعد الشروق';

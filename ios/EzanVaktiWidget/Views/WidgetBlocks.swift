@@ -12,7 +12,6 @@ struct WidgetHeader: View {
     let alignment: WidgetAlignment
     let locationLabel: String
     let isStale: Bool
-    var compact = true
 
     private var place: String {
         isStale ? (entry.labels?.stale ?? "Güncel değil") : locationLabel
@@ -21,7 +20,7 @@ struct WidgetHeader: View {
     var body: some View {
         VStack(alignment: alignment.horizontal, spacing: 1) {
             if let status = entry.kerahat {
-                KerahatChip(entry: entry, status: status, palette: palette, compact: compact)
+                KerahatChip(entry: entry, status: status, palette: palette)
                     .padding(.bottom, 5)
                 Text([DayLabel.short(day), place].compactMap { $0 }.joined(separator: " · "))
             } else {

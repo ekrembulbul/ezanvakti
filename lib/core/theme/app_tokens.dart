@@ -59,6 +59,13 @@ class AppTokens extends ThemeExtension<AppTokens> {
   /// düşürülmüş hâli (koyu temada daha belirgin).
   final Color kerahatGlow;
 
+  /// Kerahat yaklaşırken bant ve çip turuncuya döner: çerçeve, yüzey ve
+  /// metin. Kerahatteki bordo ile karışmasın diye ayrı bir aile; palet
+  /// bağımsız (2026-09-19 tasarımı).
+  final Color kerahatSoonLine;
+  final Color kerahatSoonSurface;
+  final Color kerahatSoonText;
+
   /// Onay rengi: kıble hizalandığında halka, ibre ve metin. Vurgu renginden
   /// ayrı tutulur ki "doğru yöndesin" anı paletten bağımsız aynı okunsun.
   final Color success;
@@ -93,6 +100,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
     required this.kerahatSurface,
     required this.kerahatText,
     required this.kerahatGlow,
+    required this.kerahatSoonLine,
+    required this.kerahatSoonSurface,
+    required this.kerahatSoonText,
     required this.success,
     required this.selectedControl,
     required this.controlShadow,
@@ -126,6 +136,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
     Color? kerahatSurface,
     Color? kerahatText,
     Color? kerahatGlow,
+    Color? kerahatSoonLine,
+    Color? kerahatSoonSurface,
+    Color? kerahatSoonText,
     Color? success,
     Color? selectedControl,
     Color? controlShadow,
@@ -148,6 +161,9 @@ class AppTokens extends ThemeExtension<AppTokens> {
       kerahatSurface: kerahatSurface ?? this.kerahatSurface,
       kerahatText: kerahatText ?? this.kerahatText,
       kerahatGlow: kerahatGlow ?? this.kerahatGlow,
+      kerahatSoonLine: kerahatSoonLine ?? this.kerahatSoonLine,
+      kerahatSoonSurface: kerahatSoonSurface ?? this.kerahatSoonSurface,
+      kerahatSoonText: kerahatSoonText ?? this.kerahatSoonText,
       success: success ?? this.success,
       selectedControl: selectedControl ?? this.selectedControl,
       controlShadow: controlShadow ?? this.controlShadow,
@@ -179,6 +195,13 @@ class AppTokens extends ThemeExtension<AppTokens> {
       kerahatSurface: Color.lerp(kerahatSurface, other.kerahatSurface, t)!,
       kerahatText: Color.lerp(kerahatText, other.kerahatText, t)!,
       kerahatGlow: Color.lerp(kerahatGlow, other.kerahatGlow, t)!,
+      kerahatSoonLine: Color.lerp(kerahatSoonLine, other.kerahatSoonLine, t)!,
+      kerahatSoonSurface: Color.lerp(
+        kerahatSoonSurface,
+        other.kerahatSoonSurface,
+        t,
+      )!,
+      kerahatSoonText: Color.lerp(kerahatSoonText, other.kerahatSoonText, t)!,
       success: Color.lerp(success, other.success, t)!,
       selectedControl: Color.lerp(selectedControl, other.selectedControl, t)!,
       controlShadow: Color.lerp(controlShadow, other.controlShadow, t)!,

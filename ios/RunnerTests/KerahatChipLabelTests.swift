@@ -2,7 +2,6 @@ import XCTest
 
 final class KerahatChipLabelTests: XCTestCase {
     private let zone = TimeZone(identifier: "Europe/Istanbul")!
-    private let locale = Locale(identifier: "tr_TR")
 
     private func at(_ hour: Int, _ minute: Int) -> Date {
         var calendar = Calendar(identifier: .gregorian)
@@ -19,71 +18,19 @@ final class KerahatChipLabelTests: XCTestCase {
 
     private var approaching: KerahatStatus { .approaching(start: at(18, 38), end: at(19, 23)) }
     private var active: KerahatStatus { .active(end: at(19, 23)) }
-    private let fullLabels = #"{"kerahat":"Kerahat","kerahatActive":"Kerahat vakti","kerahatUntil":"bitiş {time}"}"#
 
-    func testApproachingWritesLabelAndStartTimeWithoutSuffix() throws {
-        let text = KerahatChipLabel.text(
-            status: approaching, compact: true,
-            labels: try labels(#"{"kerahat":"Kerahat"}"#),
-            timeFormat: .h24, locale: locale, timeZone: zone)
-        XCTAssertEqual(text, "Kerahat 18:38")
-    }
-
-    func testApproachingIsSameOnMedium() throws {
-        let text = KerahatChipLabel.text(
-            status: approaching, compact: false,
-            labels: try labels(#"{"kerahat":"Kerahat"}"#),
-            timeFormat: .h24, locale: locale, timeZone: zone)
-        XCTAssertEqual(text, "Kerahat 18:38")
-    }
-
-    func testActiveCompactUsesActiveLabelOnly() throws {
-        let text = KerahatChipLabel.text(
-            status: active, compact: true,
-            labels: try labels(fullLabels),
-            timeFormat: .h24, locale: locale, timeZone: zone)
-        XCTAssertEqual(text, "Kerahat vakti")
-    }
-
-    func testActiveMediumAppendsUntil() throws {
-        let text = KerahatChipLabel.text(
-            status: active, compact: false,
-            labels: try labels(fullLabels),
-            timeFormat: .h24, locale: locale, timeZone: zone)
-        XCTAssertEqual(text, "Kerahat · bitiş 19:23")
-    }
-
-    func testFallsBackToTurkishWithoutLabels() {
+    func testLabelIsTheSingleWordFromSnapshot() throws {
         XCTAssertEqual(
-            KerahatChipLabel.text(
-                status: active, compact: true, labels: nil,
-                timeFormat: .h24, locale: locale, timeZone: zone),
-            "Kerahat vakti")
-        XCTAssertEqual(
-            KerahatChipLabel.text(
-                status: active, compact: false, labels: nil,
-                timeFormat: .h24, locale: locale, timeZone: zone),
-            "Kerahat · bitiş 19:23")
-        XCTAssertEqual(
-            KerahatChipLabel.text(
-                status: approaching, compact: true, labels: nil,
-                timeFormat: .h24, locale: locale, timeZone: zone),
-            "Kerahat 18:38")
+            KerahatChipLabel.text(labels: try labels(#"{"kerahat":"Disliked time"}"#)),
+            "Disliked time")
     }
 
-    func testTwelveHourPreference() {
-        let text = KerahatChipLabel.text(
-            status: approaching, compact: true, labels: nil,
-            timeFormat: .h12, locale: Locale(identifier: "en_US"), timeZone: zone)
-        XCTAssertEqual(text, "Kerahat 6:38 PM")
+    func testLabelFallsBackToTurkishWithoutLabels() {
+        XCTAssertEqual(KerahatChipLabel.text(labels: nil), "Kerahat")
     }
 
-    func testEntryIsKerahatActiveOnlyInActiveState() {
-        var entry = PrayerEntry(date: at(18, 50), content: .noData)
-        XCTAssertFalse(entry.isKerahatActive)
-        entry.kerahat = approaching
-        XCTAssertFalse(entry.isKerahatActive)
-        entry.kerahat = active
-        XCTAssertTrue(entry.isKerahatActive)
+    func testCountdownTargetIsStartWhileApproachingAndEndWhileActive() {
+        XCTAssertEqual(KerahatChipLabel.countdownTarget(status: approaching), at(18, 38))
+        XCTAssertEqual(KerahatChipLabel.countdownTarget(status: active), at(19, 23))
     }
 }

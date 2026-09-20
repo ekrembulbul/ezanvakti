@@ -46,11 +46,8 @@ struct SnapshotLabels: Decodable, Equatable {
     let durationHour: String?
     let durationMinute: String?
 
-    /// Kerahat satırı (v4): yaklaşırken `kerahat` + sistem sayacı, aktifken
-    /// `kerahatActive · kerahatUntil` (`{time}` yer tutucusu).
+    /// Kerahat çipi (v4): tek kelime, yanına sistem sayacı gelir.
     let kerahat: String?
-    let kerahatActive: String?
-    let kerahatUntil: String?
 
     func name(for key: PrayerKey) -> String {
         let value: String?

@@ -76,8 +76,7 @@ final class WidgetSnapshotTests: XCTestCase {
                            { "start": "12:45", "end": "12:55" },
                            { "start": "18:47", "end": "19:32" } ] }
           ],
-          "labels": { "kerahat": "Kerahat", "kerahatActive": "Kerahat vakti",
-                      "kerahatUntil": "bitiş {time}" }
+          "labels": { "kerahat": "Kerahat" }
         }
         """.data(using: .utf8)!
     }
@@ -90,8 +89,6 @@ final class WidgetSnapshotTests: XCTestCase {
             SnapshotInterval(start: "18:47", end: "19:32"),
         ])
         XCTAssertEqual(snapshot.labels?.kerahat, "Kerahat")
-        XCTAssertEqual(snapshot.labels?.kerahatActive, "Kerahat vakti")
-        XCTAssertEqual(snapshot.labels?.kerahatUntil, "bitiş {time}")
     }
 
     /// Eski payload'da kerahat yok: satir cizilmez, widget calismaya devam eder.

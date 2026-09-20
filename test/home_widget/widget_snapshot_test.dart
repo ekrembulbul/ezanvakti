@@ -77,8 +77,6 @@ void main() {
         durationHour: '{hours} h',
         durationMinute: '{minutes} min',
         kerahat: 'Disliked time',
-        kerahatActive: 'Disliked time now',
-        kerahatUntil: 'until {time}',
       );
       final withLabels = WidgetSnapshot(
         locationLabel: snapshot.locationLabel,
@@ -90,8 +88,7 @@ void main() {
       expect(json['fajr'], 'Fajr');
       expect(json['siriAnswer'], contains('{prayer}'));
       expect(json['kerahat'], 'Disliked time');
-      expect(json['kerahatActive'], 'Disliked time now');
-      expect(json['kerahatUntil'], contains('{time}'));
+      expect(json.containsKey('kerahatActive'), isFalse);
     });
 
     test('schemaVersion 4 yazilir (kerahat araliklari ve etiketleri)', () {

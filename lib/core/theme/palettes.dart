@@ -47,6 +47,14 @@ const Color _kerahatLineDark = Color(0xFFA14158);
 const Color _kerahatSurfaceDark = Color(0xFF3C1F2A);
 const Color _kerahatTextDark = Color(0xFFFF9292);
 
+/// Kerahat yaklaşırken turuncu aile; bordo ile karışmaz.
+const Color _kerahatSoonLineLight = Color(0xFFC9681C);
+const Color _kerahatSoonSurfaceLight = Color(0xFFFDEFE1);
+const Color _kerahatSoonTextLight = Color(0xFFA9540E);
+const Color _kerahatSoonLineDark = Color(0xFFE0832E);
+const Color _kerahatSoonSurfaceDark = Color(0xFF3B2412);
+const Color _kerahatSoonTextDark = Color(0xFFFFB45C);
+
 /// Kerahatte sayaç parıltısı: koyu zeminde daha belirgin.
 const double _kerahatGlowDarkAlpha = 0.34;
 const double _kerahatGlowLightAlpha = 0.16;
@@ -88,6 +96,11 @@ AppTokens _palette({
     kerahatGlow: isDark
         ? _kerahatLineDark.withValues(alpha: _kerahatGlowDarkAlpha)
         : _kerahatLineLight.withValues(alpha: _kerahatGlowLightAlpha),
+    kerahatSoonLine: isDark ? _kerahatSoonLineDark : _kerahatSoonLineLight,
+    kerahatSoonSurface: isDark
+        ? _kerahatSoonSurfaceDark
+        : _kerahatSoonSurfaceLight,
+    kerahatSoonText: isDark ? _kerahatSoonTextDark : _kerahatSoonTextLight,
     success: isDark ? _successDark : _successLight,
     selectedControl: accent.withValues(
       alpha: isDark ? _selectedControlDarkAlpha : _selectedControlLightAlpha,

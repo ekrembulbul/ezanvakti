@@ -1642,23 +1642,11 @@ abstract class AppLocalizations {
   /// **'Vakitler için uygulamayı aç'**
   String get widgetOpenApp;
 
-  /// Widget'ta kerahat yaklaşırken satır başı; yanına sistem sayacı gelir.
+  /// Widget kerahat çipi (yaklaşırken ve kerahatte): tek kelime, yanına sistem sayacı gelir.
   ///
   /// In tr, this message translates to:
   /// **'Kerahat'**
   String get widgetKerahat;
-
-  /// No description provided for @widgetKerahatActive.
-  ///
-  /// In tr, this message translates to:
-  /// **'Kerahat vakti'**
-  String get widgetKerahatActive;
-
-  /// Widget'ta aktif kerahatin bitişi; {time} yer tutucusunu Swift doldurur.
-  ///
-  /// In tr, this message translates to:
-  /// **'bitiş {time}'**
-  String widgetKerahatUntil(String time);
 
   /// Widget etiketi
   ///
@@ -3046,17 +3034,11 @@ abstract class AppLocalizations {
   /// **'{name} vaktine {duration} kaldı'**
   String notificationDurationLeft(String name, String duration);
 
-  /// Ana ekran kerahat bandı, yaklaşırken: başlangıç saati. Türkçede time bulunma ekiyle gelir ("18:38'de"); ek Dart tarafında yalnız tr için eklenir.
+  /// Ana ekran kerahat bandı: tek kelime, yanında başlangıca ya da bitişe sayan sayaç.
   ///
   /// In tr, this message translates to:
-  /// **'Kerahat {time} başlar'**
-  String kerahatStartsAt(String time);
-
-  /// Ana ekran kerahat bandı, kerahatte: yaklaşık bitiş saati.
-  ///
-  /// In tr, this message translates to:
-  /// **'Kerahat vakti · bitiş {time}'**
-  String kerahatActiveLine(String time);
+  /// **'Kerahat'**
+  String get kerahatBandLabel;
 
   /// Güneş doğduktan sonraki kerahat aralığı.
   ///

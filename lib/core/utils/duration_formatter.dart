@@ -33,3 +33,15 @@ String formatCompactDuration(Duration duration, AppLocalizations l10n) {
   if (duration.inMinutes < 1) return l10n.countdownLessThanMinute;
   return formatCompactMinutes(duration.inMinutes, l10n);
 }
+
+/// Saniyesi akan kısa sayaç: `mm:ss`; bir saati aşarsa `h:mm:ss`. Geçmiş
+/// süre `00:00` olur — kerahat bandı gibi dar pencereler için, hedef geçince
+/// üst katman zaten durumu değiştirir.
+String formatMinutesSeconds(Duration duration) {
+  final left = duration.isNegative ? Duration.zero : duration;
+  String two(int n) => n.toString().padLeft(2, '0');
+  final minutesAndSeconds =
+      '${two(left.inMinutes.remainder(60))}:${two(left.inSeconds.remainder(60))}';
+  if (left.inHours == 0) return minutesAndSeconds;
+  return '${left.inHours}:$minutesAndSeconds';
+}

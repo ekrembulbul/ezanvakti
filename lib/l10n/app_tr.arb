@@ -1133,17 +1133,7 @@
   },
   "widgetKerahat": "Kerahat",
   "@widgetKerahat": {
-    "description": "Widget'ta kerahat yaklaşırken satır başı; yanına sistem sayacı gelir."
-  },
-  "widgetKerahatActive": "Kerahat vakti",
-  "widgetKerahatUntil": "bitiş {time}",
-  "@widgetKerahatUntil": {
-    "description": "Widget'ta aktif kerahatin bitişi; {time} yer tutucusunu Swift doldurur.",
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
+    "description": "Widget kerahat çipi (yaklaşırken ve kerahatte): tek kelime, yanına sistem sayacı gelir."
   },
   "widgetUpdateApp": "Uygulamayı güncelleyin",
   "@widgetUpdateApp": {
@@ -2269,16 +2259,8 @@
       "duration": {"type": "String"}
     }
   },
-  "kerahatStartsAt": "Kerahat {time} başlar",
-  "@kerahatStartsAt": {
-    "description": "Ana ekran kerahat bandı, yaklaşırken: başlangıç saati. Türkçede time bulunma ekiyle gelir (\"18:38'de\"); ek Dart tarafında yalnız tr için eklenir.",
-    "placeholders": {"time": {"type": "String"}}
-  },
-  "kerahatActiveLine": "Kerahat vakti · bitiş {time}",
-  "@kerahatActiveLine": {
-    "description": "Ana ekran kerahat bandı, kerahatte: yaklaşık bitiş saati.",
-    "placeholders": {"time": {"type": "String"}}
-  },
+  "kerahatBandLabel": "Kerahat",
+  "@kerahatBandLabel": {"description": "Ana ekran kerahat bandı: tek kelime, yanında başlangıca ya da bitişe sayan sayaç."},
   "kerahatAfterSunrise": "Güneş sonrası",
   "@kerahatAfterSunrise": {"description": "Güneş doğduktan sonraki kerahat aralığı."},
   "kerahatBeforeDhuhr": "Öğle öncesi",

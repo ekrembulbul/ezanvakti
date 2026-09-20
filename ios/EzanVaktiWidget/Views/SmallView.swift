@@ -29,8 +29,11 @@ struct SmallView: View {
         return VStack(alignment: alignment.horizontal, spacing: 0) {
             WidgetHeader(
                 entry: entry, day: day, palette: palette, alignment: alignment,
-                locationLabel: locationLabel, isStale: isStale, compact: true)
+                locationLabel: locationLabel, isStale: isStale)
             WidgetDivider(color: palette.divider)
+            // Alt blok çizgi ile alt kenar arasında dikeyde ortalı; altta
+            // boş kalan şerit iki yana dağılır (2026-09-19 cihaz gözlemi).
+            Spacer(minLength: 0)
             NextPrayerBlock(
                 entry: entry, next: next, palette: palette,
                 alignment: alignment, isTomorrow: isTomorrow)

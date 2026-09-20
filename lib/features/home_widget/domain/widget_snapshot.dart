@@ -95,11 +95,8 @@ class WidgetLabels {
   final String durationHour;
   final String durationMinute;
 
-  /// Kerahat satırı (v4): yaklaşırken "Kerahat" + sistem sayacı, aktifken
-  /// "Kerahat vakti · bitiş {time}".
+  /// Kerahat çipi (v4): tek kelime, yanına sistem sayacı gelir.
   final String kerahat;
-  final String kerahatActive;
-  final String kerahatUntil;
 
   const WidgetLabels({
     required this.fajr,
@@ -117,8 +114,6 @@ class WidgetLabels {
     required this.durationHour,
     required this.durationMinute,
     required this.kerahat,
-    required this.kerahatActive,
-    required this.kerahatUntil,
   });
 
   Map<String, String> toJson() => {
@@ -137,8 +132,6 @@ class WidgetLabels {
     'durationHour': durationHour,
     'durationMinute': durationMinute,
     'kerahat': kerahat,
-    'kerahatActive': kerahatActive,
-    'kerahatUntil': kerahatUntil,
   };
 }
 
