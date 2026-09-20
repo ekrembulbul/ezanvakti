@@ -56,4 +56,4 @@ Vakit hesabı **saf domain fonksiyonlarında** tek kez yazılır; ekran, planlay
 - `lib/features/prayer_times/domain/prayer_time_tuner.dart:5-9` — yerel düzeltme kararı
 - `lib/features/home_widget/domain/widget_snapshot_builder.dart:7-16` — snapshot penceresi
 - `lib/features/notifications/domain/notification_time_rules.dart:20-24` — planlayıcının aynı kuralı çağırması
-- `AGENTS.md` → "Alarm ve vakit doğruluğu" — bu ADR'nin kural olarak yazılmış hali
+- `CLAUDE.md` → "Alarm ve vakit doğruluğu" — bu ADR'nin kural olarak yazılmış hali
