@@ -4,6 +4,11 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.23.1] - 2026-09-20
+
+### Değişti
+- **Widget dikey hizası (küçük ve orta).** Alt blok (vakit adı, saati ve sayaç) çizgi ile widget'ın görünen alt kenarı arasında tam ortalı; iOS'un kenar boşluğu hesaba katıldığı için blok artık yukarıda kalmıyor. Vakit satırı ile sayaç arası açıldı (8 pt); bitişik duruyordu. Üst blok ve vakit listesi aynen.
+
 ## [0.23.0] - 2026-09-20
 
 ### Değişti
