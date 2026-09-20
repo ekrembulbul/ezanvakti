@@ -351,9 +351,13 @@ final class AlarmMissionStore {
   func begin(alarmId: String, nowMillis: Double) throws -> AlarmMissionSession? {
     var state = read()
     guard var session = state.sessions[alarmId], session.configuration.gated,
-      session.canContinue(at: nowMillis), (session.snoozedUntilMillis ?? 0) <= nowMillis
+      session.canContinue(at: nowMillis)
     else { return nil }
     if session.begun, (session.deadlineMillis ?? 0) > nowMillis { return session }
+    // An active snooze does not block the mission: disabling or skipping the
+    // alarm routes through the mission screen while snoozed (ADR 0002), and
+    // starting the mission ends the snooze early. The device refused this on
+    // 2026-09-19 (EngineError.unavailable) and the screen showed a retry bar.
     session.begun = true
     session.snoozedUntilMillis = nil
     session.deadlineMillis = min(

@@ -179,6 +179,20 @@ final class AlarmMissionStoreTests: XCTestCase {
     XCTAssertNil(session.snoozedUntilMillis)
   }
 
+  func testBeginDuringActiveSnoozeStartsMissionAndEndsSnooze() throws {
+    let config = configuration("work")
+    try store.configure(config)
+    _ = try store.stop(scheduleId: config.scheduleId, nowMillis: fire + 1000)
+    _ = try store.snooze(alarmId: "work", minutes: 5, nowMillis: fire + 2000)
+    let now = fire + 60_000
+    let session = try XCTUnwrap(store.begin(alarmId: "work", nowMillis: now))
+    XCTAssertTrue(session.begun)
+    XCTAssertNil(session.snoozedUntilMillis)
+    XCTAssertEqual(session.deadlineMillis, now + Double(config.missionTimeoutSeconds * 1000))
+    XCTAssertEqual(session.snoozeUsed, 1)
+    XCTAssertEqual(store.session(alarmId: "work")?.snoozedUntilMillis, nil)
+  }
+
   func testRefreshRetainsRecentFallbackUntilItsStopIntentArrives() throws {
     let config = configuration("work")
     var fallback = config.chainConfiguration(

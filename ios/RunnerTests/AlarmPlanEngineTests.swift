@@ -163,6 +163,30 @@ final class AlarmPlanEngineTests: XCTestCase {
   }
 
   @MainActor
+  func testBeginDuringSnoozeReplacesSnoozeTimerWithMissionTimer() async throws {
+    let (engine, backend, clock) = fixture()
+    let primary = record("work", at: clock.now + 1000)
+    _ = try await engine.reconcile(records: [primary], enabledAlarmIds: ["work"])
+    clock.now += 1001
+    _ = try await engine.stop(scheduleId: primary.scheduleId)
+    try await engine.snooze("work", minutes: 5, expectedFireMillis: primary.fireAtMillis)
+    let snoozeTimer = engine.missions.session(alarmId: "work")!.timerScheduleId!
+    clock.now += 60_000
+    backend.operations = []
+    try await engine.begin("work", expectedFireMillis: primary.fireAtMillis)
+    let session = engine.missions.session(alarmId: "work")!
+    XCTAssertTrue(session.begun)
+    XCTAssertNil(session.snoozedUntilMillis)
+    XCTAssertEqual(session.deadlineMillis, clock.now + 90_000)
+    let missionTimer = try XCTUnwrap(session.timerScheduleId)
+    XCTAssertNotEqual(missionTimer, snoozeTimer)
+    XCTAssertEqual(engine.missions.configurations[missionTimer]?.fireAtMillis, clock.now + 90_000)
+    XCTAssertNil(engine.mapping[snoozeTimer])
+    XCTAssertTrue(backend.operations.contains("schedule:" + missionTimer))
+    XCTAssertTrue(backend.operations.contains("cancel:" + snoozeTimer))
+  }
+
+  @MainActor
   func testCleanupRetryDoesNotSpendAnotherSnooze() async throws {
     let (engine, backend, clock) = fixture()
     let primary = record("work", at: clock.now + 1000)
