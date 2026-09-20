@@ -15,6 +15,7 @@ Ekrem'in cihaz geri bildirimiyle sunum sadeleşti; yerleşim, timeline anları v
 - **Bant düzeni:** ortalı tek satır ikon · Kerahat · sayaç; altında çubuk aynı.
 - **Renk:** yaklaşırken turuncu aile (`kerahatSoonLine/Surface/Text`; koyu `#E0832E` / `#3B2412` / `#FFB45C`, açık `#C9681C` / `#FDEFE1` / `#A9540E`), kerahatte bordo dolgu aynen. Cetvel ve büyük sayaç bordo kalır.
 - **Widget alt blok:** çizgi ile alt kenar arasında dikeyde ortalı (altta boş şerit kalıyordu).
+- **Widget alt blok, 2026-09-20 (B2):** üst blok yukarıda kalır; alt blok çizgi ile widget'ın *görünen* alt kenarı arasında ortalı — içerik alanı sistem kenar boşluğunda bittiğinden blok o boşluk kadar üstten pay alır (`widgetContentMargins`). Vakit satırı ile sayaç arası 8 pt (bitişik duruyordu). Küçük ve orta aynı; liste değişmedi.
 - Çip metni artık `KerahatChipLabel.text(labels:)` + `countdownTarget(status:)`; `compact` ayrımı kalktı. Not: akşam ve öğle kerahatinde bitiş sıradaki vakit olduğundan çip/bant sayacı ile büyük sayaç aynı değeri gösterir; yalnız sabah kerahatinde ayrışır.
 
 Aşağıdaki bölümler 15 Eylül tasarımını anlatır; çelişen yerlerde bu revizyon geçerlidir.
