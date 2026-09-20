@@ -4,6 +4,12 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.24.0] - 2026-09-20
+
+### Değişti
+- **Ana ekranda kerahat bandı sayacın altına indi.** Tarih satırıyla sayacın arasına girmiyor; "Kerahat" yazısı ve dk:sn sayaç aynı puntoda ve daha büyük. Sayacın altındaki "Akşam vakti 19:23" satırı kalktı; saat üstteki etikete taşındı: "SONRAKİ  AKŞAM · 19:23", saat etiketten büyük.
+- **iOS widget'ta kerahat bilgisi alt şeritte.** Üstteki kerahat çipi kalktı; tarih, hicri tarih ve konum kerahatte de üç satır olarak kalıyor. Kerahate yaklaşırken ve kerahatte widget'ın alt kenarına dayanan tam genişlik şerit çıkar ("Kerahat" + sayaç; yaklaşırken turuncu, kerahatte bordo). Üst ve alt kenar boşluğu daraldı (12 pt); vakit satırı ve sayaç kerahat yokken çizgi ile alt kenar arasında, kerahatte çizgi ile şerit arasında ortalı. Orta boyda vakit listesi şeridin üstünde biter.
+
 ## [0.23.1] - 2026-09-20
 
 ### Değişti
