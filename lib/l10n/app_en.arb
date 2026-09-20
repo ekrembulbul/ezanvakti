@@ -315,7 +315,6 @@
   "loading": "Loading…",
   "today": "TODAY",
   "nextLabel": "NEXT",
-  "prayerTimeAt": "{prayer} time: {time}",
   "upcomingTitle": "Upcoming",
   "upcomingAll": "All",
   "upcomingEmpty": "No upcoming notification or alarm",

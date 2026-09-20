@@ -17,6 +17,7 @@ import 'kerahat_band.dart';
 const Duration kTickMargin = Duration(milliseconds: 20);
 
 const Key kKerahatGlowKey = Key('kerahat_glow');
+const Key kCountdownTimeKey = Key('countdown_time');
 
 /// Parıltının sayaç kutusunu aşma payı; yerleşimi etkilemez.
 const EdgeInsets _kGlowBleed = EdgeInsets.fromLTRB(40, 60, 40, 80);
@@ -35,15 +36,13 @@ Duration delayToNextSecond(DateTime now) {
 
 /// Ana ekranın ortalanmış geri sayım bloğu.
 ///
-/// Kerahat yaklaşırken ya da sürerken sayacın üstünde [KerahatBand] çizilir;
-/// kerahatte sayaç kerahat rengine döner.
-/// Büyük sayaç, `SONRAKİ · VAKİT` etiketinin gösterdiği zamana sayar.
+/// Üstte tek satır `SONRAKİ  VAKİT · SS:DD`: etiket ve vaktin saati aynı
+/// satırda, sayacın altında ayrıca yazılmaz. Kerahat yaklaşırken ya da
+/// sürerken sayacın altında [KerahatBand] çizilir; kerahatte sayaç kerahat
+/// rengine döner. Büyük sayaç etiketin gösterdiği zamana sayar.
 class CountdownHero extends StatefulWidget {
   final DateTime nextPrayerTime;
   final String nextPrayerName;
-
-  /// Başlık "İftara" gibi bir ifade olduğunda alt bilgideki vakit adı.
-  final String? timeCaptionName;
   final List<KerahatInterval> kerahatIntervals;
 
   /// Sayaç ve kerahat durumu için ortak zaman kaynağı; varsayılan cihaz saati.
@@ -53,7 +52,6 @@ class CountdownHero extends StatefulWidget {
     super.key,
     required this.nextPrayerTime,
     required this.nextPrayerName,
-    this.timeCaptionName,
     this.kerahatIntervals = const [],
     this.clock,
   });
@@ -116,16 +114,16 @@ class _CountdownHeroState extends State<CountdownHero> {
     );
     if (status == null) return countdown;
 
-    // Bant tarih satırının altında, sayaçtan bağımsız tam genişlikte durur;
-    // iki durum iki ağırlık. Kerahatte sayaç kerahat rengine döner ve arkasına
-    // hafif parıltı gelir; hedefi yine sıradaki vakit.
+    // Bant sayacın altında, sayaçtan bağımsız tam genişlikte durur; iki durum
+    // iki ağırlık. Kerahatte sayaç kerahat rengine döner ve arkasına hafif
+    // parıltı gelir; hedefi yine sıradaki vakit.
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        KerahatBand(status: status, now: now),
-        const SizedBox(height: 20),
         if (isActive) _withGlow(tokens.kerahatGlow, countdown) else countdown,
+        const SizedBox(height: 20),
+        KerahatBand(status: status, now: now),
       ],
     );
   }
@@ -173,6 +171,8 @@ class _CountdownHeroState extends State<CountdownHero> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        // Etiket, vakit adı ve saati tek satırda; büyük metinde alt satıra
+        // kırılır. Ezan okunmasını ima eden bir ifade yazılmaz.
         Wrap(
           alignment: WrapAlignment.center,
           crossAxisAlignment: WrapCrossAlignment.center,
@@ -181,14 +181,26 @@ class _CountdownHeroState extends State<CountdownHero> {
           children: [
             Text(
               context.l10n.nextLabel,
-              style: AppTypography.counterLabel.copyWith(
+              style: AppTypography.heroLabel.copyWith(
                 color: tokens.textSecondary,
               ),
             ),
             Text(
               widget.nextPrayerName.replaceAll('i', 'İ').toUpperCase(),
               textAlign: TextAlign.center,
-              style: AppTypography.counterLabel.copyWith(color: color),
+              style: AppTypography.heroLabel.copyWith(color: color),
+            ),
+            Text(
+              '·',
+              style: AppTypography.heroLabel.copyWith(
+                color: tokens.textTertiary,
+                letterSpacing: 0,
+              ),
+            ),
+            Text(
+              context.formatTime(widget.nextPrayerTime),
+              key: kCountdownTimeKey,
+              style: AppTypography.heroTime.copyWith(color: color),
             ),
           ],
         ),
@@ -199,17 +211,6 @@ class _CountdownHeroState extends State<CountdownHero> {
             _remaining(now),
             key: const Key('countdown_value'),
             style: AppTypography.counter.copyWith(color: color),
-          ),
-        ),
-        const SizedBox(height: 10),
-        Text(
-          context.l10n.prayerTimeAt(
-            widget.timeCaptionName ?? widget.nextPrayerName,
-            context.formatTime(widget.nextPrayerTime),
-          ),
-          textAlign: TextAlign.center,
-          style: AppTypography.heroSubtitle.copyWith(
-            color: tokens.textSecondary,
           ),
         ),
       ],

@@ -1056,11 +1056,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get nextLabel => 'SONRAKİ';
 
   @override
-  String prayerTimeAt(String prayer, String time) {
-    return '$prayer vakti $time';
-  }
-
-  @override
   String get upcomingTitle => 'Sıradaki';
 
   @override

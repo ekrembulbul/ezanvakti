@@ -1050,11 +1050,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nextLabel => 'التالي';
 
   @override
-  String prayerTimeAt(String prayer, String time) {
-    return 'وقت $prayer عند $time';
-  }
-
-  @override
   String get upcomingTitle => 'التالي';
 
   @override

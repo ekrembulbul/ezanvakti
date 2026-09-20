@@ -1417,18 +1417,6 @@
   "@nextLabel": {
     "description": "Sayaç etiketi"
   },
-  "prayerTimeAt": "{prayer} vakti {time}",
-  "@prayerTimeAt": {
-    "description": "Sayaç altındaki vakit adı ve saati; ezan okunmasını ima etmez.",
-    "placeholders": {
-      "prayer": {
-        "type": "String"
-      },
-      "time": {
-        "type": "String"
-      }
-    }
-  },
   "upcomingTitle": "Sıradaki",
   "@upcomingTitle": {
     "description": "Kart başlığı"

@@ -1990,12 +1990,6 @@ abstract class AppLocalizations {
   /// **'SONRAKİ'**
   String get nextLabel;
 
-  /// Sayaç altındaki vakit adı ve saati; ezan okunmasını ima etmez.
-  ///
-  /// In tr, this message translates to:
-  /// **'{prayer} vakti {time}'**
-  String prayerTimeAt(String prayer, String time);
-
   /// Kart başlığı
   ///
   /// In tr, this message translates to:

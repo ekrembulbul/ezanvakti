@@ -93,7 +93,7 @@ class AppTypography {
     fontFeatures: _tabular,
   );
 
-  /// Sayacın üstündeki "SONRAKİ · AKŞAM" etiketi.
+  /// Büyük harfli, geniş aralıklı başlık etiketi (konum ekleme başlığı).
   static const TextStyle counterLabel = TextStyle(
     fontFamily: fontFamily,
     fontSize: 12,
@@ -164,12 +164,40 @@ class AppTypography {
     fontFeatures: _tabular,
   );
 
-  /// Sayacın altındaki "Akşam vakti 20:27" satırı (markup 14 w500).
-  static const TextStyle heroSubtitle = TextStyle(
+  /// Sayacın üstündeki "SONRAKİ  AKŞAM · 19:23" satırının etiketleri.
+  static const TextStyle heroLabel = TextStyle(
     fontFamily: fontFamily,
-    fontSize: 14,
-    fontWeight: FontWeight.w500,
-    fontVariations: _w500,
+    fontSize: 13,
+    fontWeight: FontWeight.w800,
+    fontVariations: _w800,
+    letterSpacing: 2.6,
+  );
+
+  /// Aynı satırdaki vakit saati; etiketten bir basamak büyük, sık aralıklı.
+  static const TextStyle heroTime = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 16,
+    fontWeight: FontWeight.w800,
+    fontVariations: _w800,
+    letterSpacing: 0.5,
+    fontFeatures: _tabular,
+  );
+
+  /// Kerahat bandındaki "Kerahat" kelimesi.
+  static const TextStyle kerahatBandLabel = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    fontVariations: _w600,
+  );
+
+  /// Kerahat bandındaki dk:sn sayacı; kelimeyle aynı punto.
+  static const TextStyle kerahatBandValue = TextStyle(
+    fontFamily: fontFamily,
+    fontSize: 20,
+    fontWeight: FontWeight.w700,
+    fontVariations: _w700,
+    fontFeatures: _tabular,
   );
 
   /// Yardım ve alt bilgi metinleri.
@@ -198,7 +226,10 @@ class AppTypography {
     dateLine,
     upcomingRowTitle,
     upcomingRemaining,
-    heroSubtitle,
+    heroLabel,
+    heroTime,
+    kerahatBandLabel,
+    kerahatBandValue,
     hint,
   ];
 }

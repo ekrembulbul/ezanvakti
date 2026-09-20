@@ -6,6 +6,17 @@ Kaynak tasarım: [Kerahat Tasarımı canvas'ı](https://claude.ai/artifact/PFLN8
 
 Kerahat altyapısı Tur 7 (§7, `2026-09-10-tur7-…-design.md`) ile kuruldu: `KerahatWarning.resolve` (30 dk önceden `approaching`, aralıkta `active`), snapshot v4 `days[].kerahat`, Swift `KerahatStatus` ve timeline anları. Bu tur **yalnızca sunum katmanını** değiştirir; kural, snapshot şeması ve timeline anları aynen kalır. ADR değişikliği yok (0004 "widget hesap yapmaz" korunur).
 
+## Revizyon — 2026-09-20 (akşam)
+
+Ekrem'in mockup turlarıyla (scratchpad `band_bottom/`: `gen_home.py`, `gen_widget2.py`, `gen_final.py`) yerleşim değişti; kural, snapshot şeması ve timeline anları yine aynı:
+
+- **Ana ekran, bant sayacın altında:** `CountdownHero` → `[sayaç bloğu, 20, KerahatBand]`; parıltı sayaçla birlikte. Bantta "Kerahat" ve dk:sn sayaç **aynı punto, 20** (`AppTypography.kerahatBandLabel` w600 / `kerahatBandValue` w700 tabular), ikon 22.
+- **Ana ekran, tek satır etiket:** sayacın altındaki "Akşam vakti 19:23" kalktı (`prayerTimeAt` anahtarı ve `timeCaptionName` silindi). Üstte `SONRAKİ  AKŞAM · 19:23`: etiketler `heroLabel` (13 w800, aralık 2.6), saat `heroTime` (16 w800 tabular), ayraç `textTertiary`; saat ve vakit adı vurgu (kerahatte kerahat) renginde. Ramazan'da `SONRAKİ  İFTARA · 19:23`.
+- **Widget, kerahat şeridi en altta:** üst bloktaki kapsül (`KerahatChip`) kalktı; tarih **her durumda üç satır**. Kerahat bilgisi widget'ın alt kenarına dayanan tam genişlik şerit (`KerahatRibbon`, 13 pt, 26 yüksek): yaklaşırken `kerahatSoonSurface` zemin + üstte 1 pt `kerahatSoonLine` + `kerahatSoonText`; kerahatte `kerahatLine` dolgu + beyaz. Köşeleri widget'ın kendi yuvarlağı kırpar. Orta boyda şerit iki sütunun altında tam genişliktir; liste ve ayraç şeridin üstünde 12 pt pay bırakır.
+- **Widget kenar payı:** `contentMarginsDisabled()`; ana ekran aileleri `HomeContentInsets` ile üstte 12, yatayda sistemin `widgetContentMargins` değeri, altta kerahat yokken 12 / kerahatte 0 (şerit bitişik). Kilit ekranı sistem değerini `.padding(widgetContentMargins)` ile aynen alır. Gerekçe: sistemin 16'sı üç satır tarih + çizgi + vakit satırı + 26 pt sayaç + şeridi sığdırmıyordu.
+- **Widget alt blok:** kerahat yokken çizgi ile *görünen* alt kenar arasında ortalı (B2; üstten `WidgetInsets.vertical` pay), kerahatte çizgi ile şerit arasında ortalı (pay yok). Vakit satırı–sayaç aralığı 8 aynı.
+- `KerahatChipLabel` → `KerahatRibbonLabel` (WidgetCore + RunnerTests); içerik aynı.
+
 ## Revizyon — 2026-09-19
 
 Ekrem'in cihaz geri bildirimiyle sunum sadeleşti; yerleşim, timeline anları ve payload şeması (v4) aynı kaldı:

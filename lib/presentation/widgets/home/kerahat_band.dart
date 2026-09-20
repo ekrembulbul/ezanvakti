@@ -22,9 +22,10 @@ const double _kActiveFillAlpha = 0.85;
 const double _kActiveTrackAlpha = 0.20;
 const double _kActiveShadowAlpha = 0.35;
 
-/// Tarih satırının altındaki tam genişlik kerahat bandı.
+/// Sayacın altındaki tam genişlik kerahat bandı.
 ///
-/// Ortada tek satır: ikon · "Kerahat" · sayaç. Sayaç yaklaşırken başlangıca,
+/// Ortada tek satır: ikon · "Kerahat" · sayaç, kelime ve sayaç aynı punto.
+/// Sayaç yaklaşırken başlangıca,
 /// kerahatte bitişe saniye saniye sayar (dk:sn); büyük sayaç bundan
 /// bağımsız, sıradaki vakte sayar. Yaklaşırken turuncu çerçeveli, kerahatte
 /// bordo dolgulu. Çubuk yaklaşırken 30 dakikalık uyarı penceresinin,
@@ -94,17 +95,15 @@ class KerahatBand extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.wb_twilight_rounded, size: 16, color: foreground),
+                Icon(Icons.wb_twilight_rounded, size: 22, color: foreground),
                 const SizedBox(width: 8),
                 Semantics(
                   liveRegion: true,
                   child: Text(
                     context.l10n.kerahatBandLabel,
                     maxLines: 1,
-                    style: AppTypography.rowSubtitle.copyWith(
+                    style: AppTypography.kerahatBandLabel.copyWith(
                       color: foreground,
-                      fontWeight: FontWeight.w600,
-                      fontVariations: const [FontVariation('wght', 600)],
                     ),
                   ),
                 ),
@@ -112,11 +111,8 @@ class KerahatBand extends StatelessWidget {
                 Text(
                   remaining,
                   key: kKerahatBandCountdownKey,
-                  style: AppTypography.heroSubtitle.copyWith(
+                  style: AppTypography.kerahatBandValue.copyWith(
                     color: foreground,
-                    fontWeight: FontWeight.w700,
-                    fontVariations: const [FontVariation('wght', 700)],
-                    fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
               ],
