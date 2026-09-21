@@ -6,9 +6,11 @@ import SwiftUI
 /// indiriyordu, tarih artık her durumda üç satır). Yaklaşırken turuncu zemin
 /// ve üstte turuncu çizgi, kelime "Kerahate", sayaç başlangıca; kerahatte
 /// bordo dolgu, "Kerahat", sayaç bitişe. Alt bloktaki sayaç bundan bağımsız,
-/// sıradaki vakte. Yazı 15 (13 küçük kalıyordu, 2026-09-21), şerit yine 26.
+/// sıradaki vakte. Yazı 15 (13 küçük kalıyordu) ve şerit 32 (26 basık
+/// duruyordu; 2026-09-21, seçenek B). Alt blok boşlukları şeride göre
+/// yeniden eşitlenir.
 struct KerahatRibbon: View {
-    static let height: CGFloat = 26
+    static let height: CGFloat = 32
     static let fontSize: CGFloat = 15
 
     let entry: PrayerEntry
