@@ -857,6 +857,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get widgetKerahat => 'وقت الكراهة';
 
   @override
+  String get widgetKerahatSoon => 'حتى وقت الكراهة';
+
+  @override
   String get widgetUpdateApp => 'يرجى تحديث التطبيق';
 
   @override
@@ -1667,6 +1670,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get kerahatBandLabel => 'وقت الكراهة';
+
+  @override
+  String get kerahatSoonBandLabel => 'حتى وقت الكراهة';
 
   @override
   String get kerahatAfterSunrise => 'بعد الشروق';

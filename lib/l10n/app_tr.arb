@@ -1135,6 +1135,10 @@
   "@widgetKerahat": {
     "description": "Widget kerahat çipi (yaklaşırken ve kerahatte): tek kelime, yanına sistem sayacı gelir."
   },
+  "widgetKerahatSoon": "Kerahate",
+  "@widgetKerahatSoon": {
+    "description": "Widget kerahat şeridi yaklaşırken: tek kelime, yanına başlangıca sayan sistem sayacı gelir (\"Kerahate 09:41\")."
+  },
   "widgetUpdateApp": "Uygulamayı güncelleyin",
   "@widgetUpdateApp": {
     "description": "Widget etiketi"
@@ -2249,6 +2253,8 @@
   },
   "kerahatBandLabel": "Kerahat",
   "@kerahatBandLabel": {"description": "Ana ekran kerahat bandı: tek kelime, yanında başlangıca ya da bitişe sayan sayaç."},
+  "kerahatSoonBandLabel": "Kerahate",
+  "@kerahatSoonBandLabel": {"description": "Ana ekran kerahat bandı yaklaşırken: tek kelime, yanında başlangıca sayan sayaç (\"Kerahate 13:41\")."},
   "kerahatAfterSunrise": "Güneş sonrası",
   "@kerahatAfterSunrise": {"description": "Güneş doğduktan sonraki kerahat aralığı."},
   "kerahatBeforeDhuhr": "Öğle öncesi",

@@ -861,6 +861,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get widgetKerahat => 'Kerahat';
 
   @override
+  String get widgetKerahatSoon => 'Kerahate';
+
+  @override
   String get widgetUpdateApp => 'Uygulamayı güncelleyin';
 
   @override
@@ -1679,6 +1682,9 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get kerahatBandLabel => 'Kerahat';
+
+  @override
+  String get kerahatSoonBandLabel => 'Kerahate';
 
   @override
   String get kerahatAfterSunrise => 'Güneş sonrası';

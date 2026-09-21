@@ -866,6 +866,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get widgetKerahat => 'Disliked time';
 
   @override
+  String get widgetKerahatSoon => 'Disliked time in';
+
+  @override
   String get widgetUpdateApp => 'Please update the app';
 
   @override
@@ -1683,6 +1686,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get kerahatBandLabel => 'Disliked time';
+
+  @override
+  String get kerahatSoonBandLabel => 'Disliked time in';
 
   @override
   String get kerahatAfterSunrise => 'After sunrise';

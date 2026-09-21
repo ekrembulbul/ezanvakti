@@ -1648,6 +1648,12 @@ abstract class AppLocalizations {
   /// **'Kerahat'**
   String get widgetKerahat;
 
+  /// Widget kerahat şeridi yaklaşırken: tek kelime, yanına başlangıca sayan sistem sayacı gelir ("Kerahate 09:41").
+  ///
+  /// In tr, this message translates to:
+  /// **'Kerahate'**
+  String get widgetKerahatSoon;
+
   /// Widget etiketi
   ///
   /// In tr, this message translates to:
@@ -3033,6 +3039,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Kerahat'**
   String get kerahatBandLabel;
+
+  /// Ana ekran kerahat bandı yaklaşırken: tek kelime, yanında başlangıca sayan sayaç ("Kerahate 13:41").
+  ///
+  /// In tr, this message translates to:
+  /// **'Kerahate'**
+  String get kerahatSoonBandLabel;
 
   /// Güneş doğduktan sonraki kerahat aralığı.
   ///
