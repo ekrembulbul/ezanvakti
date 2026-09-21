@@ -4,6 +4,11 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.25.1] - 2026-09-21
+
+### Değişti
+- **iOS widget'ta kerahat şeridi daha yüksek** (26 → 32 pt); yazı aynı. Üstteki vakit satırı ve sayaç şeride göre yeniden eşit aralıklanır.
+
 ## [0.25.0] - 2026-09-21
 
 ### Değişti
