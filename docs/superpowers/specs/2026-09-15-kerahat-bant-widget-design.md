@@ -6,6 +6,18 @@ Kaynak tasarım: [Kerahat Tasarımı canvas'ı](https://claude.ai/artifact/PFLN8
 
 Kerahat altyapısı Tur 7 (§7, `2026-09-10-tur7-…-design.md`) ile kuruldu: `KerahatWarning.resolve` (30 dk önceden `approaching`, aralıkta `active`), snapshot v4 `days[].kerahat`, Swift `KerahatStatus` ve timeline anları. Bu tur **yalnızca sunum katmanını** değiştirir; kural, snapshot şeması ve timeline anları aynen kalır. ADR değişikliği yok (0004 "widget hesap yapmaz" korunur).
 
+## Revizyon — 2026-09-21
+
+Ekrem'in 0.24.0 cihaz geri bildirimiyle ölçü ve metin ayarları (scratchpad `fix_round/gen.py` mockup'ı, onay: "tamam güzel oldu"); kural, snapshot şema sürümü ve timeline anları aynı:
+
+- **Widget alt blok, üç eşit görünen boşluk:** çizgi–vakit satırı, vakit satırı–sayaç, sayaç–alt sınır (kerahat yokken görünen alt kenar, kerahatte şeridin üstü) göze eşit. Ölçü satır kutusundan değil mürekkepten: `InkInsets.system(size:weight:)` (WidgetCore, `UIFont` ascender − capHeight / −descender) ile her metnin kutusu `inkBounds` (negatif padding) altında rakam yüksekliğine iner, kalan yüksekliği `NextPrayerBlock` içindeki üç eşit `Spacer` paylaşır. B2 (`CenteredBelowDivider`) ve sabit 8 aralık kalktı; kutudan ölçülünce 27/18/29 görünüyordu, şimdi ~25/25/25 (kerahatte ~16/16/16). `HomeContentInsets(bottom:)`: hazır içerikte 0, mesajlarda 12; orta boyda liste ve ayraç her durumda 12 alt pay.
+- **Widget şeridi:** yazı 13 → 15 (`KerahatRibbon.fontSize`), yükseklik 26 aynı. Yaklaşırken kelime **"Kerahate"** (`labels.kerahatSoon`, yoksa Türkçe varsayılan), kerahatte "Kerahat": `KerahatRibbonLabel.text(labels:status:)`.
+- **Snapshot etiketi:** `labels.kerahatSoon` (Dart `WidgetLabels.kerahatSoon`, ARB `widgetKerahatSoon`); şema sürümü 4 aynı, eski widget alanı yok sayar, eski uygulama göndermezse widget Türkçe varsayılana düşer.
+- **Kilit ekranı (`RectangularView`):** vakit satırı 15 → 17, sayaçla arası 1 → 4.
+- **Ana ekran üst satır:** etiket `heroLabel` 13 → 14 (aralık 2.8), saat 16 aynı; dört parça ortak `AppTypography.heroStrut` (16, `forceStrutHeight`) alır ki `Wrap` içinde kutuları eşitlenip etiket saatin taban çizgisine otursun — ortalanınca etiket yukarıda duruyordu.
+- **Ana ekran bandı yaklaşırken:** kelime **"Kerahate"** (`kerahatSoonBandLabel`), çubuk yok, dikey pay 11/11 (bant ~12 pt kısalır; kerahat başlayınca alttaki cetvel o kadar iner). Kerahatte bant aynen: "Kerahat", çubuk aralığın geçen kısmı. `KerahatBand.approachingProgress` silindi.
+- Çeviriler: EN "Disliked time in", AR "حتى وقت الكراهة" (her iki anahtar).
+
 ## Revizyon — 2026-09-20 (akşam)
 
 Ekrem'in mockup turlarıyla (scratchpad `band_bottom/`: `gen_home.py`, `gen_widget2.py`, `gen_final.py`) yerleşim değişti; kural, snapshot şeması ve timeline anları yine aynı:
