@@ -19,14 +19,29 @@ final class KerahatRibbonLabelTests: XCTestCase {
     private var approaching: KerahatStatus { .approaching(start: at(18, 38), end: at(19, 23)) }
     private var active: KerahatStatus { .active(end: at(19, 23)) }
 
-    func testLabelIsTheSingleWordFromSnapshot() throws {
-        XCTAssertEqual(
-            KerahatRibbonLabel.text(labels: try labels(#"{"kerahat":"Disliked time"}"#)),
-            "Disliked time")
+    private var snapshotLabels: SnapshotLabels {
+        get throws {
+            try labels(#"{"kerahat":"Disliked time","kerahatSoon":"Disliked time in"}"#)
+        }
     }
 
-    func testLabelFallsBackToTurkishWithoutLabels() {
-        XCTAssertEqual(KerahatRibbonLabel.text(labels: nil), "Kerahat")
+    /// Yaklaşırken ayrı kelime: "Kerahat 13:41" kerahatin sürdüğü gibi
+    /// okunuyordu (2026-09-21).
+    func testLabelIsTheSingleWordFromSnapshotPerStatus() throws {
+        XCTAssertEqual(
+            KerahatRibbonLabel.text(labels: try snapshotLabels, status: active),
+            "Disliked time")
+        XCTAssertEqual(
+            KerahatRibbonLabel.text(labels: try snapshotLabels, status: approaching),
+            "Disliked time in")
+    }
+
+    func testLabelFallsBackToTurkishWithoutLabels() throws {
+        XCTAssertEqual(KerahatRibbonLabel.text(labels: nil, status: active), "Kerahat")
+        XCTAssertEqual(KerahatRibbonLabel.text(labels: nil, status: approaching), "Kerahate")
+        // Eski uygulama yalnız "kerahat" yazar: yaklaşırken yine Türkçe varsayılan.
+        let old = try labels(#"{"kerahat":"Disliked time"}"#)
+        XCTAssertEqual(KerahatRibbonLabel.text(labels: old, status: approaching), "Kerahate")
     }
 
     func testCountdownTargetIsStartWhileApproachingAndEndWhileActive() {

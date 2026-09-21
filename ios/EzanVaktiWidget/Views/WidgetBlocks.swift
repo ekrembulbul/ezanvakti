@@ -4,6 +4,8 @@ import WidgetKit
 // Küçük widget'ın ve orta widget'ın sol sütununun ortak parçaları.
 // Sıra: üst blok · çizgi · vakit adı ile saat yan yana · ince sayaç; kerahat
 // yaklaşırken ya da sürerken en altta, kenar payının dışında `KerahatRibbon`.
+// Alt blok çizgi ile alt sınır (şerit ya da görünen alt kenar) arasında üç
+// eşit görünen boşlukla durur; ölçü mürekkepten (`InkInsets`).
 
 /// Ana ekran ailelerinin kendi kenar payı; sistemin payı kapalı
 /// (`contentMarginsDisabled`). Dikeyde 12: sistemin 16'sı üç satır tarih,
@@ -14,15 +16,17 @@ enum WidgetInsets {
 }
 
 /// Ana ekran içeriğinin payı: üstte 12, yatayda sistemin değeri; altta
-/// kerahat yokken 12, kerahatte 0 — şerit içeriğin hemen altına bitişir.
+/// verilen kadar. Hazır içerikte 0: alt bloğun sınırı kerahat yokken
+/// widget'ın görünen alt kenarı, kerahatte bitişik şeridin üstüdür; mesajlar
+/// 12 ile ortalanır.
 struct HomeContentInsets: ViewModifier {
     @Environment(\.widgetContentMargins) private var margins
-    let hasRibbon: Bool
+    var bottom: CGFloat = WidgetInsets.vertical
 
     func body(content: Content) -> some View {
         content
             .padding(.top, WidgetInsets.vertical)
-            .padding(.bottom, hasRibbon ? 0 : WidgetInsets.vertical)
+            .padding(.bottom, bottom)
             .padding(.leading, margins.leading)
             .padding(.trailing, margins.trailing)
     }
@@ -61,7 +65,7 @@ struct WidgetHeader: View {
 }
 
 /// Üst ve alt bloğu ayıran tam genişlik çizgi. Altına pay vermez: alt bloğun
-/// yeri çizgiden itibaren `CenteredBelowDivider` ile ölçülür.
+/// boşlukları çizgiden itibaren `NextPrayerBlock` içinde ölçülür.
 struct WidgetDivider: View {
     let color: Color
 
@@ -74,9 +78,17 @@ struct WidgetDivider: View {
 }
 
 /// Alt blok: vakit adı ile saati yan yana, altında ince geri sayım.
+///
+/// Sunulan yüksekliği doldurur (çizginin altından alt sınıra kadar) ve üç
+/// boşluğu — çizgi–vakit satırı, vakit satırı–sayaç, sayaç–alt sınır — göze
+/// eşit dağıtır: metin kutuları `InkInsets` ile rakam yüksekliğine indirilir,
+/// kalanı üç eşit `Spacer` paylaşır. Kutudan ölçülünce 27/18/29 görünüyordu
+/// (2026-09-21; öncesi B2, çizgi–alt kenar arası ortalı).
 struct NextPrayerBlock: View {
-    /// Vakit satırı ile sayaç arası; bitişik duruyordu (2026-09-20 tasarımı, B2).
-    static let countdownSpacing: CGFloat = 8
+    static let rowFontSize: CGFloat = 16
+    static let countdownFontSize: CGFloat = 26
+    static let rowInk = InkInsets.system(size: rowFontSize, weight: .semibold)
+    static let countdownInk = InkInsets.system(size: countdownFontSize, weight: .light)
     let entry: PrayerEntry
     let next: PrayerSlot
     let palette: Palette
@@ -89,7 +101,10 @@ struct NextPrayerBlock: View {
     }
 
     var body: some View {
-        VStack(alignment: alignment.horizontal, spacing: Self.countdownSpacing) {
+        VStack(alignment: alignment.horizontal, spacing: 0) {
+            Spacer(minLength: 0)
+            // Satırın kutusu saatin (16) kutusudur: ad aynı taban çizgisinde,
+            // daha kısa.
             HStack(alignment: .firstTextBaseline, spacing: 6) {
                 Text(name)
                     .font(.system(size: 11, weight: .semibold))
@@ -97,12 +112,16 @@ struct NextPrayerBlock: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.7)
                 Text(TimeFormatting.clock(next.date, preference: entry.timeFormat))
-                    .font(.system(size: 16, weight: .semibold).monospacedDigit())
+                    .font(.system(size: Self.rowFontSize, weight: .semibold).monospacedDigit())
                     .foregroundStyle(palette.textPrimary)
             }
+            .inkBounds(Self.rowInk)
+            Spacer(minLength: 0)
             CountdownLabel(
-                entry: entry, target: next.date, size: 26,
+                entry: entry, target: next.date, size: Self.countdownFontSize,
                 color: palette.textPrimary, weight: .light)
+                .inkBounds(Self.countdownInk)
+            Spacer(minLength: 0)
         }
         // `Text(timerInterval:)` sunulan genişliği doldurur; metnin kutu içi
         // hizası ayrıca verilmezse sola yaslı kalıyor (2026-09-15 cihaz gözlemi).
@@ -111,24 +130,10 @@ struct NextPrayerBlock: View {
     }
 }
 
-/// Alt bloğu çizgi ile altındaki sınır arasında dikeyde ortalar.
-///
-/// Kerahat yokken sınır widget'ın görünen alt kenarıdır: içerik alt kenar
-/// payında bittiğinden blok o pay kadar üstten pay alınca görünen kenara göre
-/// tam ortaya düşer (2026-09-20, B2). Kerahatte sınır şeridin üst kenarıdır ve
-/// içerik şeride bitişik biter; pay yok.
-struct CenteredBelowDivider<Content: View>: View {
-    private let topPadding: CGFloat
-    private let content: Content
-
-    init(hasRibbon: Bool, @ViewBuilder content: () -> Content) {
-        topPadding = hasRibbon ? 0 : WidgetInsets.vertical
-        self.content = content()
-    }
-
-    var body: some View {
-        Spacer(minLength: 0)
-        content.padding(.top, topPadding)
-        Spacer(minLength: 0)
+extension View {
+    /// Yerleşim kutusunu mürekkebe (rakam üstü–taban çizgisi) indirir; çizim
+    /// aynı kalır, kutu dışına taşar.
+    func inkBounds(_ insets: InkInsets) -> some View {
+        padding(.top, -insets.top).padding(.bottom, -insets.bottom)
     }
 }

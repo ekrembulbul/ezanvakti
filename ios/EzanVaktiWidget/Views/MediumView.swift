@@ -10,10 +10,10 @@ struct MediumView: View {
         switch entry.content {
         case .noData:
             MessageView(text: "Vakitler için uygulamayı aç", phase: .fallback, appearance: entry.appearance)
-                .modifier(HomeContentInsets(hasRibbon: false))
+                .modifier(HomeContentInsets())
         case .needsUpdate:
             MessageView(text: "Uygulamayı güncelleyin", phase: .fallback, appearance: entry.appearance)
-                .modifier(HomeContentInsets(hasRibbon: false))
+                .modifier(HomeContentInsets())
         case let .ready(next, day, phase, locationLabel, isStale, isTomorrow):
             ready(
                 next: next, day: day, phase: phase,
@@ -31,9 +31,9 @@ struct MediumView: View {
         // sıradaki vakte göre seçiliyor.
         let slots = NextPrayer.slots(days: [day], calendar: .current)
         let kerahat = entry.kerahat
-        // Sağ sütun ile ayraç kerahatte de şeridin üstünde alt payını korur;
-        // yalnız sol sütun şeride bitişik biter.
-        let listBottom = kerahat == nil ? 0 : WidgetInsets.vertical
+        // İçeriğin alt payı yok (sol sütun görünen alt kenara ya da şeride
+        // göre ölçülür); sağ sütun ile ayraç kendi 12'sini her durumda korur.
+        let listBottom = WidgetInsets.vertical
 
         return VStack(spacing: 0) {
             HStack(spacing: 0) {
@@ -44,11 +44,9 @@ struct MediumView: View {
                         entry: entry, day: day, palette: palette, alignment: alignment,
                         locationLabel: locationLabel, isStale: isStale)
                     WidgetDivider(color: palette.divider)
-                    CenteredBelowDivider(hasRibbon: kerahat != nil) {
-                        NextPrayerBlock(
-                            entry: entry, next: next, palette: palette,
-                            alignment: alignment, isTomorrow: isTomorrow)
-                    }
+                    NextPrayerBlock(
+                        entry: entry, next: next, palette: palette,
+                        alignment: alignment, isTomorrow: isTomorrow)
                 }
                 .frame(width: 158)
 
@@ -70,7 +68,7 @@ struct MediumView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding(.bottom, listBottom)
             }
-            .modifier(HomeContentInsets(hasRibbon: kerahat != nil))
+            .modifier(HomeContentInsets(bottom: 0))
             if let status = kerahat {
                 KerahatRibbon(entry: entry, status: status, palette: palette)
             }

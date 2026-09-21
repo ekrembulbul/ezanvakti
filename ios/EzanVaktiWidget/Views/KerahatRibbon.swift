@@ -1,13 +1,15 @@
 import SwiftUI
 
-/// Widget'ın en altındaki tam genişlik kerahat şeridi: ikon · "Kerahat" · sistem
+/// Widget'ın en altındaki tam genişlik kerahat şeridi: ikon · kelime · sistem
 /// sayacı. Kenar payının dışında durur; köşelerini widget'ın kendi yuvarlağı
 /// kırpar (2026-09-20 tasarımı: üst bloktaki kapsül tarihi tek satıra
 /// indiriyordu, tarih artık her durumda üç satır). Yaklaşırken turuncu zemin
-/// ve üstte turuncu çizgi, sayaç başlangıca; kerahatte bordo dolgu ve sayaç
-/// bitişe. Alt bloktaki sayaç bundan bağımsız, sıradaki vakte.
+/// ve üstte turuncu çizgi, kelime "Kerahate", sayaç başlangıca; kerahatte
+/// bordo dolgu, "Kerahat", sayaç bitişe. Alt bloktaki sayaç bundan bağımsız,
+/// sıradaki vakte. Yazı 15 (13 küçük kalıyordu, 2026-09-21), şerit yine 26.
 struct KerahatRibbon: View {
     static let height: CGFloat = 26
+    static let fontSize: CGFloat = 15
 
     let entry: PrayerEntry
     let status: KerahatStatus
@@ -20,7 +22,7 @@ struct KerahatRibbon: View {
     private var countdown: Text {
         let target = KerahatRibbonLabel.countdownTarget(status: status)
         return Text(timerInterval: min(entry.date, target)...target, countsDown: true)
-            .font(.system(size: 13, weight: .bold).monospacedDigit())
+            .font(.system(size: Self.fontSize, weight: .bold).monospacedDigit())
     }
 
     var body: some View {
@@ -28,9 +30,9 @@ struct KerahatRibbon: View {
         // yaslıyor (2026-09-15 cihaz gözlemi); ikon, kelime ve sayaç aynı
         // metinde birleşince ortalı hiza bütününe uygulanır.
         (Text(Image(systemName: "sun.horizon"))
-            + Text(verbatim: " \(KerahatRibbonLabel.text(labels: entry.labels)) ")
+            + Text(verbatim: " \(KerahatRibbonLabel.text(labels: entry.labels, status: status)) ")
             + countdown)
-            .font(.system(size: 13, weight: .semibold))
+            .font(.system(size: Self.fontSize, weight: .semibold))
             .lineLimit(1)
             .minimumScaleFactor(0.7)
             .multilineTextAlignment(.center)
