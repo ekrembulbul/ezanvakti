@@ -164,13 +164,14 @@ class AppTypography {
     fontFeatures: _tabular,
   );
 
-  /// Sayacın üstündeki "SONRAKİ  AKŞAM · 19:23" satırının etiketleri.
+  /// Sayacın üstündeki "SONRAKİ  AKŞAM · 19:23" satırının etiketleri; saatten
+  /// bir tık küçük (13 az kalıyordu, 2026-09-21).
   static const TextStyle heroLabel = TextStyle(
     fontFamily: fontFamily,
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: FontWeight.w800,
     fontVariations: _w800,
-    letterSpacing: 2.6,
+    letterSpacing: 2.8,
   );
 
   /// Aynı satırdaki vakit saati; etiketten bir basamak büyük, sık aralıklı.
@@ -181,6 +182,17 @@ class AppTypography {
     fontVariations: _w800,
     letterSpacing: 0.5,
     fontFeatures: _tabular,
+  );
+
+  /// Üst satırın ortak dikey iskeleti: satırdaki her parça bu strut'u alır,
+  /// kutuları eşitlenir ve etiket saatin taban çizgisine oturur (widget'taki
+  /// gibi). `Wrap` taban çizgisi hizalayamadığından etiket ortalanıp yukarıda
+  /// duruyordu (2026-09-21).
+  static const StrutStyle heroStrut = StrutStyle(
+    fontFamily: fontFamily,
+    fontSize: 16,
+    fontWeight: FontWeight.w800,
+    forceStrutHeight: true,
   );
 
   /// Kerahat bandındaki "Kerahat" kelimesi.

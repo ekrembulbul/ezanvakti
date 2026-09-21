@@ -172,7 +172,9 @@ class _CountdownHeroState extends State<CountdownHero> {
       mainAxisSize: MainAxisSize.min,
       children: [
         // Etiket, vakit adı ve saati tek satırda; büyük metinde alt satıra
-        // kırılır. Ezan okunmasını ima eden bir ifade yazılmaz.
+        // kırılır. Ortak strut parçaların kutusunu eşitler: küçük etiket
+        // saatin taban çizgisine oturur. Ezan okunmasını ima eden bir ifade
+        // yazılmaz.
         Wrap(
           alignment: WrapAlignment.center,
           crossAxisAlignment: WrapCrossAlignment.center,
@@ -181,6 +183,7 @@ class _CountdownHeroState extends State<CountdownHero> {
           children: [
             Text(
               context.l10n.nextLabel,
+              strutStyle: AppTypography.heroStrut,
               style: AppTypography.heroLabel.copyWith(
                 color: tokens.textSecondary,
               ),
@@ -188,10 +191,12 @@ class _CountdownHeroState extends State<CountdownHero> {
             Text(
               widget.nextPrayerName.replaceAll('i', 'İ').toUpperCase(),
               textAlign: TextAlign.center,
+              strutStyle: AppTypography.heroStrut,
               style: AppTypography.heroLabel.copyWith(color: color),
             ),
             Text(
               '·',
+              strutStyle: AppTypography.heroStrut,
               style: AppTypography.heroLabel.copyWith(
                 color: tokens.textTertiary,
                 letterSpacing: 0,
@@ -200,6 +205,7 @@ class _CountdownHeroState extends State<CountdownHero> {
             Text(
               context.formatTime(widget.nextPrayerTime),
               key: kCountdownTimeKey,
+              strutStyle: AppTypography.heroStrut,
               style: AppTypography.heroTime.copyWith(color: color),
             ),
           ],
