@@ -4,6 +4,15 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.25.0] - 2026-09-21
+
+### Değişti
+- **iOS widget'ta alt blok boşlukları göze eşit.** Çizgi ile vakit satırı, vakit satırı ile sayaç, sayaç ile alt kenar (kerahatte şerit) arasındaki boşluklar rakamların gerçek sınırından ölçülüp eşit dağıtılıyor; kutudan ölçülünce sayaç yukarıda, alt boşluk geniş duruyordu. Orta boyda vakit listesi aynen.
+- **Kerahat şeridi bir tık büyüdü (15 pt)** ve yaklaşırken "Kerahate", kerahatte "Kerahat" yazıyor; "Kerahat 09:41" kerahatin sürdüğü gibi okunuyordu. Uygulama eski sürümdeyse widget yine Türkçe "Kerahate" yazar.
+- **Kilit ekranı widget'ında** vakit adı ve saati büyüdü (17 pt), sayaçla arası açıldı.
+- **Ana ekranda "SONRAKİ AKŞAM" etiketi** saatten bir tık küçük (14 pt) ve saatle aynı taban çizgisinde; ortalanınca yukarıda duruyordu.
+- **Ana ekranda kerahate yaklaşırken bant** "Kerahate 13:41" yazıyor ve ilerleme çubuğu yok; bant biraz kısaldı. Kerahatte bant aynen, çubuklu.
+
 ## [0.24.0] - 2026-09-20
 
 ### Değişti
