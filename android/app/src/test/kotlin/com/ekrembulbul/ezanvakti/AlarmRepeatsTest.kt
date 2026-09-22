@@ -10,7 +10,8 @@ class AlarmRepeatsTest {
     private val zone = TimeZone.getTimeZone("Europe/Berlin")
     private fun at(day: Int, hour: Int, minute: Int = 0): Long =
         ZonedDateTime.of(2026, 3, day, hour, minute, 0, 0, ZoneId.of("Europe/Berlin")).toInstant().toEpochMilli()
-    private fun alarm() = AlarmArgs("daily", at(28, 2, 30), "daily", "default", true, true, 5,
+    private fun alarm() = AlarmArgs("daily", at(28, 2, 30), "daily", "default", vibrate = true,
+        snoozeEnabled = true, snoozeMinutes = 5,
         repeatWeekdays = (1..7).toList(), repeatHour = 2, repeatMinute = 30)
 
     @Test fun weeklyRepeatContinuesAndDoesNotDriftAfterDst() {
