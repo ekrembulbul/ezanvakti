@@ -4,6 +4,11 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.26.1] - 2026-09-22
+
+### Değişti
+- **Küçük ve orta widget'ta vakit ile geri sayım birbirine yaklaştı.** Kerahat şeridi görünmüyorken vakit satırı ile altındaki sayaç arasındaki boşluk daraldı, açığa çıkan yer çizginin altına ve widget'ın alt kenarına eşit dağıldı. Kerahat şeridi varken yerleşim aynen kaldı.
+
 ## [0.26.0] - 2026-09-22
 
 ### Eklendi
