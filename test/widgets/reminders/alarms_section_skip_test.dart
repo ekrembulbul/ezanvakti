@@ -3,6 +3,7 @@ import 'package:ezanvakti/core/models/alarm_mission.dart';
 import 'package:ezanvakti/core/models/mission_session.dart';
 import 'package:ezanvakti/core/models/skipped_occurrence.dart';
 import 'package:ezanvakti/presentation/widgets/reminders/alarms_section.dart';
+import 'package:ezanvakti/presentation/widgets/reminders/snooze_countdown.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -24,7 +25,7 @@ void main() {
     MissionSession? session,
     Set<SkippedOccurrence> skips = const {},
     void Function(SkippedOccurrence, bool)? onSkipChanged,
-    void Function(Alarm)? onDisableBlocked,
+    ValueChanged<Alarm>? onSnoozedTap,
     void Function(Alarm, bool)? onToggle,
   }) => wrapWithTheme(
     AlarmsSection(
@@ -36,7 +37,7 @@ void main() {
       onEdit: (_) {},
       onDelete: (_) async {},
       missionSessions: session == null ? const [] : [session],
-      onDisableBlocked: onDisableBlocked,
+      onSnoozedTap: onSnoozedTap,
       nextFireByAlarm: {'ogle': fireAt, 'sahur': fireAt},
       skips: skips,
       onSkipChanged: onSkipChanged ?? (a, b) {},
@@ -110,93 +111,67 @@ void main() {
     );
   });
 
-  testWidgets('Ertelenmis alarmda atlama yerine erteleme bilgisi cikar', (
+  testWidgets('Ertelenmis alarmda anahtar yerine rozet, dokunma ekrana gider', (
     tester,
   ) async {
+    Alarm? tapped;
     await tester.pumpWidget(
       build(
         alarms: const [gated],
         session: MissionSession(
           alarmId: 'sahur',
-          firedAt: fireAt,
-          snoozedUntil: DateTime(2026, 8, 19, 5, 10),
+          firedAt: DateTime.now(),
+          snoozedUntil: DateTime.now().add(const Duration(minutes: 10)),
         ),
+        onSnoozedTap: (a) => tapped = a,
       ),
     );
-    expect(find.textContaining('Ertelendi'), findsOneWidget);
-  });
+    expect(find.byKey(kSnoozeCountdownKey), findsOneWidget);
+    expect(find.text('ERTELENDİ'), findsOneWidget);
+    expect(find.byType(Switch), findsNothing);
+    expect(find.textContaining('Ertelendi ·'), findsNothing);
 
-  testWidgets('Ertelenmis gorevli alarm kapatilamaz', (tester) async {
-    Alarm? blocked;
-    var toggled = false;
-    // Sabit gecmis tarih kullanilamaz: kapi 60 dk sonra borcu bayat sayip
-    // acilyor. Test "az once durdu" varsayar.
-    final firedAt = DateTime.now();
-    await tester.pumpWidget(
-      build(
-        alarms: const [gated],
-        session: MissionSession(
-          alarmId: 'sahur',
-          firedAt: firedAt,
-          snoozedUntil: firedAt.add(const Duration(minutes: 10)),
-        ),
-        onDisableBlocked: (a) => blocked = a,
-        onToggle: (a, b) => toggled = true,
-      ),
-    );
-    await tester.tap(find.byType(Switch));
+    await tester.tap(find.byKey(kSnoozeCountdownKey));
     await tester.pump();
-
-    expect(blocked?.id, 'sahur');
-    expect(toggled, isFalse);
+    expect(tapped?.id, 'sahur');
   });
 
-  testWidgets('Gorevsiz alarm ertelenmis olsa da kapatilabilir', (
+  testWidgets('Gorevsiz ertelenmis alarmda da rozet var, anahtar yok', (
     tester,
   ) async {
-    var toggled = false;
     await tester.pumpWidget(
       build(
         session: MissionSession(
           alarmId: 'ogle',
-          firedAt: fireAt,
-          snoozedUntil: DateTime(2026, 8, 19, 13, 10),
+          firedAt: DateTime.now(),
+          snoozedUntil: DateTime.now().add(const Duration(minutes: 10)),
         ),
-        onToggle: (a, b) => toggled = true,
       ),
     );
-    await tester.tap(find.byType(Switch));
-    await tester.pump();
-
-    expect(toggled, isTrue);
+    expect(find.byKey(kSnoozeCountdownKey), findsOneWidget);
+    expect(find.byType(Switch), findsNothing);
   });
 
-  testWidgets('Ertelenmemis ama gorev borcu duran alarm da kapidan gecer', (
+  testWidgets('Ertelenmemis ama gorev borcu duran alarmda anahtar kilitli', (
     tester,
   ) async {
-    Alarm? blocked;
     var toggled = false;
     await tester.pumpWidget(
       build(
         alarms: const [gated],
         // Erteleme yok: alarm durdurulmus, gorev henuz yapilmamis.
         session: MissionSession(alarmId: 'sahur', firedAt: DateTime.now()),
-        onDisableBlocked: (a) => blocked = a,
         onToggle: (a, b) => toggled = true,
       ),
     );
+    expect(find.byKey(kSnoozeCountdownKey), findsNothing);
+    expect(tester.widget<Switch>(find.byType(Switch)).onChanged, isNull);
     await tester.tap(find.byType(Switch));
     await tester.pump();
-
-    expect(
-      blocked?.id,
-      'sahur',
-      reason: 'gorev borcu erteleme olmadan da kapatmayi kapiya yollamali',
-    );
     expect(toggled, isFalse);
   });
 
-  testWidgets('Zincir tavani dolmus borc kapatmayi engellemez', (tester) async {
+  testWidgets('Zincir tavani dolmus borc anahtari kilitlemez', (tester) async {
     var toggled = false;
     await tester.pumpWidget(
       build(
@@ -205,13 +180,11 @@ void main() {
           alarmId: 'sahur',
           firedAt: DateTime.now().subtract(const Duration(hours: 3)),
         ),
-        onDisableBlocked: (_) {},
         onToggle: (a, b) => toggled = true,
       ),
     );
     await tester.tap(find.byType(Switch));
     await tester.pump();
-
     expect(toggled, isTrue, reason: 'tavan dolunca gorev borcu da duser');
   });
 }
