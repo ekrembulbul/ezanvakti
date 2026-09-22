@@ -42,6 +42,12 @@ class FakeAlarmService implements AlarmService {
     }
   }
 
+  /// Uygulama ön plandayken gelen durdurma olayını taklit eder.
+  void emitStop(MissionStopEvent event) {
+    pendingEvents = [...pendingEvents, event];
+    _stops.add(event);
+  }
+
   Future<void> _syncEvents() async {
     if (alarmDefinitions != null) {
       for (final alarm in await alarmDefinitions!()) {

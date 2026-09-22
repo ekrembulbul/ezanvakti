@@ -9,7 +9,6 @@ import 'package:ezanvakti/core/models/alarm_mission.dart';
 import 'package:ezanvakti/core/models/mission_session.dart';
 import 'package:ezanvakti/core/models/mission_stop_event.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
-import 'package:ezanvakti/core/models/skipped_occurrence.dart';
 import 'package:ezanvakti/core/providers/app_state.dart';
 import 'package:ezanvakti/features/alarms/domain/alarm_scheduler.dart';
 import 'package:ezanvakti/features/alarms/domain/alarms_manager.dart';
@@ -794,163 +793,153 @@ void main() {
     });
   });
 
-  group('Kapatma girisimi gorev kapisindan gecer', () {
-    const plainAlarm = Alarm(
-      id: 'ogle',
+  group('openSnoozedAlarm', () {
+    const plainSnooze = Alarm(
+      id: 'is',
       kind: AlarmKind.fixed,
-      label: 'Ogle',
-      hour: 13,
-      minute: 0,
+      hour: 8,
+      minute: 45,
       snoozeEnabled: true,
-      snoozeMinutes: 5,
+      snoozeMinutes: 10,
+      maxSnoozes: 2,
     );
 
-    /// Alarm calmis, durdurulmus ve ertelenmis bir oturum.
-    Future<void> snoozedSession(Alarm alarm) async {
-      await storage.saveAlarm(alarm);
-      await alarmService.seedSession(
-        MissionSession(
-          alarmId: alarm.id,
-          firedAt: stoppedAt,
-          snoozedUntil: DateTime.now().add(const Duration(minutes: 8)),
-        ),
-      );
+    Future<void> openSnoozed(WidgetTester tester, Alarm alarm) async {
+      await pumpLauncher(tester);
+      unawaited(openSnoozedAlarm(hostContext, alarm));
+      await settle(tester);
     }
 
-    testWidgets('gorevsiz alarmda ekran acilmaz, eylem uygulanir', (
-      tester,
-    ) async {
-      await snoozedSession(plainAlarm);
-      await pumpLauncher(tester);
-
-      bool? allowed;
-      unawaited(
-        resolveMissionBeforeDismiss(
-          hostContext,
-          plainAlarm,
-        ).then((value) => allowed = value),
-      );
-      await settle(tester);
-
-      expect(find.byType(MissionScreen), findsNothing);
-      expect(find.byType(AlarmStopScreen), findsNothing);
-      expect(allowed, isTrue);
-    });
-
-    testWidgets('erteleme surerken gorevli alarmda gorev ekrani acilir', (
-      tester,
-    ) async {
-      await snoozedSession(mathAlarm);
-      await pumpLauncher(tester);
-
-      unawaited(resolveMissionBeforeDismiss(hostContext, mathAlarm));
-      await settle(tester);
-
-      expect(find.byType(MissionScreen), findsOneWidget);
-    });
-
-    testWidgets('gorev tamamlaninca eylem uygulanir', (tester) async {
-      await snoozedSession(mathAlarm);
-      await pumpLauncher(tester);
-
-      bool? allowed;
-      unawaited(
-        resolveMissionBeforeDismiss(
-          hostContext,
-          mathAlarm,
-        ).then((value) => allowed = value),
-      );
-      await settle(tester);
-      await solveMath(tester);
-
-      expect(alarmService.completed, contains(mathAlarm.id));
-      expect(allowed, isTrue);
-    });
-
-    testWidgets('gorev ekranindan tekrar ertelenirse eylem uygulanmaz', (
-      tester,
-    ) async {
-      await snoozedSession(mathAlarm);
-      await pumpLauncher(tester);
-
-      bool? allowed;
-      unawaited(
-        resolveMissionBeforeDismiss(
-          hostContext,
-          mathAlarm,
-        ).then((value) => allowed = value),
-      );
-      await settle(tester);
-      await tester.tap(find.byKey(kMissionSnoozeKey));
-      await settle(tester);
-
-      expect(alarmService.completed, isNot(contains(mathAlarm.id)));
-      expect(allowed, isFalse);
-    });
-  });
-
-  group('Tek seferlik kapatma da kapidan gecer', () {
-    SkippedOccurrence alarmSkip(String id) => SkippedOccurrence(
-      kind: SkipKind.alarm,
-      reference: id,
-      fireAt: stoppedAt.add(const Duration(days: 1)),
+    Future<void> seedSnoozed(
+      Alarm alarm, {
+      int snoozeUsed = 1,
+      Duration left = const Duration(minutes: 7),
+    }) => alarmService.seedSession(
+      MissionSession(
+        alarmId: alarm.id,
+        firedAt: stoppedAt,
+        snoozeUsed: snoozeUsed,
+        snoozedUntil: DateTime.now().add(left),
+        chainDeadlineAt: alarm.mission.requiresGate
+            ? stoppedAt.add(
+                const Duration(minutes: MissionTuning.chainDeadlineMinutes),
+              )
+            : null,
+      ),
     );
 
-    testWidgets('Bildirim atlamasi kapiya ugramaz', (tester) async {
+    testWidgets('ertelenmis oturum yoksa ekran acilmaz', (tester) async {
       await storage.saveAlarm(mathAlarm);
-      await alarmService.seedSession(
-        MissionSession(alarmId: mathAlarm.id, firedAt: stoppedAt),
-      );
-      await pumpLauncher(tester);
-
-      bool? allowed;
-      unawaited(
-        resolveSkipBeforeDismiss(
-          hostContext,
-          SkippedOccurrence(
-            kind: SkipKind.notification,
-            reference: 'fajr',
-            fireAt: stoppedAt,
-          ),
-          const [mathAlarm],
-        ).then((value) => allowed = value),
-      );
-      await settle(tester);
-
-      expect(find.byType(MissionScreen), findsNothing);
-      expect(allowed, isTrue);
+      await openSnoozed(tester, mathAlarm);
+      expect(find.byType(AlarmStopScreen), findsNothing);
     });
 
-    testWidgets('Borclu alarmin atlanmasi gorev ekrani acar', (tester) async {
+    testWidgets('ertelenmis gorevli: ekran ertelenmis kipte, X ile cikilir', (
+      tester,
+    ) async {
       await storage.saveAlarm(mathAlarm);
-      await alarmService.seedSession(
-        MissionSession(alarmId: mathAlarm.id, firedAt: stoppedAt),
-      );
-      await pumpLauncher(tester);
+      await seedSnoozed(mathAlarm);
+      await openSnoozed(tester, mathAlarm);
 
-      unawaited(
-        resolveSkipBeforeDismiss(hostContext, alarmSkip(mathAlarm.id), const [
-          mathAlarm,
-        ]),
+      expect(find.byType(AlarmStopScreen), findsOneWidget);
+      expect(find.text('ALARM ERTELENDİ'), findsOneWidget);
+      expect(find.byKey(kStopCloseKey), findsOneWidget);
+
+      await tester.tap(find.byKey(kStopCloseKey));
+      await settle(tester);
+
+      expect(find.byType(AlarmStopScreen), findsNothing);
+      expect(alarmService.snoozed, isEmpty);
+      expect(alarmService.completed, isEmpty);
+      expect(alarmService.begun, isEmpty);
+      expect(
+        appState.missionSession?.snoozedUntil,
+        isNotNull,
+        reason: 'X hicbir seyi degistirmez; erteleme kurulu kalir',
       );
+    });
+
+    testWidgets('Gorevi yap ertelemeyi bitirip gorev ekranini acar', (
+      tester,
+    ) async {
+      await storage.saveAlarm(mathAlarm);
+      await seedSnoozed(mathAlarm);
+      await openSnoozed(tester, mathAlarm);
+
+      await tester.tap(find.byKey(kStopPrimaryKey));
       await settle(tester);
 
       expect(find.byType(MissionScreen), findsOneWidget);
+      expect(alarmService.begun, [mathAlarm.id]);
+      expect(
+        (await alarmService.getMissionSessions()).single.snoozedUntil,
+        isNull,
+        reason: 'begin ertelemeyi bitirir (M9)',
+      );
     });
 
-    testWidgets('Tanimi bulunmayan alarm atlamayi engellemez', (tester) async {
-      await pumpLauncher(tester);
+    testWidgets('Ertele yeniden erteler, hak bir eksilir, ekran kapanir', (
+      tester,
+    ) async {
+      await storage.saveAlarm(mathAlarm);
+      await seedSnoozed(mathAlarm);
+      await openSnoozed(tester, mathAlarm);
 
-      bool? allowed;
-      unawaited(
-        resolveSkipBeforeDismiss(hostContext, alarmSkip('silinmis'), const [
-          mathAlarm,
-        ]).then((value) => allowed = value),
-      );
+      await tester.tap(find.byKey(kStopSnoozeKey));
       await settle(tester);
 
-      expect(allowed, isTrue);
+      expect(find.byType(AlarmStopScreen), findsNothing);
+      expect(alarmService.snoozed, [(id: mathAlarm.id, minutes: 5)]);
+      expect((await alarmService.getMissionSessions()).single.snoozeUsed, 2);
+      expect(alarmService.scheduled, isEmpty);
     });
+
+    testWidgets('hak bitince Ertele yok', (tester) async {
+      await storage.saveAlarm(mathAlarm);
+      await seedSnoozed(mathAlarm, snoozeUsed: 2);
+      await openSnoozed(tester, mathAlarm);
+
+      expect(find.byType(AlarmStopScreen), findsOneWidget);
+      expect(find.byKey(kStopSnoozeKey), findsNothing);
+    });
+
+    testWidgets('gorevsiz: Alarmi kapat oturumu bitirir ve yeniden kurar', (
+      tester,
+    ) async {
+      await storage.saveAlarm(plainSnooze);
+      await seedSnoozed(plainSnooze);
+      await openSnoozed(tester, plainSnooze);
+
+      expect(find.text('Alarmı kapat'), findsOneWidget);
+      await tester.tap(find.byKey(kStopPrimaryKey));
+      await settle(tester);
+
+      expect(find.byType(AlarmStopScreen), findsNothing);
+      expect(alarmService.completed, [plainSnooze.id]);
+      expect(alarmService.scheduled, [plainSnooze.id]);
+    });
+
+    testWidgets(
+      'ekran acikken durdurma olayi gelince durduruldu kipine gecer',
+      (tester) async {
+        await storage.saveAlarm(mathAlarm);
+        await seedSnoozed(mathAlarm);
+        await openSnoozed(tester, mathAlarm);
+        expect(find.byKey(kStopCloseKey), findsOneWidget);
+
+        // Erteleme doldu, alarm caldi, kullanici durdurdu: fake, olaydan
+        // snoozedUntil'siz ve yeni stoppedAt'li oturum uretir (native gibi).
+        alarmService.emitStop(
+          MissionStopEvent(alarmId: mathAlarm.id, stoppedAt: DateTime.now()),
+        );
+        await settle(tester);
+
+        expect(find.byType(AlarmStopScreen), findsOneWidget);
+        expect(find.text('ALARM DURDURULDU'), findsOneWidget);
+        expect(find.byKey(kStopCloseKey), findsNothing);
+        expect(find.byKey(kStopCountdownKey), findsOneWidget);
+      },
+    );
   });
 }
 
