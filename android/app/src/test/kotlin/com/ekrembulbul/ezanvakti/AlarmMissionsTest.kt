@@ -117,16 +117,6 @@ class AlarmMissionsTest {
         assertTrue(begun.deadlineMillis!! > now)
     }
 
-    @Test fun retryOfAcceptedSnoozeDoesNotConsumeAnAdditionalRight() {
-        val a = args("is").copy(maxSnoozes = 1)
-        missions.fired(a, fire)
-        missions.stop(a, fire + 1000)
-        val first = missions.snooze("is", 5, fire + 2000)!!
-        val retry = missions.snooze("is", 5, fire + 3000)!!
-        assertEquals(first.snoozedUntilMillis, retry.snoozedUntilMillis)
-        assertEquals(1, retry.snoozeUsed)
-    }
-
     @Test fun snapshotsPreserveTwoIndependentSnoozedSessions() {
         for (id in listOf("a", "b")) {
             val a = args(id)
@@ -172,5 +162,28 @@ class AlarmMissionsTest {
         val restored = NativeMissionSession.fromJson(json)
         assertNull(restored.timerScheduleId)
         assertNull(restored.lastStopScheduleId)
+    }
+
+    @Test fun snoozeDuringActiveSnoozeRestartsFromNowAndCounts() {
+        val a = args("is")
+        missions.fired(a, fire)
+        missions.stop(a, fire + 1000)
+        missions.snooze("is", 5, fire + 2000)
+        val again = missions.snooze("is", 5, fire + 122_000)!!
+        assertEquals(fire + 122_000 + 300_000, again.snoozedUntilMillis)
+        assertEquals(2, again.snoozeUsed)
+        assertFalse(again.begun)
+        assertNull(again.deadlineMillis)
+    }
+
+    @Test fun snoozeDuringActiveSnoozeStillHonorsLimit() {
+        val a = args("is") // maxSnoozes 2
+        missions.fired(a, fire)
+        missions.stop(a, fire + 1000)
+        missions.snooze("is", 5, fire + 2000)
+        missions.snooze("is", 5, fire + 62_000)
+        assertNull(missions.snooze("is", 5, fire + 122_000))
+        assertEquals(2, missions.session("is")!!.snoozeUsed)
+        assertEquals(fire + 62_000 + 300_000, missions.session("is")!!.snoozedUntilMillis)
     }
 }
