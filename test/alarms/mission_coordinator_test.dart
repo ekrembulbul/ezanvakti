@@ -235,36 +235,24 @@ void main() {
     expect((await service.getMissionSessions()).firstOrNull, isNull);
   });
 
-  test(
-    'snooze tekrarı hak tüketmez, yeni durdurma sonraki hakkı kullanır',
-    () async {
-      await service.seedSession(
-        MissionSession(alarmId: 'sahur', firedAt: firedAt),
-      );
-      const alarm = Alarm(
-        id: 'sahur',
-        kind: AlarmKind.fixed,
-        mission: AlarmMission.math,
-        maxSnoozes: 2,
-      );
-      expect(await coordinator.snooze(alarm), isTrue);
-      expect(((await service.getMissionSessions()).firstOrNull)!.snoozeUsed, 1);
-      expect(await coordinator.snooze(alarm), isTrue);
-      expect((await service.getMissionSessions()).single.snoozeUsed, 1);
-      service.pendingEvents = [
-        MissionStopEvent(alarmId: alarm.id, stoppedAt: DateTime.now()),
-      ];
-      expect(await coordinator.snooze(alarm), isTrue);
-      service.pendingEvents = [
-        MissionStopEvent(
-          alarmId: alarm.id,
-          stoppedAt: DateTime.now().add(const Duration(minutes: 10)),
-        ),
-      ];
-      expect(await coordinator.snooze(alarm), isFalse);
-      expect(((await service.getMissionSessions()).firstOrNull)!.snoozeUsed, 2);
-    },
-  );
+  test('snooze tekrarı da hak tüketir, limit dolunca reddedilir', () async {
+    await service.seedSession(
+      MissionSession(alarmId: 'sahur', firedAt: firedAt),
+    );
+    const alarm = Alarm(
+      id: 'sahur',
+      kind: AlarmKind.fixed,
+      mission: AlarmMission.math,
+      maxSnoozes: 2,
+    );
+    expect(await coordinator.snooze(alarm), isTrue);
+    expect((await service.getMissionSessions()).single.snoozeUsed, 1);
+    // Erteleme surerken ikinci erteleme de sayilir (spec 2026-09-22 D12).
+    expect(await coordinator.snooze(alarm), isTrue);
+    expect((await service.getMissionSessions()).single.snoozeUsed, 2);
+    expect(await coordinator.snooze(alarm), isFalse);
+    expect((await service.getMissionSessions()).single.snoozeUsed, 2);
+  });
 
   test('abort kademeyi yukseltir ve zinciri temizler', () async {
     await service.seedSession(
@@ -276,5 +264,52 @@ void main() {
     final state = await storage.getAbortState();
     expect(state.level, 1);
     expect(state.lastUsedAt, firedAt);
+  });
+
+  group('erteleme sürerken yeniden erteleme', () {
+    const alarm = Alarm(
+      id: 'is',
+      kind: AlarmKind.fixed,
+      hour: 8,
+      snoozeEnabled: true,
+      snoozeMinutes: 10,
+      maxSnoozes: 2,
+    );
+
+    test('hak varsa native çağrılır, yeni an şimdiden başlar', () async {
+      final oldUntil = DateTime.now().add(const Duration(minutes: 3));
+      await service.seedSession(
+        MissionSession(
+          alarmId: 'is',
+          firedAt: firedAt,
+          snoozeUsed: 1,
+          snoozedUntil: oldUntil,
+        ),
+      );
+      final before = DateTime.now();
+      expect(await coordinator.snooze(alarm), isTrue);
+      expect(service.snoozed, [(id: 'is', minutes: 10)]);
+      final session = (await service.getMissionSessions()).single;
+      expect(session.snoozeUsed, 2);
+      expect(
+        session.snoozedUntil!.isAfter(before.add(const Duration(minutes: 9))),
+        isTrue,
+        reason: 'yeni an eski anin uzerine degil, simdiden 10 dk',
+      );
+    });
+
+    test('hak bittiyse native çağrılmaz', () async {
+      await service.seedSession(
+        MissionSession(
+          alarmId: 'is',
+          firedAt: firedAt,
+          snoozeUsed: 2,
+          snoozedUntil: DateTime.now().add(const Duration(minutes: 3)),
+        ),
+      );
+      expect(await coordinator.snooze(alarm), isFalse);
+      expect(service.snoozed, isEmpty);
+      expect((await service.getMissionSessions()).single.snoozeUsed, 2);
+    });
   });
 }

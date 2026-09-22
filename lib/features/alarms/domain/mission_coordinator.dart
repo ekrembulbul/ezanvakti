@@ -127,12 +127,10 @@ class MissionCoordinator {
     await _refresh();
     final session = _find(alarm.id, firedAt);
     if (!alarm.snoozeEnabled || session == null) return false;
+    // Erteleme sürerken yeniden erteleme de sayılır (spec 2026-09-22 D12);
+    // limit her durumda uygulanır.
     final limit = effectiveSnoozeLimit(alarm);
-    final alreadySnoozed =
-        session.snoozedUntil?.isAfter(DateTime.now()) == true;
-    if (!alreadySnoozed && limit != null && session.snoozeUsed >= limit) {
-      return false;
-    }
+    if (limit != null && session.snoozeUsed >= limit) return false;
     await _apply(
       () => alarmService.snoozeMission(
         alarm.id,
