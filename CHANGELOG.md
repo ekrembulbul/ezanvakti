@@ -4,6 +4,19 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.26.0] - 2026-09-22
+
+### Eklendi
+- **Ertelenmiş alarmda geri sayım rozeti.** Alarm ertelendiğinde Alarmlar listesindeki satırda ve ana ekrandaki Sıradaki kartında anahtarın yerinde "ERTELENDİ" + dakika:saniye sayacı görünür; alt metin yalnız çalma saatini yazar.
+- **Ertelenmiş alarma dokununca seçim ekranı.** Satıra ya da rozete dokunmak ara ekranı "Alarm ertelendi" kipinde açar: büyük geri sayım ve çalma saati, Görevi yap / Ertele (görevsiz alarmda Alarmı kapat / Ertele), sağ üstte X ile hiçbir şeyi değiştirmeden çıkış. Erteleme dolup alarm çalar ve durdurulursa açık ekran kendiliğinden durduruldu kipine döner.
+
+### Değişti
+- **Anahtar artık görev ekranına götürmüyor.** Ertelenmiş alarmda anahtarın yerini rozet alır; görev borcu olup ertelenmemiş alarmda anahtar ve tek seferlik atlama anahtarı gri kalır (ekran zaten kendiliğinden açılır). Silme aynen.
+- **Yeniden erteleme uygulanıyor.** Erteleme sürerken ikinci "Ertele" iki platformda da sessizce yok sayılıyordu; artık yeni çalma anı şimdi + süre olur ve hak bir eksilir. Hak yoksa ya da görevli alarmda 60 dakikalık zincir tavanına sığmıyorsa düğme çıkmaz.
+
+### Düzeltildi
+- Erteleme yeniden denemesi (zamanlayıcı kuruldu, eski kaydın temizliği patladı) ikinci erteleme sayılmıyor.
+
 ## [0.25.1] - 2026-09-21
 
 ### Değişti
