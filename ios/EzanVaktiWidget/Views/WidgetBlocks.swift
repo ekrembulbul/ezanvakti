@@ -4,8 +4,9 @@ import WidgetKit
 // Küçük widget'ın ve orta widget'ın sol sütununun ortak parçaları.
 // Sıra: üst blok · çizgi · vakit adı ile saat yan yana · ince sayaç; kerahat
 // yaklaşırken ya da sürerken en altta, kenar payının dışında `KerahatRibbon`.
-// Alt blok çizgi ile alt sınır (şerit ya da görünen alt kenar) arasında üç
-// eşit görünen boşlukla durur; ölçü mürekkepten (`InkInsets`).
+// Alt blok çizgi ile alt sınır (şerit ya da görünen alt kenar) arasında durur;
+// ölçü mürekkepten (`InkInsets`). Şerit varken üç boşluk eşit, şerit yokken
+// vakit satırı ile sayaç arası sabit.
 
 /// Ana ekran ailelerinin kendi kenar payı; sistemin payı kapalı
 /// (`contentMarginsDisabled`). Dikeyde 12: sistemin 16'sı üç satır tarih,
@@ -81,12 +82,19 @@ struct WidgetDivider: View {
 ///
 /// Sunulan yüksekliği doldurur (çizginin altından alt sınıra kadar) ve üç
 /// boşluğu — çizgi–vakit satırı, vakit satırı–sayaç, sayaç–alt sınır — göze
-/// eşit dağıtır: metin kutuları `InkInsets` ile rakam yüksekliğine indirilir,
-/// kalanı üç eşit `Spacer` paylaşır. Kutudan ölçülünce 27/18/29 görünüyordu
+/// dağıtır: metin kutuları `InkInsets` ile rakam yüksekliğine indirilir,
+/// kalanı `Spacer`'lar paylaşır. Kutudan ölçülünce 27/18/29 görünüyordu
 /// (2026-09-21; öncesi B2, çizgi–alt kenar arası ortalı).
+///
+/// Kerahat şeridi varken üçü de eşit (14/14/14): şerit alanı zaten kısaltıyor.
+/// Şerit yokken üç eşit boşluk 25/25/25 çıkıyordu, vakit satırı ile sayaç
+/// birbirinden kopuk duruyordu; arası `midGap`'e sabitlenip kalanı iki eşit
+/// `Spacer` paylaşır, 28/18/28 olur (2026-09-22).
 struct NextPrayerBlock: View {
     static let rowFontSize: CGFloat = 16
     static let countdownFontSize: CGFloat = 26
+    /// Şerit yokken vakit satırı ile sayaç arasındaki görünen boşluk.
+    static let midGap: CGFloat = 18
     static let rowInk = InkInsets.system(size: rowFontSize, weight: .semibold)
     static let countdownInk = InkInsets.system(size: countdownFontSize, weight: .light)
     let entry: PrayerEntry
@@ -116,7 +124,11 @@ struct NextPrayerBlock: View {
                     .foregroundStyle(palette.textPrimary)
             }
             .inkBounds(Self.rowInk)
-            Spacer(minLength: 0)
+            if entry.kerahat == nil {
+                Spacer().frame(height: Self.midGap)
+            } else {
+                Spacer(minLength: 0)
+            }
             CountdownLabel(
                 entry: entry, target: next.date, size: Self.countdownFontSize,
                 color: palette.textPrimary, weight: .light)
