@@ -304,6 +304,7 @@ final class AlarmPlanEngine {
     }
     journal.record("stopped", at: clock(), configuration: missions.configurations[scheduleId])
     stopAlertingSiblings(alarmId: stopped.session.configuration.alarmId, except: scheduleId)
+    await reringSilentAlerts(except: stopped.session.configuration.alarmId)
     if let next = stopped.rearmAtMillis {
       do { try await rearm(stopped.session, at: next) }
       catch {
@@ -426,18 +427,66 @@ final class AlarmPlanEngine {
     }
   }
 
+  /// Bir alarm durdurulunca **başka** bir alarmın o sırada çalan alerti sessiz
+  /// kalır: iOS tek ton çalar, sonraki alerte geçirir ve biri durdurulunca
+  /// kalana geri vermez (22 Eylül 06:02, 05:59 alarmı 44 sn sessiz durdu).
+  /// AlarmKit'te sesi geri getiren çağrı yok; alert yerinde bırakılır ve aynı
+  /// çalış `graceSeconds` sonra sesli geri getirilir:
+  /// - çalışa kimse dokunmadıysa `isFallback` bir yedek kurulur; durdurulması
+  ///   oturumu merdiven basamağı gibi açar, sessiz alert de kardeş olarak susar;
+  /// - zincir sürüyorsa sessiz nöbetçi susturulur ve zincir taze nöbetçiyle
+  ///   geri gelir; yeniden kurulum sayacı artmaz, bunu kullanıcı tetiklemedi.
+  private func reringSilentAlerts(except alarmId: String) async {
+    let now = clock()
+    let states = (try? platform.alarms()) ?? [:]
+    var handled: Set<String> = []
+    for (id, uuid) in mapping where states[uuid] == .alerting {
+      guard let record = missions.configurations[id], record.alarmId != alarmId,
+        let fire = record.occurrenceTime(at: now, calendar: .current)
+      else { continue }
+      let occurrence = "\(record.alarmId)#at\(Int64(fire))"
+      guard handled.insert(occurrence).inserted else { continue }
+      let session = missions.session(alarmId: record.alarmId)
+      do {
+        if let session, session.occurrenceId == occurrence {
+          guard session.canContinue(at: now) else { continue }
+          try platform.stop(id: uuid)
+          let grace = Double(session.configuration.graceSeconds * 1000)
+          try await rearm(session, at: min(now + grace, session.chainDeadlineMillis))
+        } else {
+          if let session, session.firedAtMillis > fire { continue }
+          var fallback = record.chainConfiguration(
+            scheduleId: occurrence + "#w" + UUID().uuidString,
+            fireAtMillis: now + Double(record.graceSeconds * 1000), originalFireAtMillis: fire)
+          fallback.isFallback = true
+          try await upsert(fallback)
+        }
+        journal.record("rering", at: now, configuration: record, scheduleId: id)
+      } catch {
+        journal.record("rering", at: now, configuration: record,
+          scheduleId: id, result: "failed", error: error)
+      }
+    }
+  }
+
   /// Zinciri bitmiş ya da daha yeni bir çalışla geride kalmış alarmın OS'ta
   /// "çalıyor" duran kaydı. Kimse durdurmadıysa iOS onu ileride yeniden
   /// gösteriyor; uzlaştırma bunu susturur. Henüz kimsenin dokunmadığı bir
-  /// çalış (oturumu yok) ya da zinciri süren çalış korunur.
+  /// çalış ya da zinciri süren çalış korunur.
+  ///
+  /// Oturum bitince silinmez; karar oturumun *bu* çalışa ait olup olmadığına
+  /// bakar. 22 Eylül: dünkü bitmiş oturum, bugünün dokunulmamış çalışını
+  /// "bitmiş" saydırmış ve alert görev bitince susturulmuştu.
   private func stopStaleAlerts() throws {
     let now = clock()
     let states = try platform.alarms()
     for (id, uuid) in mapping where states[uuid] == .alerting {
       guard let record = missions.configurations[id],
-        let session = missions.session(alarmId: record.alarmId) else { continue }
-      let fire = record.originalFireAtMillis ?? record.fireAtMillis
-      let olderOccurrence = record.repeatWeekdays.isEmpty && fire < session.firedAtMillis
+        let session = missions.session(alarmId: record.alarmId),
+        let fire = record.occurrenceTime(at: now, calendar: .current),
+        fire <= session.firedAtMillis
+      else { continue }
+      let olderOccurrence = fire < session.firedAtMillis
       let finished = !session.pending || !session.canContinue(at: now)
       guard finished || olderOccurrence else { continue }
       do {
