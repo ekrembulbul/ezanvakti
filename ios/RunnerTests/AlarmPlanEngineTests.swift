@@ -163,6 +163,30 @@ final class AlarmPlanEngineTests: XCTestCase {
   }
 
   @MainActor
+  func testSnoozeDuringSnoozeReplacesTimerWithLaterOne() async throws {
+    let (engine, backend, clock) = fixture()
+    var primary = record("work", at: clock.now + 1000)
+    primary.maxSnoozes = 3
+    _ = try await engine.reconcile(records: [primary], enabledAlarmIds: ["work"])
+    clock.now += 1001
+    _ = try await engine.stop(scheduleId: primary.scheduleId)
+    try await engine.snooze("work", minutes: 5, expectedFireMillis: primary.fireAtMillis)
+    let firstTimer = engine.missions.session(alarmId: "work")!.timerScheduleId!
+    clock.now += 120_000
+    backend.operations = []
+    try await engine.snooze("work", minutes: 5, expectedFireMillis: primary.fireAtMillis)
+    let session = engine.missions.session(alarmId: "work")!
+    XCTAssertEqual(session.snoozeUsed, 2)
+    XCTAssertEqual(session.snoozedUntilMillis, clock.now + 300_000)
+    let secondTimer = try XCTUnwrap(session.timerScheduleId)
+    XCTAssertNotEqual(secondTimer, firstTimer)
+    XCTAssertEqual(engine.missions.configurations[secondTimer]?.fireAtMillis, clock.now + 300_000)
+    XCTAssertNil(engine.mapping[firstTimer])
+    XCTAssertTrue(backend.operations.contains("schedule:" + secondTimer))
+    XCTAssertTrue(backend.operations.contains("cancel:" + firstTimer))
+  }
+
+  @MainActor
   func testBeginDuringSnoozeReplacesSnoozeTimerWithMissionTimer() async throws {
     let (engine, backend, clock) = fixture()
     let primary = record("work", at: clock.now + 1000)
@@ -187,7 +211,7 @@ final class AlarmPlanEngineTests: XCTestCase {
   }
 
   @MainActor
-  func testCleanupRetryDoesNotSpendAnotherSnooze() async throws {
+  func testCleanupFailureKeepsAcceptedTimerAndRefreshRetiresOldOne() async throws {
     let (engine, backend, clock) = fixture()
     let primary = record("work", at: clock.now + 1000)
     _ = try await engine.reconcile(records: [primary], enabledAlarmIds: ["work"])
@@ -199,11 +223,15 @@ final class AlarmPlanEngineTests: XCTestCase {
     catch {}
     let accepted = engine.missions.session(alarmId: "work")!
     XCTAssertEqual(accepted.snoozeUsed, 1)
-    XCTAssertNotEqual(accepted.timerScheduleId, oldTimer)
+    let acceptedTimer = try XCTUnwrap(accepted.timerScheduleId)
+    XCTAssertNotEqual(acceptedTimer, oldTimer)
     backend.failCancels = []
-    try await engine.snooze("work", minutes: 5)
+    // Yeniden deneme Dart'ta kısa devre olur (sayaç ilerlemiş, erteleme
+    // etkin); yarım kalan eski zamanlayıcıyı bir sonraki uzlaştırma temizler.
+    _ = try await engine.reconcile(records: [primary], enabledAlarmIds: ["work"])
     XCTAssertEqual(engine.missions.session(alarmId: "work")?.snoozeUsed, 1)
     XCTAssertNil(engine.mapping[oldTimer])
+    XCTAssertNotNil(engine.mapping[acceptedTimer])
   }
 
   @MainActor

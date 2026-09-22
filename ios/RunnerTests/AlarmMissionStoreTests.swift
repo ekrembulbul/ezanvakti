@@ -244,4 +244,27 @@ final class AlarmMissionStoreTests: XCTestCase {
     XCTAssertThrowsError(try store.configure(configuration("work")))
     XCTAssertEqual(defaults.data(forKey: "ezanvakti_alarm_missions_v2"), corrupted)
   }
+
+  func testSnoozeDuringActiveSnoozeRestartsFromNowAndCounts() throws {
+    let config = configuration("is")
+    try store.configure(config)
+    _ = try store.stop(scheduleId: config.scheduleId, nowMillis: fire + 1000)
+    _ = try store.snooze(alarmId: "is", minutes: 5, nowMillis: fire + 2000)
+    let again = try XCTUnwrap(store.snooze(alarmId: "is", minutes: 5, nowMillis: fire + 122_000))
+    XCTAssertEqual(again.snoozedUntilMillis, fire + 122_000 + 300_000)
+    XCTAssertEqual(again.snoozeUsed, 2)
+    XCTAssertFalse(again.begun)
+    XCTAssertNil(again.deadlineMillis)
+  }
+
+  func testSnoozeDuringActiveSnoozeStillHonorsLimit() throws {
+    let config = configuration("is")  // maxSnoozes 2
+    try store.configure(config)
+    _ = try store.stop(scheduleId: config.scheduleId, nowMillis: fire + 1000)
+    _ = try store.snooze(alarmId: "is", minutes: 5, nowMillis: fire + 2000)
+    _ = try store.snooze(alarmId: "is", minutes: 5, nowMillis: fire + 62_000)
+    XCTAssertNil(try store.snooze(alarmId: "is", minutes: 5, nowMillis: fire + 122_000))
+    XCTAssertEqual(store.session(alarmId: "is")?.snoozeUsed, 2)
+    XCTAssertEqual(store.session(alarmId: "is")?.snoozedUntilMillis, fire + 62_000 + 300_000)
+  }
 }
