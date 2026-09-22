@@ -3,6 +3,7 @@ import '../../../core/models/alarm.dart';
 import '../../../l10n/app_localizations.dart';
 import '../../../l10n/l10n_extensions.dart';
 import '../../utils/time_format_context.dart';
+import '../reminders/snooze_countdown.dart';
 import '../reminders/snooze_notice.dart';
 import 'package:flutter/material.dart';
 
@@ -10,6 +11,7 @@ import '../../../core/models/skipped_occurrence.dart';
 import '../../../core/theme/app_tokens.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
+import '../../../features/alarms/domain/stop_gate.dart';
 import '../../../features/notifications/domain/skip_rules.dart';
 import '../../utils/alarm_labels.dart';
 import '../../utils/reminder_labels.dart';
@@ -46,6 +48,9 @@ class UpcomingCard extends StatelessWidget {
   final void Function(SkippedOccurrence occurrence, bool skipped)?
   onSkipChanged;
 
+  /// Ertelenmiş alarm satırına dokunuldu: ara ekran (spec 2026-09-22 D5).
+  final ValueChanged<Alarm>? onSnoozedTap;
+
   const UpcomingCard({
     this.missionSessions = const [],
     super.key,
@@ -55,16 +60,21 @@ class UpcomingCard extends StatelessWidget {
     this.alarm,
     this.skips = const {},
     this.onSkipChanged,
+    this.onSnoozedTap,
   });
 
   /// Satırın sağındaki tek seferlik kapatma anahtarı.
   ///
   /// Açık = çalacak. Kapalı = yalnızca bu örnek atlanacak; kalıcı kapatma
   /// Bildirimler/Alarmlar ekranlarında.
-  Widget _skipSwitch(SkippedOccurrence occurrence, bool isSkippedNow) {
+  Widget _skipSwitch(
+    SkippedOccurrence occurrence,
+    bool isSkippedNow, {
+    bool enabled = true,
+  }) {
     return Switch(
       value: !isSkippedNow,
-      onChanged: onSkipChanged == null
+      onChanged: onSkipChanged == null || !enabled
           ? null
           : (value) => onSkipChanged!(occurrence, !value),
     );
@@ -186,6 +196,15 @@ class UpcomingCard extends StatelessWidget {
       missionSession,
       item.alarm,
     );
+    final snoozed = snoozedUntil != null;
+    // Gorev borcu olup ertelenmemis alarmda anahtar kilitli (D6).
+    final locked =
+        !snoozed &&
+        StopGate.blocksDismissal(
+          alarm: item.alarm,
+          sessions: missionSessions,
+          now: now,
+        );
 
     return GroupedRow(
       height: customLabel.isEmpty ? _kRowHeight : _kLabeledRowHeight,
@@ -207,9 +226,8 @@ class UpcomingCard extends StatelessWidget {
       subtitle: _details(
         context,
         important: switch ((snoozedUntil, skipped)) {
-          (final DateTime until, _) =>
-            '${SnoozeNotice.label(until, context.l10n)} · '
-                '${formatRemaining(until.difference(now), context.l10n)}',
+          // Kalan sure rozette sayiyor; alt metin yalniz saat.
+          (final DateTime until, _) => SnoozeNotice.label(until, context.l10n),
           (_, true) =>
             '${context.l10n.reminderSkippedOnce} · '
                 '${reminderDayLabel(context, item.time, now)} '
@@ -220,9 +238,12 @@ class UpcomingCard extends StatelessWidget {
         },
         label: customLabel.isEmpty ? null : customLabel,
       ),
-      // Gorev borcu olan alarm da atlanabilir gorunur: dokunus gorev kapisina
-      // gider (`resolveSkipBeforeDismiss`), kilitli anahtar cikissiz birakiyordu.
-      trailing: _skipSwitch(occurrence, skipped),
+      onTap: snoozed && onSnoozedTap != null
+          ? () => onSnoozedTap!(item.alarm)
+          : null,
+      trailing: snoozed
+          ? SnoozeCountdown(until: snoozedUntil)
+          : _skipSwitch(occurrence, skipped, enabled: !locked),
     );
   }
 
