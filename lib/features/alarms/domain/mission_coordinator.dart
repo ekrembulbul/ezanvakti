@@ -123,10 +123,23 @@ class MissionCoordinator {
     return _find(alarmId, session.firedAt)?.deadlineAt;
   });
 
-  Future<bool> snooze(Alarm alarm, {DateTime? firedAt}) => _serial(() async {
+  /// [expectedSnoozeUsed]: çağıranın ekranda gördüğü sayaç. Native önceki
+  /// isteği uygulamış ama zamanlayıcı temizliği patlamışsa (sayaç bir ileri,
+  /// erteleme etkin) yeniden deneme ikinci kez saymaz; başarı döner. Yeniden
+  /// erteleme artık native'de no-op olmadığı için (D12) idempotentlik burada.
+  Future<bool> snooze(
+    Alarm alarm, {
+    DateTime? firedAt,
+    int? expectedSnoozeUsed,
+  }) => _serial(() async {
     await _refresh();
     final session = _find(alarm.id, firedAt);
     if (!alarm.snoozeEnabled || session == null) return false;
+    if (expectedSnoozeUsed != null &&
+        session.snoozeUsed == expectedSnoozeUsed + 1 &&
+        session.snoozedUntil?.isAfter(DateTime.now()) == true) {
+      return true;
+    }
     // Erteleme sürerken yeniden erteleme de sayılır (spec 2026-09-22 D12);
     // limit her durumda uygulanır.
     final limit = effectiveSnoozeLimit(alarm);

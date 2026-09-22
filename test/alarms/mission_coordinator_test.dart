@@ -298,6 +298,29 @@ void main() {
       );
     });
 
+    test(
+      'yeniden deneme: native ilk isteği uygulamışsa ikinci çağrı saymaz',
+      () async {
+        // Zamanlayıcı kuruldu ama eski kaydın temizliği patladı: native sayacı
+        // ilerletmiş, Dart hata çubuğu göstermiş, kullanıcı "Tekrar dene" dedi.
+        await service.seedSession(
+          MissionSession(
+            alarmId: 'is',
+            firedAt: firedAt,
+            snoozeUsed: 2,
+            snoozedUntil: DateTime.now().add(const Duration(minutes: 10)),
+          ),
+        );
+        expect(
+          await coordinator.snooze(alarm, expectedSnoozeUsed: 1),
+          isTrue,
+          reason: 'ekranda 1 gorulmus, native 2 yapmis: istek zaten uygulandi',
+        );
+        expect(service.snoozed, isEmpty);
+        expect((await service.getMissionSessions()).single.snoozeUsed, 2);
+      },
+    );
+
     test('hak bittiyse native çağrılmaz', () async {
       await service.seedSession(
         MissionSession(

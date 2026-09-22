@@ -410,6 +410,7 @@ class _StopHostState extends State<_StopHost> with WidgetsBindingObserver {
       final ok = await _coordinator.snooze(
         widget.alarm,
         firedAt: widget.session.firedAt,
+        expectedSnoozeUsed: _session.snoozeUsed,
       );
       if (!ok || !mounted) {
         _closing = false;
@@ -617,6 +618,7 @@ class _MissionHostState extends State<_MissionHost>
       final ok = await _coordinator.snooze(
         widget.alarm,
         firedAt: widget.session.firedAt,
+        expectedSnoozeUsed: _session.snoozeUsed,
       );
       if (!ok || !mounted) {
         _closing = false;
