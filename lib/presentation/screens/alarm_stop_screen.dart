@@ -15,11 +15,13 @@ import '../utils/time_format_context.dart';
 import '../utils/reminder_labels.dart';
 import '../../core/utils/duration_formatter.dart';
 import '../widgets/missions/mission_metrics.dart';
+import '../widgets/reminders/snooze_countdown.dart';
 
 const Key kStopPrimaryKey = Key('stop_primary');
 const Key kStopSnoozeKey = Key('stop_snooze');
 const Key kStopCountdownKey = Key('stop_countdown');
 const Key kStopNextPrayerKey = Key('stop_next_prayer');
+const Key kStopCloseKey = Key('stop_close');
 
 /// Alarm durdurulunca açılan karar ekranı. Salt sunum: sayaç ve eylemler
 /// dışarıdan gelir.
@@ -50,6 +52,17 @@ class AlarmStopScreen extends StatelessWidget {
   final PrayerType? nextPrayerType;
   final DateTime? nextPrayerTime;
 
+  /// Ertelenmiş kip (spec 2026-09-22 D8): alarm bu anda çalacak. `null` ise
+  /// durduruldu kipi. Ertelenmişte [remainingSeconds] bu ana kadar kalan.
+  final DateTime? snoozedUntil;
+
+  /// Küçük satırdaki "n kez ertelendi"; yalnız ertelenmiş kipte yazılır.
+  final int snoozeUsed;
+
+  /// Sağ üstteki X: hiçbir şeyi değiştirmeden çıkar. Yalnız kullanıcı
+  /// ekranı kendisi açtıysa verilir (D10).
+  final VoidCallback? onClose;
+
   const AlarmStopScreen({
     super.key,
     required this.alarm,
@@ -63,12 +76,14 @@ class AlarmStopScreen extends StatelessWidget {
     this.onSnooze,
     this.nextPrayerType,
     this.nextPrayerTime,
+    this.snoozedUntil,
+    this.snoozeUsed = 0,
+    this.onClose,
   });
 
-  String get _countdown {
-    final s = remainingSeconds < 0 ? 0 : remainingSeconds;
-    return '${s ~/ 60}:${(s % 60).toString().padLeft(2, '0')}';
-  }
+  bool get _snoozed => snoozedUntil != null;
+
+  String get _countdown => formatCountdownSeconds(remainingSeconds);
 
   /// Sabit alarmda kurulu saat; çıpalıda gerçek çalış anı (vakit her gün
   /// kayar, kullanıcı bugünkü saati görmeli).
@@ -100,16 +115,34 @@ class AlarmStopScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 8),
-              Text(
-                l10n.stopHeadline,
-                textAlign: TextAlign.center,
-                style: AppTypography.sectionLabel.copyWith(
-                  color: tokens.textTertiary,
+              SizedBox(
+                height: 40,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Text(
+                      _snoozed ? l10n.stopSnoozedHeadline : l10n.stopHeadline,
+                      textAlign: TextAlign.center,
+                      style: AppTypography.sectionLabel.copyWith(
+                        color: tokens.textTertiary,
+                      ),
+                    ),
+                    if (onClose != null)
+                      Align(
+                        alignment: AlignmentDirectional.centerEnd,
+                        child: IconButton(
+                          key: kStopCloseKey,
+                          tooltip: l10n.actionCancel,
+                          icon: const Icon(Icons.close_rounded),
+                          color: tokens.textSecondary,
+                          onPressed: onClose,
+                        ),
+                      ),
+                  ],
                 ),
               ),
               const Spacer(),
-              _header(tokens, l10n),
+              _header(context, tokens, l10n),
               if (gated) ...[
                 const SizedBox(height: 24),
                 _missionCard(tokens, l10n),
@@ -135,8 +168,10 @@ class AlarmStopScreen extends StatelessWidget {
                   ),
                 ],
               ],
-              const SizedBox(height: 20),
-              _footer(tokens, l10n),
+              if (!_snoozed) ...[
+                const SizedBox(height: 20),
+                _footer(tokens, l10n),
+              ],
             ],
           ),
         ),
@@ -144,7 +179,11 @@ class AlarmStopScreen extends StatelessWidget {
     );
   }
 
-  Widget _header(AppTokens tokens, AppLocalizations l10n) {
+  Widget _header(
+    BuildContext context,
+    AppTokens tokens,
+    AppLocalizations l10n,
+  ) {
     final title = alarm.label.isEmpty ? l10n.alarmDefaultLabel : alarm.label;
     return Column(
       children: [
@@ -159,15 +198,27 @@ class AlarmStopScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
+        // Ertelenmis kipte kahraman geri sayim: en onemli bilgi "ne zaman
+        // calacak" (spec 2026-09-22 D8).
         FittedBox(
           child: Text(
-            _timeText(l10n),
-            style: AppTypography.counter.copyWith(color: tokens.textPrimary),
+            _snoozed ? _countdown : _timeText(l10n),
+            style: AppTypography.counter.copyWith(
+              color: _snoozed ? tokens.accent : tokens.textPrimary,
+            ),
           ),
         ),
+        if (_snoozed) ...[
+          const SizedBox(height: 6),
+          Text(
+            l10n.stopRingsAt(context.formatTime(snoozedUntil!)),
+            textAlign: TextAlign.center,
+            style: AppTypography.rowTitle.copyWith(color: tokens.textPrimary),
+          ),
+        ],
         const SizedBox(height: 6),
         Text(
-          _detailText(l10n),
+          _snoozed ? _snoozedDetailText(l10n) : _detailText(l10n),
           textAlign: TextAlign.center,
           style: AppTypography.hint.copyWith(
             fontSize: 15,
@@ -176,6 +227,14 @@ class AlarmStopScreen extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  /// Ertelenmiş kipte küçük satır: gün/çıpa · alarm saati · n kez ertelendi.
+  String _snoozedDetailText(AppLocalizations l10n) {
+    final first = alarm.kind == AlarmKind.fixed
+        ? weekdaysLabel(alarm.weekdays, l10n)
+        : alarmTimeLabel(alarm, l10n: l10n);
+    return '$first · ${_timeText(l10n)} · ${l10n.stopSnoozedCount(snoozeUsed)}';
   }
 
   Widget _nextPrayerLine(
@@ -250,7 +309,11 @@ class AlarmStopScreen extends StatelessWidget {
           ),
         ),
         child: Text(
-          gated ? l10n.stopDoMission : l10n.actionOk,
+          gated
+              ? l10n.stopDoMission
+              : _snoozed
+              ? l10n.stopCloseAlarm
+              : l10n.actionOk,
           style: AppTypography.rowTitle.copyWith(
             fontSize: kMissionButtonFontSize,
           ),
