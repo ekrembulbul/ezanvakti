@@ -66,8 +66,12 @@ void main() {
   });
 
   group('label', () {
-    test('Saat HH:mm bicimiyle yazilir', () {
-      expect(SnoozeNotice.label(until, l10n), contains('05:10'));
+    test('Saat HH:mm bicimiyle, "Ertelendi" oneki olmadan yazilir', () {
+      final text = SnoozeNotice.label(until, l10n);
+      expect(text, contains('05:10'));
+      // Onek rozete tasindi (spec 2026-09-22 D4); satir ayni bilgiyi iki kez
+      // yazmasin.
+      expect(text, isNot(contains('Ertelendi')));
     });
   });
 }

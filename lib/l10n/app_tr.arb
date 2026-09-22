@@ -1930,9 +1930,22 @@
       }
     }
   },
-  "snoozedLabel": "Ertelendi · {time}'te çalacak",
-  "@snoozedLabel": {
-    "description": "Erteleme bilgisi",
+  "snoozeRingsAt": "{time}'te çalacak",
+  "@snoozeRingsAt": {
+    "description": "Ertelenmiş alarm satırının alt metni; 'Ertelendi' rozette.",
+    "placeholders": {
+      "time": {
+        "type": "Object"
+      }
+    }
+  },
+  "snoozeBadgeLabel": "ERTELENDİ",
+  "@snoozeBadgeLabel": {
+    "description": "Alarm satırı ve Sıradaki kartındaki geri sayım rozetinin başlığı."
+  },
+  "snoozeBadgeSemantics": "Ertelendi, {time}'te çalacak, seçenekler için dokun",
+  "@snoozeBadgeSemantics": {
+    "description": "Rozetin erişilebilirlik etiketi.",
     "placeholders": {
       "time": {
         "type": "Object"
@@ -2089,6 +2102,24 @@
   "stopHeadline": "ALARM DURDURULDU",
   "@stopHeadline": {
     "description": "Ara ekranin ust basligi."
+  },
+  "stopSnoozedHeadline": "ALARM ERTELENDİ",
+  "@stopSnoozedHeadline": {
+    "description": "Ara ekranin ertelenmis kipindeki ust basligi."
+  },
+  "stopRingsAt": "{time}'te çalar",
+  "@stopRingsAt": {
+    "description": "Ertelenmis kipte kahraman sayacin altindaki calma saati.",
+    "placeholders": {"time": {"type": "String"}}
+  },
+  "stopSnoozedCount": "{count} kez ertelendi",
+  "@stopSnoozedCount": {
+    "description": "Ertelenmis kipte kucuk satirdaki erteleme sayisi.",
+    "placeholders": {"count": {"type": "Object"}}
+  },
+  "stopCloseAlarm": "Alarmı kapat",
+  "@stopCloseAlarm": {
+    "description": "Gorevsiz alarmin ertelenmis kipindeki birincil dugme: erteleme iptal, alarm bugunluk biter."
   },
   "stopNextPrayer": "Sıradaki {prayer} · {time} · {remaining}",
   "@stopNextPrayer": {

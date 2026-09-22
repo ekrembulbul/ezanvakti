@@ -1438,8 +1438,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String snoozedLabel(Object time) {
-    return 'مؤجل · سيرن في $time';
+  String snoozeRingsAt(Object time) {
+    return 'سيرن في $time';
+  }
+
+  @override
+  String get snoozeBadgeLabel => 'مؤجل';
+
+  @override
+  String snoozeBadgeSemantics(Object time) {
+    return 'مؤجل، سيرن في $time، انقر للخيارات';
   }
 
   @override
@@ -1534,6 +1542,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get stopHeadline => 'تم إيقاف المنبه';
+
+  @override
+  String get stopSnoozedHeadline => 'تم تأجيل المنبه';
+
+  @override
+  String stopRingsAt(String time) {
+    return 'يرن في $time';
+  }
+
+  @override
+  String stopSnoozedCount(Object count) {
+    return 'أُجّل ×$count';
+  }
+
+  @override
+  String get stopCloseAlarm => 'إيقاف المنبه';
 
   @override
   String stopNextPrayer(String prayer, String time, String remaining) {

@@ -1449,8 +1449,16 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String snoozedLabel(Object time) {
-    return 'Ertelendi · $time\'te çalacak';
+  String snoozeRingsAt(Object time) {
+    return '$time\'te çalacak';
+  }
+
+  @override
+  String get snoozeBadgeLabel => 'ERTELENDİ';
+
+  @override
+  String snoozeBadgeSemantics(Object time) {
+    return 'Ertelendi, $time\'te çalacak, seçenekler için dokun';
   }
 
   @override
@@ -1546,6 +1554,22 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get stopHeadline => 'ALARM DURDURULDU';
+
+  @override
+  String get stopSnoozedHeadline => 'ALARM ERTELENDİ';
+
+  @override
+  String stopRingsAt(String time) {
+    return '$time\'te çalar';
+  }
+
+  @override
+  String stopSnoozedCount(Object count) {
+    return '$count kez ertelendi';
+  }
+
+  @override
+  String get stopCloseAlarm => 'Alarmı kapat';
 
   @override
   String stopNextPrayer(String prayer, String time, String remaining) {

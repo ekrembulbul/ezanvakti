@@ -2668,11 +2668,23 @@ abstract class AppLocalizations {
   /// **'{sign}{minutes} dk'**
   String offsetMinutes(Object sign, Object minutes);
 
-  /// Erteleme bilgisi
+  /// Ertelenmiş alarm satırının alt metni; 'Ertelendi' rozette.
   ///
   /// In tr, this message translates to:
-  /// **'Ertelendi · {time}\'te çalacak'**
-  String snoozedLabel(Object time);
+  /// **'{time}\'te çalacak'**
+  String snoozeRingsAt(Object time);
+
+  /// Alarm satırı ve Sıradaki kartındaki geri sayım rozetinin başlığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'ERTELENDİ'**
+  String get snoozeBadgeLabel;
+
+  /// Rozetin erişilebilirlik etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ertelendi, {time}\'te çalacak, seçenekler için dokun'**
+  String snoozeBadgeSemantics(Object time);
 
   /// Hata
   ///
@@ -2823,6 +2835,30 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'ALARM DURDURULDU'**
   String get stopHeadline;
+
+  /// Ara ekranin ertelenmis kipindeki ust basligi.
+  ///
+  /// In tr, this message translates to:
+  /// **'ALARM ERTELENDİ'**
+  String get stopSnoozedHeadline;
+
+  /// Ertelenmis kipte kahraman sayacin altindaki calma saati.
+  ///
+  /// In tr, this message translates to:
+  /// **'{time}\'te çalar'**
+  String stopRingsAt(String time);
+
+  /// Ertelenmis kipte kucuk satirdaki erteleme sayisi.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} kez ertelendi'**
+  String stopSnoozedCount(Object count);
+
+  /// Gorevsiz alarmin ertelenmis kipindeki birincil dugme: erteleme iptal, alarm bugunluk biter.
+  ///
+  /// In tr, this message translates to:
+  /// **'Alarmı kapat'**
+  String get stopCloseAlarm;
 
   /// Ara ekranda siradaki vakit satiri: ad, saat, kalan sure.
   ///

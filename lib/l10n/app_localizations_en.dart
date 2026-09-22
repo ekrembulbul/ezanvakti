@@ -1454,8 +1454,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String snoozedLabel(Object time) {
-    return 'Snoozed · rings at $time';
+  String snoozeRingsAt(Object time) {
+    return 'Rings at $time';
+  }
+
+  @override
+  String get snoozeBadgeLabel => 'SNOOZED';
+
+  @override
+  String snoozeBadgeSemantics(Object time) {
+    return 'Snoozed, rings at $time, tap for options';
   }
 
   @override
@@ -1550,6 +1558,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get stopHeadline => 'ALARM STOPPED';
+
+  @override
+  String get stopSnoozedHeadline => 'ALARM SNOOZED';
+
+  @override
+  String stopRingsAt(String time) {
+    return 'Rings at $time';
+  }
+
+  @override
+  String stopSnoozedCount(Object count) {
+    return 'Snoozed ×$count';
+  }
+
+  @override
+  String get stopCloseAlarm => 'Turn off alarm';
 
   @override
   String stopNextPrayer(String prayer, String time, String remaining) {
