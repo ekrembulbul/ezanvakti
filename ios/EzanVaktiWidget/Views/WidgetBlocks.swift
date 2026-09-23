@@ -89,12 +89,17 @@ struct WidgetDivider: View {
 /// Kerahat şeridi varken üçü de eşit (14/14/14): şerit alanı zaten kısaltıyor.
 /// Şerit yokken üç eşit boşluk 25/25/25 çıkıyordu, vakit satırı ile sayaç
 /// birbirinden kopuk duruyordu; arası `midGap`'e sabitlenip kalanı iki eşit
-/// `Spacer` paylaşır, 28/18/28 olur (2026-09-22).
+/// `Spacer` paylaşır (2026-09-22, 28/18/28). Blok ayrıca `lift` kadar yukarı
+/// alınır: alta 2 × `lift` sabit pay eklenince üst boşluk `lift` kadar azalır,
+/// alt boşluk o kadar artar, 24/18/32 olur (2026-09-23).
 struct NextPrayerBlock: View {
     static let rowFontSize: CGFloat = 16
     static let countdownFontSize: CGFloat = 26
     /// Şerit yokken vakit satırı ile sayaç arasındaki görünen boşluk.
     static let midGap: CGFloat = 18
+    /// Şerit yokken bloğun, üst ve alt boşluk eşitken durduğu yerden yukarı
+    /// kayması.
+    static let lift: CGFloat = 4
     static let rowInk = InkInsets.system(size: rowFontSize, weight: .semibold)
     static let countdownInk = InkInsets.system(size: countdownFontSize, weight: .light)
     let entry: PrayerEntry
@@ -102,6 +107,8 @@ struct NextPrayerBlock: View {
     let palette: Palette
     let alignment: WidgetAlignment
     let isTomorrow: Bool
+
+    private var hasRibbon: Bool { entry.kerahat != nil }
 
     private var name: String {
         (isTomorrow ? "\((entry.labels?.tomorrow ?? "Yarın").uppercased()) · " : "")
@@ -124,10 +131,10 @@ struct NextPrayerBlock: View {
                     .foregroundStyle(palette.textPrimary)
             }
             .inkBounds(Self.rowInk)
-            if entry.kerahat == nil {
-                Spacer().frame(height: Self.midGap)
-            } else {
+            if hasRibbon {
                 Spacer(minLength: 0)
+            } else {
+                Spacer().frame(height: Self.midGap)
             }
             CountdownLabel(
                 entry: entry, target: next.date, size: Self.countdownFontSize,
@@ -135,6 +142,7 @@ struct NextPrayerBlock: View {
                 .inkBounds(Self.countdownInk)
             Spacer(minLength: 0)
         }
+        .padding(.bottom, hasRibbon ? 0 : Self.lift * 2)
         // `Text(timerInterval:)` sunulan genişliği doldurur; metnin kutu içi
         // hizası ayrıca verilmezse sola yaslı kalıyor (2026-09-15 cihaz gözlemi).
         .multilineTextAlignment(alignment.textAlignment)

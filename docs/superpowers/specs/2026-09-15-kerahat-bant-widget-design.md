@@ -6,6 +6,12 @@ Kaynak tasarım: [Kerahat Tasarımı canvas'ı](https://claude.ai/artifact/PFLN8
 
 Kerahat altyapısı Tur 7 (§7, `2026-09-10-tur7-…-design.md`) ile kuruldu: `KerahatWarning.resolve` (30 dk önceden `approaching`, aralıkta `active`), snapshot v4 `days[].kerahat`, Swift `KerahatStatus` ve timeline anları. Bu tur **yalnızca sunum katmanını** değiştirir; kural, snapshot şeması ve timeline anları aynen kalır. ADR değişikliği yok (0004 "widget hesap yapmaz" korunur).
 
+## Revizyon — 2026-09-23
+
+0.26.1'i gören Ekrem şeritsiz halde çizginin altındaki bloğun "bir tık yukarı" alınmasını istedi (scratchpad `gap/gen2.py` mockup'ı; seçenekler 2/4/6 pt, seçim **4**):
+
+- **Widget alt blok, şerit yokken 4 pt yukarı:** `NextPrayerBlock.lift` (4); blok şerit yokken alttan `2 × lift` sabit pay alır, iki eşit `Spacer`'ın payı 4 azalır, görünen boşluklar ~28/18/28 yerine ~24/18/32 olur. Orta boşluk (`midGap` 18) ve kerahatli haller (~14/14/14) aynı.
+
 ## Revizyon — 2026-09-22
 
 Ekrem'in isteğiyle vakit satırı ile sayaç arası daraltıldı (scratchpad `gap/gen.py` mockup'ı; seçim: ortadaki boşluk 18, artan yer üste ve alta eşit). Kural, snapshot şeması ve timeline anları aynı:
