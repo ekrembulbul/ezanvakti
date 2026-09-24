@@ -114,5 +114,5 @@ gerekirse yalnız debug yapılandırmasına eklenir.
 Sürüm derlemeleri üretim adresini GitHub Actions'tan alır: `.github/workflows/android-play.yml` ve
 `ios-testflight.yml`, `flutter build ...` komutuna `--dart-define=VAKIT_API_BASE_URL=${{ vars.VAKIT_API_BASE_URL }}`
 geçer ve değişken boşsa build'i durdurur. Değeri GitHub → Settings → Secrets and variables → Actions →
-**Variables** altında `VAKIT_API_BASE_URL` (ör. `https://api.<domain>`) olarak tanımla. Değer
+**Variables** altında `VAKIT_API_BASE_URL` (`https://ezanvakti.ekrembulbul.me`) olarak tanımla. Değer
 `lib/core/config/vakit_api_config.dart` içinde okunur; kaynağa üretim adresi gömülmez.

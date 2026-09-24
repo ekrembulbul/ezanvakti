@@ -56,30 +56,38 @@ Gizlilik: arama metni ve koordinat loglanmaz; koordinat ~100 m'ye yuvarlanır, s
     docker compose run --rm vakit sync places
     docker compose run --rm vakit sync prayer-times --batch 150
     docker compose run --rm vakit sync religious-days
-    docker compose run --rm vakit sync daily-content --ahead 7
-    curl -s http://127.0.0.1:8080/v1/health
+    curl -s http://127.0.0.1:3060/v1/health
 
 Kaynak `web` iken (API onayı öncesi) `religious-days` ve `daily-content` atlanır; vakitler cari yıl
-için kayan 31 günlük pencereyle birikir, gelecek yıl tek seferde tamamlanır.
+için kayan 31 günlük pencereyle birikir, gelecek yıl tek seferde tamamlanır. `daily-content` resmî API'de de
+çalışmıyor: hesabın `Developer` rolü tarihli içerik ucuna yetkili değil (HTTP 403); iş bu yüzden cron'da yok.
 
 ### Cron (host)
 
     0 3 * * *   cd /srv/ezanvakti/server/deploy && docker compose run --rm vakit sync prayer-times --batch 150 >> /var/log/vakit-sync.log 2>&1
     0 4 * * 1   cd /srv/ezanvakti/server/deploy && docker compose run --rm vakit sync places >> /var/log/vakit-sync.log 2>&1
     0 4 1 * *   cd /srv/ezanvakti/server/deploy && docker compose run --rm vakit sync religious-days >> /var/log/vakit-sync.log 2>&1
-    15 0 * * *  cd /srv/ezanvakti/server/deploy && docker compose run --rm vakit sync daily-content --ahead 7 >> /var/log/vakit-sync.log 2>&1
     30 5 * * 0  cd /srv/ezanvakti/server/deploy && docker compose run --rm vakit sync verify >> /var/log/vakit-sync.log 2>&1
 
 ### Cloudflare Tunnel
 
-`cloudflared` ingress: `api.<domain>` → `http://127.0.0.1:8080` (bkz. `deploy/cloudflared.example.yml`).
-Cloudflare panelinde:
+Tünel Cloudflare panelinden yönetiliyor (token'lı `cloudflared`, yerel config yok): Zero Trust → Networks →
+Tunnels → Published application `ezanvakti.ekrembulbul.me` → **HTTP** `localhost:3060`. Origin düz HTTP konuşur;
+servis türü HTTPS seçilirse tünel origin'e TLS ile bağlanmaya çalışır ve istekler 502 döner. Yerel config'li
+tünel için `deploy/cloudflared.example.yml`. Cloudflare panelinde:
 
-- **Cache Rule:** `(http.host eq "api.<domain>" and starts_with(http.request.uri.path, "/v1/"))` →
+- **Cache Rule:** `(http.host eq "ezanvakti.ekrembulbul.me" and starts_with(http.request.uri.path, "/v1/"))` →
   Eligible for cache, origin `Cache-Control`'e uy. (JSON varsayılan olarak cache'lenmez; kural şart.)
 - **Rate limiting:** `/v1/*` için IP başına 60 istek / 10 sn.
 
-Doğrulama: `curl -I https://api.<domain>/v1/health` → 200; ikinci istekte vakit ucunda `cf-cache-status: HIT`.
+Doğrulama: `curl -I https://ezanvakti.ekrembulbul.me/v1/health` → 200; ikinci istekte vakit ucunda `cf-cache-status: HIT`.
+
+## Diyanet API kotası
+
+2026-09-24'te canlı doğrulandı. Sınırlar uç + parametre bazında sayılır (`vakit sync quota` çıktısında
+`lines[].parameter`, ör. `cityId:9146`): günde 10, hesabın ilk 15 gününde 100; `PrayerTime/DateRange` ayrıca
+ilçe başına ayda 10. İlçe-yıl başına tek `DateRange` yeter, yani sınırlar senkron için dar değil;
+`VAKIT_SYNC_BATCH` nezaket sınırıdır. `IslamicReligiousDay` kotaya sayılmaz. Erişim token'ı 45 dk, refresh 7 gün.
 
 ## Veri düzeni ve yedek
 

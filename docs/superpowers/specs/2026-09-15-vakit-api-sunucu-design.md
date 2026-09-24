@@ -22,7 +22,7 @@ yayınlar; uygulama yalnızca bu sunucuyla konuşur.
 | K2 | Dil Go (≥ 1.26, `x/net` gereği), tek binary `vakit` (`serve` / `sync` alt komutları), stdlib + `golang.org/x/net/html` + `modernc.org/sqlite` (saf Go, CGO yok) | Küçük imaj, sıfır çalışma zamanı bağımlılığı, kullanıcı tercihi |
 | K3 | Yayın verisi (vakit, yer listeleri, dinî günler, içerik) JSON dosyaları; değişken durum gömülü **SQLite** (`state/vakit.db`, saf Go sürücü, gömülü SQL migration'lar, WAL) — Faz 1'de sync durumu, ileride cihaz token'ı/hesap | Tek erişim deseni "kayıt + yıl" için dosya + ETag + Cloudflare cache yeter; ileriki fazlar DB'yi sıfırdan kurmasın diye şema sürümleme ilk günden var (2026-09-17 kararı: kullanıcı) |
 | K4 | Kaynak soyutlaması: `awqat` (resmî API, birincil) ve `web` (namazvakitleri.diyanet.gov.tr ilçe sayfası, onay öncesi ve fesih fallback'i) aynı `Source` arayüzü | API onayı beklenmeden çalışır; form "tek taraflı fesih" hakkı içeriyor |
-| K5 | Reverse proxy yok; Go yalnız `127.0.0.1:8080`'e bind, `cloudflared` tüneli `api.<domain>` → origin | Kullanıcının mevcut altyapısı; TLS/DNS/WAF/cache Cloudflare'de |
+| K5 | Reverse proxy yok; konteyner yalnız `127.0.0.1:3060`'ta yayımlanır (sunucuda 8080 başka serviste), `cloudflared` tüneli `ezanvakti.ekrembulbul.me` → origin | Kullanıcının mevcut altyapısı; TLS/DNS/WAF/cache Cloudflare'de |
 | K6 | Sözleşme `/v1` altında, sürüm kırıcı değişiklik `/v2` | Uygulama mağaza sürümleri eski sözleşmeyi yıllarca çağırır |
 | K7 | Koordinatlar Diyanet'te yok → tek seferlik OSM/Nominatim eşlemesi `server/assets/tr_cities_geo.json` olarak commit'lenir, elle gözden geçirilir | Uygulamada GPS → en yakın ilçe ve kıble için gerekli; ODbL atfı uygulamaya eklenir |
 
@@ -258,7 +258,7 @@ server/
   data/                          çalışma zamanı verisi, .gitignore'da
   deploy/Dockerfile              çok aşamalı: golang:1.2x → gcr.io/distroless/static
   deploy/compose.yml             vakit (serve) + ./data volume; sync için `compose run --rm vakit sync ...`
-  deploy/cloudflared.example.yml ingress örneği: api.<domain> → http://127.0.0.1:8080
+  deploy/cloudflared.example.yml ingress örneği: ezanvakti.ekrembulbul.me → http://127.0.0.1:3060
   README.md                      kurulum, env, cron, Cloudflare kuralları
 ```
 
@@ -291,11 +291,11 @@ Boyut: ilçe-yıl dosyası ~25 KB (gzip Cloudflare'de) → 970 ilçe ≈ 25 MB/y
 ### VAK.9 — Dağıtım ve Cloudflare
 
 1. Sunucuda: repo `server/` → `docker compose up -d` (serve); cron satırları VAK.4.
-2. `cloudflared` ingress: `api.<domain>` → `http://127.0.0.1:8080` (mevcut tünel config'ine eklenir).
-3. Cloudflare panel: **Cache Rule** `hostname eq api.<domain> and starts_with(path, "/v1/")` → "Eligible for cache",
+2. Tünel panelden yönetiliyor: Published application `ezanvakti.ekrembulbul.me` → **HTTP** `localhost:3060` (compose host portu).
+3. Cloudflare panel: **Cache Rule** `hostname eq ezanvakti.ekrembulbul.me and starts_with(path, "/v1/")` → "Eligible for cache",
    origin `Cache-Control`'e uy (JSON varsayılan cache'lenmez, kural şart); `/v1/health` no-store zaten uyulur.
    **Rate limiting** kuralı: `/v1/*` için IP başına 60 istek/10 s (ücretsiz planda 1 kural).
-4. Doğrulama: `curl -I https://api.<domain>/v1/health` → 200; ikinci istekte `cf-cache-status: HIT` (vakit ucu).
+4. Doğrulama: `curl -I https://ezanvakti.ekrembulbul.me/v1/health` → 200; ikinci istekte `cf-cache-status: HIT` (vakit ucu).
 
 ### VAK.10 — Gözlemlenebilirlik
 
@@ -322,10 +322,21 @@ Boyut: ilçe-yıl dosyası ~25 KB (gzip Cloudflare'de) → 970 ilçe ≈ 25 MB/y
 
 ## Açık noktalar (implementasyonda doğrulanır)
 
-- `DateRange` yanıt gövdesi (`Daily` ile aynı varsayımı) ve boş/kısmi yıl davranışı.
-- Kota gerçek sayıları (`Quota/My`) — `VAKIT_SYNC_BATCH` buna göre ayarlanır; küresel günlük tavan varsa 970 ilçe daha uzun sürer.
-- `DailyContent` `language` enum eşlemesi.
-- Go toolchain geliştirici makinesinde yok (`brew install go`); sunucuda Docker var, `cloudflared` çalışıyor.
+2026-09-24 canlı doğrulama (hesap rolü `Developer`, toplam 6 istek):
+
+- ✅ `DateRange` gövdesi `Daily` ile aynı şekilde; 1 Ocak–31 Aralık tek çekimde 365 gün, `complete=true`. Web
+  tablosuyla ortak 31 günde vakitler ve Hicri birebir; API ek olarak astronomik gün doğumu/batımı, kıble saati
+  ve GMT farkı verir. Boş/kısmi yıl davranışı henüz görülmedi (2027 denenmedi).
+- ✅ Kota: `Quota/My` yalnız `daily` dizisi döndü; her uç `benefit: 100`, kullanım
+  `lines[{parameter: "cityId:9146", used, remainingUse}]` → parametre bazında. Site: günde 10, ilk 15 gün 100;
+  `DateRange` ayrıca yer bazında ayda 10; küresel tavan belirtilmiyor. İlçe-yıl başına tek `DateRange` yettiğinden
+  sınır senkron için dar değil; `VAKIT_SYNC_BATCH` nezaket sınırı olarak kalır.
+- ✅ `IslamicReligiousDay/ByYear` kotada yok; 2026 için 25 kayıt, doğrulamadan geçti.
+- ⚠️ `DailyContent/VerseHadithAndPrayer?date=` → HTTP 403 "Bu işlem için yetkiniz yok!" (`Developer` rolü); kotada
+  yalnız `DailyContent Get` (bugün) görünüyor. Uygulama günlük içeriği kullanmıyor; `daily-content` işi cron'dan
+  çıkarıldı, gerekirse bugün ucuna geçilir. `language` enum eşlemesi bu yüzden açık.
+- ✅ Token: erişim 45 dk (JWT `exp`), refresh 7 gün.
+- Go toolchain geliştirici makinesinde kurulu; sunucuda Docker + Compose var, `cloudflared` panelden yönetilen (token'lı) tünel.
 
 ## Referanslar
 

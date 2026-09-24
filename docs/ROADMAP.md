@@ -37,7 +37,7 @@ Son sürümlerde tamamlananlar (0.1.1–0.1.4):
 
 Açık kalanlar:
 
-- **Diyanet birebir vakit — ✅ uygulama tarafı bitti (Spec B, 2026-09-17, `feature/vakit-api`).** Sunucu (Spec A) ve uygulama (Plan B1/B2) hazır; Aladhan/Photon kaldırıldı. Bekleyen: Diyanet API onayı (gelince sunucuda `VAKIT_SOURCE=awqat`, o zamana kadar web kaynağı) ve `dev`'e merge; üretim adresi CI değişkeni `VAKIT_API_BASE_URL`.
+- **Diyanet birebir vakit — ✅ uygulama ve sunucu bitti (Spec A/B).** Aladhan/Photon kaldırıldı. Diyanet API hesabı 2026-09-24'te geldi ve canlı doğrulandı (Spec A "Açık noktalar"). Bekleyen: sunucunun GitHub Actions ile dağıtımı (`https://ezanvakti.ekrembulbul.me`, host portu 3060) ve CI değişkeni `VAKIT_API_BASE_URL`.
 
 > Kapatılan: Bildirim duplicate kontrolünün DB tabanlı hale getirilmesi **gerekli görülmedi** — `scheduleNotifications` her çalışmada başta `cancelAllNotifications()` çağırıyor ve ID'ler `(gün, vakit, ofset)`'ten deterministik üretiliyor (aynı ID platformda üzerine yazılır). Duplicate birikme yolu olmadığından DB'ye taşımak gereksiz karmaşıklık olurdu.
 
