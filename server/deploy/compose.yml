@@ -10,7 +10,7 @@ services:
     ports:
       - "127.0.0.1:8080:8080"
     env_file:
-      - .env
+      - vakit.env
     environment:
       VAKIT_DATA_DIR: /data
       VAKIT_ADDR: 0.0.0.0:8080

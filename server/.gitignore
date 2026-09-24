@@ -1,5 +1,5 @@
 data/
-deploy/.env
+deploy/*.env
 /vakit
 *.test
 coverage.out

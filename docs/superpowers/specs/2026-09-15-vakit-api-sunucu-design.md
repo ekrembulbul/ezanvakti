@@ -278,7 +278,7 @@ Boyut: ilçe-yıl dosyası ~25 KB (gzip Cloudflare'de) → 970 ilçe ≈ 25 MB/y
 
 | Değişken | Varsayılan | Açıklama |
 |---|---|---|
-| `AWQAT_EMAIL`, `AWQAT_PASSWORD` | — | Diyanet hesabı; yalnız sunucuda, `.env` `0600`, compose `env_file` |
+| `AWQAT_EMAIL`, `AWQAT_PASSWORD` | — | Diyanet hesabı; yalnız sunucuda, `deploy/vakit.env` `0600`, compose `env_file` |
 | `AWQAT_BASE_URL` | `https://awqatsalah.diyanet.gov.tr` | test için değiştirilebilir |
 | `VAKIT_SOURCE` | `awqat` (kimlik yoksa `web`) | K4 |
 | `VAKIT_DATA_DIR` | `./data` | |

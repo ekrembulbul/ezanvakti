@@ -51,7 +51,7 @@ Gizlilik: arama metni ve koordinat loglanmaz; koordinat ~100 m'ye yuvarlanır, s
 ## Sunucuya kurulum
 
     git clone <repo> && cd ezanvakti/server/deploy
-    cp .env.example .env && chmod 600 .env     # kimlik bilgilerini doldur (API onayı sonrası)
+    cp vakit.env.example vakit.env && chmod 600 vakit.env   # kimlik bilgilerini doldur, şifre tek tırnakla
     docker compose up -d --build
     docker compose run --rm vakit sync places
     docker compose run --rm vakit sync prayer-times --batch 150
