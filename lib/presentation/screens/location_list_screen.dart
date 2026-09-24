@@ -3,6 +3,8 @@ import '../../l10n/l10n_extensions.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/tokens_context.dart';
 import '../../core/models/location.dart';
+import '../../features/location/data/gps_location_service.dart';
+import '../../features/location/data/places_api.dart';
 import '../../features/location/domain/location_repository.dart';
 import '../widgets/common/app_bar_widgets.dart';
 import '../widgets/common/app_surface.dart';
@@ -15,12 +17,16 @@ import 'location_edit_screen.dart';
 
 class LocationListScreen extends StatefulWidget {
   final LocationRepository locationRepository;
+  final PlacesApi placesApi;
+  final GpsLocationService gpsService;
   final Location? currentLocation;
   final Function(Location) onLocationSelected;
 
   const LocationListScreen({
     super.key,
     required this.locationRepository,
+    required this.placesApi,
+    required this.gpsService,
     required this.currentLocation,
     required this.onLocationSelected,
   });
@@ -60,6 +66,8 @@ class _LocationListScreenState extends State<LocationListScreen> {
       MaterialPageRoute(
         builder: (context) => LocationAddScreen(
           locationRepository: widget.locationRepository,
+          placesApi: widget.placesApi,
+          gpsService: widget.gpsService,
           fromLocationList: true,
         ),
       ),
@@ -79,6 +87,7 @@ class _LocationListScreenState extends State<LocationListScreen> {
       MaterialPageRoute(
         builder: (context) => LocationEditScreen(
           locationRepository: widget.locationRepository,
+          placesApi: widget.placesApi,
           location: location,
         ),
       ),
@@ -86,7 +95,7 @@ class _LocationListScreenState extends State<LocationListScreen> {
     if (!mounted || updated == null) return;
 
     if (widget.currentLocation?.id == updated.id) {
-      // Aktif konumun parametreleri değişti: yeniden yükle + bildirimleri planla.
+      // Aktif konumun adı değişti: ekran ve planlama güncel adı alsın.
       widget.onLocationSelected(updated);
       Navigator.popUntil(context, (route) => route.isFirst);
     } else {
@@ -234,8 +243,8 @@ class _LocationListScreenState extends State<LocationListScreen> {
               widget.onLocationSelected(location);
               Navigator.popUntil(context, (route) => route.isFirst);
             },
-      // Aktif konum da duzenlenebilmeli (hesaplama parametreleri); rozet
-      // ayar ikonunun yerini almaz, yanina gelir.
+      // Aktif konum da duzenlenebilmeli (ozel ad); rozet duzenleme ikonunun
+      // yerini almaz, yanina gelir.
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -285,7 +294,7 @@ class _LocationListScreenState extends State<LocationListScreen> {
           color: tokens.surface,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(Icons.tune_rounded, size: 18, color: tokens.accent),
+        child: Icon(Icons.edit_outlined, size: 18, color: tokens.accent),
       ),
     );
   }

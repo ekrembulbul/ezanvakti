@@ -1,7 +1,7 @@
 import '../models/prayer_time.dart';
 import '../models/location.dart';
 import '../models/notification_setting.dart';
-import '../models/calculation_settings.dart';
+import '../models/prayer_tune_settings.dart';
 import '../models/appearance_settings.dart';
 import '../models/general_settings.dart';
 import '../models/fasting_log.dart';
@@ -39,11 +39,11 @@ abstract class LocalStorage {
   /// değişince (tüm "inherit" konumları etkiler) kullanılır.
   Future<void> deleteAllPrayerTimes();
 
-  /// Uygulama genelindeki varsayılan hesaplama ayarını döner.
-  Future<CalculationSettings> getCalculationSettings();
+  /// Kullanıcının vakit başına ± dakika düzeltmesini döner.
+  Future<PrayerTuneSettings> getPrayerTuneSettings();
 
-  /// Uygulama genelindeki varsayılan hesaplama ayarını kaydeder.
-  Future<void> saveCalculationSettings(CalculationSettings settings);
+  /// Vakit düzeltmesini kaydeder.
+  Future<void> savePrayerTuneSettings(PrayerTuneSettings settings);
 
   /// [from]–[to] arasındaki namaz kayıtları; anahtar `prayerLogKey` biçiminde.
   Future<Map<String, PrayerStatus>> getPrayerLog(DateTime from, DateTime to);

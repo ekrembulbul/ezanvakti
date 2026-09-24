@@ -1,0 +1,7 @@
+# Tünel Cloudflare panelinden yönetiliyorsa (token'lı cloudflared) aynı eşleme panelde
+# Published application olarak girilir: ezanvakti.ekrembulbul.me → HTTP → localhost:3060.
+# Yerel config'li tünelde ingress girdisi:
+ingress:
+  - hostname: ezanvakti.ekrembulbul.me
+    service: http://127.0.0.1:3060
+  - service: http_status:404

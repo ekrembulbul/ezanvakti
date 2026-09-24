@@ -295,12 +295,6 @@ abstract class AppLocalizations {
   /// Ayar satırı
   ///
   /// In tr, this message translates to:
-  /// **'Hesaplama'**
-  String get settingsCalculation;
-
-  /// Ayar satırı
-  ///
-  /// In tr, this message translates to:
   /// **'Veri kaynağı'**
   String get settingsDataSource;
 
@@ -1327,32 +1321,14 @@ abstract class AppLocalizations {
   /// Ekran başlığı
   ///
   /// In tr, this message translates to:
-  /// **'Konumlar'**
-  String get locationTitle;
-
-  /// Ekran başlığı
-  ///
-  /// In tr, this message translates to:
   /// **'Konum ekle'**
   String get locationAdd;
-
-  /// Alan ipucu
-  ///
-  /// In tr, this message translates to:
-  /// **'Şehir ara'**
-  String get locationSearch;
 
   /// Düğme
   ///
   /// In tr, this message translates to:
   /// **'Konumumu kullan'**
   String get locationUseGps;
-
-  /// Boş durum
-  ///
-  /// In tr, this message translates to:
-  /// **'Kayıtlı konum yok'**
-  String get locationEmpty;
 
   /// Paylaşım metni
   ///
@@ -1477,7 +1453,7 @@ abstract class AppLocalizations {
   /// Boş durum
   ///
   /// In tr, this message translates to:
-  /// **'GPS ile otomatik tespit edin veya\nadres arayarak konum seçin'**
+  /// **'İlçeni ara ya da konumunu kullan'**
   String get locationsEmptyHint;
 
   /// İpucu
@@ -1507,25 +1483,13 @@ abstract class AppLocalizations {
   /// Alan ipucu
   ///
   /// In tr, this message translates to:
-  /// **'Şehir, ilçe veya yer adıyla ara'**
-  String get locationSearchHint;
-
-  /// Alan ipucu
-  ///
-  /// In tr, this message translates to:
-  /// **'Şehir, ilçe veya yer ara...'**
+  /// **'İl veya ilçe ara...'**
   String get locationSearchPlaceholder;
 
   /// Boş durum
   ///
   /// In tr, this message translates to:
-  /// **'Aramak için yazmaya başlayın.'**
-  String get locationSearchStart;
-
-  /// Boş durum
-  ///
-  /// In tr, this message translates to:
-  /// **'Sonuç bulunamadı.\nFarklı bir arama deneyin veya bağlantınızı kontrol edin.'**
+  /// **'Sonuç bulunamadı.\nİl ya da ilçe adını kontrol et.'**
   String get locationSearchNoResult;
 
   /// Durum
@@ -1543,7 +1507,7 @@ abstract class AppLocalizations {
   /// Diyalog gövdesi
   ///
   /// In tr, this message translates to:
-  /// **'Namaz vakitlerini bulunduğunuz konuma göre gösterebilmek için konum iznine ihtiyaç var. İzni vererek bulunduğunuz il/ilçe otomatik seçilecektir.'**
+  /// **'Bulunduğun ilçeyi bulup vakitleri ona göre göstermek için konum iznine ihtiyaç var. Konumun yalnız en yakın ilçeyi bulmak için kullanılır.'**
   String get locationPermissionBody;
 
   /// Düğme
@@ -1570,12 +1534,6 @@ abstract class AppLocalizations {
   /// **'Konum güncellendi'**
   String get locationUpdated;
 
-  /// Hata
-  ///
-  /// In tr, this message translates to:
-  /// **'Lütfen bir konum seçin'**
-  String get locationSelectFirst;
-
   /// Alan başlığı
   ///
   /// In tr, this message translates to:
@@ -1588,24 +1546,6 @@ abstract class AppLocalizations {
   /// **'Örn: Ev, İş, Anne Evi'**
   String get locationCustomNameHint;
 
-  /// Ayar
-  ///
-  /// In tr, this message translates to:
-  /// **'Genel hesaplama ayarını kullan'**
-  String get locationUseGlobalCalculation;
-
-  /// Ayar açıklaması
-  ///
-  /// In tr, this message translates to:
-  /// **'Kapatırsan bu konuma özel yöntem/mezhep seçebilirsin'**
-  String get locationUseGlobalCalculationHint;
-
-  /// Bilgi notu
-  ///
-  /// In tr, this message translates to:
-  /// **'Hesaplama yöntemi genel ayardan alınır. Bu konuma özel değiştirmek için kaydettikten sonra düzenleyin.'**
-  String get locationCalculationFromGlobal;
-
   /// Düğme
   ///
   /// In tr, this message translates to:
@@ -1617,12 +1557,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Geri alınamadı: {error}'**
   String locationUndoFailed(Object error);
-
-  /// Atıf
-  ///
-  /// In tr, this message translates to:
-  /// **'© OpenStreetMap katkıcıları'**
-  String get osmAttribution;
 
   /// Widget etiketi
   ///
@@ -1821,78 +1755,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Kurban Bayramı'**
   String get religiousEidAdha;
-
-  /// İkindi mezhebi
-  ///
-  /// In tr, this message translates to:
-  /// **'Şafi (Standart)'**
-  String get asrShafi;
-
-  /// İkindi mezhebi
-  ///
-  /// In tr, this message translates to:
-  /// **'Hanefi'**
-  String get asrHanafi;
-
-  /// Enlem düzeltmesi
-  ///
-  /// In tr, this message translates to:
-  /// **'Otomatik'**
-  String get latAuto;
-
-  /// Enlem düzeltmesi
-  ///
-  /// In tr, this message translates to:
-  /// **'Gece ortası'**
-  String get latMidnight;
-
-  /// Enlem düzeltmesi
-  ///
-  /// In tr, this message translates to:
-  /// **'Gecenin yedide biri'**
-  String get latOneSeventh;
-
-  /// Enlem düzeltmesi
-  ///
-  /// In tr, this message translates to:
-  /// **'Açı tabanlı'**
-  String get latAngle;
-
-  /// Ayar
-  ///
-  /// In tr, this message translates to:
-  /// **'Hesaplama Yöntemi'**
-  String get calcMethodLabel;
-
-  /// Ayar
-  ///
-  /// In tr, this message translates to:
-  /// **'İkindi (Mezhep)'**
-  String get calcAsrLabel;
-
-  /// Bölüm
-  ///
-  /// In tr, this message translates to:
-  /// **'Gelişmiş'**
-  String get calcAdvanced;
-
-  /// Ayar
-  ///
-  /// In tr, this message translates to:
-  /// **'Yüksek Enlem Düzeltmesi'**
-  String get calcLatitudeLabel;
-
-  /// Bilgi notu
-  ///
-  /// In tr, this message translates to:
-  /// **'Tüm konumlar için varsayılan ayar. Bir konum kendi ayarını seçmediği sürece bu kullanılır.'**
-  String get calcGlobalNote;
-
-  /// Bölüm
-  ///
-  /// In tr, this message translates to:
-  /// **'Vakit düzeltmeleri'**
-  String get calcTuneSection;
 
   /// Bilgi notu
   ///
@@ -2557,13 +2419,13 @@ abstract class AppLocalizations {
   /// Alt bilgi
   ///
   /// In tr, this message translates to:
-  /// **'Vakitler cihazınızda saklanır, dışarı gönderilmez.'**
+  /// **'Vakitler cihazında saklanır; sunucuya yalnız ilçe araması ve konum çözümleme gider.'**
   String get settingsFooter;
 
   /// Gizlilik metni
   ///
   /// In tr, this message translates to:
-  /// **'Konumunuz yalnızca namaz vakitlerini hesaplamak için kullanılır ve cihazınızda saklanır. Vakit verisi Aladhan API üzerinden koordinatla sorgulanır; kişisel bilgi gönderilmez.'**
+  /// **'Konumun ve kayıtlı ilçelerin cihazında saklanır. Arama metni ve konum çözümleme için yaklaşık koordinat (~100 m) yalnızca bize ait vakit sunucusuna gönderilir; sunucu bunları saklamaz ve kimliğinle ilişkilendirmez. Vakit verisi Diyanet İşleri Başkanlığı\'ndan alınır.'**
   String get privacyBody;
 
   /// Saat dilimi
@@ -2752,12 +2614,6 @@ abstract class AppLocalizations {
   /// **'Otomatik konum tespiti'**
   String get locationAutoDetect;
 
-  /// GPS ile konum bulma dugmesi.
-  ///
-  /// In tr, this message translates to:
-  /// **'GPS ile Bul'**
-  String get locationFindWithGps;
-
   /// Kayitli konum sayisi basligi.
   ///
   /// In tr, this message translates to:
@@ -2787,12 +2643,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'kez daha salla'**
   String get missionShakeRemaining;
-
-  /// Adres cozulemedigindeki GPS konum etiketi.
-  ///
-  /// In tr, this message translates to:
-  /// **'GPS Konumu'**
-  String get gpsFallbackLabel;
 
   /// Sabit saatli alarm bolumunun basligi.
   ///
@@ -2932,23 +2782,11 @@ abstract class AppLocalizations {
   /// **'Manuel'**
   String get locationTypeManual;
 
-  /// Adres arama secenegi basligi.
-  ///
-  /// In tr, this message translates to:
-  /// **'Adres Ara'**
-  String get locationSearchAddress;
-
   /// Konum kaydedilemedigindeki uyari.
   ///
   /// In tr, this message translates to:
   /// **'Kaydedilemedi: {error}'**
   String locationSaveFailed(String error);
-
-  /// Konumun genel hesaplama ayarini gosteren satir.
-  ///
-  /// In tr, this message translates to:
-  /// **'Genel ayar: {method} · {school}'**
-  String locationGlobalCalculation(String method, String school);
 
   /// Surum numarasi okunamadiginda gosterilir.
   ///
@@ -3141,6 +2979,108 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Cihazdaki alarm kaydı kaldırılamadı'**
   String get alarmCancellationPending;
+
+  /// Ayarlar satırı: vakit başına ± dakika düzeltmesi ekranı
+  ///
+  /// In tr, this message translates to:
+  /// **'Vakit düzeltme'**
+  String get settingsPrayerTune;
+
+  /// Ayarlar > Bilgi > Veri kaynağı değeri
+  ///
+  /// In tr, this message translates to:
+  /// **'Diyanet İşleri Başkanlığı'**
+  String get dataSourceDiyanet;
+
+  /// Arama sonucunda eşanlam: seçilen ilçe bu adı kapsar
+  ///
+  /// In tr, this message translates to:
+  /// **'{alias} buna dahil'**
+  String placeAliasIncluded(String alias);
+
+  /// Arama/GPS çözümleme sunucuya ulaşamadı
+  ///
+  /// In tr, this message translates to:
+  /// **'Konum eklemek için internet gerekli.'**
+  String get locationNeedsInternet;
+
+  /// GPS koordinatı sunucunun kapsamı (Türkiye) dışında
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu bölge henüz desteklenmiyor; ilçeni ara ve seç.'**
+  String get locationNoCoverage;
+
+  /// GPS çözümleme sonrası onay bandı
+  ///
+  /// In tr, this message translates to:
+  /// **'Vakitler {place} için gösterilecek'**
+  String locationGpsConfirm(String place);
+
+  /// Onay düğmesi
+  ///
+  /// In tr, this message translates to:
+  /// **'Onayla'**
+  String get actionConfirm;
+
+  /// Konum düzenleme: ilçe arama panelini açar
+  ///
+  /// In tr, this message translates to:
+  /// **'İlçeyi değiştir'**
+  String get locationEditChangeDistrict;
+
+  /// Tek seferlik konum doğrulama ekranı başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Konumlarını doğrula'**
+  String get migrationTitle;
+
+  /// Doğrulama ekranı açıklaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Vakitler artık Diyanet\'in ilçe tablosundan geliyor. Aşağıdaki kayıtlı konumlar için doğru ilçeyi seç.'**
+  String get migrationIntro;
+
+  /// Belirsiz eşleşme kartı alt satırı
+  ///
+  /// In tr, this message translates to:
+  /// **'Birden fazla eşleşme var; doğru ilçeyi seç.'**
+  String get migrationAmbiguousHint;
+
+  /// Sunucuda karşılığı olmayan (Türkiye dışı) konum
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu konum artık desteklenmiyor.'**
+  String get migrationUnsupported;
+
+  /// Doğrulama kartında arama panelini açan düğme
+  ///
+  /// In tr, this message translates to:
+  /// **'Başka ilçe ara'**
+  String get migrationSearchOther;
+
+  /// Aktif konum kartında Sil yerine gösterilen ipucu
+  ///
+  /// In tr, this message translates to:
+  /// **'Aktif konum silinemez; bir ilçe seç.'**
+  String get migrationActiveCannotDelete;
+
+  /// Ana ekran: eşlenmemiş aktif konum, çevrimdışı
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu konum için ilçe doğrulaması gerekiyor. İnternete bağlanıp yeniden dene.'**
+  String get locationNeedsVerification;
+
+  /// Seçim düğmesi
+  ///
+  /// In tr, this message translates to:
+  /// **'Seç'**
+  String get actionSelect;
+
+  /// Ayarlar > Bilgi altındaki atıf satırı
+  ///
+  /// In tr, this message translates to:
+  /// **'İlçe koordinatları © OpenStreetMap katkıcıları'**
+  String get osmDistrictAttribution;
 }
 
 class _AppLocalizationsDelegate

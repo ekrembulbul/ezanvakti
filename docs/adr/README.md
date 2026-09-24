@@ -13,6 +13,7 @@ Bir kayıt neyin yapıldığını değil, **neden o yolun seçildiğini ve hangi
 | [0003](0003-platform-alarm-models.md) | iOS ve Android için ayrı alarm modelleri | Neden ortak bir çalar soyutlaması yok, hangi davranış farkları kabul edildi |
 | [0004](0004-single-source-prayer-time.md) | Vakit hesabında tek kaynak | Ekran, planlayıcı ve widget'ın aynı hesabı kullanma zorunluluğu |
 | [0005](0005-notification-scheduling.md) | Bildirim planlaması | Atlama kimliği, sessiz pencere, sistem kotası, alarmdan yalıtım |
+| [0006](0006-diyanet-single-source.md) | Tek vakit kaynağı Diyanet (`vakit-api`) | Neden hesap yerine tablo, konum neden ilçe kimliği, arama/GPS neden sunucuda, hesap yöntemi seçimi neden kalktı |
 
 ## Ne zaman yeni ADR yazılır?
 

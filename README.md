@@ -1,18 +1,18 @@
 # Ezan Vakti & Alarm
 
-Türkiye için namaz vakitlerini gösteren ve vakitlere göre bildirim/hatırlatma gönderen bir Flutter mobil uygulaması (Android + iOS). Vakit verisi **Awqat Salah API** (Diyanet kaynaklı) üzerinden alınır, cihazda SQLite ile saklanır ve internet olmadan da çalışır.
+Türkiye için namaz vakitlerini gösteren ve vakitlere göre bildirim/hatırlatma gönderen bir Flutter mobil uygulaması (Android + iOS). Vakit verisi **Diyanet İşleri Başkanlığı**'nın ilçe tablosudur; kendi sunucumuz (`server/`, `vakit-api`) üzerinden yıllık dosya olarak alınır, cihazda SQLite ile saklanır ve internet olmadan da çalışır.
 
-> Vakitler cihazda yerel tutulur; kullanıcı verisi hiçbir sunucuya gönderilmez.
+> Vakitler cihazda yerel tutulur; sunucuya yalnız ilçe araması ve konum çözümleme gider, saklanmaz.
 
 ## Özellikler
 
 - 🕌 Günün namaz vakitleri + bir sonraki vakte geri sayım
 - 📅 30 güne kadar vakit takvimi
-- 🔍 Online adres araması (Photon/OpenStreetMap, global) veya GPS ile otomatik konum
-- ⚙️ Konuma özel hesaplama yöntemi (Diyanet vb.) ve İkindi mezhebi (Şafi/Hanefi)
+- 🔍 İl/ilçe araması (sunucuda) veya GPS ile en yakın ilçe
+- ⚙️ Vakit başına ± dakika düzeltmesi
 - 🔔 Vakit bazlı bildirimler: tam vaktinde ve/veya X dakika önce
 - 📴 Offline çalışma — son çekilen vakitler cache'den gösterilir (yeni konum eklemek internet ister)
-- 🌙 Hicri tarih gösterimi
+- 🌙 Hicri tarih (Diyanet takvimi)
 - 🌑 Karanlık tema
 
 ## Teknoloji
@@ -23,8 +23,8 @@ Türkiye için namaz vakitlerini gösteren ve vakitlere göre bildirim/hatırlat
 | State yönetimi | `provider` (ChangeNotifier) |
 | Yerel depolama | `sqflite` (SQLite) |
 | Bildirimler | `flutter_local_notifications` + `timezone` |
-| Konum | `geolocator` (GPS), `geocoding` (reverse-geocode), Photon/OSM (adres araması) |
-| Vakit kaynağı | Aladhan API (koordinat tabanlı, `method`=Diyanet vb.) |
+| Konum | `geolocator` (GPS); il/ilçe araması ve koordinat→ilçe çözümleme `vakit-api`'de |
+| Vakit kaynağı | Diyanet ilçe tablosu, `server/` (Go) üzerinden `/v1` (ADR 0006) |
 | HTTP | `http` |
 | Loglama | `logger` |
 | Desteklenen sürümler | iOS 17.0+ (sesli alarm için iOS 26.1+ — AlarmKit), Android 7.0 / API 24+ |

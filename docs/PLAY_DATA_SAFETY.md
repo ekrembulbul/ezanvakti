@@ -23,16 +23,18 @@ yalnızca işlev için işlenir, kullanıcı kimliğine bağlanmaz.
 | Soru | Cevap |
 |------|-------|
 | Collected? | **Yes** |
-| Shared? | **Yes** (yalnızca işlev için üçüncü taraf API'lere koordinat/arama metni iletilir: Aladhan, Photon/OpenStreetMap, platform jeokodlama) |
-| Processed ephemerally? | API'lere giden konum **geçici** kullanılır, bizde saklanmaz. Cihazda önbellek çevrimdışı içindir. |
-| Required or optional? | **Optional** (kullanıcı GPS yerine elle adres de arayabilir) |
+| Shared? | **No** (konum yalnızca geliştiriciye ait vakit sunucusuna, işlev için ve geçici olarak gider; üçüncü tarafa aktarılmaz) |
+| Processed ephemerally? | **Yes** — sunucuya giden yaklaşık koordinat yalnızca en yakın ilçeyi bulmak için anlık işlenir, saklanmaz ve loglanmaz. Cihazda önbellek çevrimdışı içindir. |
+| Required or optional? | **Optional** (kullanıcı GPS yerine il/ilçe de arayabilir) |
 | **Purposes** | **App functionality** (namaz vakti hesaplama ve hatırlatma) |
 | Is this data used to track users? | **No** |
 | Is this data linked to the user's identity? | **No** (hesap yok, kimliğe bağlanmaz) |
 
-> Not: "Shared" konusunda Play, veriyi üçüncü tarafa aktarmayı kasteder. Konum, vakit
-> hesabı/adres araması için Aladhan ve Photon/OpenStreetMap'e gönderildiğinden dürüst
-> beyan **Yes**'tir. Veri pazarlanmaz, izleme için kullanılmaz.
+> Not: "Shared" konusunda Play, veriyi **üçüncü tarafa** aktarmayı kasteder. Konum
+> yalnızca geliştiricinin kendi sunucusuna (`vakit-api`) gider; üçüncü taraf vakit/adres
+> servisi kullanılmaz. Bu yüzden beyan **No**'dur; "Collected" ise **Yes** kalır (veri
+> cihazdan çıkıp geliştiricinin sunucusuna ulaşıyor). Veri pazarlanmaz, izleme için
+> kullanılmaz.
 
 ---
 

@@ -84,3 +84,35 @@ dart format .                   # kod formatla
 flutter build apk --release     # Android release derleme
 flutter build ios --release     # iOS release derleme (imzalama Xcode'da)
 ```
+
+## Sunucu (`server/`)
+
+Diyanet verisini barındıran Go servisi ayrı bir modüldür; Flutter araçları bu dizini görmez.
+
+```bash
+brew install go
+cd server && make vet test      # gofmt + go vet + go test ./...
+make smoke                      # ağ: web kaynağıyla sync → serve → curl
+```
+
+Dağıtım, ortam değişkenleri, cron ve Cloudflare adımları: `server/README.md`.
+
+### Uygulamayı yerel sunucuya bağlamak
+
+Uygulama vakit ve yer verisini `vakit-api`'den alır. Adres derleme zamanında verilir; varsayılan
+`http://127.0.0.1:8080` (iOS simülatörü, host makinede `make smoke` ya da `vakit serve` çalışırken).
+Android emülatöründe host makine için:
+
+```bash
+flutter run --dart-define=VAKIT_API_BASE_URL=http://10.0.2.2:8080
+```
+
+Düz HTTP yalnız debug'da çalışır: `android/app/src/debug/AndroidManifest.xml` cleartext'e izin verir,
+release manifest'i vermez (üretim adresi HTTPS). iOS simülatöründe `127.0.0.1` için ATS istisnası
+gerekirse yalnız debug yapılandırmasına eklenir.
+
+Sürüm derlemeleri üretim adresini GitHub Actions'tan alır: `.github/workflows/android-play.yml` ve
+`ios-testflight.yml`, `flutter build ...` komutuna `--dart-define=VAKIT_API_BASE_URL=${{ vars.VAKIT_API_BASE_URL }}`
+geçer ve değişken boşsa build'i durdurur. Değeri GitHub → Settings → Secrets and variables → Actions →
+**Variables** altında `VAKIT_API_BASE_URL` (`https://ezanvakti.ekrembulbul.me`) olarak tanımla. Değer
+`lib/core/config/vakit_api_config.dart` içinde okunur; kaynağa üretim adresi gömülmez.

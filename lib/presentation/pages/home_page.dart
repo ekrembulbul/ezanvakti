@@ -1,5 +1,4 @@
 import 'dart:async';
-import '../../l10n/app_localizations.dart';
 import '../../l10n/l10n_extensions.dart';
 import 'package:flutter/foundation.dart';
 
@@ -13,7 +12,6 @@ import '../../core/interfaces/alarm_service.dart';
 import '../../core/models/mission_stop_event.dart';
 import '../screens/mission_launcher.dart';
 import '../../core/models/location.dart';
-import '../../core/models/calculation_settings.dart';
 import '../../core/interfaces/local_storage.dart';
 import '../../core/utils/app_logger.dart';
 import '../../features/prayer_times/domain/prayer_times_repository.dart';
@@ -30,13 +28,16 @@ import '../screens/calendar_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/quiet_windows_screen.dart';
 import '../screens/tools_screen.dart';
-import 'package:hijri/hijri_calendar.dart';
 import '../../features/home_widget/domain/widget_labels_factory.dart';
 import '../../features/ramadan/domain/ramadan_mode.dart';
-import '../screens/calculation_settings_screen.dart';
+import '../screens/prayer_tune_screen.dart';
 import '../screens/location_list_screen.dart';
+import '../screens/location_migration_screen.dart';
+import '../../features/location/domain/location_migration_service.dart';
 import '../screens/reminders_screen.dart';
-import '../services/location_service.dart';
+import '../../features/location/data/gps_location_service.dart';
+import '../../features/location/data/places_api.dart';
+import '../utils/location_error_text.dart';
 import '../services/data_loader_service.dart';
 import '../services/day_rollover.dart';
 import '../../core/interfaces/widget_publisher.dart';
@@ -93,7 +94,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     _imsakiyeLoader = ImsakiyeRepository(
       ServiceLocator().get<PrayerTimesRepository>(),
     ).load;
-    _locationService = GpsLocationService();
+    _locationService = ServiceLocator().get<GpsLocationService>();
     _dataLoaderService = DataLoaderService(
       prayerTimesRepository: ServiceLocator().get<PrayerTimesRepository>(),
       notificationService: ServiceLocator().get<NotificationService>(),
@@ -205,8 +206,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     final settings = await ServiceLocator()
         .get<LocalStorage>()
         .getGeneralSettings();
-    final active = settings.ramadanMode && RamadanMode.isActive(DateTime.now());
     if (!mounted) return;
+    final todayHijri = context.read<AppState>().todaysPrayerTime?.hijri;
+    final active = settings.ramadanMode && RamadanMode.isActiveFor(todayHijri);
     setState(() => _ramadanActive = active);
     if (active) await _maybeOfferRamadanReminders();
   }
@@ -215,7 +217,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// sormaz — ısrarcı olmak istemiyoruz.
   Future<void> _maybeOfferRamadanReminders() async {
     final storage = ServiceLocator().get<LocalStorage>();
-    final hijriYear = HijriCalendar.fromDate(DateTime.now()).hYear.toString();
+    final year = context.read<AppState>().todaysPrayerTime?.hijri?.year;
+    if (year == null) return; // Hicri verisi yok: sormayı erteliyoruz
+    final hijriYear = year.toString();
     final asked = await storage.getSetting(_ramadanPromptKey);
     if (asked == hijriYear || !mounted) return;
     await storage.setSetting(_ramadanPromptKey, hijriYear);
@@ -312,13 +316,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     try {
       logger.debug('Manual GPS refresh triggered');
 
-      final gpsLocation = await _locationService.getCurrentGpsLocation(
-        fallbackLabel: l10n.gpsFallbackLabel,
-      );
+      final resolution = await _locationService.locate();
 
       final locationRepository = ServiceLocator().get<LocationRepository>();
       final savedLocation = await locationRepository.saveOrUpdateGpsLocation(
-        gpsLocation,
+        resolution.location,
       );
       await locationRepository.setActiveLocation(savedLocation);
       appState.setActiveLocation(savedLocation);
@@ -330,7 +332,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           ..clearSnackBars()
           ..showSnackBar(
             SnackBar(
-              content: Text(context.l10n.gpsUpdated(gpsLocation.displayName)),
+              content: Text(context.l10n.gpsUpdated(savedLocation.displayName)),
             ),
           );
       }
@@ -343,7 +345,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           ..clearSnackBars()
           ..showSnackBar(
             SnackBar(
-              content: Text(l10n.errorGpsRefresh(_gpsErrorText(l10n, e))),
+              content: Text(l10n.errorGpsRefresh(locationErrorText(l10n, e))),
               backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
@@ -353,16 +355,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         setState(() => _isRefreshingGps = false);
       }
     }
-  }
-
-  /// GPS servisi kullaniciya gosterilecek metni degil, kararli bir teshis
-  /// anahtari firlatir; karsiligi burada seciliyor.
-  String _gpsErrorText(AppLocalizations l10n, Object error) {
-    final text = error.toString().replaceAll('Exception: ', '');
-    if (text == GpsLocationService.permissionRequiredKey) {
-      return l10n.errorLocationPermission;
-    }
-    return text;
   }
 
   /// Vakit penceresini yükler ve bildirim/alarm planlamasını tazeler.
@@ -390,6 +382,15 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
     if (location == null) {
       logger.warning('No active location found, skipping data load');
+      return;
+    }
+
+    if (!location.isMapped) {
+      // Eski kayıt henüz Diyanet ilçesine bağlanmadı (açılışta ağ yoktu);
+      // vakit çekilemez. Mesaj gösterilir, eşleme yeniden denenir.
+      appState.setError(context.l10n.locationNeedsVerification);
+      appState.setRefreshing(false);
+      await _verifyLocation();
       return;
     }
 
@@ -425,6 +426,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
       logger.debug('Prayer data loaded: ${data.all.length} days');
 
+      // Ramazan modu bugünün Hicri'sinden okunur; veri yeni geldi.
+      if (mounted) await _refreshRamadanMode();
+
       await ServiceLocator().get<ReminderRescheduler>().reschedule(
         location: location,
         prayerTimes: data.all,
@@ -446,6 +450,39 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       logger.error('Failed to load prayer data', e);
       appState.setError(mounted ? context.l10n.errorDataLoad(e) : e.toString());
       appState.setRefreshing(false);
+    }
+  }
+
+  /// Eşlenmemiş aktif konumu yeniden eşlemeyi dener; belirsizse doğrulama
+  /// ekranını açar. Hata sessizce kalır (mesaj zaten ekranda), yenileme
+  /// tekrar dener.
+  Future<void> _verifyLocation() async {
+    final locator = ServiceLocator();
+    final repository = locator.get<LocationRepository>();
+    try {
+      final report = await locator.get<LocationMigrationService>().run();
+      if (!mounted) return;
+      if (report.needsUserInput) {
+        await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => LocationMigrationScreen(
+              report: report,
+              locationRepository: repository,
+              placesApi: locator.get<PlacesApi>(),
+              onFinished: () async {
+                if (mounted) Navigator.of(context).pop();
+              },
+            ),
+          ),
+        );
+      }
+      final active = await repository.getActiveLocation();
+      if (!mounted || active == null || !active.isMapped) return;
+      context.read<AppState>().setActiveLocation(active);
+      context.read<AppState>().clearError();
+      await _loadPrayerData(forceRefresh: true);
+    } catch (e) {
+      AppLogger().warning('Location verification deferred', e);
     }
   }
 
@@ -505,7 +542,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         builder: (context) => SettingsScreen(
           currentLocation: appState.activeLocation!,
           onChangeLocation: _navigateToLocationList,
-          onCalculationSettings: _navigateToCalculationSettings,
+          onPrayerTune: _navigateToPrayerTune,
           onQuietWindows: _navigateToQuietWindows,
           onNotificationPrefsChanged: _rescheduleReminders,
         ),
@@ -533,31 +570,21 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     );
   }
 
-  void _navigateToCalculationSettings() async {
+  void _navigateToPrayerTune() async {
     final storage = ServiceLocator().get<LocalStorage>();
-    final current = await storage.getCalculationSettings();
+    final current = await storage.getPrayerTuneSettings();
     if (!mounted) return;
 
-    final result = await Navigator.of(context).push<CalculationSettings>(
+    final tune = await Navigator.of(context).push<Map<PrayerType, int>>(
       MaterialPageRoute(
-        builder: (context) => CalculationSettingsScreen(initial: current),
+        builder: (_) => PrayerTuneScreen(initial: current.tune),
       ),
     );
+    if (tune == null || mapEquals(tune, current.tune)) return;
 
-    if (result == null || result == current) return;
-
-    await storage.saveCalculationSettings(result);
-
-    // Yalnızca vakit düzeltmesi değiştiyse önbellek hâlâ geçerli: düzeltme
-    // okurken uygulanıyor. Gereksiz yeniden fetch, rate limit riskidir.
-    final onlyTuneChanged =
-        result.copyWith(tune: current.tune) == current &&
-        !mapEquals(result.tune, current.tune);
-    if (onlyTuneChanged) {
-      await _reloadAfterTuneChange();
-      return;
-    }
-    await _applyGlobalCalculationChange();
+    await storage.savePrayerTuneSettings(current.copyWith(tune: tune));
+    // Veri aynı, yalnızca okunuşu değişti (ADR 0004): önbellek geçerli.
+    await _reloadAfterTuneChange();
   }
 
   /// Düzeltme değişti: veri aynı, yalnızca okunuşu değişti. Ekran, bildirim,
@@ -565,20 +592,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   Future<void> _reloadAfterTuneChange() async {
     if (mounted) setState(() => _calendarRevision++);
     await _loadPrayerData();
-  }
-
-  Future<void> _applyGlobalCalculationChange() async {
-    final appState = context.read<AppState>();
-    // Global ayar değişti: tüm "inherit" konumların önbelleği geçersiz.
-    await ServiceLocator().get<PrayerTimesRepository>().clearAllCache();
-    if (mounted) setState(() => _calendarRevision++);
-    await ServiceLocator().get<NotificationService>().cancelAllNotifications();
-
-    appState.clearPrayerTimes();
-    appState.setTodaysPrayerTime(null);
-    appState.setTomorrowsPrayerTime(null);
-
-    await _loadPrayerData(forceRefresh: true);
   }
 
   void _navigateToLocationList() async {
@@ -589,6 +602,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       MaterialPageRoute(
         builder: (context) => LocationListScreen(
           locationRepository: locationRepository,
+          placesApi: ServiceLocator().get<PlacesApi>(),
+          gpsService: _locationService,
           currentLocation: appState.activeLocation,
           onLocationSelected: (location) async {
             await _switchLocation(location);

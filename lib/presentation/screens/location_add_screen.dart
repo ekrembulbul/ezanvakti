@@ -1,32 +1,40 @@
-import 'dart:async';
-import '../../l10n/l10n_extensions.dart';
-
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:geocoding/geocoding.dart' hide Location;
 import 'package:provider/provider.dart';
 
+import '../../core/models/location.dart';
+import '../../core/providers/app_state.dart';
 import '../../core/theme/app_tokens.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/tokens_context.dart';
-import '../../core/models/location.dart' as app_location;
-import '../../core/models/regional_defaults.dart';
-import '../../core/providers/app_state.dart';
-import '../../features/location/data/gps_label.dart';
-import '../../features/location/data/photon_geocoding_service.dart';
-import '../../features/location/data/place_suggestion.dart';
+import '../../core/utils/app_logger.dart';
+import '../../features/location/data/gps_location_service.dart';
+import '../../features/location/data/places_api.dart';
 import '../../features/location/domain/location_repository.dart';
+import '../../l10n/l10n_extensions.dart';
+import '../utils/location_error_text.dart';
 import '../widgets/common/app_bar_widgets.dart';
 import '../widgets/common/app_surface.dart';
 import '../widgets/location/location_widgets.dart';
+import '../widgets/location/place_search_panel.dart';
 
+/// Konum ekleme: üstte il/ilçe araması, altında "Konumumu kullan".
+///
+/// Seçim bir Diyanet ilçesidir (`cityId`); koordinat manuelde ilçe merkezi,
+/// GPS'te cihazınki. GPS çözümlemesi bir onay bandıyla gösterilir: yanlış ilçe
+/// bulunduysa kullanıcı aramaya döner. İlk konumsa kayıttan sonra [AppState]
+/// üzerinden ana ekrana geçilir; listeden açıldıysa kayıt geri döndürülür ve
+/// aktifleştirme çağırana kalır.
 class LocationAddScreen extends StatefulWidget {
   final LocationRepository locationRepository;
+  final PlacesApi placesApi;
+  final GpsLocationService gpsService;
   final bool fromLocationList;
 
   const LocationAddScreen({
     super.key,
     required this.locationRepository,
+    required this.placesApi,
+    required this.gpsService,
     this.fromLocationList = false,
   });
 
@@ -35,205 +43,42 @@ class LocationAddScreen extends StatefulWidget {
 }
 
 class _LocationAddScreenState extends State<LocationAddScreen> {
-  static const Duration _searchDebounce = Duration(milliseconds: 300);
-  static const int _minQueryLength = 2;
-
-  // GPS konumu tek satır olarak saklanır; saveOrUpdateGpsLocation aynı kaydı
-  // günceller, bu yüzden sabit bir kimlik yeterli.
-  static const String _gpsLocationId = 'gps';
-
-  final PhotonGeocodingService _geocodingService = PhotonGeocodingService();
-  final _searchController = TextEditingController();
   final _customNameController = TextEditingController();
 
-  bool _showManualSelection = false;
-  bool _isLoadingLocation = false;
-  String? _locationError;
+  PlaceMatch? _selected;
+  GpsResolution? _pendingGps;
+  bool _gpsBusy = false;
+  String? _gpsError;
+  bool _saving = false;
 
-  Timer? _searchTimer;
-  List<PlaceSuggestion> _searchResults = [];
-  bool _isSearching = false;
-  bool _searchAttempted = false;
-
-  app_location.Location? _selectedPlace;
-  String? _selectedCountryCode;
-
-  // Sonuçları kullanıcının yakınına önceleyen opsiyonel bias.
-  double? _biasLatitude;
-  double? _biasLongitude;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadBiasLocation();
-  }
-
-  /// Bu ekranda çok sayıda yardımcı metot renk okuyor; her birinde
-  /// `context.tokens` yazmak yerine tek kısayol.
+  /// Bu ekranda çok sayıda yardımcı metot renk okuyor; tek kısayol.
   AppTokens get tokens => context.tokens;
 
   @override
   void dispose() {
-    _searchTimer?.cancel();
-    _searchController.dispose();
     _customNameController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadBiasLocation() async {
-    try {
-      final position = await Geolocator.getLastKnownPosition();
-      if (position != null && mounted) {
-        setState(() {
-          _biasLatitude = position.latitude;
-          _biasLongitude = position.longitude;
-        });
-      }
-    } catch (_) {
-      // Bias en iyi çaba; alınamazsa arama yine global çalışır.
-    }
-  }
-
-  void _onSearchChanged(String value) {
-    _searchTimer?.cancel();
-    setState(() => _selectedPlace = null);
-
-    final query = value.trim();
-    if (query.length < _minQueryLength) {
-      setState(() {
-        _searchResults = [];
-        _isSearching = false;
-        _searchAttempted = false;
-      });
-      return;
-    }
-
-    setState(() => _isSearching = true);
-    _searchTimer = Timer(_searchDebounce, () => _performSearch(query));
-  }
-
-  Future<void> _performSearch(String query) async {
-    final results = await _geocodingService.search(
-      query,
-      biasLatitude: _biasLatitude,
-      biasLongitude: _biasLongitude,
-    );
-    if (!mounted) return;
-    setState(() {
-      _searchResults = results;
-      _isSearching = false;
-      _searchAttempted = true;
-    });
-  }
-
-  void _onSuggestionSelected(PlaceSuggestion suggestion) {
-    FocusScope.of(context).unfocus();
-    setState(() {
-      _selectedPlace = suggestion.toLocation();
-      _selectedCountryCode = suggestion.countryCode;
-      _searchResults = [];
-    });
-  }
-
-  void _clearSelection() {
-    setState(() {
-      _selectedPlace = null;
-      _selectedCountryCode = null;
-    });
-  }
-
   Future<void> _detectLocation() async {
     setState(() {
-      _isLoadingLocation = true;
-      _locationError = null;
+      _gpsBusy = true;
+      _gpsError = null;
     });
-
-    // Hata metinleri asenkron adımlardan **önce** okunuyor: `await`ten sonra
-    // context'e dokunmak (widget o arada ölmüş olabilir) yanlış.
+    // `await` sonrası context kullanılmaz; çeviri şimdi yakalanıyor.
     final l10n = context.l10n;
-
     try {
-      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        throw Exception(l10n.locationServicesOff);
-      }
-
-      var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        final shouldRequest = await _showLocationRationale();
-        if (!shouldRequest) throw Exception(l10n.locationPermissionDenied);
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          throw Exception(l10n.locationPermissionDenied);
-        }
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        throw Exception(l10n.locationPermissionDenied);
-      }
-
-      final position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-        ),
+      final resolution = await widget.gpsService.locate(
+        requestPermission: _showLocationRationale,
       );
-
-      final label = await _reverseGeocodeLabel(
-        position.latitude,
-        position.longitude,
-      );
-
-      // Ham GPS koordinatı doğrudan kullanılır; il/ilçe yalnızca etikettir.
-      final gpsLocation = app_location.Location(
-        id: _gpsLocationId,
-        province: label.province,
-        district: label.district,
-        latitude: position.latitude,
-        longitude: position.longitude,
-        type: app_location.LocationType.gps,
-      );
-      await _saveAndReturn(gpsLocation, countryCode: label.countryCode);
+      if (!mounted) return;
+      setState(() => _pendingGps = resolution);
     } catch (e) {
-      setState(
-        () => _locationError = e.toString().replaceAll('Exception: ', ''),
-      );
+      AppLogger().warning('GPS detection failed', e);
+      if (mounted) setState(() => _gpsError = locationErrorText(l10n, e));
     } finally {
-      if (mounted) setState(() => _isLoadingLocation = false);
+      if (mounted) setState(() => _gpsBusy = false);
     }
-  }
-
-  /// GPS koordinatından okunur il/ilçe etiketi üretir. Adres bulunamazsa
-  /// koordinata düşer; namaz vakti yine ham koordinattan hesaplanır.
-  Future<({String province, String district, String? countryCode})>
-  _reverseGeocodeLabel(double latitude, double longitude) async {
-    // `await` sonrasi context kullanilamaz; ceviriler simdi yakalaniyor.
-    final gpsFallbackLabel = context.l10n.locationTypeGps;
-    try {
-      final placemarks = await placemarkFromCoordinates(latitude, longitude);
-      if (placemarks.isNotEmpty) {
-        final placemark = placemarks.first;
-        final label = resolveGpsLabel(
-          placemark,
-          fallbackLabel: gpsFallbackLabel,
-        );
-        return (
-          province: label.province,
-          district: label.district,
-          countryCode: placemark.isoCountryCode,
-        );
-      }
-    } catch (_) {
-      // Reverse geocode başarısızsa koordinat etiketine düşülür.
-    }
-    final coordsLabel =
-        '${latitude.toStringAsFixed(3)}, ${longitude.toStringAsFixed(3)}';
-    // displayName "$district, $province" urettigi icin okunabilir sira:
-    // "GPS Konumu, 41.008, 28.978".
-    return (
-      province: coordsLabel,
-      district: gpsFallbackLabel,
-      countryCode: null,
-    );
   }
 
   Future<bool> _showLocationRationale() async {
@@ -272,365 +117,209 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
     return result ?? false;
   }
 
-  Future<void> _saveAndReturn(
-    app_location.Location location, {
-    String? countryCode,
-  }) async {
+  Future<void> _save(Location location) async {
+    if (_saving) return;
+    setState(() => _saving = true);
     try {
-      final isFirstLocation =
-          (await widget.locationRepository.getSavedLocations()).isEmpty;
-
-      // Seçilen hesaplama parametreleriyle taze veri çekilsin diye, bu kimliğe
-      // ait eski (olası geçersiz) önbellek temizlenir. Silinip yeniden eklenen
-      // bir yerin vakit kayıtları konumla birlikte silinmediğinden bu gerekli.
+      // Silinip yeniden eklenen yerin eski vakit kayıtları konumla silinmez;
+      // taze çekim için bu kimliğin önbelleği temizlenir.
       await widget.locationRepository.clearPrayerTimeCache(location.id);
-
-      if (location.type == app_location.LocationType.gps) {
+      if (location.type == LocationType.gps) {
         await widget.locationRepository.saveOrUpdateGpsLocation(location);
       } else {
         await widget.locationRepository.saveLocation(location);
       }
-
-      // İlk konum: global hesaplama varsayılanını ülkeye göre belirle. Kullanıcı
-      // sonradan Ayarlar > Hesaplama'dan değiştirebilir. Eşleşme yoksa mevcut
-      // varsayılan (Diyanet) korunur.
-      if (isFirstLocation) {
-        final regional = RegionalDefaults.settingsForCountryCode(countryCode);
-        if (regional != null) {
-          await widget.locationRepository.saveCalculationSettings(regional);
-        }
+      if (!mounted) return;
+      if (widget.fromLocationList) {
+        Navigator.of(context).pop(location);
+        return;
       }
-
       await widget.locationRepository.setActiveLocation(location);
-      if (mounted) {
-        if (widget.fromLocationList) {
-          Navigator.of(context).pop(location);
-        } else {
-          context.read<AppState>().setActiveLocation(location);
-        }
-      }
+      if (mounted) context.read<AppState>().setActiveLocation(location);
     } catch (e) {
+      AppLogger().error('Location save failed', e);
       if (mounted) {
-        _showSnackBar(context.l10n.errorGenericWith('$e'), isError: true);
+        _showSnackBar(context.l10n.locationSaveFailed('$e'), isError: true);
       }
+    } finally {
+      if (mounted) setState(() => _saving = false);
     }
   }
 
   Future<void> _onManualSave() async {
-    final place = _selectedPlace;
-    if (place == null) {
-      _showSnackBar(context.l10n.locationSelectFirst, isError: true);
-      return;
-    }
-
+    final place = _selected;
+    if (place == null) return;
     final customName = _customNameController.text.trim();
-    // Yeni konum global hesaplama ayarını miras alır (override yok); gerekirse
-    // sonradan düzenleme ekranından konuma özel ayarlanabilir.
-    final location = place.copyWith(
-      type: app_location.LocationType.manual,
-      customName: customName.isEmpty ? null : customName,
-    );
-
-    await _saveAndReturn(location, countryCode: _selectedCountryCode);
-  }
-
-  void _resetManualSelection() {
-    setState(() {
-      _showManualSelection = false;
-      _selectedPlace = null;
-      _selectedCountryCode = null;
-      _searchResults = [];
-      _isSearching = false;
-      _searchAttempted = false;
-      _searchController.clear();
-      _customNameController.clear();
-    });
+    final location = place
+        .toLocation(type: LocationType.manual)
+        .copyWith(customName: customName.isEmpty ? null : customName);
+    await _save(location);
   }
 
   void _showSnackBar(String message, {bool isError = false}) {
-    if (mounted) {
-      // Onceki snackbar'i hemen kaldir; yeni islem mesaji beklemeden gosterilsin.
-      final messenger = ScaffoldMessenger.of(context)..clearSnackBars();
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: isError
-              ? Theme.of(context).colorScheme.error
-              : tokens.accent,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          margin: const EdgeInsets.all(16),
-        ),
-      );
-    }
+    if (!mounted) return;
+    // Önceki snackbar'ı hemen kaldır; yeni mesaj beklemeden gösterilsin.
+    final messenger = ScaffoldMessenger.of(context)..clearSnackBars();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError
+            ? Theme.of(context).colorScheme.error
+            : tokens.accent,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final pendingGps = _pendingGps;
+    final selected = _selected;
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: SimpleAppBar(
-        title: _showManualSelection
-            ? context.l10n.locationSearch
-            : context.l10n.locationAddTitle,
-        showBack: widget.fromLocationList && !_showManualSelection,
+        title: context.l10n.locationAddTitle,
+        showBack: widget.fromLocationList,
       ),
       body: AppSurface(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: _showManualSelection
-              ? _buildManualSelection()
-              : _buildChoiceScreen(),
+          child: pendingGps != null
+              ? _buildGpsConfirm(pendingGps)
+              : selected != null
+              ? _buildSelection(selected)
+              : _buildSearch(),
         ),
       ),
     );
   }
 
-  Widget _buildChoiceScreen() {
+  Widget _buildSearch() {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Spacer(),
-        Container(
-          padding: const EdgeInsets.all(28),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                tokens.accent.withValues(alpha: 0.2),
-                tokens.accent.withValues(alpha: 0.05),
-              ],
-            ),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            Icons.add_location_alt_rounded,
-            size: 64,
-            color: tokens.accent,
-          ),
-        ),
-        const SizedBox(height: 32),
-        Text(
-          context.l10n.locationAddTitle,
-          style: AppTypography.counterLabel.copyWith(
-            fontSize: 24,
-            letterSpacing: -0.5,
-            color: tokens.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 12),
         Text(
           context.l10n.locationsEmptyHint,
-          style: TextStyle(
-            fontSize: 15,
+          textAlign: TextAlign.center,
+          style: AppTypography.rowSubtitle.copyWith(
             color: tokens.textSecondary,
             height: 1.5,
           ),
-          textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 48),
+        const SizedBox(height: 16),
+        Expanded(
+          child: PlaceSearchPanel(
+            api: widget.placesApi,
+            autofocus: false,
+            onSelected: (match) => setState(() => _selected = match),
+          ),
+        ),
+        if (_gpsError != null) ...[
+          const SizedBox(height: 12),
+          LocationErrorCard(error: _gpsError!),
+        ],
+        const SizedBox(height: 12),
         LocationChoiceButton(
           icon: Icons.my_location_rounded,
-          title: _isLoadingLocation
+          title: _gpsBusy
               ? context.l10n.locationGettingPosition
-              : context.l10n.locationFindWithGps,
+              : context.l10n.locationUseGps,
           subtitle: context.l10n.locationAutoDetect,
-          isLoading: _isLoadingLocation,
+          isLoading: _gpsBusy,
           isHighlighted: true,
           onTap: _detectLocation,
         ),
-        if (_locationError != null) ...[
-          const SizedBox(height: 16),
-          LocationErrorCard(error: _locationError!),
-        ],
-        const SizedBox(height: 16),
-        LocationChoiceButton(
-          icon: Icons.search_rounded,
-          title: context.l10n.locationSearchAddress,
-          subtitle: context.l10n.locationSearchHint,
-          onTap: () => setState(() {
-            _showManualSelection = true;
-            _locationError = null;
-          }),
+      ],
+    );
+  }
+
+  Widget _buildGpsConfirm(GpsResolution resolution) {
+    final location = resolution.location;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Spacer(),
+        Icon(Icons.my_location_rounded, size: 48, color: tokens.accent),
+        const SizedBox(height: 20),
+        Text(
+          context.l10n.locationGpsConfirm(location.displayName),
+          textAlign: TextAlign.center,
+          style: AppTypography.rowTitle.copyWith(
+            color: tokens.textPrimary,
+            height: 1.4,
+          ),
+        ),
+        const SizedBox(height: 32),
+        ElevatedButton(
+          onPressed: _saving ? null : () => _save(location),
+          style: _primaryButtonStyle(),
+          child: Text(context.l10n.actionConfirm),
+        ),
+        const SizedBox(height: 12),
+        OutlinedButton(
+          onPressed: () => setState(() => _pendingGps = null),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: tokens.textSecondary,
+            side: BorderSide(color: tokens.border),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+          ),
+          child: Text(context.l10n.locationChange),
         ),
         const Spacer(flex: 2),
       ],
     );
   }
 
-  Widget _buildManualSelection() {
+  Widget _buildSelection(PlaceMatch match) {
+    final preview = match.toLocation(type: LocationType.manual);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(height: 8),
-        _buildSearchField(),
-        const SizedBox(height: 16),
         Expanded(
-          child: _selectedPlace == null
-              ? _buildResults()
-              : _buildConfigSection(),
-        ),
-        const SizedBox(height: 8),
-        _buildAttribution(),
-        const SizedBox(height: 12),
-        _buildActionButtons(),
-      ],
-    );
-  }
-
-  Widget _buildSearchField() {
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        color: tokens.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: tokens.border),
-      ),
-      child: TextField(
-        controller: _searchController,
-        autofocus: true,
-        style: TextStyle(color: tokens.textPrimary),
-        onChanged: _onSearchChanged,
-        decoration: InputDecoration(
-          hintText: context.l10n.locationSearchPlaceholder,
-          hintStyle: TextStyle(color: tokens.textTertiary),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 18,
-          ),
-          prefixIcon: Icon(Icons.search_rounded, color: tokens.textTertiary),
-          suffixIcon: _buildSearchSuffix(),
-        ),
-      ),
-    );
-  }
-
-  Widget? _buildSearchSuffix() {
-    if (_isSearching) {
-      return Padding(
-        padding: const EdgeInsets.all(14),
-        child: SizedBox(
-          width: 18,
-          height: 18,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            color: tokens.accent,
-          ),
-        ),
-      );
-    }
-    if (_searchController.text.isNotEmpty) {
-      return IconButton(
-        icon: Icon(Icons.close_rounded, color: tokens.textTertiary),
-        onPressed: () {
-          _searchController.clear();
-          _onSearchChanged('');
-        },
-      );
-    }
-    return null;
-  }
-
-  Widget _buildResults() {
-    if (_searchResults.isEmpty) {
-      final message = _searchAttempted
-          ? context.l10n.locationSearchNoResult
-          : context.l10n.locationSearchStart;
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text(
-            message,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: tokens.textTertiary,
-              fontSize: 14,
-              height: 1.5,
-            ),
-          ),
-        ),
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.only(top: 4),
-      itemCount: _searchResults.length,
-      itemBuilder: (context, index) => _buildResultTile(_searchResults[index]),
-    );
-  }
-
-  Widget _buildResultTile(PlaceSuggestion suggestion) {
-    return GestureDetector(
-      onTap: () => _onSuggestionSelected(suggestion),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: tokens.surface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: tokens.surface),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              Icons.location_on_outlined,
-              color: tokens.textTertiary,
-              size: 20,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                suggestion.displayLabel,
-                style: TextStyle(color: tokens.textPrimary, fontSize: 15),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildConfigSection() {
-    return ListView(
-      padding: const EdgeInsets.only(top: 4),
-      children: [
-        LocationSelectionConfirm(location: _selectedPlace!),
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton.icon(
-            onPressed: _clearSelection,
-            icon: const Icon(Icons.search_rounded, size: 16),
-            label: Text(context.l10n.locationChange),
-            style: TextButton.styleFrom(foregroundColor: tokens.accent),
-          ),
-        ),
-        const SizedBox(height: 8),
-        _buildCustomNameField(),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Icon(
-              Icons.info_outline_rounded,
-              size: 15,
-              color: tokens.textTertiary,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                context.l10n.locationCalculationFromGlobal,
-                style: TextStyle(
-                  color: tokens.textTertiary,
-                  fontSize: 12,
-                  height: 1.4,
+          child: ListView(
+            padding: const EdgeInsets.only(top: 4),
+            children: [
+              LocationSelectionConfirm(location: preview),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: () => setState(() => _selected = null),
+                  icon: const Icon(Icons.search_rounded, size: 16),
+                  label: Text(context.l10n.locationChange),
+                  style: TextButton.styleFrom(foregroundColor: tokens.accent),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              _buildCustomNameField(),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
+        ElevatedButton(
+          onPressed: _saving ? null : _onManualSave,
+          style: _primaryButtonStyle(),
+          child: Text(
+            context.l10n.actionSave,
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+          ),
         ),
       ],
     );
   }
+
+  ButtonStyle _primaryButtonStyle() => ElevatedButton.styleFrom(
+    backgroundColor: tokens.accent,
+    foregroundColor: tokens.backgroundStops.last,
+    disabledBackgroundColor: tokens.border,
+    disabledForegroundColor: tokens.textTertiary,
+    padding: const EdgeInsets.symmetric(vertical: 16),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+  );
 
   Widget _buildCustomNameField() {
     return Container(
@@ -656,59 +345,6 @@ class _LocationAddScreenState extends State<LocationAddScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildAttribution() {
-    return Text(
-      context.l10n.osmAttribution,
-      textAlign: TextAlign.center,
-      style: TextStyle(color: tokens.textTertiary, fontSize: 11),
-    );
-  }
-
-  Widget _buildActionButtons() {
-    return Row(
-      children: [
-        Expanded(
-          child: OutlinedButton(
-            onPressed: _resetManualSelection,
-            style: OutlinedButton.styleFrom(
-              foregroundColor: tokens.textSecondary,
-              side: BorderSide(color: tokens.border),
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-            ),
-            child: Text(context.l10n.actionBack),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          flex: 2,
-          child: ElevatedButton(
-            onPressed: _selectedPlace != null ? _onManualSave : null,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: tokens.accent,
-              foregroundColor: tokens.backgroundStops.last,
-              disabledBackgroundColor: tokens.border,
-              disabledForegroundColor: tokens.textTertiary,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-            ),
-            child: Text(
-              context.l10n.actionSave,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

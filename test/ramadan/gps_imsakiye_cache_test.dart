@@ -11,10 +11,11 @@ import '../support/fakes.dart';
 const gps = Location(
   id: 'saved-gps',
   province: 'İstanbul',
-  district: 'Fatih',
+  district: 'İstanbul',
   latitude: 41,
   longitude: 29,
   type: LocationType.gps,
+  cityId: 9541,
 );
 
 class CoordinateProvider extends FakeProvider {
@@ -36,7 +37,7 @@ class CoordinateProvider extends FakeProvider {
 
 void main() {
   test(
-    'GPS update invalidates entire future month using saved id; unchanged input keeps cache',
+    'GPS district change invalidates entire future month using saved id; same district keeps cache',
     () async {
       final storage = FakeStorage();
       final provider = CoordinateProvider();
@@ -57,8 +58,20 @@ void main() {
       await imsakiye.load(location: gps, period: ramadanPeriods[3]);
       await locations.saveOrUpdateGpsLocation(gps.copyWith(id: 'incoming-id'));
       expect(cleared, isEmpty);
+      // Aynı ilçe içinde koordinat oynaması: vakit ilçeye bağlı, önbellek kalır.
+      await locations.saveOrUpdateGpsLocation(
+        gps.copyWith(id: 'nudged', latitude: 41.02, longitude: 29.01),
+      );
+      expect(cleared, isEmpty);
       final changed = await locations.saveOrUpdateGpsLocation(
-        gps.copyWith(id: 'another-incoming', latitude: 39, longitude: 32),
+        gps.copyWith(
+          id: 'another-incoming',
+          province: 'Ankara',
+          district: 'Ankara',
+          latitude: 39,
+          longitude: 32,
+          cityId: 9206,
+        ),
       );
       expect(cleared, [gps.id]);
       expect(changed.id, gps.id);

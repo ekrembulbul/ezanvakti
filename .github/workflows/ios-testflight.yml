@@ -35,8 +35,18 @@ jobs:
           flutter config --no-enable-swift-package-manager
           flutter pub get
 
+      - name: Sunucu adresi (VAKIT_API_BASE_URL) tanimli mi
+        env:
+          VAKIT_API_BASE_URL: ${{ vars.VAKIT_API_BASE_URL }}
+        run: |
+          if [ -z "$VAKIT_API_BASE_URL" ]; then
+            echo "HATA: repository variable VAKIT_API_BASE_URL tanimli degil (Settings > Secrets and variables > Actions > Variables)." >&2
+            exit 1
+          fi
+
       - name: iOS projesini hazirla (configs + pod install)
-        run: flutter build ios --config-only --release --no-codesign
+        # --config-only DART_DEFINES'i Generated.xcconfig'e yazar; sonraki xcodebuild bunu kullanir.
+        run: flutter build ios --config-only --release --no-codesign --dart-define=VAKIT_API_BASE_URL=${{ vars.VAKIT_API_BASE_URL }}
 
       - name: Dagitim sertifikasini dosyaya yaz
         env:

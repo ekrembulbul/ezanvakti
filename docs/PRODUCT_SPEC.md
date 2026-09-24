@@ -38,12 +38,12 @@ Türkiye için (başlangıçta) Awqat Salah API üzerinden Diyanet verisini alı
 - Kullanıcı en az bir lokasyon seçer:
   - MVP: tek aktif lokasyon yeterli.
   - Favori lokasyonlar: liste + ekleme + düzenleme uygulandı.
-- **Güncel durum:** Lokasyon seçimi online adres araması (Photon/OSM, global) veya GPS ile yapılır; gömülü il/ilçe listesi kaldırıldı. Vakit yalnızca koordinata bağlıdır, bu yüzden seçim global çalışır. Yeni konum **eklemek** internet gerektirir; seçili konum ve önbellek offline çalışmaya devam eder.
-- Her konum kendi hesaplama parametrelerini taşır (`method`/`school`/`latitudeAdjustmentMethod`); düzenleme ekranından değiştirilebilir.
+- **Güncel durum (2026-09-17):** Konum bir **Diyanet ilçesi**dir. Seçim, sunucudaki il/ilçe aramasıyla (kutu boşken büyük iller listelenir) veya GPS ile yapılır; GPS'te cihaz koordinatı sunucuda en yakın ilçeye çözülür ve kullanıcı onaylar. Gömülü il/ilçe listesi yoktur; şimdilik yalnız Türkiye (dışı "desteklenmiyor"). Yeni konum **eklemek** internet gerektirir; seçili konum ve önbellek offline çalışmaya devam eder.
+- Konum başına hesap parametresi yoktur (Diyanet tablosu veridir); kullanıcı yalnız vakit başına ± dakika düzeltmesi yapabilir (genel ayar, okurken uygulanır). Düzenleme ekranı özel ad ve ilçe değiştirmeyi sunar.
 - Lokasyon değişince:
   - Gösterilen vakitler değişir
   - Bildirimler yeniden planlanır (eski lokasyonun bildirimleri iptal edilir)
-  - Hesaplama parametresi değişirse o konumun vakit önbelleği temizlenip yeniden çekilir
+  - Konumun ilçesi değişirse o konumun vakit önbelleği temizlenip yeniden çekilir; aynı ilçe içinde koordinat değişimi (GPS) önbelleği etkilemez
 
 ### 3.3 Offline davranış
 - Uygulama internet yokken:

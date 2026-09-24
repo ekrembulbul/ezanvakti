@@ -25,9 +25,9 @@ Her feature kendi içinde `data/` (dış dünya) ve `domain/` (iş kuralları) o
 
 | Feature | data | domain |
 |---|---|---|
-| `prayer_times` | `awqat_salah_provider` (API), `sqlite_storage` | `prayer_times_repository`, `offline_state_manager` |
+| `prayer_times` | `diyanet_provider` (`vakit-api`, yıllık dosya + ETag), `sqlite_storage` | `prayer_times_repository`, `offline_state_manager`, `prayer_time_tuner` |
 | `notifications` | `flutter_local_notification_service` | `notification_scheduler`, `notification_settings_manager` |
-| `location` | `photon_geocoding_service` (online adres araması), `place_suggestion`, `gps_label` | `location_repository`, `location_service`, `location_monitor_service` |
+| `location` | `places_api` (sunucuda il/ilçe araması + koordinat→ilçe), `gps_location_service` (izin + cihaz koordinatı + çözümleme) | `location_repository`, `location_service`, `location_monitor_service`, `location_migration_service` |
 | `home_widget` | `home_widget_publisher` (App Group'a yazma) | `widget_snapshot`, `widget_snapshot_builder`, `widget_snapshot_publish` |
 
 ### `lib/presentation` — UI
@@ -36,21 +36,22 @@ Her feature kendi içinde `data/` (dış dünya) ve `domain/` (iş kuralları) o
 - **`widgets/`** — yeniden kullanılabilir UI parçaları (feature'a göre gruplu).
 - **`controllers/`**, **`services/`** — UI'a özel ince koordinasyon (örn. GPS izleme kontrolcüsü).
 
-## Provider soyutlaması (genişleme noktası)
+## Vakit kaynağı: Diyanet, kendi sunucumuzdan (ADR 0006)
 
-Vakit kaynağı `PrayerTimeProvider` arayüzünün arkasındadır. Bugün tek implementasyon var: `AwqatSalahProvider` (Diyanet). Yeni bir ülke/kaynak eklemek için:
+Vakit kaynağı `PrayerTimeProvider` arayüzünün arkasındadır; tek implementasyon `DiyanetProvider`. Veri, `server/` altındaki Go servisinin (`vakit`) `/v1` sözleşmesinden gelir — bkz. `docs/superpowers/specs/2026-09-15-vakit-api-sunucu-design.md` ve `server/README.md`. Sunucu adresi derleme zamanında verilir (`--dart-define=VAKIT_API_BASE_URL`, `lib/core/config/vakit_api_config.dart`; varsayılan yerel geliştirme adresi).
 
-1. `PrayerTimeProvider`'ı implement eden yeni bir sınıf yaz (kaynağa özgü parse).
-2. `ServiceLocator`'da register et.
+- **Yıllık dosya:** `GET /v1/prayer-times/{cityId}/{year}` istenen aralığın yıllarını çeker; depo hepsini gün gün (Hicri tarihle birlikte) önbelleğe yazar, çağırana yalnız istenen pencereyi döner. `If-None-Match`/ETag `settings` tablosunda; `304` önbelleği geçerli sayar, `404` (yıl yayınlanmamış) boş liste döner.
+- **Düzeltme okurken uygulanır** (`PrayerTimeTuner`, ADR 0004): önbellek ham Diyanet verisi; kullanıcının tek ayarı vakit başına ± dakika (`PrayerTuneSettings`). Hesap yöntemi/mezhep/enlem seçimi yoktur.
+- **Hicri tarih** her günün satırında Diyanet'ten gelir; hesaplanmaz. Veri yoksa gösterilmez (Ramazan modu ve dinî günler de aynı veriden türetilir).
 
-Uygulamanın geri kalanı `PrayerTimeProvider` arayüzüne bağlı olduğu için değişmeden çalışır. `AwqatSalahProvider` koordinat tabanlı Aladhan API'sini kullanır; namaz açıları konuma özel `method` (otorite, ör. Diyanet=13) ve `school` (İkindi mezhebi) parametreleriyle istenir.
+## Konum: Diyanet ilçesi
 
-## Lokasyon seçimi ve hesaplama parametreleri
-
-- **Adres araması:** `PhotonGeocodingService` (Photon/OpenStreetMap, anahtarsız, global, debounce + konum bias'lı typeahead). Sonuç `PlaceSuggestion` → `Location`'a çevrilir. Eski gömülü il/ilçe listesi kaldırıldı; vakit yalnızca koordinata bağlı olduğundan eksiksiz liste tutmaya gerek yok.
-- **GPS:** Ham koordinat doğrudan API'ye gider; il/ilçe yalnızca etikettir (`gps_label` ile reverse-geocode). Listeye snap yapılmaz.
-- **Hesaplama parametreleri konuma özeldir** (`method`/`school`/`latitudeAdjustmentMethod`). Varsayılan: Diyanet (13) + standart/Şafi İkindi (school=0) — Diyanet takvimi asr-ı evvel'i kullanır. Yöntem değişince İkindi mezhebi bölgesel varsayılana (`CalculationDefaults.schoolForMethod`) ayarlanır.
-- **Önbellek tutarlılığı:** `prayer_times` tablosu `location_id` ile anahtarlı, parametrelerle değil. Bu yüzden bir konumun parametreleri değişince (düzenleme ekranı, yeniden ekleme, GPS hareketi) o konumun önbelleği `clearPrayerTimeCache` ile temizlenir; sonraki yükleme güncel parametrelerle taze çeker.
+- **Model:** `Location` bir Diyanet ilçesidir (`cityId/stateId/countryId`, sunucunun `displayLabel`'ı). Koordinat yalnız kıble içindir: GPS kaydında cihazın koordinatı, seçilmiş konumda sunucudan ilçe merkezi. `cityId` yoksa kayıt "eşlenmemiş"tir (eski sürümden kalan).
+- **Arama:** `PlaceSearchPanel` → `PlacesApi.search` (`GET /v1/places/search?q=&limit=`). Boş sorgu il merkezlerini döner; 300 ms debounce, 2 karakter alt sınırı. Cihazda il/ilçe listesi yok.
+- **GPS:** `GpsLocationService.locate` izin akışı + cihaz koordinatı + `PlacesApi.resolve` (`GET /v1/places/resolve?lat&lon`). Ekleme ekranı sonucu onay bandıyla gösterir. Türkiye dışı `NO_COVERAGE` → kullanıcı ilçe seçer. Ters-geocode ve üçüncü taraf adres servisi yok.
+- **İzleme:** `LocationMonitorService` 5 km / 30 dk eşiklerini korur; yeni fix `resolve` ile ilçeye çözülür. Yalnız `cityId` değişince kayıt güncellenir, önbellek temizlenir ve `onLocationChanged` yayılır; aynı ilçe içinde koordinat sessizce tazelenir. Ağ yoksa deneme atlanır (referans güncellenmez, sonraki fix dener).
+- **Önbellek tutarlılığı:** `prayer_times` tablosu `location_id` ile anahtarlı. Konumun ilçesi değişince (düzenleme ekranı, GPS başka ilçeye geçti, yeniden ekleme) o kimliğin önbelleği `clearPrayerTimeCache` ile temizlenir; koordinat oynaması önbelleği etkilemez.
+- **Migrasyon:** Açılışta (`AppRoot`) eşlenmemiş kayıt varsa `LocationMigrationService` sunucuda eşler (GPS: `resolve`; manuel: ada göre arama, il **ve** ilçe tutarsa otomatik). Belirsiz/desteklenmeyen kayıtlar `LocationMigrationScreen`'de seçtirilir; ağ yoksa ertelenir, eşlenmemiş aktif konumda ana ekran "doğrula" mesajı verir.
 
 ## Veri akışı — vakit gösterimi
 
@@ -58,7 +59,7 @@ Uygulamanın geri kalanı `PrayerTimeProvider` arayüzüne bağlı olduğu için
 HomePage / DataLoaderService
         │  ister
         ▼
-PrayerTimesRepository ──┬─▶ AwqatSalahProvider (API)   → başarılıysa SQLite'a yazar
+PrayerTimesRepository ──┬─▶ DiyanetProvider (vakit-api) → yıl dosyasını SQLite'a yazar
                         └─▶ SqliteStorage (cache)       → offline / fallback
         │
         ▼
@@ -117,9 +118,9 @@ WidgetSnapshotBuilder (saf) ──▶ WidgetPublisher ──▶ App Group (tek J
   olmadan yalnızca cihazın görünümünü izler.
 - Sorumluluk sınırı testlerin de sınırı: paketleme Dart'ta (`test/home_widget/`),
   yorumlama Swift'te (`ios/RunnerTests/`) sınanır.
-- Payload'da her gün kendi **hicri tarihini** taşır. Swift'te hesaplanmaz:
-  iOS'un `islamicUmmAlQura` takvimi uygulamanın kullandığı `hijri` paketinden
-  gün kayabilir.
+- Payload'da her gün kendi **hicri tarihini** taşır (Diyanet verisi). Swift'te
+  hesaplanmaz: iOS'un `islamicUmmAlQura` takvimi Diyanet takviminden gün
+  kayabilir. Veri yoksa alan `null`, satır gizlenir.
 - Timeline yalnızca **vakit sınırlarında** giriş üretir (48 saat ufuk). Geri
   sayımı sistemin aralık sayacı (`Text(timerInterval:)`) çizer. Sayaç hedef
   tarihten hesaplandığı için hangi girişin ekranda olduğu önemsiz. Kilit

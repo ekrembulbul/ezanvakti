@@ -48,9 +48,9 @@
 		<key>LSRequiresIPhoneOS</key>
 		<true/>
 		<key>NSLocationWhenInUseUsageDescription</key>
-		<string>Location access is needed to show prayer times for where you are.</string>
+		<string>Location access is used to find your district and show its prayer times.</string>
 		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-		<string>Location access is needed to show prayer times for where you are.</string>
+		<string>Location access is used to find your district and show its prayer times.</string>
 		<key>NSAlarmKitUsageDescription</key>
 		<string>Alarm access is needed to set audible alarms for prayer times and the times you choose.</string>
 		<key>UIApplicationSceneManifest</key>

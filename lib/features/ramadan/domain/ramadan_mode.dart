@@ -1,25 +1,17 @@
-import 'package:hijri/hijri_calendar.dart';
+import '../../../core/models/hijri_date.dart';
 
-/// Ramazan ayının tespiti.
+/// Ramazan ayının tespiti — günün Diyanet Hicri tarihinden.
 ///
-/// Kaynak `ReligiousDays` ile aynı: tabular hicri takvim. Bu yüzden başlangıç
-/// günü Diyanet ilanından bir gün sapabilir; mod bir gün erken/geç açılabilir
-/// ama içerik doğru kalır (sayaç zaten o günün vakitlerinden hesaplanıyor).
+/// Veri yoksa (eski önbellek, henüz çekilmemiş gün) Ramazan **kabul edilmez**;
+/// tahmin yapılmaz.
 class RamadanMode {
   const RamadanMode._();
 
-  /// Hicri takvimde Ramazan'ın ay numarası.
-  static const int _ramadanMonth = 9;
+  static const int ramadanMonth = 9;
 
-  static bool isActive(DateTime date) =>
-      HijriCalendar.fromDate(_dayStart(date)).hMonth == _ramadanMonth;
+  static bool isActiveFor(HijriDate? hijri) => hijri?.month == ramadanMonth;
 
-  /// Ramazan'ın kaçıncı günü (1–30); Ramazan dışında `null`.
-  static int? dayOfRamadan(DateTime date) {
-    final hijri = HijriCalendar.fromDate(_dayStart(date));
-    return hijri.hMonth == _ramadanMonth ? hijri.hDay : null;
-  }
-
-  static DateTime _dayStart(DateTime date) =>
-      DateTime(date.year, date.month, date.day);
+  /// Ramazan'ın kaçıncı günü (1–30); Ramazan dışında ya da veri yoksa `null`.
+  static int? dayOfRamadanFor(HijriDate? hijri) =>
+      hijri != null && hijri.month == ramadanMonth ? hijri.day : null;
 }

@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
-import 'package:ezanvakti/core/utils/hijri_formatter.dart';
+import 'package:ezanvakti/core/models/hijri_date.dart';
 import 'package:ezanvakti/features/home_widget/domain/widget_snapshot_builder.dart';
 
 PrayerTime _day(DateTime date) => PrayerTime(
@@ -115,14 +115,27 @@ void main() {
       expect(kerahat[2].end, DateTime(2026, 8, 25, 20, 26));
     });
 
-    test('hicri tarih HijriFormatter ciktisiyla ayni', () {
+    test('hicri tarih gunun Diyanet Hicrisinden formatlanir; yoksa null', () {
+      final withHijri = _range(today, 1)
+          .map(
+            (t) => t.copyWith(
+              hijri: const HijriDate(day: 4, month: 4, year: 1448),
+            ),
+          )
+          .toList();
       final snapshot = WidgetSnapshotBuilder.build(
+        location: _location,
+        prayerTimes: withHijri,
+        now: DateTime(2026, 8, 25, 14, 0),
+      );
+      expect(snapshot.days.first.hijri, '4 Rebiülahir 1448');
+
+      final without = WidgetSnapshotBuilder.build(
         location: _location,
         prayerTimes: _range(today, 1),
         now: DateTime(2026, 8, 25, 14, 0),
       );
-
-      expect(snapshot.days.first.hijri, HijriFormatter.format(today));
+      expect(without.days.first.hijri, isNull);
     });
 
     test('locationLabel Location.displayName ile aynidir', () {

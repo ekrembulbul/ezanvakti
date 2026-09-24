@@ -22,6 +22,20 @@ void main() {
   /// v3 sütunlarını taşıyor — `sound_id`, `weekdays`, `label` yok.
   Future<void> createV8Schema(Database db) async {
     await db.execute('''
+      CREATE TABLE prayer_times (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        location_id TEXT NOT NULL,
+        date TEXT NOT NULL,
+        fajr TEXT NOT NULL,
+        sunrise TEXT NOT NULL,
+        dhuhr TEXT NOT NULL,
+        asr TEXT NOT NULL,
+        maghrib TEXT NOT NULL,
+        isha TEXT NOT NULL,
+        UNIQUE(location_id, date)
+      )
+    ''');
+    await db.execute('''
       CREATE TABLE locations (
         id TEXT PRIMARY KEY,
         province TEXT NOT NULL,
@@ -95,7 +109,7 @@ void main() {
       'sound_id': 'adhan',
       'created_at': DateTime(2026).toIso8601String(),
     });
-    await storage.onUpgrade(db, oldVersion, 14);
+    await storage.onUpgrade(db, oldVersion, 15);
     return db;
   }
 
@@ -187,5 +201,58 @@ void main() {
     final names = tables.map((t) => t['name']).toSet();
     expect(names, contains('qr_codes'));
     expect(names, contains('fasting_log'));
+  });
+
+  test(
+    'v15: vakit satiri hicri sutunlarini, konum ilce kimligini tasir',
+    () async {
+      final db = await upgradeFrom(8);
+      addTearDown(db.close);
+
+      final prayerColumns = (await db.rawQuery(
+        "PRAGMA table_info('prayer_times')",
+      )).map((c) => c['name']).toSet();
+      expect(
+        prayerColumns,
+        containsAll(<String>['hijri_day', 'hijri_month', 'hijri_year']),
+      );
+
+      final locationColumns = (await db.rawQuery(
+        "PRAGMA table_info('locations')",
+      )).map((c) => c['name']).toSet();
+      expect(
+        locationColumns,
+        containsAll(<String>[
+          'city_id',
+          'state_id',
+          'country_id',
+          'display_label',
+        ]),
+      );
+    },
+  );
+
+  test('v15 yukseltmesi eski konumu cityId null ile korur', () async {
+    final storage = SqliteStorage();
+    final db = await databaseFactory.openDatabase(
+      inMemoryDatabasePath,
+      options: OpenDatabaseOptions(singleInstance: false),
+    );
+    addTearDown(db.close);
+    await createV8Schema(db);
+    await db.insert('locations', {
+      'id': 'gps',
+      'province': 'İstanbul',
+      'district': 'Şile',
+      'latitude': 41.1,
+      'longitude': 29.6,
+      'type': 'gps',
+      'created_at': DateTime(2026).toIso8601String(),
+    });
+    await storage.onUpgrade(db, 8, 15);
+    final row = (await db.query('locations')).single;
+    expect(row['city_id'], isNull);
+    expect(row['display_label'], isNull);
+    expect(row['district'], 'Şile');
   });
 }

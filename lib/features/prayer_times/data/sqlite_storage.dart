@@ -8,8 +8,7 @@ import '../../../core/models/location.dart';
 import '../../../core/models/notification_setting.dart';
 import '../../../core/models/alarm.dart';
 import '../../../core/models/qr_code_entry.dart';
-import '../../../core/models/calculation_params.dart';
-import '../../../core/models/calculation_settings.dart';
+import '../../../core/models/prayer_tune_settings.dart';
 import '../../../core/models/appearance_settings.dart';
 import '../../../core/models/derived_time.dart';
 import '../../../core/models/general_settings.dart';
@@ -37,7 +36,7 @@ class SqliteStorage implements LocalStorage {
 
     return await openDatabase(
       path,
-      version: 14,
+      version: 15,
       onCreate: _onCreate,
       onUpgrade: onUpgrade,
     );
@@ -55,6 +54,9 @@ class SqliteStorage implements LocalStorage {
         asr TEXT NOT NULL,
         maghrib TEXT NOT NULL,
         isha TEXT NOT NULL,
+        hijri_day INTEGER,
+        hijri_month INTEGER,
+        hijri_year INTEGER,
         UNIQUE(location_id, date)
       )
     ''');
@@ -80,7 +82,11 @@ class SqliteStorage implements LocalStorage {
         created_at TEXT NOT NULL,
         method INTEGER,
         school INTEGER,
-        latitude_adjustment INTEGER
+        latitude_adjustment INTEGER,
+        city_id INTEGER,
+        state_id INTEGER,
+        country_id INTEGER,
+        display_label TEXT
       )
     ''');
 
@@ -216,15 +222,13 @@ class SqliteStorage implements LocalStorage {
       ''');
     }
     if (oldVersion < 4) {
-      // Konuma özel hesaplama parametreleri. Mevcut kayıtlar güvenli
-      // varsayılana (Diyanet + Hanefi) düşer; veri kaybı yok.
+      // Tarihsel adım: konuma özel hesaplama parametreleri (Aladhan dönemi).
+      // Sütunlar artık okunmaz; eski cihazların yükseltme zinciri için kalır.
       await db.execute(
-        'ALTER TABLE locations ADD COLUMN method INTEGER NOT NULL '
-        'DEFAULT ${CalculationDefaults.method}',
+        'ALTER TABLE locations ADD COLUMN method INTEGER NOT NULL DEFAULT 13',
       );
       await db.execute(
-        'ALTER TABLE locations ADD COLUMN school INTEGER NOT NULL '
-        'DEFAULT ${CalculationDefaults.school}',
+        'ALTER TABLE locations ADD COLUMN school INTEGER NOT NULL DEFAULT 0',
       );
       await db.execute(
         'ALTER TABLE locations ADD COLUMN latitude_adjustment INTEGER',
@@ -324,6 +328,22 @@ class SqliteStorage implements LocalStorage {
         'ALTER TABLE alarms ADD COLUMN fade_in INTEGER NOT NULL DEFAULT 0',
       );
     }
+    if (oldVersion < 15) {
+      // Diyanet il/ilçe modeli: konum ilçe kimliği, vakit satırı Hicri tarih
+      // taşır. Eski kayıtlar NULL kalır; migrasyon servisi eşler, Hicri
+      // yeniden çekimle dolar.
+      await db.execute('ALTER TABLE locations ADD COLUMN city_id INTEGER');
+      await db.execute('ALTER TABLE locations ADD COLUMN state_id INTEGER');
+      await db.execute('ALTER TABLE locations ADD COLUMN country_id INTEGER');
+      await db.execute('ALTER TABLE locations ADD COLUMN display_label TEXT');
+      await db.execute('ALTER TABLE prayer_times ADD COLUMN hijri_day INTEGER');
+      await db.execute(
+        'ALTER TABLE prayer_times ADD COLUMN hijri_month INTEGER',
+      );
+      await db.execute(
+        'ALTER TABLE prayer_times ADD COLUMN hijri_year INTEGER',
+      );
+    }
   }
 
   @override
@@ -349,6 +369,9 @@ class SqliteStorage implements LocalStorage {
         'asr': prayerTime.asr.toIso8601String(),
         'maghrib': prayerTime.maghrib.toIso8601String(),
         'isha': prayerTime.isha.toIso8601String(),
+        'hijri_day': prayerTime.hijri?.day,
+        'hijri_month': prayerTime.hijri?.month,
+        'hijri_year': prayerTime.hijri?.year,
       }, conflictAlgorithm: ConflictAlgorithm.replace);
     }
 
@@ -472,37 +495,41 @@ class SqliteStorage implements LocalStorage {
     await db.delete('prayer_times');
   }
 
+  /// Geçmiş anahtar: eski sürümlerin `tune` değeri aynı kayıttan okunur;
+  /// JSON'daki method/school alanları `fromJson`'da yok sayılır.
+  static const String _tuneSettingsKey = 'calculation_settings';
+
   @override
-  Future<CalculationSettings> getCalculationSettings() async {
+  Future<PrayerTuneSettings> getPrayerTuneSettings() async {
     final db = await database;
     final results = await db.query(
       'settings',
       where: 'key = ?',
-      whereArgs: ['calculation_settings'],
+      whereArgs: [_tuneSettingsKey],
       limit: 1,
     );
 
-    if (results.isEmpty) return CalculationSettings.defaults;
+    if (results.isEmpty) return PrayerTuneSettings.none;
 
     final value = results.first['value'] as String;
     try {
-      return CalculationSettings.fromJson(
+      return PrayerTuneSettings.fromJson(
         json.decode(value) as Map<String, dynamic>,
       );
     } on FormatException catch (e) {
       AppLogger().warning(
-        'Invalid calculation_settings in storage, using defaults',
+        'Invalid $_tuneSettingsKey in storage, using defaults',
         e,
       );
-      return CalculationSettings.defaults;
+      return PrayerTuneSettings.none;
     }
   }
 
   @override
-  Future<void> saveCalculationSettings(CalculationSettings settings) async {
+  Future<void> savePrayerTuneSettings(PrayerTuneSettings settings) async {
     final db = await database;
     await db.insert('settings', {
-      'key': 'calculation_settings',
+      'key': _tuneSettingsKey,
       'value': json.encode(settings.toJson()),
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
@@ -1094,9 +1121,10 @@ class SqliteStorage implements LocalStorage {
         ),
         customName: row['custom_name'] as String?,
         // null = override yok, global ayar kullanılır.
-        method: row['method'] as int?,
-        school: row['school'] as int?,
-        latitudeAdjustmentMethod: row['latitude_adjustment'] as int?,
+        cityId: row['city_id'] as int?,
+        stateId: row['state_id'] as int?,
+        countryId: row['country_id'] as int?,
+        displayLabel: row['display_label'] as String?,
       );
     }).toList();
   }
@@ -1113,9 +1141,10 @@ class SqliteStorage implements LocalStorage {
       'type': location.type.name,
       'custom_name': location.customName,
       'created_at': DateTime.now().toIso8601String(),
-      'method': location.method,
-      'school': location.school,
-      'latitude_adjustment': location.latitudeAdjustmentMethod,
+      'city_id': location.cityId,
+      'state_id': location.stateId,
+      'country_id': location.countryId,
+      'display_label': location.displayLabel,
     }, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
@@ -1131,9 +1160,10 @@ class SqliteStorage implements LocalStorage {
         'longitude': location.longitude,
         'type': location.type.name,
         'custom_name': location.customName,
-        'method': location.method,
-        'school': location.school,
-        'latitude_adjustment': location.latitudeAdjustmentMethod,
+        'city_id': location.cityId,
+        'state_id': location.stateId,
+        'country_id': location.countryId,
+        'display_label': location.displayLabel,
       },
       where: 'id = ?',
       whereArgs: [location.id],

@@ -18,9 +18,8 @@ import '../widgets/settings/notification_prefs_section.dart';
 
 class SettingsScreen extends StatefulWidget {
   final Location currentLocation;
-  final String dataSource;
   final VoidCallback? onChangeLocation;
-  final VoidCallback? onCalculationSettings;
+  final VoidCallback? onPrayerTune;
   final VoidCallback? onQuietWindows;
 
   /// Bildirim tercihleri değişince planlamayı tazelemek için.
@@ -32,9 +31,8 @@ class SettingsScreen extends StatefulWidget {
   const SettingsScreen({
     super.key,
     required this.currentLocation,
-    this.dataSource = 'Aladhan API',
     this.onChangeLocation,
-    this.onCalculationSettings,
+    this.onPrayerTune,
     this.onQuietWindows,
     this.onNotificationPrefsChanged,
     this.onPrivacy,
@@ -88,8 +86,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 _row(
                   icon: Icons.tune_rounded,
-                  title: context.l10n.settingsCalculation,
-                  onTap: widget.onCalculationSettings,
+                  title: context.l10n.settingsPrayerTune,
+                  onTap: widget.onPrayerTune,
                 ),
               ],
             ),
@@ -126,15 +124,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 10),
             GroupedList(
               children: [
+                // Kurum adı uzun; sağ değer yerine alt satırda kırpılarak yazılır.
                 _row(
                   icon: Icons.cloud_download_rounded,
                   title: context.l10n.settingsDataSource,
-                  value: widget.dataSource,
+                  subtitle: context.l10n.dataSourceDiyanet,
                 ),
                 _row(
                   icon: Icons.lock_rounded,
                   title: context.l10n.settingsPrivacy,
                   onTap: widget.onPrivacy ?? _showPrivacy,
+                ),
+                // Sunucudaki ilçe koordinatları OSM'den; atıf lisans gereği.
+                _row(
+                  icon: Icons.map_outlined,
+                  title: context.l10n.osmDistrictAttribution,
                 ),
               ],
             ),
@@ -146,11 +150,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  /// Ayar satırı: sağda değer metni, dokunulabilirse ok.
+  /// Ayar satırı: sağda değer metni (ya da alt satırda açıklama),
+  /// dokunulabilirse ok.
   Widget _row({
     required IconData icon,
     required String title,
     String? value,
+    String? subtitle,
     VoidCallback? onTap,
   }) {
     final tokens = context.tokens;
@@ -158,6 +164,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return GroupedRow(
       icon: icon,
       title: Text(title),
+      subtitle: subtitle == null ? null : Text(subtitle),
       onTap: onTap,
       trailing: Row(
         mainAxisSize: MainAxisSize.min,

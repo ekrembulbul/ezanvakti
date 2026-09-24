@@ -43,8 +43,8 @@ class _PrayerTrackingScreenState extends State<PrayerTrackingScreen> {
   bool _loading = true;
 
   /// Oruç bölümü yalnızca Ramazan'da görünür: yılın kalanında boş bir ızgara
-  /// ekranı kalabalıklaştırırdı.
-  bool get _ramadan => RamadanMode.isActive(_today);
+  /// ekranı kalabalıklaştırırdı. Bugünün Diyanet Hicri'sinden (önbellek) okunur.
+  bool _ramadan = false;
 
   LocalStorage get _storage =>
       widget.storage ?? ServiceLocator().get<LocalStorage>();
@@ -71,12 +71,21 @@ class _PrayerTrackingScreenState extends State<PrayerTrackingScreen> {
     final qada = await _storage.getQadaCounts();
     final fasting = await _storage.getFastingLog(days.first, days.last);
     final fastingQada = await _storage.getFastingQadaCount();
+    final active = await _storage.getActiveLocation();
+    final todayTime = active == null
+        ? null
+        : await _storage.getDailyPrayerTime(
+            locationId: active.id,
+            date: _today,
+          );
+    final ramadan = RamadanMode.isActiveFor(todayTime?.hijri);
     if (!mounted) return;
     setState(() {
       _log = log;
       _qada = qada;
       _fasting = fasting;
       _fastingQada = fastingQada;
+      _ramadan = ramadan;
       _loading = false;
     });
   }
@@ -385,9 +394,7 @@ class _PrayerTrackingScreenState extends State<PrayerTrackingScreen> {
           Expanded(
             child: Text(
               context.l10n.prayerName(type),
-              style: AppTypography.rowTitle.copyWith(
-                color: tokens.textPrimary,
-              ),
+              style: AppTypography.rowTitle.copyWith(color: tokens.textPrimary),
             ),
           ),
           IconButton(

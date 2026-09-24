@@ -2,8 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
-import 'package:ezanvakti/core/models/calculation_params.dart';
-import 'package:ezanvakti/core/models/calculation_settings.dart';
 
 void main() {
   group('Location equality', () {
@@ -95,166 +93,22 @@ void main() {
     });
   });
 
-  group('Location calculation params', () {
-    test('Defaults to inherit (null overrides)', () {
-      const location = Location(
-        id: '1',
-        province: 'İstanbul',
-        district: 'Fatih',
-      );
-
-      // null = override yok, global ayar kullanılır.
-      expect(location.method, isNull);
-      expect(location.school, isNull);
-      expect(location.latitudeAdjustmentMethod, isNull);
-      expect(location.hasCalculationOverride, isFalse);
-    });
-
-    test('hasCalculationOverride is true when any override is set', () {
-      const location = Location(
-        id: '1',
-        province: 'İstanbul',
-        district: 'Fatih',
-        method: 3,
-      );
-
-      expect(location.hasCalculationOverride, isTrue);
-    });
-
-    test('schoolForMethod maps regional Asr defaults', () {
-      // Diyanet ve çoğu otorite standart/Şafi (0); Güney Asya Karachi (5) Hanefi.
-      expect(CalculationDefaults.schoolForMethod(13), equals(0));
-      expect(CalculationDefaults.schoolForMethod(1), equals(0));
-      expect(CalculationDefaults.schoolForMethod(5), equals(1));
-    });
-
-    test('fromJson without calc fields yields inherit (null)', () {
-      // Override belirtilmemiş; global ayar kullanılır.
+  group('Location legacy JSON', () {
+    test('method/school anahtarlari yok sayilir, Diyanet alanlari okunur', () {
       final location = Location.fromJson({
-        'id': '1',
+        'id': 'p1',
         'province': 'İstanbul',
-        'district': 'Fatih',
-        'type': 'manual',
+        'district': 'Şile',
+        'method': 13,
+        'school': 0,
+        'latitudeAdjustmentMethod': 3,
+        'cityId': 9547,
+        'stateId': 539,
+        'countryId': 2,
       });
-
-      expect(location.method, isNull);
-      expect(location.school, isNull);
-      expect(location.latitudeAdjustmentMethod, isNull);
-    });
-
-    test('withResolvedParams fills null overrides from global settings', () {
-      const inherit = Location(
-        id: '1',
-        province: 'İstanbul',
-        district: 'Fatih',
-      );
-      const global = CalculationSettings(
-        method: 2,
-        school: 1,
-        latitudeAdjustmentMethod: 3,
-      );
-
-      final resolved = inherit.withResolvedParams(global);
-
-      expect(resolved.method, equals(2));
-      expect(resolved.school, equals(1));
-      expect(resolved.latitudeAdjustmentMethod, equals(3));
-    });
-
-    test('withResolvedParams keeps the location override over global', () {
-      const override = Location(
-        id: '1',
-        province: 'İstanbul',
-        district: 'Fatih',
-        method: 13,
-        school: 0,
-      );
-      const global = CalculationSettings(method: 2, school: 1);
-
-      final resolved = override.withResolvedParams(global);
-
-      expect(resolved.method, equals(13));
-      expect(resolved.school, equals(0));
-    });
-
-    test('toJson/fromJson round-trips calculation params', () {
-      const original = Location(
-        id: '1',
-        province: 'İstanbul',
-        district: 'Fatih',
-        method: 3,
-        school: 0,
-        latitudeAdjustmentMethod: 3,
-      );
-
-      final restored = Location.fromJson(original.toJson());
-
-      expect(restored, equals(original));
-      expect(restored.method, equals(3));
-      expect(restored.school, equals(0));
-      expect(restored.latitudeAdjustmentMethod, equals(3));
-    });
-
-    test('copyWith overrides method and school independently', () {
-      const original = Location(
-        id: '1',
-        province: 'İstanbul',
-        district: 'Fatih',
-      );
-
-      final updated = original.copyWith(method: 2, school: 0);
-
-      expect(updated.method, equals(2));
-      expect(updated.school, equals(0));
-      expect(original.method, isNull);
-      expect(updated, isNot(equals(original)));
-    });
-  });
-
-  group('CalculationSettings', () {
-    test('defaults to Diyanet method and standard (Shafi) Asr school', () {
-      expect(CalculationSettings.defaults.method, equals(13));
-      expect(CalculationSettings.defaults.school, equals(0));
-      expect(CalculationSettings.defaults.latitudeAdjustmentMethod, isNull);
-    });
-
-    test('toJson/fromJson round-trips', () {
-      const settings = CalculationSettings(
-        method: 2,
-        school: 1,
-        latitudeAdjustmentMethod: 3,
-      );
-
-      final restored = CalculationSettings.fromJson(settings.toJson());
-
-      expect(restored, equals(settings));
-    });
-
-    test('equality reflects all fields', () {
-      const a = CalculationSettings(method: 13, school: 0);
-      const b = CalculationSettings(method: 13, school: 0);
-      const c = CalculationSettings(method: 13, school: 1);
-
-      expect(a, equals(b));
-      expect(a, isNot(equals(c)));
-    });
-  });
-
-  group('CalculationMethods catalog', () {
-    test('byId returns the matching method', () {
-      expect(CalculationMethods.byId(13).name, contains('Diyanet'));
-    });
-
-    test('byId falls back to Diyanet for unknown ids', () {
-      expect(
-        CalculationMethods.byId(999).id,
-        equals(CalculationDefaults.method),
-      );
-    });
-
-    test('AsrSchool.fromValue maps API values', () {
-      expect(AsrSchool.fromValue(0), equals(AsrSchool.shafi));
-      expect(AsrSchool.fromValue(1), equals(AsrSchool.hanafi));
+      expect(location.cityId, 9547);
+      expect(location.isMapped, isTrue);
+      expect(location.toJson().containsKey('method'), isFalse);
     });
   });
 }

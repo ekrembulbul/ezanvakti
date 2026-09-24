@@ -24,60 +24,62 @@
 <body>
 <main>
   <h1>Gizlilik Politikası — Ezan Vakti &amp; Alarm</h1>
-  <p class="meta">Son güncelleme: 9 Haziran 2026</p>
+  <p class="meta">Son güncelleme: 17 Eylül 2026</p>
 
   <p>Bu gizlilik politikası, <strong>Ezan Vakti &amp; Alarm</strong> mobil uygulamasının
   ("Uygulama") kişisel verileri nasıl ele aldığını açıklar. Uygulamayı kullanarak bu
   politikayı kabul etmiş olursunuz.</p>
 
   <h2>Özet</h2>
-  <p>Uygulama; namaz vakitlerini hesaplamak ve hatırlatmak için tasarlanmıştır.
-  <strong>Kişisel verileriniz için bize ait bir sunucu yoktur; hesap oluşturmanız
-  gerekmez.</strong> Verileriniz cihazınızda saklanır. Reklam ağı veya analitik
-  (kullanım izleme) servisi kullanılmaz.</p>
+  <p>Uygulama; Diyanet İşleri Başkanlığı'nın namaz vakitlerini göstermek ve hatırlatmak
+  için tasarlanmıştır. <strong>Hesap oluşturmanız gerekmez.</strong> Vakit ve ilçe verisini
+  sunan sunucumuz kimlik bilgisi almaz ve isteklerinizi saklamaz. Verileriniz cihazınızda
+  saklanır. Reklam ağı veya analitik (kullanım izleme) servisi kullanılmaz.</p>
 
   <h2>İşlenen veriler</h2>
   <ul>
-    <li><strong>Konum bilgisi:</strong> Namaz vakitleri konuma göre hesaplandığından,
-    GPS ile edindiğiniz koordinatlar veya elle aradığınız adres bilgisi işlenir.
-    Bu bilgi cihazınızda saklanır.</li>
-    <li><strong>Uygulama tercihleri:</strong> Bildirim ayarları, hesaplama yöntemi/mezhep
-    seçimleri, kayıtlı konumlar — tümü cihazınızda saklanır.</li>
-    <li><strong>Hesaplanan namaz vakitleri:</strong> Çevrimdışı kullanım için cihazınızda
-    önbelleğe alınır.</li>
+    <li><strong>Konum bilgisi:</strong> Namaz vakitleri ilçeye göre gösterilir.
+    "Konumumu kullan" seçildiğinde GPS koordinatınız, en yakın ilçeyi bulmak için
+    yaklaşık 100 m hassasiyete yuvarlanarak sunucumuza gönderilir; sunucu bunu saklamaz.
+    Cihazınızda saklanan koordinat kıble yönü içindir. Elle arama yaptığınızda yazdığınız
+    il/ilçe metni sunucumuza gönderilir.</li>
+    <li><strong>Uygulama tercihleri:</strong> Bildirim ayarları, vakit düzeltme tercihi,
+    kayıtlı konumlar — tümü cihazınızda saklanır.</li>
+    <li><strong>Namaz vakitleri:</strong> Çevrimdışı kullanım için cihazınızda önbelleğe
+    alınır.</li>
   </ul>
   <p>Uygulama; adınız, e-postanız, telefon numaranız veya rehberiniz gibi kimlik
   bilgilerini <strong>toplamaz</strong>.</p>
 
   <h2>Verilerin kullanımı</h2>
   <ul>
-    <li>Bulunduğunuz/seçtiğiniz konuma göre namaz vakitlerini hesaplamak ve göstermek,</li>
+    <li>Bulunduğunuz/seçtiğiniz ilçenin namaz vakitlerini göstermek,</li>
     <li>Seçtiğiniz vakitler için yerel bildirim/hatırlatma oluşturmak,</li>
     <li>Tercihlerinizi ve vakitleri çevrimdışı kullanım için cihazda saklamak.</li>
   </ul>
 
-  <h2>Üçüncü taraf servisler</h2>
-  <p>Vakit hesaplama ve adres araması için aşağıdaki harici servislere istek gönderilir.
-  Bu servislere yalnızca işlevi yerine getirmek için gereken veriler (koordinatlar veya
-  arama metni) iletilir; kimlik bilgileriniz gönderilmez:</p>
+  <h2>Sunucu ve veri kaynakları</h2>
+  <p>Vakit tabloları, il/ilçe araması ve konum çözümleme için yalnızca <strong>bize ait
+  vakit sunucusuna</strong> istek gönderilir. Sunucuya giden veriler:</p>
   <ul>
-    <li><strong>Aladhan API</strong> (<code>api.aladhan.com</code>): Namaz vakti
-    hesaplaması için koordinatlar gönderilir.</li>
-    <li><strong>Photon / OpenStreetMap:</strong> Adres arama için yazdığınız arama metni
-    gönderilir.</li>
-    <li><strong>Platform konum/harita servisleri (Apple / Google):</strong> GPS konumunu
-    adrese çevirmek için işletim sisteminin konum servisi kullanılır; bu işlem ilgili
-    platformun kendi gizlilik politikasına tabidir.</li>
+    <li>İlçe araması için yazdığınız metin,</li>
+    <li>Konum çözümleme için yaklaşık (~100 m) koordinat,</li>
+    <li>Vakit tablosu için seçilen ilçenin kimliği.</li>
   </ul>
+  <p>Sunucu bu istekleri saklamaz, günlüğe yazmaz ve kimliğinizle ilişkilendirmez; hesap
+  veya cihaz kimliği gönderilmez. Bağlantı HTTPS ile şifrelenir.</p>
+  <p>Vakit tabloları <strong>Diyanet İşleri Başkanlığı</strong>'ndan alınır. Sunucudaki ilçe
+  koordinatları © OpenStreetMap katkıcıları. Üçüncü taraf bir vakit ya da adres servisine
+  veri gönderilmez.</p>
 
   <h2>Veri saklama ve silme</h2>
-  <p>Tüm uygulama verileri <strong>yalnızca cihazınızda</strong> tutulur. Uygulamayı
-  kaldırdığınızda bu veriler cihazınızdan silinir. Konum ve diğer tercihleri uygulama
+  <p>Tüm uygulama verileri <strong>yalnızca cihazınızda</strong> tutulur; sunucu tarafında
+  size ait bir kayıt oluşmaz. Uygulamayı kaldırdığınızda bu veriler cihazınızdan silinir. Konum ve diğer tercihleri uygulama
   içinden de değiştirebilir veya kaldırabilirsiniz.</p>
 
   <h2>İzinler</h2>
   <ul>
-    <li><strong>Konum:</strong> Namaz vakitlerini konumunuza göre hesaplamak için.</li>
+    <li><strong>Konum:</strong> Bulunduğunuz ilçeyi bulup vakitleri ona göre göstermek için.</li>
     <li><strong>Bildirim:</strong> Vakit hatırlatmalarını göstermek için.</li>
     <li><strong>Tam zamanlı alarm (Android 12+):</strong> Hatırlatmaların doğru vakitte
     çalması için.</li>

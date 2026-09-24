@@ -73,18 +73,19 @@ class PrayerTimesRepository {
     try {
       logger.debug('Fetching from remote API');
       final remoteTimes = await provider.fetchPrayerTimes(
-        location: await _resolveLocation(location),
+        location: location,
         startDate: startDate,
         endDate: endDate,
       );
 
       if (remoteTimes.isNotEmpty) {
-        // Önbelleğe **ham** veri yazılır; düzeltme okurken uygulanır.
+        // Önbelleğe **ham** veri yazılır; düzeltme okurken uygulanır. Sağlayıcı
+        // yılın tamamını verebilir (Diyanet): hepsi yazılır, pencere kesilir.
         logger.debug('Saving ${remoteTimes.length} days to cache');
         await _saveCache(remoteTimes, location.id, generation);
       }
 
-      return await _tuned(remoteTimes);
+      return await _tuned(_withinWindow(remoteTimes, startDate, endDate));
     } catch (e) {
       logger.warning('Remote fetch failed, attempting fallback to cache', e);
       final cachedTimes = await storage.getPrayerTimes(
@@ -105,7 +106,7 @@ class PrayerTimesRepository {
 
   Future<PrayerTime?> _tunedOne(PrayerTime? time) async {
     if (time == null) return null;
-    final settings = await storage.getCalculationSettings();
+    final settings = await storage.getPrayerTuneSettings();
     return PrayerTimeTuner.applyOne(time, settings.tune);
   }
 
@@ -114,7 +115,7 @@ class PrayerTimesRepository {
   /// beslendiği için düzeltme her yerde tutarlı görünür.
   Future<List<PrayerTime>> _tuned(List<PrayerTime> times) async {
     if (times.isEmpty) return times;
-    final settings = await storage.getCalculationSettings();
+    final settings = await storage.getPrayerTuneSettings();
     return PrayerTimeTuner.apply(times, settings.tune);
   }
 
@@ -147,7 +148,7 @@ class PrayerTimesRepository {
     try {
       logger.debug('Fetching from remote API');
       final remoteTime = await provider.fetchDailyPrayerTime(
-        location: await _resolveLocation(location),
+        location: location,
         date: normalizedDate,
       );
 
@@ -194,26 +195,17 @@ class PrayerTimesRepository {
     await storage.deleteOldPrayerTimes(cutoffDate);
   }
 
-  /// Bir konumun önbellekteki vakitlerini siler. Hesaplama parametreleri
-  /// (method/school) değişince eski vakitler geçersiz olur; bir sonraki okuma
-  /// güncel parametrelerle yeniden çeker.
+  /// Bir konumun önbellekteki vakitlerini siler. Konumun ilçesi (cityId)
+  /// değişince eski vakitler geçersiz olur; bir sonraki okuma yeniden çeker.
   Future<void> clearCacheForLocation(String locationId) async {
     _cacheGeneration++;
     await _enqueueCache(() => storage.deletePrayerTimesForLocation(locationId));
   }
 
-  /// Tüm konumların önbelleğini siler. Global hesaplama ayarı değişince
-  /// (tüm "inherit" konumları etkilediği için) kullanılır.
+  /// Tüm konumların önbelleğini siler.
   Future<void> clearAllCache() async {
     _cacheGeneration++;
     await _enqueueCache(storage.deleteAllPrayerTimes);
-  }
-
-  /// Konumun override'larını global ayarla birleştirip somut parametreli bir
-  /// konum döner; sağlayıcıya bu gönderilir. Önbellek kimliği değişmez.
-  Future<Location> _resolveLocation(Location location) async {
-    final settings = await storage.getCalculationSettings();
-    return location.withResolvedParams(settings);
   }
 
   Future<DateTime?> getLastUpdateTime() async {
@@ -228,6 +220,23 @@ class PrayerTimesRepository {
 
     final difference = DateTime.now().difference(lastUpdate);
     return difference > staleDuration;
+  }
+
+  /// Sağlayıcı istenen aralıktan fazlasını döndüğünde (yıllık dosya) çağırana
+  /// yalnız [start]–[end] arasındaki günler verilir.
+  static List<PrayerTime> _withinWindow(
+    List<PrayerTime> times,
+    DateTime start,
+    DateTime end,
+  ) {
+    final from = DateTime(start.year, start.month, start.day);
+    final to = DateTime(end.year, end.month, end.day);
+    return times
+        .where((t) {
+          final day = DateTime(t.date.year, t.date.month, t.date.day);
+          return !day.isBefore(from) && !day.isAfter(to);
+        })
+        .toList(growable: false);
   }
 
   bool _isCacheComplete(

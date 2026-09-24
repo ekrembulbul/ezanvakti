@@ -4,7 +4,7 @@
    lives in App Store Connect, not here. */
 "CFBundleDisplayName" = "Prayer & Alarm";
 "CFBundleName" = "Prayer Times";
-"NSLocationWhenInUseUsageDescription" = "Location access is needed to show prayer times for where you are.";
-"NSLocationAlwaysAndWhenInUseUsageDescription" = "Location access is needed to show prayer times for where you are.";
+"NSLocationWhenInUseUsageDescription" = "Location access is used to find your district and show its prayer times.";
+"NSLocationAlwaysAndWhenInUseUsageDescription" = "Location access is used to find your district and show its prayer times.";
 "NSCameraUsageDescription" = "Camera access is needed to scan the code you saved, so you can dismiss an alarm with a QR task.";
 "NSAlarmKitUsageDescription" = "Alarm access is needed to set audible alarms for prayer times and the times you choose.";

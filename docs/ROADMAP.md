@@ -4,12 +4,12 @@ Mevcut durum, kısa vadeli iyileştirmeler ve planlanan özellikler. Ürün sın
 
 ## Mevcut durum (MVP)
 
-- ✅ Online adres araması (Photon/OSM, global typeahead) ve GPS ile lokasyon seçimi
-- ✅ Konuma özel hesaplama yöntemi (Diyanet vb.) ve İkindi mezhebi; konum düzenleme ekranı
+- ✅ İl/ilçe araması (sunucuda) ve GPS ile en yakın ilçe; konum düzenleme (özel ad, ilçe değiştir)
+- ✅ Vakit başına ± dakika düzeltmesi
 - ✅ Günün vakitleri + geri sayım, 30 günlük takvim
-- ✅ Aladhan (Diyanet method=13) kaynağı, SQLite cache, offline gösterim
+- ✅ Diyanet ilçe tablosu (`server/` → `vakit-api`, yıllık dosya + ETag), SQLite cache, offline gösterim (ADR 0006)
 - ✅ Vakit bazlı bildirimler (tam vakit + X dk önce), izin yönetimi
-- ✅ Hicri tarih, karanlık tema
+- ✅ Hicri tarih (Diyanet verisi), karanlık tema
 - ✅ iOS widget: ana ekran (küçük/orta) ve kilit ekranı (dikdörtgen)
 
 ## Kısa vadeli iyileştirmeler (teknik borç)
@@ -28,16 +28,16 @@ Son sürümlerde tamamlananlar (0.1.1–0.1.4):
 - ✅ Çakışmaya dayanıklı sayısal bildirim kimlikleri; bekleyen bildirim bilgisi kimlikten doğru çözülüyor.
 - ✅ Uygulama ön plana geldiğinde bildirimlerin otomatik yeniden planlanması (saatte bir throttle).
 - ✅ Android 12+ exact alarm izni kapalıyken uyarı + sistem ayarlarına yönlendirme.
-- ✅ Aladhan 429/5xx/zaman aşımı için sınırlı yeniden deneme + backoff (`Retry-After` uyumlu); 429'da aylık→günlük istek amplifikasyonu kaldırıldı, kalıcı sınırda önbelleğe düşülür.
+- ✅ Vakit isteğinde 429/5xx/zaman aşımı için sınırlı yeniden deneme + backoff (`DiyanetProvider`); kalıcı hatada önbelleğe düşülür.
 - ✅ Varsayılan bildirimler yalnızca ilk açılışta bir kez oluşturulur (kalıcı DB bayrağı); kullanıcı silince konum değişiminde geri gelmiyor.
 - ✅ Arka plan vakit penceresi 28 → 13 güne daraltıldı (bugünden önce 2, sonra 10 gün); gereksiz API isteği azaltıldı.
 - ✅ Flutter yükseltmesi + iOS UIScene yaşam döngüsüne geçiş; iOS 26 / Xcode 26.5 ile debug modu çökmesi (EXC_BAD_ACCESS) giderildi.
+- ✅ GPS canlı akış yolu da `LocationService.changeLocation`'a delege ediyor (`LocationMonitorController`); manuel ve GPS yolu tek kanonik akışta.
 - ✅ Konum değişim mantığı tek kanonik yola indirildi (manuel yol): `HomePage._switchLocation` artık domain `LocationService.changeLocation`'a delege ediyor. `changeLocation` veri çekme sorumluluğundan arındırıldı (yalnızca aktif konum + parametre değişiminde önbellek geçersizleştirme + bildirim iptali); vakit yükleme tek pencerede (`DataLoaderService`) kalıyor, böylece çift çekim ve offline sıralama sorunu giderildi.
 
 Açık kalanlar:
 
-- **Konum değişim konsolidasyonu — GPS yolu:** Manuel yol tamamlandı; GPS canlı akış yolu (`LocationMonitorController`) hâlâ doğrudan `locationRepository.setActiveLocation` kullanıyor. O da `LocationService.changeLocation`'a delege edilebilir (küçük takip).
-- **Diyanet birebir vakit:** Aladhan method=13 yaklaşık hesaptır; resmi tablo için Diyanet API'si + backend proxy gerekir (bkz. PRODUCT_SPEC).
+- **Diyanet birebir vakit — ✅ uygulama ve sunucu bitti (Spec A/B).** Aladhan/Photon kaldırıldı. Diyanet API hesabı 2026-09-24'te geldi ve canlı doğrulandı (Spec A "Açık noktalar"). Bekleyen: sunucunun GitHub Actions ile dağıtımı (`https://ezanvakti.ekrembulbul.me`, host portu 3060) ve CI değişkeni `VAKIT_API_BASE_URL`.
 
 > Kapatılan: Bildirim duplicate kontrolünün DB tabanlı hale getirilmesi **gerekli görülmedi** — `scheduleNotifications` her çalışmada başta `cancelAllNotifications()` çağırıyor ve ID'ler `(gün, vakit, ofset)`'ten deterministik üretiliyor (aynı ID platformda üzerine yazılır). Duplicate birikme yolu olmadığından DB'ye taşımak gereksiz karmaşıklık olurdu.
 
@@ -88,10 +88,10 @@ Hedef: Vakitte yalnızca sessiz bildirim değil, **sesli alarm/ezan** çalması.
 > Deneyim: **iOS 26.1+ → AlarmKit**, **eski iOS → alarm kapalı, diğer her şey çalışır**, **Android → gerçek AlarmManager alarmı**.
 
 ### 📍 Çoklu / favori lokasyonlar
-Büyük ölçüde uygulandı: kayıtlı lokasyon listesi, ekleme (arama/GPS), düzenleme (yöntem/mezhep/isim) ve hızlı geçiş mevcut. İyileştirme: lokasyonları sıralama/etiketleme, GPS ile eklenen konuma da düzenleme akışında parametre seçimi (zaten düzenleme ekranından mümkün).
+Büyük ölçüde uygulandı: kayıtlı lokasyon listesi, ekleme (arama/GPS), düzenleme (özel ad, ilçe değiştir) ve hızlı geçiş mevcut. İyileştirme: lokasyonları sıralama/etiketleme.
 
-### 🌍 Yeni kaynak/ülke desteği
-Aladhan koordinat tabanlı olduğundan **global vakit zaten çalışıyor**; kullanıcı konum başına hesaplama yöntemini (`method`) seçebiliyor. İleride: `PrayerTimeProvider` soyutlamasıyla farklı bir sağlayıcı (ör. backend proxy üzerinden Diyanet resmi API) eklenebilir.
+### 🌍 Yeni ülke desteği
+Şimdilik yalnız Türkiye (sunucu kapsamı). Diyanet 209 ülke için tablo yayımlıyor; ülkeler sunucu tarafında açıldıkça uygulamaya ülke seçici ve ülke bazlı arama eklenir, vakit modeli değişmez. Türkiye dışı GPS bugün `NO_COVERAGE` döner ve kullanıcı ilçe seçer.
 
 ### 🧩 Android widget'ı
 iOS widget'ı tamamlandı — bkz. [tasarım](superpowers/specs/2026-08-25-ios-widget-design.md).

@@ -3,7 +3,7 @@
 /// Saatler `"HH:mm"`, tarihler `"yyyy-MM-dd"` olarak serileştirilir; offset'li
 /// ISO timestamp **bilerek** kullanılmaz. Uygulama vakitleri timezone
 /// taşımayan cihaz-yerel wall-clock olarak üretiyor
-/// (`awqat_salah_provider.dart:407`); offset yazmak widget'a uygulamada
+/// (`diyanet_provider.dart`, `_parseDay`); offset yazmak widget'a uygulamada
 /// olmayan bir timezone semantiği uydurmak olurdu.
 class WidgetDayTimes {
   final DateTime fajr;
@@ -49,12 +49,12 @@ class WidgetSnapshotDay {
   final DateTime date;
   final WidgetDayTimes times;
 
-  /// Uygulamanın gösterdiği hicri tarih (`HijriFormatter.format` çıktısı).
+  /// Uygulamanın gösterdiği Diyanet Hicri tarihi (`HijriFormatter.formatHijri`).
   ///
   /// Swift tarafında hesaplanmıyor: iOS'un `islamicUmmAlQura` takvimi
-  /// uygulamanın kullandığı `hijri` paketinden gün kayabiliyor ve widget'ın
-  /// uygulamadan farklı tarih göstermesi kabul edilemez.
-  final String hijri;
+  /// Diyanet'ten gün kayabiliyor ve widget'ın uygulamadan farklı tarih
+  /// göstermesi kabul edilemez. Veri yoksa `null`; Swift tarafı opsiyonel okur.
+  final String? hijri;
 
   /// Günün kerahat aralıkları (v4); boş liste de geçerlidir.
   final List<WidgetKerahatInterval> kerahat;
@@ -62,7 +62,7 @@ class WidgetSnapshotDay {
   const WidgetSnapshotDay({
     required this.date,
     required this.times,
-    required this.hijri,
+    this.hijri,
     this.kerahat = const [],
   });
 

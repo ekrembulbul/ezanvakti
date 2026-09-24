@@ -3,9 +3,9 @@ import '../../../core/models/prayer_time.dart';
 
 /// Kullanıcının vakit başına verdiği ± dakika düzeltmesini uygular.
 ///
-/// Düzeltme **yerelde** uygulanır, Aladhan'ın `tune` parametresiyle değil:
-/// önbellek ham veriyi tutar ve düzeltme okurken uygulanır. Böylece ayar
-/// değişince yeniden fetch gerekmez, çevrimdışı da çalışır ve önbellek
+/// Düzeltme **yerelde** uygulanır; sunucudan düzeltilmiş veri istenmez:
+/// önbellek ham Diyanet verisini tutar ve düzeltme okurken uygulanır. Böylece
+/// ayar değişince yeniden fetch gerekmez, çevrimdışı da çalışır ve önbellek
 /// geçersizleştirme derdi olmaz.
 class PrayerTimeTuner {
   const PrayerTimeTuner._();
@@ -21,8 +21,8 @@ class PrayerTimeTuner {
 
   static PrayerTime applyOne(PrayerTime time, Map<PrayerType, int> tune) {
     if (_isEmpty(tune)) return time;
-    return PrayerTime(
-      date: time.date,
+    // copyWith: Hicri gibi vakit dışı alanlar korunur.
+    return time.copyWith(
       fajr: _shift(time.fajr, tune[PrayerType.fajr]),
       sunrise: _shift(time.sunrise, tune[PrayerType.sunrise]),
       dhuhr: _shift(time.dhuhr, tune[PrayerType.dhuhr]),

@@ -1,6 +1,5 @@
 import 'package:flutter/widgets.dart';
 
-import '../core/models/calculation_params.dart';
 import '../features/alarms/domain/abort_gate.dart';
 import '../core/models/derived_time.dart';
 import '../core/models/location.dart';
@@ -78,18 +77,6 @@ extension L10nLabels on AppLocalizations {
     ReligiousDayId.eidAdha => religiousEidAdha,
   };
 
-  String asrSchoolLabel(AsrSchool school) => switch (school) {
-    AsrSchool.shafi => asrShafi,
-    AsrSchool.hanafi => asrHanafi,
-  };
-
-  String latitudeAdjustmentLabel(LatitudeAdjustment value) => switch (value) {
-    LatitudeAdjustment.auto => latAuto,
-    LatitudeAdjustment.middleOfNight => latMidnight,
-    LatitudeAdjustment.oneSeventh => latOneSeventh,
-    LatitudeAdjustment.angleBased => latAngle,
-  };
-
   String abortPhrase(AbortPhrase phrase) => switch (phrase) {
     AbortPhrase.short => abortDismissing,
     AbortPhrase.long => abortDismissingHard,
@@ -100,9 +87,10 @@ extension L10nLabels on AppLocalizations {
     LocationType.manual => locationTypeManual,
   };
 
-  String timeFormatLabel(TimeFormatPreference preference) => switch (preference) {
-    TimeFormatPreference.system => timeFormatSystem,
-    TimeFormatPreference.h24 => timeFormat24,
-    TimeFormatPreference.h12 => timeFormat12,
-  };
+  String timeFormatLabel(TimeFormatPreference preference) =>
+      switch (preference) {
+        TimeFormatPreference.system => timeFormatSystem,
+        TimeFormatPreference.h24 => timeFormat24,
+        TimeFormatPreference.h12 => timeFormat12,
+      };
 }

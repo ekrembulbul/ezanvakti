@@ -44,7 +44,9 @@ class WidgetSnapshotBuilder {
     final day = _dayOf(time.date);
     return WidgetSnapshotDay(
       date: day,
-      hijri: HijriFormatter.format(day, l10n),
+      hijri: time.hijri == null
+          ? null
+          : HijriFormatter.formatHijri(time.hijri!, l10n),
       times: WidgetDayTimes(
         fajr: time.fajr,
         sunrise: time.sunrise,

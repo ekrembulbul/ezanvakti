@@ -109,9 +109,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsLocation => 'الموقع';
 
   @override
-  String get settingsCalculation => 'طريقة الحساب';
-
-  @override
   String get settingsDataSource => 'مصدر البيانات';
 
   @override
@@ -681,19 +678,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get snackUndo => 'تراجع';
 
   @override
-  String get locationTitle => 'المواقع';
-
-  @override
   String get locationAdd => 'إضافة موقع';
 
   @override
-  String get locationSearch => 'ابحث عن مدينة';
-
-  @override
   String get locationUseGps => 'استخدم موقعي';
-
-  @override
-  String get locationEmpty => 'لا توجد مواقع محفوظة';
 
   @override
   String shareCaption(Object location, Object period) {
@@ -763,7 +751,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get locationsEmpty => 'لم تتم إضافة مواقع بعد';
 
   @override
-  String get locationsEmptyHint => 'حدّد تلقائيًا عبر GPS أو\nابحث عن عنوان';
+  String get locationsEmptyHint => 'ابحث عن قضائك أو استخدم موقعك';
 
   @override
   String get locationsSwipeHint => 'اسحب الصف لحذف موقع غير نشط.';
@@ -778,17 +766,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get locationEditTitle => 'تعديل الموقع';
 
   @override
-  String get locationSearchHint => 'ابحث بالمدينة أو المنطقة أو المكان';
-
-  @override
-  String get locationSearchPlaceholder => 'ابحث عن مدينة أو منطقة أو مكان…';
-
-  @override
-  String get locationSearchStart => 'ابدأ الكتابة للبحث.';
+  String get locationSearchPlaceholder => 'ابحث عن محافظة أو قضاء...';
 
   @override
   String get locationSearchNoResult =>
-      'لا توجد نتائج.\nجرّب بحثًا آخر أو تحقق من اتصالك.';
+      'لا توجد نتائج.\nتحقق من اسم المحافظة أو القضاء.';
 
   @override
   String get locationGettingPosition => 'جارٍ تحديد الموقع…';
@@ -798,7 +780,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get locationPermissionBody =>
-      'نحتاج إذن الموقع لعرض أوقات الصلاة حسب مكانك. بالسماح سيتم اختيار مدينتك تلقائيًا.';
+      'يلزم إذن الموقع للعثور على قضائك وعرض أوقاته. يُستخدم موقعك فقط للعثور على أقرب قضاء.';
 
   @override
   String get locationPermissionAllow => 'اسمح';
@@ -814,24 +796,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get locationUpdated => 'تم تحديث الموقع';
 
   @override
-  String get locationSelectFirst => 'يرجى اختيار موقع';
-
-  @override
   String get locationCustomName => 'اسم مخصص (اختياري)';
 
   @override
   String get locationCustomNameHint => 'مثال: المنزل، العمل';
-
-  @override
-  String get locationUseGlobalCalculation => 'استخدم إعداد الحساب العام';
-
-  @override
-  String get locationUseGlobalCalculationHint =>
-      'أوقفه لاختيار طريقة خاصة بهذا الموقع';
-
-  @override
-  String get locationCalculationFromGlobal =>
-      'تُؤخذ طريقة الحساب من الإعداد العام. لتغييرها لهذا الموقع، عدّل بعد الحفظ.';
 
   @override
   String get locationChange => 'تغيير';
@@ -840,9 +808,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String locationUndoFailed(Object error) {
     return 'تعذّر التراجع: $error';
   }
-
-  @override
-  String get osmAttribution => '© مساهمو OpenStreetMap';
 
   @override
   String get widgetTomorrow => 'غدًا';
@@ -950,43 +915,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get religiousEidAdha => 'عيد الأضحى';
-
-  @override
-  String get asrShafi => 'الشافعي (قياسي)';
-
-  @override
-  String get asrHanafi => 'الحنفي';
-
-  @override
-  String get latAuto => 'تلقائي';
-
-  @override
-  String get latMidnight => 'منتصف الليل';
-
-  @override
-  String get latOneSeventh => 'سُبع الليل';
-
-  @override
-  String get latAngle => 'حسب الزاوية';
-
-  @override
-  String get calcMethodLabel => 'طريقة الحساب';
-
-  @override
-  String get calcAsrLabel => 'العصر (المذهب)';
-
-  @override
-  String get calcAdvanced => 'متقدم';
-
-  @override
-  String get calcLatitudeLabel => 'تعديل خطوط العرض العالية';
-
-  @override
-  String get calcGlobalNote =>
-      'الإعداد الافتراضي لكل المواقع. يُستخدم ما لم يكن للموقع إعداد خاص.';
-
-  @override
-  String get calcTuneSection => 'تعديلات الأوقات';
 
   @override
   String get calcTuneHint =>
@@ -1374,11 +1302,12 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get settingsFooter => 'تُحفظ الأوقات على جهازك ولا تُرسل لأي جهة.';
+  String get settingsFooter =>
+      'تُحفظ الأوقات على جهازك؛ لا يصل إلى الخادم سوى البحث عن القضاء وتحديد الموقع.';
 
   @override
   String get privacyBody =>
-      'يُستخدم موقعك فقط لحساب أوقات الصلاة ويبقى على جهازك. تُطلب الأوقات من Aladhan API بالإحداثيات؛ ولا تُرسل بيانات شخصية.';
+      'يبقى موقعك والأقضية المحفوظة على جهازك. يُرسل نص البحث وإحداثية تقريبية (~100 م) لتحديد القضاء إلى خادم الأوقات الخاص بنا فقط؛ ولا يخزنها ولا يربطها بهويتك. تأتي أوقات الصلاة من رئاسة الشؤون الدينية (ديانت).';
 
   @override
   String dstSummer(Object offset) {
@@ -1494,9 +1423,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get locationAutoDetect => 'تحديد موقعي تلقائيًا';
 
   @override
-  String get locationFindWithGps => 'البحث عبر GPS';
-
-  @override
   String locationsCount(int count) {
     return '$count مواقع';
   }
@@ -1516,9 +1442,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get missionShakeRemaining => 'مرات أخرى';
-
-  @override
-  String get gpsFallbackLabel => 'موقع GPS';
 
   @override
   String get alarmFixedSection => 'الوقت';
@@ -1602,16 +1525,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get locationTypeManual => 'يدوي';
 
   @override
-  String get locationSearchAddress => 'ابحث عن عنوان';
-
-  @override
   String locationSaveFailed(String error) {
     return 'تعذّر الحفظ: $error';
-  }
-
-  @override
-  String locationGlobalCalculation(String method, String school) {
-    return 'الإعداد العام: $method · $school';
   }
 
   @override
@@ -1732,4 +1647,65 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get alarmCancellationPending => 'تعذّر إزالة المنبّه من الجهاز';
+
+  @override
+  String get settingsPrayerTune => 'تعديل الأوقات';
+
+  @override
+  String get dataSourceDiyanet => 'رئاسة الشؤون الدينية (ديانت)';
+
+  @override
+  String placeAliasIncluded(String alias) {
+    return 'يشمل $alias';
+  }
+
+  @override
+  String get locationNeedsInternet => 'إضافة موقع تتطلب اتصالاً بالإنترنت.';
+
+  @override
+  String get locationNoCoverage =>
+      'هذه المنطقة غير مدعومة بعد؛ ابحث عن قضائك واختره.';
+
+  @override
+  String locationGpsConfirm(String place) {
+    return 'ستُعرض الأوقات لـ $place';
+  }
+
+  @override
+  String get actionConfirm => 'تأكيد';
+
+  @override
+  String get locationEditChangeDistrict => 'تغيير القضاء';
+
+  @override
+  String get migrationTitle => 'تحقق من مواقعك';
+
+  @override
+  String get migrationIntro =>
+      'أوقات الصلاة تأتي الآن من جداول الأقضية لدى ديانت. اختر القضاء الصحيح للمواقع المحفوظة أدناه.';
+
+  @override
+  String get migrationAmbiguousHint =>
+      'هناك أكثر من تطابق؛ اختر القضاء الصحيح.';
+
+  @override
+  String get migrationUnsupported => 'هذا الموقع لم يعد مدعومًا.';
+
+  @override
+  String get migrationSearchOther => 'ابحث عن قضاء آخر';
+
+  @override
+  String get migrationActiveCannotDelete =>
+      'لا يمكن حذف الموقع النشط؛ اختر قضاءً.';
+
+  @override
+  String get locationNeedsVerification =>
+      'يحتاج هذا الموقع إلى التحقق من قضائه. اتصل بالإنترنت وحاول مجددًا.';
+
+  @override
+  String get actionSelect => 'اختيار';
+
+  @override
+  String get osmDistrictAttribution =>
+      'إحداثيات الأقضية © مساهمو OpenStreetMap';
 }

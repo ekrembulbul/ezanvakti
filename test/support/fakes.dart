@@ -11,7 +11,7 @@ import 'package:ezanvakti/core/interfaces/notification_service.dart';
 import 'package:ezanvakti/core/interfaces/prayer_time_provider.dart';
 import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/core/models/appearance_settings.dart';
-import 'package:ezanvakti/core/models/calculation_settings.dart';
+import 'package:ezanvakti/core/models/prayer_tune_settings.dart';
 import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
@@ -77,7 +77,6 @@ class FakeProvider implements PrayerTimeProvider {
 
 /// Bellekte tutan depo. Vakitler konum + gun anahtariyla saklanir.
 class FakeStorage implements LocalStorage {
-
   final Map<String, String> _rawSettings = {};
 
   @override
@@ -199,7 +198,7 @@ class FakeStorage implements LocalStorage {
   List<NotificationSetting> _notificationSettings = [];
   Location? _activeLocation;
   DateTime? _lastUpdate;
-  CalculationSettings _calculationSettings = CalculationSettings.defaults;
+  PrayerTuneSettings _tuneSettings = PrayerTuneSettings.none;
   AppearanceSettings _appearanceSettings = const AppearanceSettings();
   bool _defaultsInitialized = false;
 
@@ -262,12 +261,11 @@ class FakeStorage implements LocalStorage {
   Future<void> deleteAllPrayerTimes() async => _times.clear();
 
   @override
-  Future<CalculationSettings> getCalculationSettings() async =>
-      _calculationSettings;
+  Future<PrayerTuneSettings> getPrayerTuneSettings() async => _tuneSettings;
 
   @override
-  Future<void> saveCalculationSettings(CalculationSettings settings) async {
-    _calculationSettings = settings;
+  Future<void> savePrayerTuneSettings(PrayerTuneSettings settings) async {
+    _tuneSettings = settings;
   }
 
   @override
@@ -402,7 +400,6 @@ class FakeStorage implements LocalStorage {
   Future<void> saveAbortState(AbortState state) async {
     _abortState = state;
   }
-
 }
 
 /// Planlanan bildirimleri ve izin cagrilarini kaydeden servis.

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
+import '../../../core/models/hijri_date.dart';
 import '../../../core/utils/hijri_formatter.dart';
 
 const Key kHomeGpsIconKey = Key('home_gps_icon');
@@ -145,7 +146,10 @@ class HomeTopBar extends StatelessWidget {
 class HomeDateLine extends StatelessWidget {
   final DateTime date;
 
-  const HomeDateLine({super.key, required this.date});
+  /// Günün Diyanet Hicri tarihi; `null` ise Hicri gösterilmez (tahmin yok).
+  final HijriDate? hijri;
+
+  const HomeDateLine({super.key, required this.date, this.hijri});
 
   @override
   Widget build(BuildContext context) {
@@ -162,14 +166,16 @@ class HomeDateLine extends StatelessWidget {
           style: AppTypography.dateLine.copyWith(color: tokens.textSecondary),
           children: [
             TextSpan(text: gregorian),
-            TextSpan(
-              text: '  ·  ',
-              style: TextStyle(color: tokens.textTertiary),
-            ),
-            TextSpan(
-              text: HijriFormatter.format(date, context.l10n),
-              style: TextStyle(color: tokens.accent),
-            ),
+            if (hijri != null) ...[
+              TextSpan(
+                text: '  ·  ',
+                style: TextStyle(color: tokens.textTertiary),
+              ),
+              TextSpan(
+                text: HijriFormatter.formatHijri(hijri!, context.l10n),
+                style: TextStyle(color: tokens.accent),
+              ),
+            ],
           ],
         ),
         textAlign: TextAlign.center,

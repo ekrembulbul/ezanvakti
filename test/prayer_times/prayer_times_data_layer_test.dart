@@ -10,7 +10,7 @@ import 'package:ezanvakti/core/interfaces/local_storage.dart';
 import 'package:ezanvakti/core/models/abort_state.dart';
 import 'package:ezanvakti/core/models/mission_session.dart';
 import 'package:ezanvakti/core/models/alarm.dart';
-import 'package:ezanvakti/core/models/calculation_settings.dart';
+import 'package:ezanvakti/core/models/prayer_tune_settings.dart';
 import 'package:ezanvakti/core/models/appearance_settings.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/core/models/location.dart';
@@ -161,7 +161,6 @@ class MockPrayerTimeProvider implements PrayerTimeProvider {
 }
 
 class MockLocalStorage implements LocalStorage {
-
   final Map<String, String> _rawSettings = {};
 
   @override
@@ -365,15 +364,14 @@ class MockLocalStorage implements LocalStorage {
     _prayerTimesCache.clear();
   }
 
-  CalculationSettings _calculationSettings = CalculationSettings.defaults;
+  PrayerTuneSettings _tuneSettings = PrayerTuneSettings.none;
 
   @override
-  Future<CalculationSettings> getCalculationSettings() async =>
-      _calculationSettings;
+  Future<PrayerTuneSettings> getPrayerTuneSettings() async => _tuneSettings;
 
   @override
-  Future<void> saveCalculationSettings(CalculationSettings settings) async {
-    _calculationSettings = settings;
+  Future<void> savePrayerTuneSettings(PrayerTuneSettings settings) async {
+    _tuneSettings = settings;
   }
 
   @override
@@ -528,7 +526,6 @@ class MockLocalStorage implements LocalStorage {
   Future<void> saveAbortState(AbortState state) async {
     _abortState = state;
   }
-
 }
 
 void main() {
@@ -734,45 +731,6 @@ void main() {
 
       expect(times.length, equals(7));
       expect(provider.fetchCallCount, equals(1));
-    });
-
-    test(
-      'Inherit location is resolved with global settings before fetch',
-      () async {
-        // Konum override belirtmiyor (method/school null); global ayar uygulanmalı.
-        await storage.saveCalculationSettings(
-          const CalculationSettings(method: 2, school: 1),
-        );
-        final today = DateTime(2024, 1, 1);
-
-        await repository.getPrayerTimes(
-          location: testLocation,
-          startDate: today,
-          endDate: today.add(const Duration(days: 6)),
-          forceRefresh: true,
-        );
-
-        expect(provider.lastLocation!.method, equals(2));
-        expect(provider.lastLocation!.school, equals(1));
-      },
-    );
-
-    test('Location override wins over global settings', () async {
-      await storage.saveCalculationSettings(
-        const CalculationSettings(method: 2, school: 1),
-      );
-      final overrideLocation = testLocation.copyWith(method: 13, school: 0);
-      final today = DateTime(2024, 1, 1);
-
-      await repository.getPrayerTimes(
-        location: overrideLocation,
-        startDate: today,
-        endDate: today.add(const Duration(days: 6)),
-        forceRefresh: true,
-      );
-
-      expect(provider.lastLocation!.method, equals(13));
-      expect(provider.lastLocation!.school, equals(0));
     });
 
     test('Repository returns cache when available and complete', () async {

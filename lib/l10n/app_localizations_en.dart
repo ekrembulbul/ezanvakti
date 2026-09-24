@@ -109,9 +109,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsLocation => 'Location';
 
   @override
-  String get settingsCalculation => 'Calculation';
-
-  @override
   String get settingsDataSource => 'Data source';
 
   @override
@@ -686,19 +683,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get snackUndo => 'Undo';
 
   @override
-  String get locationTitle => 'Locations';
-
-  @override
   String get locationAdd => 'Add location';
 
   @override
-  String get locationSearch => 'Search a city';
-
-  @override
   String get locationUseGps => 'Use my location';
-
-  @override
-  String get locationEmpty => 'No saved locations';
 
   @override
   String shareCaption(Object location, Object period) {
@@ -768,8 +756,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get locationsEmpty => 'No locations added yet';
 
   @override
-  String get locationsEmptyHint =>
-      'Detect automatically with GPS or\nsearch for an address';
+  String get locationsEmptyHint => 'Search your district or use your location';
 
   @override
   String get locationsSwipeHint =>
@@ -785,17 +772,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get locationEditTitle => 'Edit location';
 
   @override
-  String get locationSearchHint => 'Search by city, district or place';
-
-  @override
-  String get locationSearchPlaceholder => 'Search city, district or place…';
-
-  @override
-  String get locationSearchStart => 'Start typing to search.';
+  String get locationSearchPlaceholder => 'Search province or district...';
 
   @override
   String get locationSearchNoResult =>
-      'No results.\nTry a different search or check your connection.';
+      'No results.\nCheck the province or district name.';
 
   @override
   String get locationGettingPosition => 'Getting location…';
@@ -805,7 +786,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get locationPermissionBody =>
-      'Location access is needed to show prayer times for where you are. Granting it selects your city automatically.';
+      'Location permission is needed to find your district and show its prayer times. Your location is used only to find the nearest district.';
 
   @override
   String get locationPermissionAllow => 'Allow';
@@ -822,25 +803,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get locationUpdated => 'Location updated';
 
   @override
-  String get locationSelectFirst => 'Please pick a location';
-
-  @override
   String get locationCustomName => 'Custom name (optional)';
 
   @override
   String get locationCustomNameHint => 'e.g. Home, Work';
-
-  @override
-  String get locationUseGlobalCalculation =>
-      'Use the global calculation setting';
-
-  @override
-  String get locationUseGlobalCalculationHint =>
-      'Turn off to pick a method for this location only';
-
-  @override
-  String get locationCalculationFromGlobal =>
-      'The calculation method comes from the global setting. To change it for this location, edit after saving.';
 
   @override
   String get locationChange => 'Change';
@@ -849,9 +815,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String locationUndoFailed(Object error) {
     return 'Could not undo: $error';
   }
-
-  @override
-  String get osmAttribution => '© OpenStreetMap contributors';
 
   @override
   String get widgetTomorrow => 'Tomorrow';
@@ -959,43 +922,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get religiousEidAdha => 'Eid al-Adha';
-
-  @override
-  String get asrShafi => 'Shafi (Standard)';
-
-  @override
-  String get asrHanafi => 'Hanafi';
-
-  @override
-  String get latAuto => 'Automatic';
-
-  @override
-  String get latMidnight => 'Middle of the night';
-
-  @override
-  String get latOneSeventh => 'One seventh of the night';
-
-  @override
-  String get latAngle => 'Angle based';
-
-  @override
-  String get calcMethodLabel => 'Calculation method';
-
-  @override
-  String get calcAsrLabel => 'Asr (school)';
-
-  @override
-  String get calcAdvanced => 'Advanced';
-
-  @override
-  String get calcLatitudeLabel => 'High latitude rule';
-
-  @override
-  String get calcGlobalNote =>
-      'Default for all locations. Used unless a location has its own setting.';
-
-  @override
-  String get calcTuneSection => 'Time adjustments';
 
   @override
   String get calcTuneHint =>
@@ -1390,11 +1316,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsFooter =>
-      'Prayer times are stored on your device and never sent anywhere.';
+      'Times are stored on your device; only district search and location resolution reach the server.';
 
   @override
   String get privacyBody =>
-      'Your location is used only to calculate prayer times and stays on your device. Times are requested from the Aladhan API by coordinates; no personal data is sent.';
+      'Your location and saved districts stay on your device. Search text and an approximate coordinate (~100 m) for location resolution are sent only to our own prayer-time server; it does not store them or link them to you. Prayer times come from the Presidency of Religious Affairs (Diyanet).';
 
   @override
   String dstSummer(Object offset) {
@@ -1510,9 +1436,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get locationAutoDetect => 'Detect my location automatically';
 
   @override
-  String get locationFindWithGps => 'Find with GPS';
-
-  @override
   String locationsCount(int count) {
     return '$count locations';
   }
@@ -1532,9 +1455,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get missionShakeRemaining => 'more shakes to go';
-
-  @override
-  String get gpsFallbackLabel => 'GPS location';
 
   @override
   String get alarmFixedSection => 'Time';
@@ -1618,16 +1538,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get locationTypeManual => 'Manual';
 
   @override
-  String get locationSearchAddress => 'Search address';
-
-  @override
   String locationSaveFailed(String error) {
     return 'Could not save: $error';
-  }
-
-  @override
-  String locationGlobalCalculation(String method, String school) {
-    return 'Global setting: $method · $school';
   }
 
   @override
@@ -1750,4 +1662,66 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get alarmCancellationPending =>
       'The alarm could not be removed from the device';
+
+  @override
+  String get settingsPrayerTune => 'Time adjustment';
+
+  @override
+  String get dataSourceDiyanet => 'Presidency of Religious Affairs (Diyanet)';
+
+  @override
+  String placeAliasIncluded(String alias) {
+    return '$alias is included';
+  }
+
+  @override
+  String get locationNeedsInternet =>
+      'Adding a location needs an internet connection.';
+
+  @override
+  String get locationNoCoverage =>
+      'This area isn\'t supported yet; search and pick your district.';
+
+  @override
+  String locationGpsConfirm(String place) {
+    return 'Times will be shown for $place';
+  }
+
+  @override
+  String get actionConfirm => 'Confirm';
+
+  @override
+  String get locationEditChangeDistrict => 'Change district';
+
+  @override
+  String get migrationTitle => 'Verify your locations';
+
+  @override
+  String get migrationIntro =>
+      'Prayer times now come from Diyanet\'s district tables. Pick the right district for the saved locations below.';
+
+  @override
+  String get migrationAmbiguousHint =>
+      'More than one match; pick the right district.';
+
+  @override
+  String get migrationUnsupported => 'This location is no longer supported.';
+
+  @override
+  String get migrationSearchOther => 'Search another district';
+
+  @override
+  String get migrationActiveCannotDelete =>
+      'The active location can\'t be deleted; pick a district.';
+
+  @override
+  String get locationNeedsVerification =>
+      'This location needs its district verified. Connect to the internet and try again.';
+
+  @override
+  String get actionSelect => 'Select';
+
+  @override
+  String get osmDistrictAttribution =>
+      'District coordinates © OpenStreetMap contributors';
 }
