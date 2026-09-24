@@ -1,0 +1,9 @@
+# vakit-api senkron işleri. server-deploy workflow'u her dağıtımda ezanvakti kullanıcısının
+# crontab'ı olarak kurar; elle yapılan değişiklik bir sonraki dağıtımda gider.
+# Saatler sunucu saatine göre (UTC). Çıktı ~/vakit-api/logs/sync.log'a eklenir.
+# daily-content yok: hesabın rolü tarihli içerik ucuna yetkili değil (HTTP 403).
+MAILTO=""
+0 3 * * *   cd "$HOME/vakit-api" && docker compose run --rm -T vakit sync prayer-times >> logs/sync.log 2>&1
+0 4 * * 1   cd "$HOME/vakit-api" && docker compose run --rm -T vakit sync places >> logs/sync.log 2>&1
+0 4 1 * *   cd "$HOME/vakit-api" && docker compose run --rm -T vakit sync religious-days >> logs/sync.log 2>&1
+30 5 * * 0  cd "$HOME/vakit-api" && docker compose run --rm -T vakit sync verify >> logs/sync.log 2>&1

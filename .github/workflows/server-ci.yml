@@ -1,8 +1,9 @@
 name: server-ci
 
+# main'de aynı kontroller server-deploy workflow'unun test job'unda koşar.
 on:
   push:
-    branches: ["dev", "main", "feature/**"]
+    branches: ["dev", "feature/**"]
     paths: ["server/**", ".github/workflows/server-ci.yml"]
   pull_request:
     paths: ["server/**", ".github/workflows/server-ci.yml"]

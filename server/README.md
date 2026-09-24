@@ -48,26 +48,44 @@ Gizlilik: arama metni ve koordinat loglanmaz; koordinat ~100 m'ye yuvarlanır, s
 
 Çıkış kodları: `0` başarı (kota/batch nedeniyle erken bitiş dahil, log'da `stopped`), `1` iş hatası, `2` kullanım hatası.
 
-## Sunucuya kurulum
+## Dağıtım (GitHub Actions)
 
-    git clone <repo> && cd ezanvakti/server/deploy
-    cp vakit.env.example vakit.env && chmod 600 vakit.env   # kimlik bilgilerini doldur, şifre tek tırnakla
-    docker compose up -d --build
-    docker compose run --rm vakit sync places
-    docker compose run --rm vakit sync prayer-times --batch 150
-    docker compose run --rm vakit sync religious-days
-    curl -s http://127.0.0.1:3060/v1/health
+`main`'e `server/` değişikliği gelince `.github/workflows/server-deploy.yml` çalışır (elle: Actions → server-deploy →
+Run workflow): Go testleri → `ghcr.io/ekrembulbul/vakit-api:sha-<commit>` imajı → SSH ile sunucuda `ezanvakti`
+kullanıcısına dağıtım → `127.0.0.1:3060` ve `https://ezanvakti.ekrembulbul.me` sağlık kontrolü. `dev` ve PR'larda
+yalnız `server-ci` (test + imaj derleme) koşar.
 
-Kaynak `web` iken (API onayı öncesi) `religious-days` ve `daily-content` atlanır; vakitler cari yıl
-için kayan 31 günlük pencereyle birikir, gelecek yıl tek seferde tamamlanır. `daily-content` resmî API'de de
-çalışmıyor: hesabın `Developer` rolü tarihli içerik ucuna yetkili değil (HTTP 403); iş bu yüzden cron'da yok.
+Repository secret'ları (Settings → Secrets and variables → Actions); repo public olduğundan sunucu adresi de secret:
 
-### Cron (host)
+| Secret | İçerik |
+|---|---|
+| `SERVER_HOST` | sunucunun IP'si |
+| `SERVER_SSH_KEY` | `ezanvakti` kullanıcısının deploy anahtarı (özel anahtar; açık anahtar sunucuda `restrict` ile) |
+| `SERVER_KNOWN_HOSTS` | `ssh-keyscan -t ed25519 <ip>` satırı |
+| `AWQAT_EMAIL`, `AWQAT_PASSWORD` | Diyanet hesabı; tek tırnak ve satır sonu içeremez |
 
-    0 3 * * *   cd /srv/ezanvakti/server/deploy && docker compose run --rm vakit sync prayer-times --batch 150 >> /var/log/vakit-sync.log 2>&1
-    0 4 * * 1   cd /srv/ezanvakti/server/deploy && docker compose run --rm vakit sync places >> /var/log/vakit-sync.log 2>&1
-    0 4 1 * *   cd /srv/ezanvakti/server/deploy && docker compose run --rm vakit sync religious-days >> /var/log/vakit-sync.log 2>&1
-    30 5 * * 0  cd /srv/ezanvakti/server/deploy && docker compose run --rm vakit sync verify >> /var/log/vakit-sync.log 2>&1
+Sunucuda (`ezanvakti` kullanıcısı, docker grubunda, sudo yok) her dağıtım şunları yazar:
+
+    ~/vakit-api/compose.yml   ← deploy/compose.prod.yml (port, ayarlar, log sınırı)
+    ~/vakit-api/.env          imaj etiketi + kullanıcı uid/gid (compose için)
+    ~/vakit-api/vakit.env     kimlik bilgileri (secret'lardan, 0600)
+    ~/vakit-api/crontab       deploy/crontab → kullanıcının crontab'ı olarak kurulur
+    ~/vakit-api/data/         kalıcı veri (dağıtım dokunmaz)
+    ~/vakit-api/logs/sync.log cron çıktısı
+
+Senkron işleri dağıtımda çalışmaz, `deploy/crontab` zamanlar (UTC): vakitler her gün 03:00
+(`VAKIT_SYNC_BATCH` kadar ilçe-yıl), yer listesi pazartesi, dinî günler ayın 1'i, `verify` pazar.
+`daily-content` yok: hesabın `Developer` rolü tarihli içerik ucuna yetkili değil (HTTP 403).
+
+Elle işlem (`ezanvakti` olarak, `~/vakit-api` içinde):
+
+    docker compose run --rm -T vakit sync places              # ilk kurulumda cron'u beklemeden
+    docker compose run --rm -T vakit sync prayer-times --batch 150
+    docker compose run --rm -T vakit sync quota
+    docker compose logs --tail 100 vakit
+    tail -n 50 logs/sync.log
+
+Yerelde imajla deneme: `deploy/compose.yml` (kaynaktan derler, `deploy/vakit.env` okur).
 
 ### Cloudflare Tunnel
 

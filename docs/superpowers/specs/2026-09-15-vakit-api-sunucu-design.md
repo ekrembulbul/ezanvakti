@@ -290,7 +290,8 @@ Boyut: ilçe-yıl dosyası ~25 KB (gzip Cloudflare'de) → 970 ilçe ≈ 25 MB/y
 
 ### VAK.9 — Dağıtım ve Cloudflare
 
-1. Sunucuda: repo `server/` → `docker compose up -d` (serve); cron satırları VAK.4.
+1. GitHub Actions (`server-deploy.yml`, `main`'e `server/` push'unda): test → GHCR imajı → SSH ile sunucuda
+   `ezanvakti` kullanıcısına `~/vakit-api` (compose + `vakit.env` secret'lardan + crontab); ayrıntı `server/README.md`.
 2. Tünel panelden yönetiliyor: Published application `ezanvakti.ekrembulbul.me` → **HTTP** `localhost:3060` (compose host portu).
 3. Cloudflare panel: **Cache Rule** `hostname eq ezanvakti.ekrembulbul.me and starts_with(path, "/v1/")` → "Eligible for cache",
    origin `Cache-Control`'e uy (JSON varsayılan cache'lenmez, kural şart); `/v1/health` no-store zaten uyulur.

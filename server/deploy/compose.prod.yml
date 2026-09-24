@@ -1,0 +1,32 @@
+# Üretim: sunucuda ~/vakit-api/compose.yml olarak durur; server-deploy workflow'u kopyalar.
+# VAKIT_IMAGE, VAKIT_UID ve VAKIT_GID aynı dizindeki .env'den gelir (deploy yazar).
+# Kimlik bilgileri vakit.env'de (deploy GitHub secret'larından yazar); diğer ayarlar burada.
+name: vakit-api
+
+services:
+  vakit:
+    image: ${VAKIT_IMAGE:?VAKIT_IMAGE tanımlı değil}
+    # Konteyner ezanvakti kullanıcısıyla çalışır; ./data onun ev dizininde, yazabilmesi için.
+    user: "${VAKIT_UID:?VAKIT_UID tanımlı değil}:${VAKIT_GID:?VAKIT_GID tanımlı değil}"
+    restart: unless-stopped
+    ports:
+      # Yalnız localhost; cloudflared (host servisi) ezanvakti.ekrembulbul.me'yi buraya yönlendirir.
+      - "127.0.0.1:3060:8080"
+    env_file:
+      - vakit.env
+    environment:
+      VAKIT_SOURCE: awqat
+      VAKIT_DATA_DIR: /data
+      VAKIT_ADDR: 0.0.0.0:8080
+      VAKIT_ENABLED_COUNTRIES: "2"
+      VAKIT_SYNC_BATCH: "150"
+      VAKIT_SYNC_INTERVAL: 500ms
+      VAKIT_LOG_LEVEL: info
+    volumes:
+      - ./data:/data
+    command: ["serve"]
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
