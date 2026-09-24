@@ -822,12 +822,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get widgetKerahat => 'وقت الكراهة';
 
   @override
-  String get widgetKerahatActive => 'وقت الكراهة الآن';
-
-  @override
-  String widgetKerahatUntil(String time) {
-    return 'حتى $time';
-  }
+  String get widgetKerahatSoon => 'حتى وقت الكراهة';
 
   @override
   String get widgetUpdateApp => 'يرجى تحديث التطبيق';
@@ -984,11 +979,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get nextLabel => 'التالي';
-
-  @override
-  String prayerTimeAt(String prayer, String time) {
-    return 'وقت $prayer عند $time';
-  }
 
   @override
   String get upcomingTitle => 'التالي';
@@ -1377,8 +1367,16 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String snoozedLabel(Object time) {
-    return 'مؤجل · سيرن في $time';
+  String snoozeRingsAt(Object time) {
+    return 'سيرن في $time';
+  }
+
+  @override
+  String get snoozeBadgeLabel => 'مؤجل';
+
+  @override
+  String snoozeBadgeSemantics(Object time) {
+    return 'مؤجل، سيرن في $time، انقر للخيارات';
   }
 
   @override
@@ -1467,6 +1465,22 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get stopHeadline => 'تم إيقاف المنبه';
+
+  @override
+  String get stopSnoozedHeadline => 'تم تأجيل المنبه';
+
+  @override
+  String stopRingsAt(String time) {
+    return 'يرن في $time';
+  }
+
+  @override
+  String stopSnoozedCount(Object count) {
+    return 'أُجّل ×$count';
+  }
+
+  @override
+  String get stopCloseAlarm => 'إيقاف المنبه';
 
   @override
   String stopNextPrayer(String prayer, String time, String remaining) {
@@ -1594,14 +1608,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String kerahatStartsAt(String time) {
-    return 'يبدأ وقت الكراهة عند $time';
-  }
+  String get kerahatBandLabel => 'وقت الكراهة';
 
   @override
-  String kerahatActiveLine(String time) {
-    return 'وقت الكراهة · حتى $time';
-  }
+  String get kerahatSoonBandLabel => 'حتى وقت الكراهة';
 
   @override
   String get kerahatAfterSunrise => 'بعد الشروق';

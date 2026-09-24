@@ -6,6 +6,55 @@ Kaynak tasarım: [Kerahat Tasarımı canvas'ı](https://claude.ai/artifact/PFLN8
 
 Kerahat altyapısı Tur 7 (§7, `2026-09-10-tur7-…-design.md`) ile kuruldu: `KerahatWarning.resolve` (30 dk önceden `approaching`, aralıkta `active`), snapshot v4 `days[].kerahat`, Swift `KerahatStatus` ve timeline anları. Bu tur **yalnızca sunum katmanını** değiştirir; kural, snapshot şeması ve timeline anları aynen kalır. ADR değişikliği yok (0004 "widget hesap yapmaz" korunur).
 
+## Revizyon — 2026-09-23
+
+0.26.1'i gören Ekrem şeritsiz halde çizginin altındaki bloğun "bir tık yukarı" alınmasını istedi (scratchpad `gap/gen2.py` mockup'ı; seçenekler 2/4/6 pt, seçim **4**):
+
+- **Widget alt blok, şerit yokken 4 pt yukarı:** `NextPrayerBlock.lift` (4); blok şerit yokken alttan `2 × lift` sabit pay alır, iki eşit `Spacer`'ın payı 4 azalır, görünen boşluklar ~28/18/28 yerine ~24/18/32 olur. Orta boşluk (`midGap` 18) ve kerahatli haller (~14/14/14) aynı.
+
+## Revizyon — 2026-09-22
+
+Ekrem'in isteğiyle vakit satırı ile sayaç arası daraltıldı (scratchpad `gap/gen.py` mockup'ı; seçim: ortadaki boşluk 18, artan yer üste ve alta eşit). Kural, snapshot şeması ve timeline anları aynı:
+
+- **Widget alt blok, şerit yokken sabit orta boşluk:** `NextPrayerBlock` içinde vakit satırı ile sayaç arasındaki `Spacer` yalnızca `entry.kerahat == nil` iken `NextPrayerBlock.midGap` (18) yüksekliğinde sabitlenir; kalan yüksekliği iki eşit `Spacer` paylaşır, görünen boşluklar ~25/25/25 yerine ~28/18/28 olur. Ölçü yine mürekkepten (`InkInsets` + `inkBounds`). Kerahat şeridi varken üç `Spacer` eşit kalır (~14/14/14) — şerit zaten alanı kısalttığı için dokunulmadı. Küçük widget ve orta widget'ın sol sütunu aynı bloğu kullandığından ikisi birlikte değişir.
+
+## Revizyon — 2026-09-21
+
+Ekrem'in 0.24.0 cihaz geri bildirimiyle ölçü ve metin ayarları (scratchpad `fix_round/gen.py` mockup'ı, onay: "tamam güzel oldu"); kural, snapshot şema sürümü ve timeline anları aynı:
+
+- **Widget alt blok, üç eşit görünen boşluk:** çizgi–vakit satırı, vakit satırı–sayaç, sayaç–alt sınır (kerahat yokken görünen alt kenar, kerahatte şeridin üstü) göze eşit. Ölçü satır kutusundan değil mürekkepten: `InkInsets.system(size:weight:)` (WidgetCore, `UIFont` ascender − capHeight / −descender) ile her metnin kutusu `inkBounds` (negatif padding) altında rakam yüksekliğine iner, kalan yüksekliği `NextPrayerBlock` içindeki üç eşit `Spacer` paylaşır. B2 (`CenteredBelowDivider`) ve sabit 8 aralık kalktı; kutudan ölçülünce 27/18/29 görünüyordu, şimdi ~25/25/25 (kerahatte ~16/16/16). `HomeContentInsets(bottom:)`: hazır içerikte 0, mesajlarda 12; orta boyda liste ve ayraç her durumda 12 alt pay.
+- **Widget şeridi:** yazı 13 → 15 (`KerahatRibbon.fontSize`), yükseklik 26 → 32 (0.25.0 cihaz geri bildirimi "biraz daha yüksek", seçenek B; alt blok boşlukları ~14'e iner). Yaklaşırken kelime **"Kerahate"** (`labels.kerahatSoon`, yoksa Türkçe varsayılan), kerahatte "Kerahat": `KerahatRibbonLabel.text(labels:status:)`.
+- **Snapshot etiketi:** `labels.kerahatSoon` (Dart `WidgetLabels.kerahatSoon`, ARB `widgetKerahatSoon`); şema sürümü 4 aynı, eski widget alanı yok sayar, eski uygulama göndermezse widget Türkçe varsayılana düşer.
+- **Kilit ekranı (`RectangularView`):** vakit satırı 15 → 17, sayaçla arası 1 → 4.
+- **Ana ekran üst satır:** etiket `heroLabel` 13 → 14 (aralık 2.8), saat 16 aynı; dört parça ortak `AppTypography.heroStrut` (16, `forceStrutHeight`) alır ki `Wrap` içinde kutuları eşitlenip etiket saatin taban çizgisine otursun — ortalanınca etiket yukarıda duruyordu.
+- **Ana ekran bandı yaklaşırken:** kelime **"Kerahate"** (`kerahatSoonBandLabel`), çubuk yok, dikey pay 11/11 (bant ~12 pt kısalır; kerahat başlayınca alttaki cetvel o kadar iner). Kerahatte bant aynen: "Kerahat", çubuk aralığın geçen kısmı. `KerahatBand.approachingProgress` silindi.
+- Çeviriler: EN "Disliked time in", AR "حتى وقت الكراهة" (her iki anahtar).
+
+## Revizyon — 2026-09-20 (akşam)
+
+Ekrem'in mockup turlarıyla (scratchpad `band_bottom/`: `gen_home.py`, `gen_widget2.py`, `gen_final.py`) yerleşim değişti; kural, snapshot şeması ve timeline anları yine aynı:
+
+- **Ana ekran, bant sayacın altında:** `CountdownHero` → `[sayaç bloğu, 20, KerahatBand]`; parıltı sayaçla birlikte. Bantta "Kerahat" ve dk:sn sayaç **aynı punto, 20** (`AppTypography.kerahatBandLabel` w600 / `kerahatBandValue` w700 tabular), ikon 22.
+- **Ana ekran, tek satır etiket:** sayacın altındaki "Akşam vakti 19:23" kalktı (`prayerTimeAt` anahtarı ve `timeCaptionName` silindi). Üstte `SONRAKİ  AKŞAM · 19:23`: etiketler `heroLabel` (13 w800, aralık 2.6), saat `heroTime` (16 w800 tabular), ayraç `textTertiary`; saat ve vakit adı vurgu (kerahatte kerahat) renginde. Ramazan'da `SONRAKİ  İFTARA · 19:23`.
+- **Widget, kerahat şeridi en altta:** üst bloktaki kapsül (`KerahatChip`) kalktı; tarih **her durumda üç satır**. Kerahat bilgisi widget'ın alt kenarına dayanan tam genişlik şerit (`KerahatRibbon`, 13 pt, 26 yüksek): yaklaşırken `kerahatSoonSurface` zemin + üstte 1 pt `kerahatSoonLine` + `kerahatSoonText`; kerahatte `kerahatLine` dolgu + beyaz. Köşeleri widget'ın kendi yuvarlağı kırpar. Orta boyda şerit iki sütunun altında tam genişliktir; liste ve ayraç şeridin üstünde 12 pt pay bırakır.
+- **Widget kenar payı:** `contentMarginsDisabled()`; ana ekran aileleri `HomeContentInsets` ile üstte 12, yatayda sistemin `widgetContentMargins` değeri, altta kerahat yokken 12 / kerahatte 0 (şerit bitişik). Kilit ekranı sistem değerini `.padding(widgetContentMargins)` ile aynen alır. Gerekçe: sistemin 16'sı üç satır tarih + çizgi + vakit satırı + 26 pt sayaç + şeridi sığdırmıyordu.
+- **Widget alt blok:** kerahat yokken çizgi ile *görünen* alt kenar arasında ortalı (B2; üstten `WidgetInsets.vertical` pay), kerahatte çizgi ile şerit arasında ortalı (pay yok). Vakit satırı–sayaç aralığı 8 aynı.
+- `KerahatChipLabel` → `KerahatRibbonLabel` (WidgetCore + RunnerTests); içerik aynı.
+
+## Revizyon — 2026-09-19
+
+Ekrem'in cihaz geri bildirimiyle sunum sadeleşti; yerleşim, timeline anları ve payload şeması (v4) aynı kaldı:
+
+- **Metin tek kelime:** bant ve çip yalnız "Kerahat" yazar; başlangıç saati, "vakti", "bitiş {time}" ve Türkçe bulunma eki kalktı (`kerahatStartsAt`, `kerahatActiveLine`, `widgetKerahatActive`, `widgetKerahatUntil`, `turkish_suffix.dart` silindi; yeni anahtar `kerahatBandLabel`).
+- **Canlı sayaç:** kelimenin yanında dk:sn sayaç — yaklaşırken başlangıca, kerahatte bitişe. Ana ekranda `formatMinutesSeconds` ile saniyelik tik (`CountdownHero` zaten tikliyor); widget'ta `Text(timerInterval:)` (yenileme gerekmez). Büyük sayaç değişmedi: sıradaki vakte sayar.
+- **Bant düzeni:** ortalı tek satır ikon · Kerahat · sayaç; altında çubuk aynı.
+- **Renk:** yaklaşırken turuncu aile (`kerahatSoonLine/Surface/Text`; koyu `#E0832E` / `#3B2412` / `#FFB45C`, açık `#C9681C` / `#FDEFE1` / `#A9540E`), kerahatte bordo dolgu aynen. Cetvel ve büyük sayaç bordo kalır.
+- **Widget alt blok:** çizgi ile alt kenar arasında dikeyde ortalı (altta boş şerit kalıyordu).
+- **Widget alt blok, 2026-09-20 (B2):** üst blok yukarıda kalır; alt blok çizgi ile widget'ın *görünen* alt kenarı arasında ortalı — içerik alanı sistem kenar boşluğunda bittiğinden blok o boşluk kadar üstten pay alır (`widgetContentMargins`). Vakit satırı ile sayaç arası 8 pt (bitişik duruyordu). Küçük ve orta aynı; liste değişmedi.
+- Çip metni artık `KerahatChipLabel.text(labels:)` + `countdownTarget(status:)`; `compact` ayrımı kalktı. Not: akşam ve öğle kerahatinde bitiş sıradaki vakit olduğundan çip/bant sayacı ile büyük sayaç aynı değeri gösterir; yalnız sabah kerahatinde ayrışır.
+
+Aşağıdaki bölümler 15 Eylül tasarımını anlatır; çelişen yerlerde bu revizyon geçerlidir.
+
 ## 1. Ana ekran — kerahat bandı
 
 ### Yerleşim

@@ -288,4 +288,94 @@ void main() {
       );
     });
   });
+
+  group('StopGate.canSnoozeAgain', () {
+    final chainDeadline = stoppedAt.add(
+      const Duration(minutes: MissionTuning.chainDeadlineMinutes),
+    );
+
+    MissionSession gatedSession({int snoozeUsed = 0}) => MissionSession(
+      alarmId: 'sahur',
+      firedAt: stoppedAt,
+      snoozeUsed: snoozeUsed,
+      snoozedUntil: now.add(const Duration(minutes: 5)),
+      chainDeadlineAt: chainDeadline,
+    );
+
+    test('hak yoksa yeniden ertelenemez', () {
+      expect(
+        StopGate.canSnoozeAgain(
+          alarm: plain,
+          session: session(snoozeUsed: 1),
+          now: now,
+        ),
+        isFalse,
+      );
+    });
+
+    test('gorevsizde tavan yok: hak varsa ertelenir', () {
+      expect(
+        StopGate.canSnoozeAgain(alarm: plain, session: session(), now: now),
+        isTrue,
+      );
+    });
+
+    test('sinirsiz ertelemede her zaman ertelenir', () {
+      expect(
+        StopGate.canSnoozeAgain(
+          alarm: plainUnlimited,
+          session: session(snoozeUsed: 40),
+          now: now,
+        ),
+        isTrue,
+      );
+    });
+
+    test('gorevlide yeni an tavana sigmali', () {
+      const gatedTen = Alarm(
+        id: 'sahur',
+        kind: AlarmKind.fixed,
+        hour: 5,
+        mission: AlarmMission.qr,
+        snoozeEnabled: true,
+        snoozeMinutes: 10,
+        maxSnoozes: 5,
+      );
+      expect(
+        StopGate.canSnoozeAgain(
+          alarm: gatedTen,
+          session: gatedSession(),
+          now: chainDeadline.subtract(const Duration(minutes: 11)),
+        ),
+        isTrue,
+      );
+      // Tam tavan: native `next < chainDeadline` ister; esitlik reddedilir.
+      expect(
+        StopGate.canSnoozeAgain(
+          alarm: gatedTen,
+          session: gatedSession(),
+          now: chainDeadline.subtract(const Duration(minutes: 10)),
+        ),
+        isFalse,
+      );
+    });
+
+    test('gorevlide kayitli tavan yoksa firedAt + 60 dk kullanilir', () {
+      final noDeadline = MissionSession(
+        alarmId: 'sahur',
+        firedAt: stoppedAt,
+        snoozedUntil: now.add(const Duration(minutes: 5)),
+      );
+      expect(
+        StopGate.canSnoozeAgain(
+          alarm: gated,
+          session: noDeadline,
+          now: chainDeadline.subtract(const Duration(minutes: 5)),
+        ),
+        isFalse,
+        reason:
+            'gated snoozeMinutes varsayilani 5; 5 dk kala tam tavana denk gelir',
+      );
+    });
+  });
 }

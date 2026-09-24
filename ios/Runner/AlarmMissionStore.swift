@@ -351,9 +351,13 @@ final class AlarmMissionStore {
   func begin(alarmId: String, nowMillis: Double) throws -> AlarmMissionSession? {
     var state = read()
     guard var session = state.sessions[alarmId], session.configuration.gated,
-      session.canContinue(at: nowMillis), (session.snoozedUntilMillis ?? 0) <= nowMillis
+      session.canContinue(at: nowMillis)
     else { return nil }
     if session.begun, (session.deadlineMillis ?? 0) > nowMillis { return session }
+    // An active snooze does not block the mission: disabling or skipping the
+    // alarm routes through the mission screen while snoozed (ADR 0002), and
+    // starting the mission ends the snooze early. The device refused this on
+    // 2026-09-19 (EngineError.unavailable) and the screen showed a retry bar.
     session.begun = true
     session.snoozedUntilMillis = nil
     session.deadlineMillis = min(
@@ -363,13 +367,15 @@ final class AlarmMissionStore {
     return session
   }
 
+  /// Erteleme sürerken ikinci erteleme de uygulanır: yeni an şimdiden,
+  /// sayaç +1 (spec 2026-09-22 D12). Limit ve zincir tavanı aynen. Yeniden
+  /// deneme idempotentliği Dart koordinatöründe (ADR 0002).
   func snooze(alarmId: String, minutes: Int, nowMillis: Double) throws -> AlarmMissionSession? {
     var state = read()
     guard var session = state.sessions[alarmId], session.canContinue(at: nowMillis),
       session.configuration.snoozeEnabled, minutes == session.configuration.snoozeMinutes,
       minutes > 0
     else { return nil }
-    if (session.snoozedUntilMillis ?? 0) > nowMillis { return session }
     let limit = session.configuration.maxSnoozes ?? (session.configuration.gated ? 5 : Int.max)
     guard session.snoozeUsed < limit else { return nil }
     let next = nowMillis + Double(minutes * 60_000)

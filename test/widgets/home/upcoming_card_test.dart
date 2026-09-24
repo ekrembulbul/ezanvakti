@@ -1,4 +1,5 @@
 import 'package:ezanvakti/presentation/widgets/home/upcoming_card.dart';
+import 'package:ezanvakti/presentation/widgets/reminders/snooze_countdown.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -67,6 +68,7 @@ void main() {
       double textScale = 1,
       Locale locale = const Locale('tr'),
       List<MissionSession> missionSessions = const [],
+      ValueChanged<Alarm>? onSnoozedTap,
     }) async {
       await tester.pumpWidget(
         wrapWithTheme(
@@ -84,6 +86,7 @@ void main() {
                   skips: skips,
                   missionSessions: missionSessions,
                   onSkipChanged: onSkipChanged,
+                  onSnoozedTap: onSnoozedTap,
                   onSeeAll: onSeeAll ?? () {},
                 ),
               ),
@@ -232,12 +235,10 @@ void main() {
       expect(find.byIcon(Icons.qr_code_scanner_rounded), findsOneWidget);
     });
 
-    testWidgets('Ertelenmis gorevli alarmin atlama anahtari kilitli degil', (
+    testWidgets('Ertelenmis alarmda anahtar yerine rozet; satir ekrana gider', (
       tester,
     ) async {
-      // Kilitli anahtar kullaniciyi cikissiz birakiyordu; artik dokunus gorev
-      // kapisina gidiyor, karar orada veriliyor.
-      SkippedOccurrence? changed;
+      Alarm? tapped;
       await pumpCard(
         tester,
         alarm: (alarm: sahur.copyWith(mission: AlarmMission.qr), time: alarmAt),
@@ -248,14 +249,35 @@ void main() {
             snoozedUntil: now.add(const Duration(minutes: 8)),
           ),
         ],
-        onSkipChanged: (occurrence, _) => changed = occurrence,
+        onSnoozedTap: (alarm) => tapped = alarm,
       );
 
-      expect(tester.widget<Switch>(find.byType(Switch)).onChanged, isNotNull);
-      await tester.tap(find.byType(Switch));
+      expect(find.byKey(kSnoozeCountdownKey), findsOneWidget);
+      expect(find.byType(Switch), findsNothing);
+      expect(find.textContaining('Ertelendi ·'), findsNothing);
+      await tester.tap(find.text('Sahur'));
       await tester.pump();
-      expect(changed?.reference, sahur.id);
+      expect(tapped?.id, sahur.id);
     });
+
+    testWidgets(
+      'Gorev borcu olup ertelenmemis alarmda atlama anahtari kilitli',
+      (tester) async {
+        await pumpCard(
+          tester,
+          alarm: (
+            alarm: sahur.copyWith(mission: AlarmMission.qr),
+            time: alarmAt,
+          ),
+          missionSessions: [
+            MissionSession(alarmId: sahur.id, firedAt: DateTime.now()),
+          ],
+          onSkipChanged: (_, _) {},
+        );
+        expect(find.byKey(kSnoozeCountdownKey), findsNothing);
+        expect(tester.widget<Switch>(find.byType(Switch)).onChanged, isNull);
+      },
+    );
 
     testWidgets('Adsız sabit alarm saati bir kez gösterilir', (tester) async {
       await pumpCard(

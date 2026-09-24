@@ -34,6 +34,19 @@ void main() {
       ]);
     });
 
+    test('kerahat yaklasirken turuncu tokenlar palet bagimsizdir', () {
+      for (final phase in DayPhase.values) {
+        final dark = paletteFor(phase, Brightness.dark);
+        final light = paletteFor(phase, Brightness.light);
+        expect(dark.kerahatSoonLine, const Color(0xFFE0832E));
+        expect(dark.kerahatSoonSurface, const Color(0xFF3B2412));
+        expect(dark.kerahatSoonText, const Color(0xFFFFB45C));
+        expect(light.kerahatSoonLine, const Color(0xFFC9681C));
+        expect(light.kerahatSoonSurface, const Color(0xFFFDEFE1));
+        expect(light.kerahatSoonText, const Color(0xFFA9540E));
+      }
+    });
+
     test('kerahatGlow kerahatLine renginin alfasi dusurulmus halidir', () {
       for (final phase in DayPhase.values) {
         final dark = paletteFor(phase, Brightness.dark);

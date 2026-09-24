@@ -28,7 +28,9 @@ struct RectangularView: View {
     }
 
     private func ready(next: PrayerSlot, isStale: Bool, isTomorrow: Bool) -> some View {
-        VStack(alignment: alignment.horizontal, spacing: 1) {
+        // Vakit satırı 17 ve sayaçla arası 4: 15/1 sıkışık ve küçük duruyordu
+        // (2026-09-21).
+        VStack(alignment: alignment.horizontal, spacing: 4) {
             if isStale {
                 Text((entry.labels?.stale ?? "Güncel değil").uppercased())
                     .font(.system(size: 10, weight: .semibold))
@@ -43,7 +45,7 @@ struct RectangularView: View {
                 Text(TimeFormatting.clock(next.date, preference: entry.timeFormat))
                     .monospacedDigit()
             }
-            .font(.system(size: 15, weight: .semibold))
+            .font(.system(size: 17, weight: .semibold))
             .lineLimit(1)
             .minimumScaleFactor(0.8)
 

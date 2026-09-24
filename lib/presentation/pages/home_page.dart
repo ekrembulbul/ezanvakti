@@ -492,16 +492,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// "SIRADAKİ" kartındaki tek seferlik kapatma.
   ///
   /// Kalıcı kapatma Bildirimler/Alarmlar ekranlarında kalır; buradaki anahtar
-  /// yalnızca gösterilen örneği atlar.
+  /// yalnızca gösterilen örneği atlar. Görev borcu olan alarmda anahtar
+  /// kilitli, ertelenmişte yerini rozet alır (spec 2026-09-22 D6).
   Future<void> _toggleSkip(SkippedOccurrence occurrence, bool skipped) async {
     final appState = context.read<AppState>();
-    // Atlamak, ödenmemiş görev borcundan kaçmanın bir yolu; kapatma ile aynı
-    // kapıdan geçer. Geri açmak (skipped == false) borç yaratmaz.
-    if (skipped &&
-        !await resolveSkipBeforeDismiss(context, occurrence, appState.alarms)) {
-      return;
-    }
-    if (!mounted) return;
     final manager = ServiceLocator().get<SkipManager>();
 
     final next = skipped
@@ -688,6 +682,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               alarmsSupported: appState.alarmsSupported,
               skips: appState.skips,
               onSkipChanged: _toggleSkip,
+              onSnoozedTap: (alarm) => openSnoozedAlarm(context, alarm),
               errorMessage: appState.errorMessage,
               onRefresh: _refreshData,
               onGpsRefresh: _manualGpsRefresh,

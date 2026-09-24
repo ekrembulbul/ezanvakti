@@ -163,7 +163,55 @@ final class AlarmPlanEngineTests: XCTestCase {
   }
 
   @MainActor
-  func testCleanupRetryDoesNotSpendAnotherSnooze() async throws {
+  func testSnoozeDuringSnoozeReplacesTimerWithLaterOne() async throws {
+    let (engine, backend, clock) = fixture()
+    var primary = record("work", at: clock.now + 1000)
+    primary.maxSnoozes = 3
+    _ = try await engine.reconcile(records: [primary], enabledAlarmIds: ["work"])
+    clock.now += 1001
+    _ = try await engine.stop(scheduleId: primary.scheduleId)
+    try await engine.snooze("work", minutes: 5, expectedFireMillis: primary.fireAtMillis)
+    let firstTimer = engine.missions.session(alarmId: "work")!.timerScheduleId!
+    clock.now += 120_000
+    backend.operations = []
+    try await engine.snooze("work", minutes: 5, expectedFireMillis: primary.fireAtMillis)
+    let session = engine.missions.session(alarmId: "work")!
+    XCTAssertEqual(session.snoozeUsed, 2)
+    XCTAssertEqual(session.snoozedUntilMillis, clock.now + 300_000)
+    let secondTimer = try XCTUnwrap(session.timerScheduleId)
+    XCTAssertNotEqual(secondTimer, firstTimer)
+    XCTAssertEqual(engine.missions.configurations[secondTimer]?.fireAtMillis, clock.now + 300_000)
+    XCTAssertNil(engine.mapping[firstTimer])
+    XCTAssertTrue(backend.operations.contains("schedule:" + secondTimer))
+    XCTAssertTrue(backend.operations.contains("cancel:" + firstTimer))
+  }
+
+  @MainActor
+  func testBeginDuringSnoozeReplacesSnoozeTimerWithMissionTimer() async throws {
+    let (engine, backend, clock) = fixture()
+    let primary = record("work", at: clock.now + 1000)
+    _ = try await engine.reconcile(records: [primary], enabledAlarmIds: ["work"])
+    clock.now += 1001
+    _ = try await engine.stop(scheduleId: primary.scheduleId)
+    try await engine.snooze("work", minutes: 5, expectedFireMillis: primary.fireAtMillis)
+    let snoozeTimer = engine.missions.session(alarmId: "work")!.timerScheduleId!
+    clock.now += 60_000
+    backend.operations = []
+    try await engine.begin("work", expectedFireMillis: primary.fireAtMillis)
+    let session = engine.missions.session(alarmId: "work")!
+    XCTAssertTrue(session.begun)
+    XCTAssertNil(session.snoozedUntilMillis)
+    XCTAssertEqual(session.deadlineMillis, clock.now + 90_000)
+    let missionTimer = try XCTUnwrap(session.timerScheduleId)
+    XCTAssertNotEqual(missionTimer, snoozeTimer)
+    XCTAssertEqual(engine.missions.configurations[missionTimer]?.fireAtMillis, clock.now + 90_000)
+    XCTAssertNil(engine.mapping[snoozeTimer])
+    XCTAssertTrue(backend.operations.contains("schedule:" + missionTimer))
+    XCTAssertTrue(backend.operations.contains("cancel:" + snoozeTimer))
+  }
+
+  @MainActor
+  func testCleanupFailureKeepsAcceptedTimerAndRefreshRetiresOldOne() async throws {
     let (engine, backend, clock) = fixture()
     let primary = record("work", at: clock.now + 1000)
     _ = try await engine.reconcile(records: [primary], enabledAlarmIds: ["work"])
@@ -175,11 +223,15 @@ final class AlarmPlanEngineTests: XCTestCase {
     catch {}
     let accepted = engine.missions.session(alarmId: "work")!
     XCTAssertEqual(accepted.snoozeUsed, 1)
-    XCTAssertNotEqual(accepted.timerScheduleId, oldTimer)
+    let acceptedTimer = try XCTUnwrap(accepted.timerScheduleId)
+    XCTAssertNotEqual(acceptedTimer, oldTimer)
     backend.failCancels = []
-    try await engine.snooze("work", minutes: 5)
+    // Yeniden deneme Dart'ta kısa devre olur (sayaç ilerlemiş, erteleme
+    // etkin); yarım kalan eski zamanlayıcıyı bir sonraki uzlaştırma temizler.
+    _ = try await engine.reconcile(records: [primary], enabledAlarmIds: ["work"])
     XCTAssertEqual(engine.missions.session(alarmId: "work")?.snoozeUsed, 1)
     XCTAssertNil(engine.mapping[oldTimer])
+    XCTAssertNotNil(engine.mapping[acceptedTimer])
   }
 
   @MainActor
@@ -391,6 +443,99 @@ final class AlarmPlanEngineTests: XCTestCase {
     backend.operations = []
     _ = try await engine.reconcile(records: [primary], enabledAlarmIds: ["work"])
     XCTAssertFalse(backend.operations.contains { $0.hasPrefix("stop:") }, "\(backend.operations)")
+  }
+
+  /// 22 Eylül 06:02: 05:59 alarmı çalarken başka bir alarmın görevi bitti;
+  /// oturum kayıtları bitince silinmediği için dünkü bitmiş oturum bugünkü
+  /// dokunulmamış çalışı "bayat" saydırdı ve uzlaştırma alerti susturdu.
+  @MainActor
+  func testRefreshKeepsANewAlertWhenThePreviousOccurrenceFinished() async throws {
+    let (engine, backend, clock) = fixture()
+    let yesterday = record("work", at: clock.now + 1000)
+    _ = try await engine.reconcile(records: [yesterday], enabledAlarmIds: ["work"])
+    clock.now += 1001
+    _ = try await engine.stop(scheduleId: yesterday.scheduleId)
+    try engine.complete("work", expectedFireMillis: yesterday.fireAtMillis)
+
+    let today = record("work", at: clock.now + 86_400_000)
+    _ = try await engine.reconcile(records: [today], enabledAlarmIds: ["work"])
+    clock.now = today.fireAtMillis + 1000
+    let todayId = try XCTUnwrap(engine.mapping[today.scheduleId])
+    backend.states[todayId] = .alerting
+    backend.operations = []
+
+    _ = try await engine.reconcile(records: [today], enabledAlarmIds: ["work"])
+
+    XCTAssertFalse(backend.operations.contains { $0.hasPrefix("stop:") }, "\(backend.operations)")
+    XCTAssertEqual(backend.states[todayId], .alerting)
+    XCTAssertFalse(engine.journal.entries.contains { $0.operation == "stop_stale" })
+  }
+
+  /// 22 Eylül 06:02: iki alarm üst üste çaldı; iOS sesi sonrakine verdi ve
+  /// kullanıcı onu durdurunca sesi öncekine geri vermedi — alert ekranda
+  /// sessiz kaldı. Sesi geri getiren API yok: alert yerinde kalır, aynı çalış
+  /// için sesli bir yedek kurulur; yedeği durdurmak o çalışın oturumunu açar.
+  @MainActor
+  func testStoppingOneAlarmReringsAnotherAlarmsSilentAlert() async throws {
+    let (engine, backend, clock) = fixture()
+    let sun = record("sun", at: clock.now + 1000)
+    let work = record("work", at: clock.now + 3000)
+    _ = try await engine.reconcile(records: [sun, work], enabledAlarmIds: ["sun", "work"])
+    clock.now = work.fireAtMillis + 2000
+    let sunId = try XCTUnwrap(engine.mapping[sun.scheduleId])
+    backend.states[sunId] = .alerting
+    backend.states[engine.mapping[work.scheduleId]!] = .alerting
+    backend.operations = []
+
+    _ = try await engine.stop(scheduleId: work.scheduleId)
+
+    XCTAssertEqual(backend.states[sunId], .alerting, "sessiz alert yerinde kalır")
+    let rering = try XCTUnwrap(backend.records.values.first {
+      $0.alarmId == "sun" && $0.isFallback && $0.originalFireAtMillis == sun.fireAtMillis
+    }, "\(backend.records.values.map(\.scheduleId))")
+    XCTAssertEqual(rering.fireAtMillis, clock.now + Double(sun.graceSeconds * 1000))
+    XCTAssertNil(engine.missions.session(alarmId: "sun"), "kimse durdurmadı: oturum açılmaz")
+    XCTAssertTrue(engine.journal.entries.contains { $0.operation == "rering" && $0.alarmId == "sun" })
+
+    clock.now = rering.fireAtMillis + 500
+    backend.states[engine.mapping[rering.scheduleId]!] = .alerting
+    _ = try await engine.stop(scheduleId: rering.scheduleId)
+
+    let session = try XCTUnwrap(engine.missions.session(alarmId: "sun"))
+    XCTAssertEqual(session.firedAtMillis, sun.fireAtMillis)
+    XCTAssertTrue(backend.operations.contains("stop:" + sun.scheduleId), "\(backend.operations)")
+  }
+
+  /// Sessiz kalan alert zinciri süren bir nöbetçiyse: nöbetçi susturulur ve
+  /// zincir taze (sesli) bir nöbetçiyle geri gelir; yeniden kurulum sayacı
+  /// artmaz — bunu kullanıcı değil sistem tetikledi.
+  @MainActor
+  func testStoppingOneAlarmReringsAnotherChainsSilentWatchdog() async throws {
+    let (engine, backend, clock) = fixture()
+    let sun = record("sun", at: clock.now + 1000)
+    let work = record("work", at: clock.now + 40_000)
+    _ = try await engine.reconcile(records: [sun, work], enabledAlarmIds: ["sun", "work"])
+    clock.now = sun.fireAtMillis + 100
+    _ = try await engine.stop(scheduleId: sun.scheduleId)
+    let before = try XCTUnwrap(engine.missions.session(alarmId: "sun"))
+    let watchdogId = try XCTUnwrap(before.timerScheduleId)
+    let watchdogUuid = try XCTUnwrap(engine.mapping[watchdogId])
+    clock.now = work.fireAtMillis + 2000
+    XCTAssertGreaterThan(clock.now, backend.records[watchdogUuid]!.fireAtMillis)
+    backend.states[watchdogUuid] = .alerting
+    backend.states[engine.mapping[work.scheduleId]!] = .alerting
+    backend.operations = []
+
+    _ = try await engine.stop(scheduleId: work.scheduleId)
+
+    XCTAssertTrue(backend.operations.contains("stop:" + watchdogId), "\(backend.operations)")
+    let after = try XCTUnwrap(engine.missions.session(alarmId: "sun"))
+    let timerId = try XCTUnwrap(after.timerScheduleId)
+    XCTAssertNotEqual(timerId, watchdogId)
+    let timer = try XCTUnwrap(backend.records[engine.mapping[timerId]!])
+    XCTAssertEqual(timer.fireAtMillis, clock.now + Double(sun.graceSeconds * 1000))
+    XCTAssertEqual(after.rearmCount, before.rearmCount)
+    XCTAssertTrue(engine.journal.entries.contains { $0.operation == "rering" && $0.alarmId == "sun" })
   }
 
   @MainActor

@@ -76,8 +76,7 @@ final class WidgetSnapshotTests: XCTestCase {
                            { "start": "12:45", "end": "12:55" },
                            { "start": "18:47", "end": "19:32" } ] }
           ],
-          "labels": { "kerahat": "Kerahat", "kerahatActive": "Kerahat vakti",
-                      "kerahatUntil": "bitiş {time}" }
+          "labels": { "kerahat": "Kerahat", "kerahatSoon": "Kerahate" }
         }
         """.data(using: .utf8)!
     }
@@ -90,8 +89,17 @@ final class WidgetSnapshotTests: XCTestCase {
             SnapshotInterval(start: "18:47", end: "19:32"),
         ])
         XCTAssertEqual(snapshot.labels?.kerahat, "Kerahat")
-        XCTAssertEqual(snapshot.labels?.kerahatActive, "Kerahat vakti")
-        XCTAssertEqual(snapshot.labels?.kerahatUntil, "bitiş {time}")
+        XCTAssertEqual(snapshot.labels?.kerahatSoon, "Kerahate")
+    }
+
+    /// `kerahatSoon` sonradan eklendi (2026-09-21); alan olmayan v4 payload
+    /// yine çözülür, şerit Türkçe varsayılana düşer.
+    func testV4WithoutKerahatSoonDecodes() throws {
+        let json = String(data: jsonV4, encoding: .utf8)!
+            .replacingOccurrences(of: #", "kerahatSoon": "Kerahate""#, with: "")
+        let snapshot = try WidgetSnapshot.decode(json.data(using: .utf8)!)
+        XCTAssertEqual(snapshot.labels?.kerahat, "Kerahat")
+        XCTAssertNil(snapshot.labels?.kerahatSoon)
     }
 
     /// Eski payload'da kerahat yok: satir cizilmez, widget calismaya devam eder.

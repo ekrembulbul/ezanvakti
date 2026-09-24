@@ -5,6 +5,7 @@ import '../../utils/time_format_context.dart';
 import '../../../features/notifications/domain/skip_rules.dart';
 import '../../../features/alarms/domain/stop_gate.dart';
 import '../../../core/models/mission_session.dart';
+import 'snooze_countdown.dart';
 import 'snooze_notice.dart';
 import 'package:flutter/material.dart';
 
@@ -38,8 +39,9 @@ class AlarmsSection extends StatelessWidget {
   /// okuyoruz.
   final List<MissionSession> missionSessions;
 
-  /// Ertelenmiş görevli alarm kapatılmak istendiğinde çağrılır.
-  final void Function(Alarm alarm)? onDisableBlocked;
+  /// Ertelenmiş alarmın satırına/rozetine dokunuldu: ara ekran açılır
+  /// (spec 2026-09-22 D5). Verilmezse satır ertelemede dokunulmaz.
+  final ValueChanged<Alarm>? onSnoozedTap;
 
   /// Alarm id'si → bir sonraki çalma anı. Tek seferlik atlama bu örneğe
   /// uygulanır; atlama uygulanmamış hâliyle hesaplanır.
@@ -71,7 +73,7 @@ class AlarmsSection extends StatelessWidget {
     required this.onRequestPermission,
     required this.onToggle,
     this.missionSessions = const [],
-    this.onDisableBlocked,
+    this.onSnoozedTap,
     this.nextFireByAlarm = const {},
     this.skips = const {},
     this.scheduleFailures = const {},
@@ -158,11 +160,16 @@ class AlarmsSection extends StatelessWidget {
       alarm.id,
     );
     final snoozedUntil = SnoozeNotice.snoozedUntilFor(missionSession, alarm);
-    final canDisable = !StopGate.blocksDismissal(
-      alarm: alarm,
-      sessions: missionSessions,
-      now: DateTime.now(),
-    );
+    final snoozed = snoozedUntil != null;
+    // Gorev borcu olup ertelenmemis alarmda anahtar kilitli (D6): ara/gorev
+    // ekrani zaten kendiliginden aciliyor, cikissiz kalinmaz.
+    final locked =
+        !snoozed &&
+        StopGate.blocksDismissal(
+          alarm: alarm,
+          sessions: missionSessions,
+          now: DateTime.now(),
+        );
 
     final fireAt = nextFireByAlarm[alarm.id];
     final skipped =
@@ -200,7 +207,8 @@ class AlarmsSection extends StatelessWidget {
     ];
     final row = ReminderRow(
       days: weekdaysLabel(alarm.weekdays, context.l10n),
-      remaining: displayTime != null && (status == null || snoozedUntil != null)
+      // Ertelenmiste kalan sure rozette sayiyor; alt metne ikinci kez yazilmaz.
+      remaining: displayTime != null && status == null
           ? reminderRemaining(
               displayTime.difference(referenceTime),
               context.l10n,
@@ -221,38 +229,41 @@ class AlarmsSection extends StatelessWidget {
           ? context.l10n.alarmDefaultLabel
           : null,
       detail: detail.isEmpty ? null : detail.join(' · '),
-      onTap: isReordering ? null : () => onEdit(alarm),
+      onTap: isReordering
+          ? null
+          : snoozed && onSnoozedTap != null
+          ? () => onSnoozedTap!(alarm)
+          : () => onEdit(alarm),
       onLongPress: isReordering ? null : () => _showRowMenu(context, alarm),
       dimmed: !isOn,
       trailing: isReordering
           ? const SizedBox.shrink()
+          : snoozed
+          ? SnoozeCountdown(until: snoozedUntil)
           : Switch(
               value: isOn,
-              onChanged: (value) {
-                if (!value) {
-                  // Ertelenmis gorevli alarm kapatilamaz; gorev borcu duruyor.
-                  if (!canDisable) {
-                    onDisableBlocked?.call(alarm);
-                    return;
-                  }
-                  onToggle(alarm, false);
-                  return;
-                }
-                // Aciliyor: bekleyen tek seferlik atlama varsa once o kalkar,
-                // yoksa alarm kalici olarak acilir.
-                if (skipped && onSkipChanged != null) {
-                  onSkipChanged!(
-                    SkippedOccurrence(
-                      kind: SkipKind.alarm,
-                      reference: alarm.id,
-                      fireAt: fireAt,
-                    ),
-                    false,
-                  );
-                  return;
-                }
-                onToggle(alarm, true);
-              },
+              onChanged: locked
+                  ? null
+                  : (value) {
+                      if (!value) {
+                        onToggle(alarm, false);
+                        return;
+                      }
+                      // Aciliyor: bekleyen tek seferlik atlama varsa once o
+                      // kalkar, yoksa alarm kalici olarak acilir.
+                      if (skipped && onSkipChanged != null) {
+                        onSkipChanged!(
+                          SkippedOccurrence(
+                            kind: SkipKind.alarm,
+                            reference: alarm.id,
+                            fireAt: fireAt,
+                          ),
+                          false,
+                        );
+                        return;
+                      }
+                      onToggle(alarm, true);
+                    },
             ),
     );
     return isReordering

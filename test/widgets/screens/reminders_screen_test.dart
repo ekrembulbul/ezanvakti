@@ -16,7 +16,9 @@ import 'package:ezanvakti/core/services/exact_alarm_service.dart';
 import 'package:ezanvakti/features/alarms/domain/alarm_scheduler.dart';
 import 'package:ezanvakti/features/alarms/domain/alarms_manager.dart';
 import 'package:ezanvakti/features/alarms/domain/mission_coordinator.dart';
+import 'package:ezanvakti/presentation/screens/alarm_stop_screen.dart';
 import 'package:ezanvakti/presentation/screens/mission_screen.dart';
+import 'package:ezanvakti/presentation/widgets/reminders/snooze_countdown.dart';
 import 'package:ezanvakti/features/notifications/domain/skip_manager.dart';
 import 'package:ezanvakti/features/notifications/domain/notification_scheduler.dart';
 import 'package:ezanvakti/features/notifications/domain/notification_settings_manager.dart';
@@ -673,7 +675,7 @@ void main() {
     );
   });
 
-  group('Ertelenmis gorevli alarmi kapatma', () {
+  group('Ertelenmis gorevli alarm', () {
     const gatedAlarm = Alarm(
       id: 'sahur',
       kind: AlarmKind.fixed,
@@ -687,7 +689,15 @@ void main() {
       maxSnoozes: 2,
     );
 
-    testWidgets('Anahtar kapatilinca gorev ekrani acilir', (tester) async {
+    /// Rozet saniyede bir yeniden ciziyor; `pumpAndSettle` hic durulmaz.
+    Future<void> settle(WidgetTester tester, {int frames = 12}) async {
+      for (var i = 0; i < frames; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+    }
+
+    testWidgets('Satirda rozet var, anahtar yok; dokununca ara ekran, '
+        'Gorevi yap goreve gecer', (tester) async {
       tester.view.physicalSize = const Size(1206, 2622);
       tester.view.devicePixelRatio = 3.0;
       addTearDown(tester.view.reset);
@@ -696,36 +706,35 @@ void main() {
       register(alarms: alarmService);
       await storage.saveAlarm(gatedAlarm);
       final firedAt = DateTime.now();
-      await alarmService.seedSession(
-        MissionSession(
-          alarmId: gatedAlarm.id,
-          firedAt: firedAt,
-          snoozedUntil: firedAt.add(const Duration(minutes: 8)),
-        ),
+      final session = MissionSession(
+        alarmId: gatedAlarm.id,
+        firedAt: firedAt,
+        snoozedUntil: firedAt.add(const Duration(minutes: 8)),
+        chainDeadlineAt: firedAt.add(const Duration(minutes: 60)),
       );
+      await alarmService.seedSession(session);
       appState.setAlarms(const [gatedAlarm]);
-      appState.setMissionSessions([
-        MissionSession(
-          alarmId: gatedAlarm.id,
-          firedAt: firedAt,
-          snoozedUntil: firedAt.add(const Duration(minutes: 8)),
-        ),
-      ]);
+      appState.setMissionSessions([session]);
 
       await pump(tester);
       await tester.tap(find.text('Alarmlar'));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byType(Switch).first);
-      for (var i = 0; i < 30; i++) {
-        await tester.pump(const Duration(milliseconds: 100));
-      }
+      await settle(tester);
+
+      // Anahtar yerine rozet (spec 2026-09-22 D2/D6).
+      expect(find.byKey(kSnoozeCountdownKey), findsOneWidget);
+      expect(find.byType(Switch), findsNothing);
+
+      await tester.tap(find.byKey(kSnoozeCountdownKey));
+      await settle(tester);
+
+      expect(find.byType(AlarmStopScreen), findsOneWidget);
+      expect(find.text('ALARM ERTELENDİ'), findsOneWidget);
+
+      await tester.tap(find.byKey(kStopPrimaryKey));
+      await settle(tester, frames: 30);
 
       expect(find.byType(MissionScreen), findsOneWidget);
-      expect(
-        find.textContaining('görevi bekliyor'),
-        findsNothing,
-        reason: 'kullaniciya cikis yolu verilmeli, sadece uyari degil',
-      );
+      expect(alarmService.begun, [gatedAlarm.id]);
     });
   });
 

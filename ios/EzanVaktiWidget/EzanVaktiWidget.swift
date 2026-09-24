@@ -46,6 +46,7 @@ struct Provider: AppIntentTimelineProvider {
 
 struct EzanVaktiWidgetEntryView: View {
     @Environment(\.widgetFamily) private var family
+    @Environment(\.widgetContentMargins) private var margins
     let entry: PrayerEntry
 
     private var phase: DayPhase {
@@ -74,12 +75,16 @@ struct EzanVaktiWidgetEntryView: View {
             }
     }
 
+    /// Sistem kenar payı kapalı (`contentMarginsDisabled`): ana ekran aileleri
+    /// kendi payını `HomeContentInsets` ile verir (kerahat şeridi payın
+    /// dışında); kilit ekranı sistemin değerini aynen uygular.
     @ViewBuilder
     private var content: some View {
         switch family {
         case .systemSmall: SmallView(entry: entry, alignment: entry.alignment)
         case .systemMedium: MediumView(entry: entry, alignment: entry.alignment)
-        case .accessoryRectangular: RectangularView(entry: entry, alignment: entry.alignment)
+        case .accessoryRectangular:
+            RectangularView(entry: entry, alignment: entry.alignment).padding(margins)
         default: SmallView(entry: entry, alignment: entry.alignment)
         }
     }
@@ -105,5 +110,8 @@ struct EzanVaktiWidget: Widget {
         .supportedFamilies([
             .systemSmall, .systemMedium, .accessoryRectangular,
         ])
+        // Kenar payı görünümlerde (`HomeContentInsets`, kilit ekranında
+        // `widgetContentMargins`); kerahat şeridi widget'ın alt kenarına dayanır.
+        .contentMarginsDisabled()
     }
 }

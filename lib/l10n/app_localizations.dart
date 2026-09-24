@@ -1576,23 +1576,17 @@ abstract class AppLocalizations {
   /// **'Vakitler için uygulamayı aç'**
   String get widgetOpenApp;
 
-  /// Widget'ta kerahat yaklaşırken satır başı; yanına sistem sayacı gelir.
+  /// Widget kerahat çipi (yaklaşırken ve kerahatte): tek kelime, yanına sistem sayacı gelir.
   ///
   /// In tr, this message translates to:
   /// **'Kerahat'**
   String get widgetKerahat;
 
-  /// No description provided for @widgetKerahatActive.
+  /// Widget kerahat şeridi yaklaşırken: tek kelime, yanına başlangıca sayan sistem sayacı gelir ("Kerahate 09:41").
   ///
   /// In tr, this message translates to:
-  /// **'Kerahat vakti'**
-  String get widgetKerahatActive;
-
-  /// Widget'ta aktif kerahatin bitişi; {time} yer tutucusunu Swift doldurur.
-  ///
-  /// In tr, this message translates to:
-  /// **'bitiş {time}'**
-  String widgetKerahatUntil(String time);
+  /// **'Kerahate'**
+  String get widgetKerahatSoon;
 
   /// Widget etiketi
   ///
@@ -1863,12 +1857,6 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'SONRAKİ'**
   String get nextLabel;
-
-  /// Sayaç altındaki vakit adı ve saati; ezan okunmasını ima etmez.
-  ///
-  /// In tr, this message translates to:
-  /// **'{prayer} vakti {time}'**
-  String prayerTimeAt(String prayer, String time);
 
   /// Kart başlığı
   ///
@@ -2542,11 +2530,23 @@ abstract class AppLocalizations {
   /// **'{sign}{minutes} dk'**
   String offsetMinutes(Object sign, Object minutes);
 
-  /// Erteleme bilgisi
+  /// Ertelenmiş alarm satırının alt metni; 'Ertelendi' rozette.
   ///
   /// In tr, this message translates to:
-  /// **'Ertelendi · {time}\'te çalacak'**
-  String snoozedLabel(Object time);
+  /// **'{time}\'te çalacak'**
+  String snoozeRingsAt(Object time);
+
+  /// Alarm satırı ve Sıradaki kartındaki geri sayım rozetinin başlığı.
+  ///
+  /// In tr, this message translates to:
+  /// **'ERTELENDİ'**
+  String get snoozeBadgeLabel;
+
+  /// Rozetin erişilebilirlik etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Ertelendi, {time}\'te çalacak, seçenekler için dokun'**
+  String snoozeBadgeSemantics(Object time);
 
   /// Hata
   ///
@@ -2685,6 +2685,30 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'ALARM DURDURULDU'**
   String get stopHeadline;
+
+  /// Ara ekranin ertelenmis kipindeki ust basligi.
+  ///
+  /// In tr, this message translates to:
+  /// **'ALARM ERTELENDİ'**
+  String get stopSnoozedHeadline;
+
+  /// Ertelenmis kipte kahraman sayacin altindaki calma saati.
+  ///
+  /// In tr, this message translates to:
+  /// **'{time}\'te çalar'**
+  String stopRingsAt(String time);
+
+  /// Ertelenmis kipte kucuk satirdaki erteleme sayisi.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} kez ertelendi'**
+  String stopSnoozedCount(Object count);
+
+  /// Gorevsiz alarmin ertelenmis kipindeki birincil dugme: erteleme iptal, alarm bugunluk biter.
+  ///
+  /// In tr, this message translates to:
+  /// **'Alarmı kapat'**
+  String get stopCloseAlarm;
 
   /// Ara ekranda siradaki vakit satiri: ad, saat, kalan sure.
   ///
@@ -2884,17 +2908,17 @@ abstract class AppLocalizations {
   /// **'{name} vaktine {duration} kaldı'**
   String notificationDurationLeft(String name, String duration);
 
-  /// Ana ekran kerahat bandı, yaklaşırken: başlangıç saati. Türkçede time bulunma ekiyle gelir ("18:38'de"); ek Dart tarafında yalnız tr için eklenir.
+  /// Ana ekran kerahat bandı: tek kelime, yanında başlangıca ya da bitişe sayan sayaç.
   ///
   /// In tr, this message translates to:
-  /// **'Kerahat {time} başlar'**
-  String kerahatStartsAt(String time);
+  /// **'Kerahat'**
+  String get kerahatBandLabel;
 
-  /// Ana ekran kerahat bandı, kerahatte: yaklaşık bitiş saati.
+  /// Ana ekran kerahat bandı yaklaşırken: tek kelime, yanında başlangıca sayan sayaç ("Kerahate 13:41").
   ///
   /// In tr, this message translates to:
-  /// **'Kerahat vakti · bitiş {time}'**
-  String kerahatActiveLine(String time);
+  /// **'Kerahate'**
+  String get kerahatSoonBandLabel;
 
   /// Güneş doğduktan sonraki kerahat aralığı.
   ///

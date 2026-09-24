@@ -32,6 +32,8 @@ Nöbetçi alarmlar ana alarmdan ayrı bir kimlik uzayında yaşar: `MissionChain
 
 **11 Eylül eki — üst üste çalan kayıtlar.** Cihaz planlı uyanmayı kaçırınca ana kayıt geç tetiklenip +5 yedeğiyle aynı anda çalıyor; kullanıcı üstteki alerti durdurunca diğeri kilit ekranında görünmeden "alerting" kalıyor ve iOS onu ileride yeniden gösteriyordu (06:39, kerahat anı). Kural: bir alarm aynı anda tek çalış için çalar; bir kaydı durdurulduğunda aynı alarmın OS'ta çalan diğer kayıtları `stop` ile susturulur (`stop_sibling`), görev bitince de aynısı yapılır. Uzlaştırma, oturumu bitmiş ya da daha yeni bir çalışla geride kalmış alarmın bayat alertini durdurur (`stop_stale`); henüz kimsenin dokunmadığı bir çalış (oturumu yok) ve zinciri süren çalış korunur.
 
+**22 Eylül eki — çalış-farkında bayat kontrolü ve sessiz alertin geri getirilmesi.** Oturum kayıtları bitince silinmez; `stop_stale` alarmın son oturumuna bakınca dünkü bitmiş oturum bugünün dokunulmamış çalışını "bitmiş" saydırdı ve 05:59 alarmı görev bitince uygulama tarafından susturuldu (`docs/investigations/2026-09-22-silent-alarm-overlap.md`). Kural: bayat kararı oturumun *o çalışa* ait olmasını şart koşar; daha yeni bir çalış dokunulmaz. Aynı sabah ikinci bulgu: iOS tek ton çalar — iki alert üst üste binince ses sonrakine geçer, sonraki durdurulunca öncekine geri verilmez ve alert ekranda sessiz kalır; AlarmKit'te sesi geri getiren çağrı yoktur. Kural: bir alarm durdurulduğunda **başka** bir alarmın çalan alerti varsa aynı çalış `graceSeconds` sonra sesli geri getirilir (`rering`): çalışa kimse dokunmadıysa `isFallback` bir yedek kurulur (durdurulması oturumu merdiven basamağı gibi açar), zincir sürüyorsa sessiz nöbetçi susturulup zincir taze nöbetçiyle döner — `rearmCount` artmaz, tetikleyen kullanıcı değildir.
+
 ## Sonuçlar
 
 ### Olumlu
@@ -59,6 +61,7 @@ Nöbetçi alarmlar ana alarmdan ayrı bir kimlik uzayında yaşar: `MissionChain
 ⚠️ `maxRearms = 40` ve `chainDeadlineMinutes = 60` değerlerinin ölçümle kalibre edildiğine dair kayıt yok. `mission_tuning.dart:4-6` bunları açıkça "tahmin" olarak işaretliyor: *"Başlangıç değerleri tahmindir; cihazda ölçülüp güncellenecek."* Cihaz ölçümü yapıldığında bu ADR güncellenmelidir.
 
 - **Cihaz alarm için uyanmayabiliyor (11 Eylül 2026, iPhone 17 / iOS 26).** `mobiletimerd` uyanmayı planladı ("Next wake date 02:48:50Z") ama cihaz 05:44–05:52 arasında hiç uyanmadı; alarmlar ancak bir Wi‑Fi paketi cihazı uyandırınca 5–10 dk geç çaldı (`build/alarm-device-audit-20260911`, yerel). Aynı gece 06:03:50 uyanması da kaçtı. Bizim planlamamızla ilgisi kurulamadı; yeniden görülürse Apple Feedback.
+- **İkinci vaka (22 Eylül 2026, iPhone 17 / iOS 27.0).** `mobiletimerd` 05:58:50 için user-visible RTC uyanması kurmuştu; 05:56:41'deki kısa AOP uyanmasından sonraki uyku girişinde `powerd` bu isteği değil, AOD motorunun 06:01:57 isteğini seçti. 05:59 alarmı 2 dk 59 sn, 06:00:32 nöbetçisi 1.5 dk geç çaldı (`docs/investigations/2026-09-22-silent-alarm-overlap.md`). Apple Feedback adayı.
 
 ## Referanslar
 

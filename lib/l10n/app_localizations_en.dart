@@ -829,12 +829,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get widgetKerahat => 'Disliked time';
 
   @override
-  String get widgetKerahatActive => 'Disliked time now';
-
-  @override
-  String widgetKerahatUntil(String time) {
-    return 'until $time';
-  }
+  String get widgetKerahatSoon => 'Disliked time in';
 
   @override
   String get widgetUpdateApp => 'Please update the app';
@@ -992,11 +987,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get nextLabel => 'NEXT';
-
-  @override
-  String prayerTimeAt(String prayer, String time) {
-    return '$prayer time: $time';
-  }
 
   @override
   String get upcomingTitle => 'Upcoming';
@@ -1390,8 +1380,16 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String snoozedLabel(Object time) {
-    return 'Snoozed · rings at $time';
+  String snoozeRingsAt(Object time) {
+    return 'Rings at $time';
+  }
+
+  @override
+  String get snoozeBadgeLabel => 'SNOOZED';
+
+  @override
+  String snoozeBadgeSemantics(Object time) {
+    return 'Snoozed, rings at $time, tap for options';
   }
 
   @override
@@ -1480,6 +1478,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get stopHeadline => 'ALARM STOPPED';
+
+  @override
+  String get stopSnoozedHeadline => 'ALARM SNOOZED';
+
+  @override
+  String stopRingsAt(String time) {
+    return 'Rings at $time';
+  }
+
+  @override
+  String stopSnoozedCount(Object count) {
+    return 'Snoozed ×$count';
+  }
+
+  @override
+  String get stopCloseAlarm => 'Turn off alarm';
 
   @override
   String stopNextPrayer(String prayer, String time, String remaining) {
@@ -1607,14 +1621,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String kerahatStartsAt(String time) {
-    return 'Disliked time starts at $time';
-  }
+  String get kerahatBandLabel => 'Disliked time';
 
   @override
-  String kerahatActiveLine(String time) {
-    return 'Disliked time · until $time';
-  }
+  String get kerahatSoonBandLabel => 'Disliked time in';
 
   @override
   String get kerahatAfterSunrise => 'After sunrise';

@@ -12,7 +12,6 @@ import '../../core/interfaces/alarm_service.dart';
 import '../../core/models/alarm.dart';
 import '../../core/models/alarm_mission.dart';
 import '../../core/models/mission_session.dart';
-import '../../core/models/skipped_occurrence.dart';
 import '../../core/utils/app_logger.dart';
 import '../../core/utils/prayer_utils.dart';
 import '../../features/alarms/domain/abort_gate.dart';
@@ -120,77 +119,87 @@ Future<void> openMissionIfPending(BuildContext context) async {
   }
 }
 
-/// Alarmı kapatma girişimini görev kapısından geçirir.
+/// Ertelenmiş alarmın satırına ya da rozetine dokunuldu (spec 2026-09-22 D5).
 ///
-/// Görev borcu yoksa hemen `true` döner ve çağıran eylemini uygular. Borç
-/// varsa görev ekranı açılır; ekran kapandığında borç ödenmişse (görev
-/// yapıldı ya da kademeli acil çıkış kullanıldı) `true`, kullanıcı yeniden
-/// ertelediyse `false` döner.
-///
-/// [openMissionIfPending]'den farkı: erteleme sürerken de açar. Orada karar
-/// [StopGate.decide]'ın, burada [StopGate.blocksDismissal]'ın — biri "çalan
-/// alarm var mı" sorar, diğeri "ödenmemiş borç var mı".
-Future<bool> resolveMissionBeforeDismiss(
-  BuildContext context,
-  Alarm alarm,
-) async {
-  if (!context.mounted) return false;
-  final coordinator = ServiceLocator().get<MissionCoordinator>();
-
-  // Yan etkisiz: AppState'i tazelemek cagiranin isi. Buradan yazmak yeniden
-  // kurulum tetikleyip oturumu ekran acilmadan degistirebiliyordu.
-  Future<bool> blocked() async => StopGate.blocksDismissal(
-    alarm: alarm,
-    sessions: await coordinator.currentSessions(),
-    now: DateTime.now(),
-  );
-
-  if (!await blocked()) return true;
-  if (!context.mounted) return false;
-
-  // Görev ekranı zaten açıksa kullanıcı borçla uğraşıyor demektir; ikinci bir
-  // ekran açmak yerine eylemi uygulamadan geri dön.
-  if (_missionScreenOpen || !_canPresentMission) return false;
-
-  final session = MissionSession.pendingForAlarm(
-    await coordinator.currentSessions(),
-    alarm.id,
-  );
-  if (session == null || !context.mounted) return false;
-
+/// Ara ekranı "ertelenmiş" kipinde açar: kullanıcı görevi yapar, yeniden
+/// erteler, görevsizde alarmı kapatır ya da X ile hiçbir şeyi değiştirmeden
+/// çıkar. Erteleme yoksa (dolmuş, bitmiş, silinmiş) hiçbir şey açılmaz; bu
+/// durumlar [openMissionIfPending]'in işi.
+Future<void> openSnoozedAlarm(BuildContext context, Alarm alarm) async {
+  if (!context.mounted || !_canPresentMission || _missionScreenOpen) return;
   final navigator = Navigator.of(context);
   _openScreenNavigator = navigator;
+  final coordinator = ServiceLocator().get<MissionCoordinator>();
   try {
+    final sessions = await coordinator.currentSessions();
+    if (!context.mounted) return;
+    context.read<AppState>().setMissionSessions(sessions);
+    final session = MissionSession.pendingForAlarm(sessions, alarm.id);
+    if (session == null ||
+        session.snoozedUntil?.isAfter(DateTime.now()) != true) {
+      return;
+    }
+    final result = await navigator.push<StopScreenResult>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => _StopHost(alarm: alarm, session: session),
+      ),
+    );
+    if (result != StopScreenResult.mission ||
+        !context.mounted ||
+        !_canPresentMission) {
+      return;
+    }
+    // Gorevi yap: taze oturumla gorev ekrani; begin ertelemeyi bitirir.
+    final fresh = MissionSession.pendingForAlarm(
+      await coordinator.currentSessions(),
+      alarm.id,
+    );
+    if (!context.mounted || !_canPresentMission) return;
     await navigator.push(
       MaterialPageRoute(
         fullscreenDialog: true,
-        builder: (_) => _MissionHost(alarm: alarm, session: session),
+        builder: (_) => _MissionHost(
+          alarm: alarm,
+          session: fresh?.firedAt.isAtSameMomentAs(session.firedAt) == true
+              ? fresh!
+              : session,
+        ),
       ),
     );
+  } catch (error, stack) {
+    if (context.mounted) {
+      _showMissionFailure(
+        context,
+        error,
+        stack,
+        () => openSnoozedAlarm(context, alarm),
+      );
+    }
   } finally {
     if (identical(_openScreenNavigator, navigator)) _openScreenNavigator = null;
+    if (context.mounted) {
+      try {
+        final sessions = await coordinator.currentSessions();
+        if (context.mounted) {
+          context.read<AppState>().setMissionSessions(sessions);
+        }
+      } catch (error, stack) {
+        if (context.mounted) {
+          _showMissionFailure(
+            context,
+            error,
+            stack,
+            () => openSnoozedAlarm(context, alarm),
+          );
+        }
+      }
+      // Ekran acikken baska bir alarm durdurulduysa sirasi simdi.
+      if (_needsMissionCheck && context.mounted) {
+        unawaited(openMissionIfPending(context));
+      }
+    }
   }
-  if (!context.mounted) return false;
-  return !await blocked();
-}
-
-/// Tek seferlik kapatma da aynı kapıdan geçer.
-///
-/// Ödenmemiş görev borcu olan bir alarmın sıradaki çalışını atlamak, borçtan
-/// kaçmanın bir başka yoludur. Bildirim atlamalarının görevle ilgisi yoktur;
-/// onlar doğrudan uygulanır.
-Future<bool> resolveSkipBeforeDismiss(
-  BuildContext context,
-  SkippedOccurrence occurrence,
-  List<Alarm> alarms,
-) async {
-  if (occurrence.kind != SkipKind.alarm) return true;
-  final alarm = alarms
-      .where((candidate) => candidate.id == occurrence.reference)
-      .firstOrNull;
-  // Tanımı gitmiş alarmın borcu da düşer; atlama kaydı engellenmez.
-  if (alarm == null) return true;
-  return resolveMissionBeforeDismiss(context, alarm);
 }
 
 Future<bool> _openNextMission(BuildContext context) async {
@@ -299,11 +308,18 @@ class _StopHostState extends State<_StopHost> with WidgetsBindingObserver {
 
   bool get _gated => widget.alarm.mission.requiresGate;
 
+  /// Ertelenmiş kip: oturum snapshot'ında erteleme var. Süre dolup alarm
+  /// çalsa bile native durdurmayı kaydedene kadar kip değişmez; kip ancak
+  /// dinlenen durdurma olayıyla tazelenen oturumla döner (spec D14).
+  bool get _snoozed => _session.snoozedUntil != null;
+
   int get _windowSeconds =>
       _gated ? MissionTuning.graceSeconds : MissionTuning.stopScreenSeconds;
 
   int get _remaining {
-    final end = _session.stoppedAt.add(Duration(seconds: _windowSeconds));
+    final end =
+        _session.snoozedUntil ??
+        _session.stoppedAt.add(Duration(seconds: _windowSeconds));
     final left = end.difference(DateTime.now()).inSeconds;
     return left < 0 ? 0 : left;
   }
@@ -361,7 +377,8 @@ class _StopHostState extends State<_StopHost> with WidgetsBindingObserver {
   void _tick() {
     if (!mounted) return;
     setState(() {});
-    if (!_gated && _remaining <= 0) _primary();
+    // Ertelenmis kipte otomatik kapanma yok (D11): sayac 0:00'da bekler.
+    if (!_snoozed && !_gated && _remaining <= 0) _primary();
   }
 
   Future<void> _primary() async {
@@ -393,6 +410,7 @@ class _StopHostState extends State<_StopHost> with WidgetsBindingObserver {
       final ok = await _coordinator.snooze(
         widget.alarm,
         firedAt: widget.session.firedAt,
+        expectedSnoozeUsed: _session.snoozeUsed,
       );
       if (!ok || !mounted) {
         _closing = false;
@@ -405,6 +423,13 @@ class _StopHostState extends State<_StopHost> with WidgetsBindingObserver {
     }
   }
 
+  /// X: hiçbir şeyi değiştirmeden çık; erteleme kurulu kalır (D10).
+  void _close() {
+    if (_closing) return;
+    _closing = true;
+    Navigator.of(context).pop(StopScreenResult.done);
+  }
+
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
@@ -415,13 +440,19 @@ class _StopHostState extends State<_StopHost> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
     final remaining = StopGate.snoozeRemaining(widget.alarm, _session);
-    final canSnooze = remaining == null || remaining > 0;
+    final canSnooze = StopGate.canSnoozeAgain(
+      alarm: widget.alarm,
+      session: _session,
+      now: now,
+    );
     // Karşılama satırı ana ekranla aynı hesabı kullanır (ADR 0004).
     final appState = context.read<AppState>();
     final today = appState.todaysPrayerTime;
     return PopScope(
-      canPop: false,
+      // Ertelenmis kipte geri jesti X ile ayni: degisiklik yok.
+      canPop: _snoozed,
       child: AlarmStopScreen(
         nextPrayerType: PrayerUtils.getNextPrayerType(today),
         nextPrayerTime: PrayerUtils.getNextPrayerTime(
@@ -434,7 +465,10 @@ class _StopHostState extends State<_StopHost> with WidgetsBindingObserver {
         snoozeRemaining: remaining,
         firedAt: _session.firedAt,
         stoppedAt: _session.stoppedAt,
-        now: DateTime.now(),
+        now: now,
+        snoozedUntil: _session.snoozedUntil,
+        snoozeUsed: _session.snoozeUsed,
+        onClose: _snoozed ? _close : null,
         onPrimary: _primary,
         onSnooze: canSnooze ? _snooze : null,
       ),
@@ -584,6 +618,7 @@ class _MissionHostState extends State<_MissionHost>
       final ok = await _coordinator.snooze(
         widget.alarm,
         firedAt: widget.session.firedAt,
+        expectedSnoozeUsed: _session.snoozeUsed,
       );
       if (!ok || !mounted) {
         _closing = false;

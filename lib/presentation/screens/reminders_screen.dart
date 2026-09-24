@@ -690,18 +690,6 @@ class _RemindersScreenState extends State<RemindersScreen>
     await _syncAlarms(appState);
   }
 
-  /// Görev borcu duran alarm kapatılmak istendi.
-  ///
-  /// Kapatmak, görevi yapmadan alarmdan kurtulmanın arka kapısı olurdu; ama
-  /// kullanıcıyı borç bitene kadar beklemeye mahkûm etmek de doğru değil.
-  /// Görev ekranına uğratılır: görevi yapar ya da kademeli acil çıkışı
-  /// kullanır. İkisi de borcu kapatır, sonra istediği kapatma uygulanır.
-  Future<void> _onDisableBlocked(Alarm alarm) async {
-    if (!await resolveMissionBeforeDismiss(context, alarm)) return;
-    if (!mounted) return;
-    await _toggleAlarm(alarm, false);
-  }
-
   /// Kapatma, "yalnızca bu sefer"in giriş kapısı: alarm kapatılır ve altta
   /// çıkan çubuk tek seferliğe çevirme seçeneğini sunar.
   Future<void> _toggleAlarm(Alarm alarm, bool isActive) async {
@@ -972,7 +960,7 @@ class _RemindersScreenState extends State<RemindersScreen>
                 newIndex,
               ),
               missionSessions: appState.missionSessions,
-              onDisableBlocked: _onDisableBlocked,
+              onSnoozedTap: (alarm) => openSnoozedAlarm(context, alarm),
               scheduleFailures: _scheduleFailures,
               nextFireByAlarm: nextAlarmTimes,
               skips: appState.skips,

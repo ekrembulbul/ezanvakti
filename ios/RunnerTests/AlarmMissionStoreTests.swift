@@ -179,6 +179,20 @@ final class AlarmMissionStoreTests: XCTestCase {
     XCTAssertNil(session.snoozedUntilMillis)
   }
 
+  func testBeginDuringActiveSnoozeStartsMissionAndEndsSnooze() throws {
+    let config = configuration("work")
+    try store.configure(config)
+    _ = try store.stop(scheduleId: config.scheduleId, nowMillis: fire + 1000)
+    _ = try store.snooze(alarmId: "work", minutes: 5, nowMillis: fire + 2000)
+    let now = fire + 60_000
+    let session = try XCTUnwrap(store.begin(alarmId: "work", nowMillis: now))
+    XCTAssertTrue(session.begun)
+    XCTAssertNil(session.snoozedUntilMillis)
+    XCTAssertEqual(session.deadlineMillis, now + Double(config.missionTimeoutSeconds * 1000))
+    XCTAssertEqual(session.snoozeUsed, 1)
+    XCTAssertEqual(store.session(alarmId: "work")?.snoozedUntilMillis, nil)
+  }
+
   func testRefreshRetainsRecentFallbackUntilItsStopIntentArrives() throws {
     let config = configuration("work")
     var fallback = config.chainConfiguration(
@@ -229,5 +243,28 @@ final class AlarmMissionStoreTests: XCTestCase {
     defaults.set(corrupted, forKey: "ezanvakti_alarm_missions_v2")
     XCTAssertThrowsError(try store.configure(configuration("work")))
     XCTAssertEqual(defaults.data(forKey: "ezanvakti_alarm_missions_v2"), corrupted)
+  }
+
+  func testSnoozeDuringActiveSnoozeRestartsFromNowAndCounts() throws {
+    let config = configuration("is")
+    try store.configure(config)
+    _ = try store.stop(scheduleId: config.scheduleId, nowMillis: fire + 1000)
+    _ = try store.snooze(alarmId: "is", minutes: 5, nowMillis: fire + 2000)
+    let again = try XCTUnwrap(store.snooze(alarmId: "is", minutes: 5, nowMillis: fire + 122_000))
+    XCTAssertEqual(again.snoozedUntilMillis, fire + 122_000 + 300_000)
+    XCTAssertEqual(again.snoozeUsed, 2)
+    XCTAssertFalse(again.begun)
+    XCTAssertNil(again.deadlineMillis)
+  }
+
+  func testSnoozeDuringActiveSnoozeStillHonorsLimit() throws {
+    let config = configuration("is")  // maxSnoozes 2
+    try store.configure(config)
+    _ = try store.stop(scheduleId: config.scheduleId, nowMillis: fire + 1000)
+    _ = try store.snooze(alarmId: "is", minutes: 5, nowMillis: fire + 2000)
+    _ = try store.snooze(alarmId: "is", minutes: 5, nowMillis: fire + 62_000)
+    XCTAssertNil(try store.snooze(alarmId: "is", minutes: 5, nowMillis: fire + 122_000))
+    XCTAssertEqual(store.session(alarmId: "is")?.snoozeUsed, 2)
+    XCTAssertEqual(store.session(alarmId: "is")?.snoozedUntilMillis, fire + 62_000 + 300_000)
   }
 }

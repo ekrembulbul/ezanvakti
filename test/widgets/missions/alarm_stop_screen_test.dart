@@ -48,6 +48,9 @@ void main() {
     DateTime? currentTime,
     PrayerType? nextPrayerType,
     DateTime? nextPrayerTime,
+    DateTime? snoozedUntil,
+    int snoozeUsed = 0,
+    VoidCallback? onClose,
   }) async {
     tester.view.physicalSize = const Size(1206, 2622);
     tester.view.devicePixelRatio = 3.0;
@@ -66,6 +69,9 @@ void main() {
           onSnooze: onSnooze,
           nextPrayerType: nextPrayerType,
           nextPrayerTime: nextPrayerTime,
+          snoozedUntil: snoozedUntil,
+          snoozeUsed: snoozeUsed,
+          onClose: onClose,
         ),
       ),
     );
@@ -203,6 +209,70 @@ void main() {
       await pump(tester, alarm: plain, gated: false);
 
       expect(find.byKey(kStopNextPrayerKey), findsNothing);
+    });
+  });
+
+  group('ertelenmis kip', () {
+    final snoozedUntil = DateTime(2026, 8, 30, 8, 55);
+
+    testWidgets('baslik, kahraman sayac ve calma saati', (tester) async {
+      await pump(
+        tester,
+        alarm: gated,
+        gated: true,
+        remainingSeconds: 462,
+        snoozedUntil: snoozedUntil,
+        snoozeUsed: 1,
+        onClose: () {},
+      );
+      expect(find.text('ALARM ERTELENDİ'), findsOneWidget);
+      expect(find.text('ALARM DURDURULDU'), findsNothing);
+      expect(find.text('7:42'), findsOneWidget);
+      expect(find.text("08:55'te çalar"), findsOneWidget);
+      expect(find.textContaining('1 kez ertelendi'), findsOneWidget);
+      // Alt bilgi satiri (donme/kapanma sayaci) ertelenmis kipte yok (D11).
+      expect(find.byKey(kStopCountdownKey), findsNothing);
+      expect(find.byKey(kStopCloseKey), findsOneWidget);
+    });
+
+    testWidgets('gorevlide Gorevi yap, gorevsizde Alarmi kapat', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        alarm: gated,
+        gated: true,
+        snoozedUntil: snoozedUntil,
+        onClose: () {},
+      );
+      expect(find.text('Görevi yap'), findsOneWidget);
+
+      await pump(
+        tester,
+        alarm: plain,
+        gated: false,
+        snoozedUntil: snoozedUntil,
+        onClose: () {},
+      );
+      expect(find.text('Alarmı kapat'), findsOneWidget);
+      expect(find.text('Tamam'), findsNothing);
+    });
+
+    testWidgets('X onClose cagirir; kendiliginden kipte X yok', (tester) async {
+      var closed = false;
+      await pump(
+        tester,
+        alarm: plain,
+        gated: false,
+        snoozedUntil: snoozedUntil,
+        onClose: () => closed = true,
+      );
+      await tester.tap(find.byKey(kStopCloseKey));
+      expect(closed, isTrue);
+
+      await pump(tester, alarm: plain, gated: false);
+      expect(find.byKey(kStopCloseKey), findsNothing);
+      expect(find.text('ALARM DURDURULDU'), findsOneWidget);
     });
   });
 }

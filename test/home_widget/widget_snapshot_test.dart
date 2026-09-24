@@ -77,8 +77,7 @@ void main() {
         durationHour: '{hours} h',
         durationMinute: '{minutes} min',
         kerahat: 'Disliked time',
-        kerahatActive: 'Disliked time now',
-        kerahatUntil: 'until {time}',
+        kerahatSoon: 'Disliked time in',
       );
       final withLabels = WidgetSnapshot(
         locationLabel: snapshot.locationLabel,
@@ -90,8 +89,10 @@ void main() {
       expect(json['fajr'], 'Fajr');
       expect(json['siriAnswer'], contains('{prayer}'));
       expect(json['kerahat'], 'Disliked time');
-      expect(json['kerahatActive'], 'Disliked time now');
-      expect(json['kerahatUntil'], contains('{time}'));
+      // Şerit yaklaşırken ayrı kelime kullanır; şema sürümü değişmez, eski
+      // widget alanı yok sayar (2026-09-21).
+      expect(json['kerahatSoon'], 'Disliked time in');
+      expect(json.containsKey('kerahatActive'), isFalse);
     });
 
     test('schemaVersion 4 yazilir (kerahat araliklari ve etiketleri)', () {

@@ -254,13 +254,14 @@ class AlarmMissions(private val storage: MissionStateStorage) {
         session
     }
 
+    /** Erteleme sürerken ikinci erteleme de uygulanır: yeni an şimdiden, sayaç +1
+     *  (spec 2026-09-22 D12). Limit ve zincir tavanı aynen. */
     fun snooze(alarmId: String, minutes: Int, now: Long): NativeMissionSession? = mutate { state ->
         val current = state.sessions[alarmId] ?: return@mutate null
         val limit = current.args.maxSnoozes ?: if (current.args.missionEnabled) 5 else Int.MAX_VALUE
         val next = now + minutes * 60_000L
         if (!current.canContinue(now) || !current.args.snoozeEnabled ||
             minutes != current.args.snoozeMinutes || minutes <= 0) return@mutate null
-        if ((current.snoozedUntilMillis ?: 0) > now) return@mutate current
         if (current.snoozeUsed >= limit || (current.args.missionEnabled && next >= current.chainDeadline)) return@mutate null
         val session = current.copy(snoozeUsed = current.snoozeUsed + 1, snoozedUntilMillis = next,
             deadlineMillis = null, begun = false, ringingScheduleId = null)

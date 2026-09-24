@@ -38,15 +38,22 @@ Bayatlık eşikleri iki yolda farklıdır:
 - **Görevsiz:** `stopScreenSeconds` (45 sn). Durdurma zaten kesindir; saatler sonra eski bir "Ertele" ekranıyla karşılaşılmamalıdır (D3/D7).
 - **Görevli:** zincirin sert tavanı ile aynı pencere (`chainDeadlineAt`, bkz. [0001](0001-alarm-watchdog-chain.md)). Tavan dolduğunda görev borcu da düşer; iki mekanizma aynı anda sona erer.
 
-### Kapatma girişimleri de aynı kapıdan geçer
+### Kapatma girişimleri: kilit ve satırdan giriş (22 Eylül 2026)
 
 `decide()` "ortada çalan alarm var mı" sorusunu cevaplar. Ödenmemiş görev borcu ise alarm ertelenmişken de durur, ve o sırada alarmı listeden pasife almak ya da sıradaki çalışını atlamak borçtan kaçmanın arka kapısıydı.
 
-`StopGate.blocksDismissal()` bu ikinci soruyu sorar: *bu alarmın ödenmemiş görev borcu var mı?* Görevli alarmda bekleyen bir oturum varsa ve zincirin sert tavanı (bkz. [0001](0001-alarm-watchdog-chain.md)) dolmamışsa kapatma girişimi doğrudan uygulanmaz; kullanıcı görev ekranına uğrar. Orada görevi yapar ya da kademeli acil çıkışı kullanır — ikisi de borcu kapatır, sonra istediği kapatma uygulanır.
+`StopGate.blocksDismissal()` bu ikinci soruyu sorar: *bu alarmın ödenmemiş görev borcu var mı?* Cevap evetse anahtar ve tek seferlik atlama anahtarı **devre dışıdır**; ertelenmiş alarmda anahtarın yerini geri sayım rozeti alır (spec 2026-09-22 D2/D6). Çıkış iki yoldan biridir:
 
-Kapıya tabi olanlar: alarm satırındaki anahtarı kapatma, "SIRADAKİ" kartından tek seferlik atlama. **Silme tabi değildir** — kalıcı ve niyetli bir eylemdir, ve silinmiş bir alarmın görevini yaptırmak anlamsız olurdu.
+- **Ertelenmişken** satıra ya da rozete dokunmak ara ekranı "ertelenmiş" kipinde açar (`openSnoozedAlarm`): kullanıcı görevi yapar (erteleme biter, görev ekranı; oradaki kademeli acil çıkış da borcu kapatır), yeniden erteler ya da görevsizde alarmı kapatır. X hiçbir şeyi değiştirmeden çıkar.
+- **Ertelenmemişken** (nöbetçi ya da görev süresi penceresi) ara/görev ekranı zaten `openMissionIfPending` ile kendiliğinden açılır; kilit kısa sürer.
 
-Önceki çözüm kullanıcıyı çıkışsız bırakıyordu: anahtar kilitleniyor ve "görevi yapmadan kapatılamaz" uyarısı gösteriliyordu. Erteleme bitene kadar beklemekten başka yol yoktu. Kapı, koruma ile çıkışı aynı ekranda buluşturur.
+9 Eylül–22 Eylül arasındaki çözüm, kapatma girişimini doğrudan görev ekranına yönlendiriyordu (`resolveMissionBeforeDismiss`): koruma ile çıkış aynı yerdeydi ama seçim sunmuyordu — kullanıcı "kapat" deyip kendini QR okuturken buluyordu. Kullanıcı kararıyla kaldırıldı; seçim ara ekranda, giriş satırda.
+
+Ondan önceki çözüm (kilitli anahtar + "görevi yapmadan kapatılamaz" uyarısı) kullanıcıyı çıkışsız bırakıyordu; bugünkü kilit satırdan girişle birlikte geldiği için o soruna dönmez.
+
+Silme kapıya tabi değildir — kalıcı ve niyetli bir eylemdir, ve silinmiş bir alarmın görevini yaptırmak anlamsız olurdu.
+
+**Yeniden erteleme (22 Eylül).** Erteleme sürerken ikinci "Ertele" iki platformda da sessizce yok sayılıyordu; artık uygulanır: yeni çalma anı şimdi + süre, hak bir eksilir (spec D12). Bunun bedeli, native'in yeniden denemeyi ayırt edememesi: zamanlayıcı kurulup eski kaydın temizliği patlarsa kullanıcı "Tekrar dene"ye basar ve native bunu ikinci erteleme sayardı. İdempotentlik bu yüzden Dart koordinatörüne taşındı — çağıran ekranda gördüğü sayacı verir; native sayaç bir ileri ve erteleme etkinse istek zaten uygulanmıştır, native'e gidilmez. Yarım kalan eski zamanlayıcı bir sonraki uzlaştırmada temizlenir.
 
 Erteleme hakkı ayrı bir kural taşır: görev açıkken sınırsız erteleme kapıyı işlevsiz bırakacağı için limit en büyük sonlu seçeneğe indirilir (`snooze_options.dart:19-21`).
 
@@ -69,13 +76,18 @@ Erteleme hakkı ayrı bir kural taşır: görev açıkken sınırsız erteleme k
 
 **Kararı ekran widget'ının `initState`'inde vermek.** Daha az dolaylılık. Reddedildi: karar zaman bağımlı ve çok boyutlu; widget içinde test edilmesi pratikte mümkün olmuyordu.
 
+**Kapatma girişimini doğrudan görev ekranına yönlendirmek (9–22 Eylül).** Terk edildi: seçim sunmadan göreve düşürüyordu; ayrıca erteleme sürerken yeniden ertelemek için giriş yoktu.
+
 **Bayatlık için tek bir global eşik.** Basit. Reddedildi: görevsiz yolda 45 saniye doğru, görevli yolda ise zincir tavanıyla hizalanmak zorunlu — tek eşik iki mekanizmayı ayrıştırır ve tutarsız durumlar üretir.
 
 ## Referanslar
 
 - `lib/features/alarms/domain/stop_gate.dart` — `decide()` karar fonksiyonu, enum ve `blocksDismissal()` borç sorgusu
-- `lib/presentation/screens/mission_launcher.dart` — `resolveMissionBeforeDismiss()` ve `resolveSkipBeforeDismiss()`
+- `lib/presentation/screens/mission_launcher.dart` — `openSnoozedAlarm()` ve `_StopHost` ertelenmiş kipi
+- `lib/presentation/widgets/reminders/snooze_countdown.dart` — rozet
+- `lib/features/alarms/domain/mission_coordinator.dart` — `snooze(expectedSnoozeUsed:)` yeniden deneme koruması
+- `docs/superpowers/specs/2026-09-22-ertelenmis-alarm-geri-sayim-design.md` — D2/D5/D6/D12 kararları
 - `lib/features/alarms/domain/snooze_options.dart:14-21` — erteleme limiti normalleştirme
-- `lib/presentation/screens/mission_launcher.dart:145-197` — kararın uygulanması
-- `lib/presentation/screens/alarm_stop_screen.dart:196-217` — birincil düğme metni (`stopDoMission` / `actionOk`)
+- `lib/presentation/screens/mission_launcher.dart:205-283` — kararın uygulanması (`_openNextMission`)
+- `lib/presentation/screens/alarm_stop_screen.dart:298-323` — birincil düğme metni (`stopDoMission` / `stopCloseAlarm` / `actionOk`)
 - `docs/superpowers/plans/2026-08-30-alarm-ara-ekran.md` — D3/D6/D7/D8 kararlarının kaynağı

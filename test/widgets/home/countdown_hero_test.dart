@@ -50,21 +50,26 @@ void main() {
             find.byKey(const Key('countdown_value')),
           );
           expect(counter.style?.color, tokens.kerahatText);
-          expect(find.text('Kerahat vakti · bitiş 07:00'), findsOneWidget);
-          expect(find.text('25 dk'), findsOneWidget);
+          expect(find.text('Kerahat'), findsOneWidget);
+          expect(find.text('25:00'), findsOneWidget);
           final band = tester.widget<Container>(find.byKey(kKerahatBandKey));
           expect((band.decoration! as BoxDecoration).color, tokens.kerahatLine);
           expect(
+            tester.widget<Text>(find.text('Kerahat')).style?.color,
+            Colors.white,
+          );
+          expect(
             tester
-                .widget<Text>(find.text('Kerahat vakti · bitiş 07:00'))
+                .widget<Text>(find.byKey(kKerahatBandCountdownKey))
                 .style
                 ?.color,
             Colors.white,
           );
+          // Bant sayacın altında.
           expect(
-            tester.getRect(find.byKey(kKerahatBandKey)).bottom,
-            lessThan(
-              tester.getRect(find.byKey(const Key('countdown_value'))).top,
+            tester.getRect(find.byKey(kKerahatBandKey)).top,
+            greaterThan(
+              tester.getRect(find.byKey(const Key('countdown_value'))).bottom,
             ),
           );
           expect(find.byKey(kKerahatGlowKey), findsOneWidget);
@@ -123,13 +128,10 @@ void main() {
         );
         expect(find.byKey(kKerahatBandKey), findsOneWidget);
         expect(
-          find.text(
-            locale.languageCode == 'ar'
-                ? 'وقت الكراهة · حتى 06:45'
-                : 'Kerahat vakti · bitiş 06:45',
-          ),
+          find.text(locale.languageCode == 'ar' ? 'وقت الكراهة' : 'Kerahat'),
           findsOneWidget,
         );
+        expect(find.text('30:00'), findsOneWidget);
         expect(tester.takeException(), isNull);
         await tester.drag(
           find.byType(SingleChildScrollView),
@@ -173,29 +175,37 @@ void main() {
         now = start.subtract(const Duration(minutes: 20));
         await tester.pump(const Duration(seconds: 2));
         expect(find.byKey(kKerahatBandKey), findsOneWidget);
-        expect(find.text("Kerahat 19:41'de başlar"), findsOneWidget);
-        expect(find.text('20 dk'), findsOneWidget);
+        // Başlangıca sayarken kelime "Kerahate": "Kerahat 20:00" kerahatin
+        // sürdüğü gibi okunuyordu (2026-09-21).
+        expect(find.text('Kerahate'), findsOneWidget);
+        expect(find.text('Kerahat'), findsNothing);
+        expect(find.text('20:00'), findsOneWidget);
+        // Yaklaşırken turuncu aile: metin, sayaç, yüzey ve çerçeve.
+        expect(
+          tester.widget<Text>(find.text('Kerahate')).style?.color,
+          tokensFor().kerahatSoonText,
+        );
         expect(
           tester
-              .widget<Text>(find.text("Kerahat 19:41'de başlar"))
+              .widget<Text>(find.byKey(kKerahatBandCountdownKey))
               .style
               ?.color,
-          tokensFor().kerahatText,
+          tokensFor().kerahatSoonText,
         );
         final band = tester.widget<Container>(find.byKey(kKerahatBandKey));
-        expect(
-          (band.decoration! as BoxDecoration).color,
-          tokensFor().kerahatSurface,
-        );
-        expect(find.byIcon(Icons.wb_twilight_rounded), findsOneWidget);
-        final fill = tester.widget<FractionallySizedBox>(
-          find.ancestor(
-            of: find.byKey(kKerahatBandFillKey),
-            matching: find.byType(FractionallySizedBox),
-          ),
-        );
-        // 30 dakikalık pencerenin 10 dakikası geçti.
-        expect(fill.widthFactor, closeTo(10 / 30, 0.001));
+        final decoration = band.decoration! as BoxDecoration;
+        expect(decoration.color, tokensFor().kerahatSoonSurface);
+        expect(decoration.border!.top.color, tokensFor().kerahatSoonLine);
+        // Sayaç etiketin hemen yanında; ikon · kelime · sayaç satırı ortada.
+        final label = tester.getRect(find.text('Kerahate'));
+        final counter = tester.getRect(find.byKey(kKerahatBandCountdownKey));
+        expect(counter.left - label.right, closeTo(8, 0.5));
+        final icon = tester.getRect(find.byIcon(Icons.wb_twilight_rounded));
+        final bandRect = tester.getRect(find.byKey(kKerahatBandKey));
+        expect((icon.left + counter.right) / 2, closeTo(bandRect.center.dx, 1));
+        // Yaklaşırken çubuk yok; satır bantta dikeyde ortalı.
+        expect(find.byKey(kKerahatBandFillKey), findsNothing);
+        expect(label.center.dy, closeTo(bandRect.center.dy, 0.5));
         expect(find.byKey(kKerahatGlowKey), findsNothing);
         expect(
           tester
@@ -205,10 +215,31 @@ void main() {
           tokensFor().accent,
         );
 
+        // Bant sayacı saniye saniye akar; büyük sayaç yine akşama sayar.
+        now = start.subtract(const Duration(minutes: 14, seconds: 32));
+        await tester.pump(const Duration(seconds: 2));
+        expect(find.text('14:32'), findsOneWidget);
+        now = now.add(const Duration(seconds: 1));
+        await tester.pump(const Duration(seconds: 2));
+        expect(find.text('14:31'), findsOneWidget);
+
         now = start;
         await tester.pump(const Duration(seconds: 2));
-        expect(find.text('Kerahat vakti · bitiş 20:26'), findsOneWidget);
-        expect(find.text('45 dk'), findsOneWidget);
+        expect(find.text('Kerahat'), findsOneWidget);
+        expect(find.text('Kerahate'), findsNothing);
+        expect(find.text('45:00'), findsOneWidget);
+        // Kerahatte çubuk geri gelir, aralığın geçen kısmını gösterir.
+        final fill = tester.widget<FractionallySizedBox>(
+          find.ancestor(
+            of: find.byKey(kKerahatBandFillKey),
+            matching: find.byType(FractionallySizedBox),
+          ),
+        );
+        expect(fill.widthFactor, closeTo(0, 0.001));
+        expect(
+          tester.widget<Text>(find.byKey(kKerahatBandCountdownKey)).data,
+          '45:00',
+        );
         expect(find.byKey(kKerahatGlowKey), findsOneWidget);
         expect(
           tester
@@ -217,7 +248,8 @@ void main() {
               ?.color,
           tokensFor().kerahatText,
         );
-        expect(find.text('Akşam vakti 20:26'), findsOneWidget);
+        expect(find.text('20:26'), findsOneWidget);
+        expect(find.textContaining('vakti'), findsNothing);
 
         now = end;
         await tester.pump(const Duration(seconds: 2));
@@ -233,7 +265,9 @@ void main() {
       },
     );
 
-    testWidgets('saat başı başlangıçta ek saate göre seçilir', (tester) async {
+    testWidgets('yaklaşırken bant metni yalnız "Kerahate"; saat yazılmaz', (
+      tester,
+    ) async {
       final start = DateTime(2026, 9, 7, 13);
       await tester.pumpWidget(
         wrapWithTheme(
@@ -251,7 +285,11 @@ void main() {
           ),
         ),
       );
-      expect(find.text("Kerahat 13:00'te başlar"), findsOneWidget);
+      expect(find.text('Kerahate'), findsOneWidget);
+      expect(find.text('05:00'), findsOneWidget);
+      expect(find.textContaining('13:00'), findsNothing);
+      expect(find.textContaining('başlar'), findsNothing);
+      expect(find.textContaining('kalan'), findsNothing);
     });
 
     testWidgets('Kalan sureyi SS:DD:SS olarak tek satirda gosterir', (
@@ -334,32 +372,118 @@ void main() {
       expect(find.text('00:00:00'), findsOneWidget);
     });
 
-    testWidgets('Alt bilgi bütün vakitlerde ezan yerine vakit ve saati yazar', (
-      tester,
-    ) async {
-      final target = DateTime(2026, 8, 2, 20, 27);
-      for (final (heading, caption) in [
-        ('İmsak', null),
-        ('Güneş', null),
-        ('Öğle', null),
-        ('İkindi', null),
-        ('Akşam', null),
-        ('Yatsı', null),
-        ('İftara', 'İftar'),
-        ('Sahurun bitişine', 'İmsak'),
-      ]) {
+    testWidgets(
+      'Vaktin saati üst satırda etiketin yanında; sayacın altında yazı yok',
+      (tester) async {
+        final target = DateTime(2026, 8, 2, 20, 27);
+        for (final heading in [
+          'İmsak',
+          'Güneş',
+          'Öğle',
+          'İkindi',
+          'Akşam',
+          'Yatsı',
+          'İftara',
+          'Sahurun bitişine',
+        ]) {
+          await tester.pumpWidget(
+            wrapWithTheme(
+              CountdownHero(nextPrayerTime: target, nextPrayerName: heading),
+            ),
+          );
+          final time = tester.getRect(find.byKey(kCountdownTimeKey));
+          final label = tester.getRect(find.text('SONRAKİ'));
+          final counter = tester.getRect(
+            find.byKey(const Key('countdown_value')),
+          );
+          expect(find.text('20:27'), findsOneWidget);
+          expect(label.right, lessThan(time.left));
+          expect(time.bottom, lessThanOrEqualTo(counter.top));
+          expect(find.textContaining('vakti'), findsNothing);
+          expect(find.textContaining('ezanı'), findsNothing);
+          expect(tester.takeException(), isNull);
+        }
+      },
+    );
+
+    testWidgets(
+      'Üst satırda etiket ve saat aynı taban çizgisinde; etiket bir tık küçük',
+      (tester) async {
         await tester.pumpWidget(
           wrapWithTheme(
             CountdownHero(
-              nextPrayerTime: target,
-              nextPrayerName: heading,
-              timeCaptionName: caption,
+              nextPrayerTime: DateTime(2026, 8, 2, 20, 27),
+              nextPrayerName: 'Akşam',
             ),
           ),
         );
-        expect(find.text('${caption ?? heading} vakti 20:27'), findsOneWidget);
-        expect(find.textContaining('ezanı'), findsNothing);
-      }
+        // `Wrap` taban çizgisi hizalayamaz; parçalar ortak strut alır ki
+        // kutuları eşitlensin ve 14 pt etiket 16 pt saatin taban çizgisine
+        // otursun — 0.24.0'da etiket ortalanıp yukarıda duruyordu.
+        final label = tester.getRect(find.text('SONRAKİ'));
+        final name = tester.getRect(find.text('AKŞAM'));
+        final time = tester.getRect(find.byKey(kCountdownTimeKey));
+        expect(label.height, closeTo(time.height, 0.01));
+        expect(name.height, closeTo(time.height, 0.01));
+        expect(label.bottom, closeTo(time.bottom, 0.01));
+        expect(name.bottom, closeTo(time.bottom, 0.01));
+        for (final text in ['SONRAKİ', 'AKŞAM', '·']) {
+          expect(
+            tester.widget<Text>(find.text(text)).strutStyle,
+            AppTypography.heroStrut,
+          );
+        }
+        expect(
+          tester.widget<Text>(find.byKey(kCountdownTimeKey)).strutStyle,
+          AppTypography.heroStrut,
+        );
+        expect(AppTypography.heroLabel.fontSize, 14);
+        expect(AppTypography.heroTime.fontSize, 16);
+        expect(AppTypography.heroStrut.forceStrutHeight, isTrue);
+      },
+    );
+
+    testWidgets('Üst satırdaki saat etiketten büyük, sayaçla aynı renkte', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        wrapWithTheme(
+          CountdownHero(
+            nextPrayerTime: DateTime(2026, 8, 2, 20, 27),
+            nextPrayerName: 'Akşam',
+          ),
+        ),
+      );
+      final time = tester.widget<Text>(find.byKey(kCountdownTimeKey));
+      final name = tester.widget<Text>(find.text('AKŞAM'));
+      expect(time.style!.fontSize, greaterThan(name.style!.fontSize!));
+      expect(time.style!.fontSize, AppTypography.heroTime.fontSize);
+      expect(time.style!.color, tokensFor().accent);
+      expect(name.style!.color, tokensFor().accent);
+    });
+
+    testWidgets('Bant yazısı ve sayacı aynı punto', (tester) async {
+      final start = DateTime(2026, 9, 7, 19, 41);
+      await tester.pumpWidget(
+        wrapWithTheme(
+          CountdownHero(
+            nextPrayerTime: DateTime(2026, 9, 7, 20, 26),
+            nextPrayerName: 'Akşam',
+            clock: () => start.subtract(const Duration(minutes: 10)),
+            kerahatIntervals: [
+              KerahatInterval(
+                kind: KerahatKind.beforeMaghrib,
+                start: start,
+                end: DateTime(2026, 9, 7, 20, 26),
+              ),
+            ],
+          ),
+        ),
+      );
+      final label = tester.widget<Text>(find.text('Kerahate'));
+      final value = tester.widget<Text>(find.byKey(kKerahatBandCountdownKey));
+      expect(label.style!.fontSize, AppTypography.kerahatBandLabel.fontSize);
+      expect(value.style!.fontSize, label.style!.fontSize);
     });
   });
 

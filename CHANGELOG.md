@@ -25,6 +25,66 @@ proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 - Aladhan sağlayıcısı, Photon/OpenStreetMap adres araması, cihaz ters-geocode'u (`geocoding`), hesap yöntemi/İkindi mezhebi/yüksek enlem seçicileri ve ülkeye göre hesap varsayılanları.
 - `hijri` paketi (tabular Hicri hesabı; Diyanet takviminden bir gün sapabiliyordu).
 
+## [0.26.2] - 2026-09-23
+
+### Değişti
+- **Küçük ve orta widget'ta vakit ve geri sayım biraz yukarı alındı.** Kerahat şeridi görünmüyorken çizginin altındaki vakit satırı ile sayaç birlikte 4 pt yukarı çıktı; aralarındaki boşluk aynı kaldı. Kerahat şeridi varken yerleşim değişmedi.
+
+## [0.26.1] - 2026-09-22
+
+### Değişti
+- **Küçük ve orta widget'ta vakit ile geri sayım birbirine yaklaştı.** Kerahat şeridi görünmüyorken vakit satırı ile altındaki sayaç arasındaki boşluk daraldı, açığa çıkan yer çizginin altına ve widget'ın alt kenarına eşit dağıldı. Kerahat şeridi varken yerleşim aynen kaldı.
+
+## [0.26.0] - 2026-09-22
+
+### Eklendi
+- **Ertelenmiş alarmda geri sayım rozeti.** Alarm ertelendiğinde Alarmlar listesindeki satırda ve ana ekrandaki Sıradaki kartında anahtarın yerinde "ERTELENDİ" + dakika:saniye sayacı görünür; alt metin yalnız çalma saatini yazar.
+- **Ertelenmiş alarma dokununca seçim ekranı.** Satıra ya da rozete dokunmak ara ekranı "Alarm ertelendi" kipinde açar: büyük geri sayım ve çalma saati, Görevi yap / Ertele (görevsiz alarmda Alarmı kapat / Ertele), sağ üstte X ile hiçbir şeyi değiştirmeden çıkış. Erteleme dolup alarm çalar ve durdurulursa açık ekran kendiliğinden durduruldu kipine döner.
+
+### Değişti
+- **Anahtar artık görev ekranına götürmüyor.** Ertelenmiş alarmda anahtarın yerini rozet alır; görev borcu olup ertelenmemiş alarmda anahtar ve tek seferlik atlama anahtarı gri kalır (ekran zaten kendiliğinden açılır). Silme aynen.
+- **Yeniden erteleme uygulanıyor.** Erteleme sürerken ikinci "Ertele" iki platformda da sessizce yok sayılıyordu; artık yeni çalma anı şimdi + süre olur ve hak bir eksilir. Hak yoksa ya da görevli alarmda 60 dakikalık zincir tavanına sığmıyorsa düğme çıkmaz.
+
+### Düzeltildi
+- Erteleme yeniden denemesi (zamanlayıcı kuruldu, eski kaydın temizliği patladı) ikinci erteleme sayılmıyor.
+
+## [0.25.1] - 2026-09-21
+
+### Değişti
+- **iOS widget'ta kerahat şeridi daha yüksek** (26 → 32 pt); yazı aynı. Üstteki vakit satırı ve sayaç şeride göre yeniden eşit aralıklanır.
+
+## [0.25.0] - 2026-09-21
+
+### Değişti
+- **iOS widget'ta alt blok boşlukları göze eşit.** Çizgi ile vakit satırı, vakit satırı ile sayaç, sayaç ile alt kenar (kerahatte şerit) arasındaki boşluklar rakamların gerçek sınırından ölçülüp eşit dağıtılıyor; kutudan ölçülünce sayaç yukarıda, alt boşluk geniş duruyordu. Orta boyda vakit listesi aynen.
+- **Kerahat şeridi bir tık büyüdü (15 pt)** ve yaklaşırken "Kerahate", kerahatte "Kerahat" yazıyor; "Kerahat 09:41" kerahatin sürdüğü gibi okunuyordu. Uygulama eski sürümdeyse widget yine Türkçe "Kerahate" yazar.
+- **Kilit ekranı widget'ında** vakit adı ve saati büyüdü (17 pt), sayaçla arası açıldı.
+- **Ana ekranda "SONRAKİ AKŞAM" etiketi** saatten bir tık küçük (14 pt) ve saatle aynı taban çizgisinde; ortalanınca yukarıda duruyordu.
+- **Ana ekranda kerahate yaklaşırken bant** "Kerahate 13:41" yazıyor ve ilerleme çubuğu yok; bant biraz kısaldı. Kerahatte bant aynen, çubuklu.
+
+## [0.24.0] - 2026-09-20
+
+### Değişti
+- **Ana ekranda kerahat bandı sayacın altına indi.** Tarih satırıyla sayacın arasına girmiyor; "Kerahat" yazısı ve dk:sn sayaç aynı puntoda ve daha büyük. Sayacın altındaki "Akşam vakti 19:23" satırı kalktı; saat üstteki etikete taşındı: "SONRAKİ  AKŞAM · 19:23", saat etiketten büyük.
+- **iOS widget'ta kerahat bilgisi alt şeritte.** Üstteki kerahat çipi kalktı; tarih, hicri tarih ve konum kerahatte de üç satır olarak kalıyor. Kerahate yaklaşırken ve kerahatte widget'ın alt kenarına dayanan tam genişlik şerit çıkar ("Kerahat" + sayaç; yaklaşırken turuncu, kerahatte bordo). Üst ve alt kenar boşluğu daraldı (12 pt); vakit satırı ve sayaç kerahat yokken çizgi ile alt kenar arasında, kerahatte çizgi ile şerit arasında ortalı. Orta boyda vakit listesi şeridin üstünde biter.
+
+## [0.23.1] - 2026-09-20
+
+### Değişti
+- **Widget dikey hizası (küçük ve orta).** Alt blok (vakit adı, saati ve sayaç) çizgi ile widget'ın görünen alt kenarı arasında tam ortalı; iOS'un kenar boşluğu hesaba katıldığı için blok artık yukarıda kalmıyor. Vakit satırı ile sayaç arası açıldı (8 pt); bitişik duruyordu. Üst blok ve vakit listesi aynen.
+
+## [0.23.0] - 2026-09-20
+
+### Değişti
+- **Kerahat bandı ve widget çipi sadeleşti.** İkisi de yalnız "Kerahat" yazar; yanında saniyesi akan dk:sn sayaç — yaklaşırken başlangıca, kerahatte bitişe sayar. Başlangıç saati, "vakti" ve "bitiş" metinleri kalktı. Yaklaşırken turuncu çerçeve, kerahatte bordo dolgu. Büyük sayaç değişmedi, sıradaki vakte sayar. Bant büyük metin ölçeğinde taşmaz; satır sığmazsa küçülür.
+- iOS widget'ta alt blok (vakit adı, saati ve sayaç) çizgi ile alt kenar arasında dikeyde ortalı; altta boş şerit kalmıyor.
+
+### Düzeltildi
+- Ertelenmiş alarmda görev başlatılamıyordu: ertelemedeyken alarmı kapatma/atlama görev ekranına gider, görev cihazda reddedilip "tekrar dene" çubuğu çıkıyordu. Artık erteleme sırasında görev başlar ve ertelemeyi erken bitirir.
+
+### Teknik not
+- Xcode 27 ile iOS derlemesi: eklenti pod'ları podspec'lerindeki eski iOS tabanıyla (9.0–14.0) geldiğinden Xcode 27 derlemeyi hata ile kesiyordu; pod'lar uygulamanın tabanına (17.0) çekildi.
+
 ## [0.22.1] - 2026-09-15
 
 ### Değişti

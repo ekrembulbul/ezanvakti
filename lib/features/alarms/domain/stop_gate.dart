@@ -100,4 +100,22 @@ class StopGate {
     final left = limit - session.snoozeUsed;
     return left < 0 ? 0 : left;
   }
+
+  /// Ertelenmiş ekrandan bir kez daha ertelenebilir mi?
+  ///
+  /// Hak kalmış olmalı; görevlide yeni çalma anı zincirin sert tavanından
+  /// **önce** olmalı — native aynı koşulu `next < chainDeadline` ile arar,
+  /// reddedeceği isteği kullanıcıya düğme olarak sunmayız (spec 2026-09-22
+  /// D13).
+  static bool canSnoozeAgain({
+    required Alarm alarm,
+    required MissionSession session,
+    required DateTime now,
+  }) {
+    final remaining = snoozeRemaining(alarm, session);
+    if (remaining != null && remaining <= 0) return false;
+    if (!alarm.mission.requiresGate) return true;
+    final next = now.add(Duration(minutes: alarm.snoozeMinutes));
+    return next.isBefore(_staleAt(session));
+  }
 }

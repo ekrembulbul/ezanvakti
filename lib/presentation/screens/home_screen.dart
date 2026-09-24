@@ -60,6 +60,9 @@ class HomeScreen extends StatefulWidget {
   final void Function(SkippedOccurrence occurrence, bool skipped)?
   onSkipChanged;
 
+  /// Ertelenmiş alarm satırına dokunuldu; ara ekran açılır.
+  final ValueChanged<Alarm>? onSnoozedTap;
+
   final bool isLoading;
 
   /// Arka planda yenileme sürüyor. Ekrandaki vakitler yerinde kalır, üst
@@ -89,6 +92,7 @@ class HomeScreen extends StatefulWidget {
     this.alarmsSupported = true,
     this.skips = const {},
     this.onSkipChanged,
+    this.onSnoozedTap,
     this.isLoading = false,
     this.isRefreshing = false,
     this.errorMessage,
@@ -209,11 +213,6 @@ class _HomeScreenState extends State<HomeScreen> {
             CountdownHero(
               nextPrayerTime: nextTime,
               nextPrayerName: nextName,
-              timeCaptionName: ramadan == null
-                  ? null
-                  : ramadan.kind == RamadanCountdownKind.iftar
-                  ? context.l10n.ramadanIftarLabel
-                  : context.l10n.prayerName(PrayerType.fajr),
               kerahatIntervals: kerahatIntervals,
             ),
           const SizedBox(height: 26),
@@ -246,6 +245,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             skips: widget.skips,
             onSkipChanged: widget.onSkipChanged,
+            onSnoozedTap: widget.onSnoozedTap,
             onSeeAll: widget.onSeeReminders ?? () {},
           ),
           const SizedBox(height: 20),

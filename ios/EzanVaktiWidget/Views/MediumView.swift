@@ -10,8 +10,10 @@ struct MediumView: View {
         switch entry.content {
         case .noData:
             MessageView(text: "Vakitler için uygulamayı aç", phase: .fallback, appearance: entry.appearance)
+                .modifier(HomeContentInsets())
         case .needsUpdate:
             MessageView(text: "Uygulamayı güncelleyin", phase: .fallback, appearance: entry.appearance)
+                .modifier(HomeContentInsets())
         case let .ready(next, day, phase, locationLabel, isStale, isTomorrow):
             ready(
                 next: next, day: day, phase: phase,
@@ -28,37 +30,48 @@ struct MediumView: View {
         // Liste sıradaki vaktin gününü gösterir; `day` bu yüzden timeline'da
         // sıradaki vakte göre seçiliyor.
         let slots = NextPrayer.slots(days: [day], calendar: .current)
+        let kerahat = entry.kerahat
+        // İçeriğin alt payı yok (sol sütun görünen alt kenara ya da şeride
+        // göre ölçülür); sağ sütun ile ayraç kendi 12'sini her durumda korur.
+        let listBottom = WidgetInsets.vertical
 
-        return HStack(spacing: 0) {
-            // Sol sütun küçük widget'ın aynısı; genişliği sabit ki liste
-            // cihazdan cihaza değişen artığı alsın.
-            VStack(alignment: alignment.horizontal, spacing: 0) {
-                WidgetHeader(
-                    entry: entry, day: day, palette: palette, alignment: alignment,
-                    locationLabel: locationLabel, isStale: isStale, compact: false)
-                WidgetDivider(color: palette.divider)
-                NextPrayerBlock(
-                    entry: entry, next: next, palette: palette,
-                    alignment: alignment, isTomorrow: isTomorrow)
-                Spacer(minLength: 0)
-            }
-            .frame(width: 158)
-
-            Rectangle()
-                .fill(palette.textSecondary.opacity(0.2))
-                .frame(width: 1)
-                .padding(.leading, 14)
-                .padding(.trailing, 16)
-
-            // Altı satır dikeyde yayılıp yüksekliğin tamamını kaplar; sütun
-            // artan genişliği alır.
-            VStack(spacing: 0) {
-                ForEach(Array(slots.enumerated()), id: \.element.name) { index, slot in
-                    if index > 0 { Spacer(minLength: 0) }
-                    row(slot: slot, next: next, palette: palette)
+        return VStack(spacing: 0) {
+            HStack(spacing: 0) {
+                // Sol sütun küçük widget'ın aynısı; genişliği sabit ki liste
+                // cihazdan cihaza değişen artığı alsın.
+                VStack(alignment: alignment.horizontal, spacing: 0) {
+                    WidgetHeader(
+                        entry: entry, day: day, palette: palette, alignment: alignment,
+                        locationLabel: locationLabel, isStale: isStale)
+                    WidgetDivider(color: palette.divider)
+                    NextPrayerBlock(
+                        entry: entry, next: next, palette: palette,
+                        alignment: alignment, isTomorrow: isTomorrow)
                 }
+                .frame(width: 158)
+
+                Rectangle()
+                    .fill(palette.textSecondary.opacity(0.2))
+                    .frame(width: 1)
+                    .padding(.leading, 14)
+                    .padding(.trailing, 16)
+                    .padding(.bottom, listBottom)
+
+                // Altı satır dikeyde yayılıp yüksekliğin tamamını kaplar; sütun
+                // artan genişliği alır.
+                VStack(spacing: 0) {
+                    ForEach(Array(slots.enumerated()), id: \.element.name) { index, slot in
+                        if index > 0 { Spacer(minLength: 0) }
+                        row(slot: slot, next: next, palette: palette)
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.bottom, listBottom)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .modifier(HomeContentInsets(bottom: 0))
+            if let status = kerahat {
+                KerahatRibbon(entry: entry, status: status, palette: palette)
+            }
         }
         .opacity(isStale ? 0.55 : 1)
     }

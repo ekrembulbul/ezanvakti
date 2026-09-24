@@ -1089,17 +1089,11 @@
   },
   "widgetKerahat": "Kerahat",
   "@widgetKerahat": {
-    "description": "Widget'ta kerahat yaklaşırken satır başı; yanına sistem sayacı gelir."
+    "description": "Widget kerahat çipi (yaklaşırken ve kerahatte): tek kelime, yanına sistem sayacı gelir."
   },
-  "widgetKerahatActive": "Kerahat vakti",
-  "widgetKerahatUntil": "bitiş {time}",
-  "@widgetKerahatUntil": {
-    "description": "Widget'ta aktif kerahatin bitişi; {time} yer tutucusunu Swift doldurur.",
-    "placeholders": {
-      "time": {
-        "type": "String"
-      }
-    }
+  "widgetKerahatSoon": "Kerahate",
+  "@widgetKerahatSoon": {
+    "description": "Widget kerahat şeridi yaklaşırken: tek kelime, yanına başlangıca sayan sistem sayacı gelir (\"Kerahate 09:41\")."
   },
   "widgetUpdateApp": "Uygulamayı güncelleyin",
   "@widgetUpdateApp": {
@@ -1334,18 +1328,6 @@
   "nextLabel": "SONRAKİ",
   "@nextLabel": {
     "description": "Sayaç etiketi"
-  },
-  "prayerTimeAt": "{prayer} vakti {time}",
-  "@prayerTimeAt": {
-    "description": "Sayaç altındaki vakit adı ve saati; ezan okunmasını ima etmez.",
-    "placeholders": {
-      "prayer": {
-        "type": "String"
-      },
-      "time": {
-        "type": "String"
-      }
-    }
   },
   "upcomingTitle": "Sıradaki",
   "@upcomingTitle": {
@@ -1856,9 +1838,22 @@
       }
     }
   },
-  "snoozedLabel": "Ertelendi · {time}'te çalacak",
-  "@snoozedLabel": {
-    "description": "Erteleme bilgisi",
+  "snoozeRingsAt": "{time}'te çalacak",
+  "@snoozeRingsAt": {
+    "description": "Ertelenmiş alarm satırının alt metni; 'Ertelendi' rozette.",
+    "placeholders": {
+      "time": {
+        "type": "Object"
+      }
+    }
+  },
+  "snoozeBadgeLabel": "ERTELENDİ",
+  "@snoozeBadgeLabel": {
+    "description": "Alarm satırı ve Sıradaki kartındaki geri sayım rozetinin başlığı."
+  },
+  "snoozeBadgeSemantics": "Ertelendi, {time}'te çalacak, seçenekler için dokun",
+  "@snoozeBadgeSemantics": {
+    "description": "Rozetin erişilebilirlik etiketi.",
     "placeholders": {
       "time": {
         "type": "Object"
@@ -2008,6 +2003,24 @@
   "@stopHeadline": {
     "description": "Ara ekranin ust basligi."
   },
+  "stopSnoozedHeadline": "ALARM ERTELENDİ",
+  "@stopSnoozedHeadline": {
+    "description": "Ara ekranin ertelenmis kipindeki ust basligi."
+  },
+  "stopRingsAt": "{time}'te çalar",
+  "@stopRingsAt": {
+    "description": "Ertelenmis kipte kahraman sayacin altindaki calma saati.",
+    "placeholders": {"time": {"type": "String"}}
+  },
+  "stopSnoozedCount": "{count} kez ertelendi",
+  "@stopSnoozedCount": {
+    "description": "Ertelenmis kipte kucuk satirdaki erteleme sayisi.",
+    "placeholders": {"count": {"type": "Object"}}
+  },
+  "stopCloseAlarm": "Alarmı kapat",
+  "@stopCloseAlarm": {
+    "description": "Gorevsiz alarmin ertelenmis kipindeki birincil dugme: erteleme iptal, alarm bugunluk biter."
+  },
   "stopNextPrayer": "Sıradaki {prayer} · {time} · {remaining}",
   "@stopNextPrayer": {
     "description": "Ara ekranda siradaki vakit satiri: ad, saat, kalan sure.",
@@ -2153,16 +2166,10 @@
       "duration": {"type": "String"}
     }
   },
-  "kerahatStartsAt": "Kerahat {time} başlar",
-  "@kerahatStartsAt": {
-    "description": "Ana ekran kerahat bandı, yaklaşırken: başlangıç saati. Türkçede time bulunma ekiyle gelir (\"18:38'de\"); ek Dart tarafında yalnız tr için eklenir.",
-    "placeholders": {"time": {"type": "String"}}
-  },
-  "kerahatActiveLine": "Kerahat vakti · bitiş {time}",
-  "@kerahatActiveLine": {
-    "description": "Ana ekran kerahat bandı, kerahatte: yaklaşık bitiş saati.",
-    "placeholders": {"time": {"type": "String"}}
-  },
+  "kerahatBandLabel": "Kerahat",
+  "@kerahatBandLabel": {"description": "Ana ekran kerahat bandı: tek kelime, yanında başlangıca ya da bitişe sayan sayaç."},
+  "kerahatSoonBandLabel": "Kerahate",
+  "@kerahatSoonBandLabel": {"description": "Ana ekran kerahat bandı yaklaşırken: tek kelime, yanında başlangıca sayan sayaç (\"Kerahate 13:41\")."},
   "kerahatAfterSunrise": "Güneş sonrası",
   "@kerahatAfterSunrise": {"description": "Güneş doğduktan sonraki kerahat aralığı."},
   "kerahatBeforeDhuhr": "Öğle öncesi",

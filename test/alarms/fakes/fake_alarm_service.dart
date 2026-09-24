@@ -42,6 +42,12 @@ class FakeAlarmService implements AlarmService {
     }
   }
 
+  /// Uygulama ön plandayken gelen durdurma olayını taklit eder.
+  void emitStop(MissionStopEvent event) {
+    pendingEvents = [...pendingEvents, event];
+    _stops.add(event);
+  }
+
   Future<void> _syncEvents() async {
     if (alarmDefinitions != null) {
       for (final alarm in await alarmDefinitions!()) {
@@ -166,7 +172,7 @@ class FakeAlarmService implements AlarmService {
     await _syncEvents();
     final session = _matching(alarmId, firedAt);
     if (session == null) return;
-    if (session.snoozedUntil?.isAfter(DateTime.now()) == true) return;
+    // Etkin erteleme engel degil: yeni an simdiden, sayac +1 (native ile ayni).
     snoozed.add((id: alarmId, minutes: minutes));
     _sessions[alarmId] = session.copyWith(
       snoozeUsed: session.snoozeUsed + 1,

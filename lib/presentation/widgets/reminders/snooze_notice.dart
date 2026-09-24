@@ -16,7 +16,8 @@ class SnoozeNotice {
     return session.snoozedUntil;
   }
 
-  /// Satır alt metninde gösterilecek erteleme cümlesi.
+  /// Satır alt metnindeki çalma saati. "Ertelendi" öneki artık rozette
+  /// (spec 2026-09-22 D4); burada yalnız saat yazılır.
   static String label(DateTime until, AppLocalizations l10n) =>
-      l10n.snoozedLabel(DateFormat('HH:mm').format(until));
+      l10n.snoozeRingsAt(DateFormat('HH:mm').format(until));
 }
