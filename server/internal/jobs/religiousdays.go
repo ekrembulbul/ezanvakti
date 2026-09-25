@@ -29,6 +29,12 @@ func ReligiousDays(ctx context.Context, d Deps, years []int) (Result, error) {
 			continue
 		}
 		res.Fetched++
+		// Boş liste: Diyanet o yılı henüz yayımlamadı (prayer-times "no data" ile aynı); ret sayılmaz,
+		// sonraki çalıştırma yeniden dener.
+		if len(list) == 0 {
+			d.Logger.Info("religious-days: source has no data yet", "year", year)
+			continue
+		}
 		if verr := validate.ReligiousDays(list, year); verr != nil {
 			res.Rejected++
 			d.State.Rejected++

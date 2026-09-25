@@ -41,6 +41,21 @@ func TestReligiousDays_InvalidIsRejected(t *testing.T) {
 	}
 }
 
+func TestReligiousDays_EmptyYearIsNotYetPublished(t *testing.T) {
+	f := newFake() // 2027 tanımsız: kaynak boş liste döner (Diyanet o yılı henüz yayımlamadı)
+	d := testDeps(t, f)
+	res, err := ReligiousDays(context.Background(), d, []int{2027})
+	if err != nil || res.Rejected != 0 || d.State.Rejected != 0 || res.Written != 0 {
+		t.Fatalf("%+v %v state.Rejected=%d", res, err, d.State.Rejected)
+	}
+	if d.Store.Exists(store.ReligiousDaysPath(2027)) {
+		t.Fatal("boş yıl yazılmamalı")
+	}
+	if _, ok := d.State.ReligiousDays["2027"]; ok {
+		t.Fatalf("boş yıl güncellenmiş sayılmamalı: %+v", d.State.ReligiousDays)
+	}
+}
+
 func TestReligiousDays_UnsupportedSourceIsSkipped(t *testing.T) {
 	f := newFake()
 	f.unsupported = true
