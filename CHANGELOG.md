@@ -4,7 +4,7 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
-## [Unreleased]
+## [0.27.0] - 2026-09-25
 
 ### Eklendi
 - **Konum ekleme yeniden:** il/ilçe araması sunucuda (`vakit-api`); kutu boşken büyük iller hemen listelenir, eşanlamlar alt satırda ("Kadıköy buna dahil"). "Konumumu kullan" cihaz koordinatını sunucuda en yakın ilçeye çözer ve onay bandıyla gösterir ("Vakitler Şile, İstanbul için gösterilecek — Onayla / Değiştir"). Türkiye dışı koordinat ve ağ hatası anlaşılır metinle bildirilir.
