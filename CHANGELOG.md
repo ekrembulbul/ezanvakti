@@ -4,6 +4,11 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.27.1] - 2026-09-25
+
+### Düzeltildi
+- Aynı ilçe ikinci kez eklenince (ör. Ankara (Merkez) ile Ankara'daki GPS konumu ya da silinip yeniden eklenen konum) vakitler gelmiyor, ana ekran boş kalıyordu. 0.27.0'da takılan konum güncellemeden sonraki ilk yüklemede düzelir.
+
 ## [0.27.0] - 2026-09-25
 
 ### Eklendi
