@@ -40,7 +40,7 @@ Her feature kendi içinde `data/` (dış dünya) ve `domain/` (iş kuralları) o
 
 Vakit kaynağı `PrayerTimeProvider` arayüzünün arkasındadır; tek implementasyon `DiyanetProvider`. Veri, `server/` altındaki Go servisinin (`vakit`) `/v1` sözleşmesinden gelir — bkz. `docs/superpowers/specs/2026-09-15-vakit-api-sunucu-design.md` ve `server/README.md`. Sunucu adresi derleme zamanında verilir (`--dart-define=VAKIT_API_BASE_URL`, `lib/core/config/vakit_api_config.dart`; varsayılan yerel geliştirme adresi).
 
-- **Yıllık dosya:** `GET /v1/prayer-times/{cityId}/{year}` istenen aralığın yıllarını çeker; depo hepsini gün gün (Hicri tarihle birlikte) önbelleğe yazar, çağırana yalnız istenen pencereyi döner. `If-None-Match`/ETag `settings` tablosunda; `304` önbelleği geçerli sayar, `404` (yıl yayınlanmamış) boş liste döner.
+- **Yıllık dosya:** `GET /v1/prayer-times/{cityId}/{year}` istenen aralığın yıllarını çeker; depo hepsini gün gün (Hicri tarihle birlikte) önbelleğe yazar, çağırana yalnız istenen pencereyi döner. `If-None-Match`/ETag `settings` tablosunda (ilçe-yıl başına); koşullu istek yalnız o konumun önbelleği istenen günleri tutuyorsa atılır, `304` o önbelleği geçerli sayar, `404` (yıl yayınlanmamış) boş liste döner.
 - **Düzeltme okurken uygulanır** (`PrayerTimeTuner`, ADR 0004): önbellek ham Diyanet verisi; kullanıcının tek ayarı vakit başına ± dakika (`PrayerTuneSettings`). Hesap yöntemi/mezhep/enlem seçimi yoktur.
 - **Hicri tarih** her günün satırında Diyanet'ten gelir; hesaplanmaz. Veri yoksa gösterilmez (Ramazan modu ve dinî günler de aynı veriden türetilir).
 

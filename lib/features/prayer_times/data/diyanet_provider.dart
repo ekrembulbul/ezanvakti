@@ -55,7 +55,9 @@ class DiyanetProvider implements PrayerTimeProvider {
     if (cityId == null) throw LocationNotMappedException(location.id);
     final result = <PrayerTime>[];
     for (var year = startDate.year; year <= endDate.year; year++) {
-      result.addAll(await _fetchYear(location, cityId, year));
+      result.addAll(
+        await _fetchYear(location, cityId, year, startDate, endDate),
+      );
     }
     return result;
   }
@@ -85,13 +87,29 @@ class DiyanetProvider implements PrayerTimeProvider {
     Location location,
     int cityId,
     int year,
+    DateTime windowStart,
+    DateTime windowEnd,
   ) async {
     final logger = AppLogger();
     final uri = Uri.parse('$baseUrl/v1/prayer-times/$cityId/$year');
     final etagKey = 'etag:$cityId:$year';
     final headers = <String, String>{'Accept': 'application/json'};
+    // ETag ilçe-yıl başına tek, vakitler ise konum başına saklanır. Bu konumun
+    // önbelleği istenen günleri tutmuyorsa (aynı ilçenin ikinci kaydı, yeniden
+    // eklenen konum) koşullu istek atılmaz: 304 boş önbelleği güncel sayar ve
+    // ekran vakitsiz kalırdı.
+    var cached = const <PrayerTime>[];
     final etag = await storage.getSetting(etagKey);
-    if (etag != null) headers['If-None-Match'] = etag;
+    if (etag != null) {
+      cached = await storage.getPrayerTimes(
+        locationId: location.id,
+        startDate: DateTime(year, 1, 1),
+        endDate: DateTime(year, 12, 31),
+      );
+      if (_coversWindow(cached, year, windowStart, windowEnd)) {
+        headers['If-None-Match'] = etag;
+      }
+    }
 
     http.Response response;
     for (var attempt = 1; ; attempt++) {
@@ -116,17 +134,39 @@ class DiyanetProvider implements PrayerTimeProvider {
         return days;
       case 304:
         logger.debug('vakit-api $cityId/$year unchanged; using cache');
-        return storage.getPrayerTimes(
-          locationId: location.id,
-          startDate: DateTime(year, 1, 1),
-          endDate: DateTime(year, 12, 31),
-        );
+        return cached;
       case 404:
         logger.info('vakit-api $cityId/$year not published yet');
         return const [];
       default:
         throw ApiException(response.statusCode, context: 'GET ${uri.path}');
     }
+  }
+
+  /// [times], pencerenin [year] içine düşen her gününü içeriyor mu?
+  static bool _coversWindow(
+    List<PrayerTime> times,
+    int year,
+    DateTime windowStart,
+    DateTime windowEnd,
+  ) {
+    final have = {
+      for (final t in times) DateTime(t.date.year, t.date.month, t.date.day),
+    };
+    var day = windowStart.year < year
+        ? DateTime(year, 1, 1)
+        : DateTime(windowStart.year, windowStart.month, windowStart.day);
+    final last = windowEnd.year > year
+        ? DateTime(year, 12, 31)
+        : DateTime(windowEnd.year, windowEnd.month, windowEnd.day);
+    for (
+      ;
+      !day.isAfter(last);
+      day = DateTime(day.year, day.month, day.day + 1)
+    ) {
+      if (!have.contains(day)) return false;
+    }
+    return true;
   }
 
   List<PrayerTime> _parseYear(http.Response response, int year) {
