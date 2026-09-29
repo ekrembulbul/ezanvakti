@@ -29,14 +29,4 @@ void main() {
     expect(caption, contains('2026/09'));
     expect(caption, contains(location.displayName));
   });
-
-  test('cizim alani yoksa sessizce basarisiz olmaz', () async {
-    final result = await CalendarShareService().shareTable(
-      boundary: null,
-      location: location,
-      date: DateTime(2026, 9, 4),
-      captionFormat: (location, period) => '$location · $period',
-    );
-    expect(result, isFalse);
-  });
 }

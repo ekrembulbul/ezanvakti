@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:typed_data';
-import 'dart:ui' as ui;
 
 import 'package:flutter/rendering.dart';
 import 'package:path/path.dart' as p;
@@ -9,10 +8,11 @@ import 'package:share_plus/share_plus.dart';
 import '../../core/models/location.dart';
 import '../../core/utils/app_logger.dart';
 
-/// Aylık vakit tablosunu görsel olarak paylaşır.
+/// Takvim ve imsakiye görüntüsünü paylaşır.
 ///
-/// Görüntüyü çekmek `RepaintBoundary`ye bağlı; dosya adı ve paylaşım metni
-/// saf yardımcılarda tutuluyor ki test edilebilsinler.
+/// Görüntü çağırandan PNG olarak gelir (ekran dışı çizim,
+/// `WidgetImageRenderer`); dosya adı ve paylaşım metni saf yardımcılarda
+/// tutuluyor ki test edilebilsinler.
 class CalendarShareService {
   final AppLogger _logger;
 
@@ -98,45 +98,5 @@ class CalendarShareService {
         .toString()
         .replaceAll(RegExp('-+'), '-')
         .replaceAll(RegExp(r'^-|-$'), '');
-  }
-
-  /// [boundaryKey] ile işaretli alanı PNG'ye çevirip paylaşım sayfasını açar.
-  ///
-  /// Görüntü alınamazsa sessizce başarısız olmaz: `false` döner ve çağıran
-  /// kullanıcıya bilgi verir.
-  Future<bool> shareTable({
-    required RenderRepaintBoundary? boundary,
-    required Location location,
-    required DateTime date,
-    Rect? originRect,
-    required String Function(String location, String period) captionFormat,
-  }) async {
-    if (boundary == null) {
-      _logger.warning('Takvim paylasimi: cizim alani bulunamadi');
-      return false;
-    }
-    ui.Image? image;
-    try {
-      // 2.5x: paylaşılan görüntü telefon ekranından büyük yerlerde de okunur
-      // kalsın, ama dosya boyutu makul olsun.
-      image = await boundary.toImage(pixelRatio: 2.5);
-      final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-      if (bytes == null) {
-        _logger.warning('Takvim paylasimi: PNG kodlanamadi');
-        return false;
-      }
-      return sharePng(
-        bytes: bytes.buffer.asUint8List(),
-        location: location,
-        date: date,
-        caption: captionFor(location, date, format: captionFormat),
-        originRect: originRect,
-      );
-    } catch (e, stackTrace) {
-      _logger.error('Takvim paylasilamadi', e, stackTrace);
-      return false;
-    } finally {
-      image?.dispose();
-    }
   }
 }
