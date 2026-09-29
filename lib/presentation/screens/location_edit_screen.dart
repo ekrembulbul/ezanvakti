@@ -9,6 +9,7 @@ import '../../features/location/data/places_api.dart';
 import '../../features/location/domain/location_repository.dart';
 import '../widgets/common/app_bar_widgets.dart';
 import '../widgets/common/app_surface.dart';
+import '../widgets/common/delete_action_button.dart';
 import '../widgets/location/place_search_panel.dart';
 
 /// Kayıtlı bir konumun özel adını ve ilçesini düzenler.
@@ -22,11 +23,16 @@ class LocationEditScreen extends StatefulWidget {
   final PlacesApi placesApi;
   final Location location;
 
+  /// Verilirse "Kaydet"in altında "Konumu sil" çizilir. Aktif konum
+  /// silinemez; liste o konum için bunu vermez.
+  final VoidCallback? onDelete;
+
   const LocationEditScreen({
     super.key,
     required this.locationRepository,
     required this.placesApi,
     required this.location,
+    this.onDelete,
   });
 
   @override
@@ -106,6 +112,13 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
     }
   }
 
+  /// Önce ekran kapanır, sonra silinir: "Geri al" çubuğu listenin üstünde
+  /// çıkar. Konum dönmez; çağıranın "sonuç yoksa çık" dalı buna uyar.
+  void _delete() {
+    Navigator.of(context).pop();
+    widget.onDelete!();
+  }
+
   static Location _withoutCustomName(Location location) => Location(
     id: location.id,
     province: location.province,
@@ -159,6 +172,14 @@ class _LocationEditScreenState extends State<LocationEditScreen> {
         ),
         const SizedBox(height: 12),
         _buildSaveButton(),
+        if (widget.onDelete != null) ...[
+          const SizedBox(height: 6),
+          DeleteActionButton(
+            context.l10n.locationDeleteAction,
+            _delete,
+            framed: false,
+          ),
+        ],
       ],
     );
   }

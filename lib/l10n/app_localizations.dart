@@ -1468,11 +1468,11 @@ abstract class AppLocalizations {
   /// **'İlçeni ara ya da konumunu kullan'**
   String get locationsEmptyHint;
 
-  /// İpucu
+  /// Konum listesinin altındaki ipucu: basılı tutma menüsü (Sil).
   ///
   /// In tr, this message translates to:
-  /// **'Aktif olmayan konumu silmek için satırı sola kaydırın.'**
-  String get locationsSwipeHint;
+  /// **'Aktif olmayan konumu silmek için satıra basılı tut.'**
+  String get locationsLongPressHint;
 
   /// Rozet
   ///
@@ -2553,6 +2553,12 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{location} silindi'**
   String locationDeleted(Object location);
+
+  /// Konum düzenleme ekranında Kaydet'in altındaki silme düğmesi; aktif konumda görünmez.
+  ///
+  /// In tr, this message translates to:
+  /// **'Konumu sil'**
+  String get locationDeleteAction;
 
   /// Android bildirim kanalinin sistem ayarlarindaki adi.
   ///

@@ -765,8 +765,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get locationsEmptyHint => 'Search your district or use your location';
 
   @override
-  String get locationsSwipeHint =>
-      'Swipe a row to delete a location that is not active.';
+  String get locationsLongPressHint =>
+      'Touch and hold a row to delete a location that is not active.';
 
   @override
   String get locationActive => 'ACTIVE';
@@ -1398,6 +1398,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String locationDeleted(Object location) {
     return '$location deleted';
   }
+
+  @override
+  String get locationDeleteAction => 'Delete location';
 
   @override
   String get androidChannelName => 'Prayer Times notifications';

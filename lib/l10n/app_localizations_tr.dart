@@ -762,8 +762,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get locationsEmptyHint => 'İlçeni ara ya da konumunu kullan';
 
   @override
-  String get locationsSwipeHint =>
-      'Aktif olmayan konumu silmek için satırı sola kaydırın.';
+  String get locationsLongPressHint =>
+      'Aktif olmayan konumu silmek için satıra basılı tut.';
 
   @override
   String get locationActive => 'AKTİF';
@@ -1394,6 +1394,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String locationDeleted(Object location) {
     return '$location silindi';
   }
+
+  @override
+  String get locationDeleteAction => 'Konumu sil';
 
   @override
   String get androidChannelName => 'Ezan Vakti Bildirimleri';

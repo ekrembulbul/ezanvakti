@@ -1010,9 +1010,9 @@
   "@locationsEmptyHint": {
     "description": "Boş durum"
   },
-  "locationsSwipeHint": "Aktif olmayan konumu silmek için satırı sola kaydırın.",
-  "@locationsSwipeHint": {
-    "description": "İpucu"
+  "locationsLongPressHint": "Aktif olmayan konumu silmek için satıra basılı tut.",
+  "@locationsLongPressHint": {
+    "description": "Konum listesinin altındaki ipucu: basılı tutma menüsü (Sil)."
   },
   "locationActive": "AKTİF",
   "@locationActive": {
@@ -1873,6 +1873,10 @@
         "type": "Object"
       }
     }
+  },
+  "locationDeleteAction": "Konumu sil",
+  "@locationDeleteAction": {
+    "description": "Konum düzenleme ekranında Kaydet'in altındaki silme düğmesi; aktif konumda görünmez."
   },
   "androidChannelName": "Ezan Vakti Bildirimleri",
   "@androidChannelName": {

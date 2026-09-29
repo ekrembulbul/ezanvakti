@@ -11,7 +11,7 @@ import '../widgets/common/app_surface.dart';
 import '../widgets/common/grouped_list.dart';
 import '../widgets/common/section_label.dart';
 import '../widgets/common/state_widgets.dart';
-import '../widgets/common/swipe_to_delete.dart';
+import '../widgets/common/row_actions_sheet.dart';
 import 'location_add_screen.dart';
 import 'location_edit_screen.dart';
 
@@ -84,6 +84,7 @@ class _LocationListScreenState extends State<LocationListScreen> {
   }
 
   Future<void> _editLocation(Location location) async {
+    final isActive = widget.currentLocation?.id == location.id;
     final updated = await Navigator.push<Location>(
       context,
       MaterialPageRoute(
@@ -91,6 +92,8 @@ class _LocationListScreenState extends State<LocationListScreen> {
           locationRepository: widget.locationRepository,
           placesApi: widget.placesApi,
           location: location,
+          // Aktif konum silinemez; düğme de çizilmez.
+          onDelete: isActive ? null : () => _deleteLocation(location),
         ),
       ),
     );
@@ -220,7 +223,7 @@ class _LocationListScreenState extends State<LocationListScreen> {
         ),
         const SizedBox(height: 12),
         Text(
-          context.l10n.locationsSwipeHint,
+          context.l10n.locationsLongPressHint,
           style: AppTypography.hint.copyWith(
             color: context.tokens.textTertiary,
           ),
@@ -229,11 +232,11 @@ class _LocationListScreenState extends State<LocationListScreen> {
     );
   }
 
-  /// Aktif konum silinemez: [SwipeToDelete] ile sarılmaz, sağında AKTİF rozeti
-  /// durur. Diğerlerinde sağdaki ayar ikonu düzenlemeyi açar.
+  /// Aktif konum silinemez: basılı tutma menüsü açılmaz, sağında AKTİF rozeti
+  /// durur. Sağdaki düzenleme ikonu her satırda düzenlemeyi açar.
   Widget _tile(Location location) {
     final isActive = widget.currentLocation?.id == location.id;
-    final row = GroupedRow(
+    return GroupedRow(
       icon: location.type == LocationType.gps
           ? Icons.my_location_rounded
           : Icons.location_on_rounded,
@@ -245,6 +248,13 @@ class _LocationListScreenState extends State<LocationListScreen> {
               widget.onLocationSelected(location);
               Navigator.popUntil(context, (route) => route.isFirst);
             },
+      onLongPress: isActive
+          ? null
+          : () => showRowActionsSheet(
+              context,
+              title: location.displayName,
+              onDelete: () => _deleteLocation(location),
+            ),
       // Aktif konum da duzenlenebilmeli (ozel ad); rozet duzenleme ikonunun
       // yerini almaz, yanina gelir.
       trailing: Row(
@@ -254,14 +264,6 @@ class _LocationListScreenState extends State<LocationListScreen> {
           _editButton(location),
         ],
       ),
-    );
-
-    if (isActive) return row;
-
-    return SwipeToDelete(
-      itemKey: ValueKey(location.id),
-      onDelete: () => _deleteLocation(location),
-      child: row,
     );
   }
 

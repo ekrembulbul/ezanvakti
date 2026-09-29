@@ -109,5 +109,68 @@ void main() {
       expect(find.text('Kadıköy, İstanbul'), findsOneWidget);
       expect(find.text('Üsküdar, İstanbul'), findsOneWidget);
     });
+
+    testWidgets(
+      'Kaydırma yok; aktif olmayan konumda menü siler, Geri al geri getirir',
+      (tester) async {
+        await pumpList(tester);
+        expect(find.byType(Dismissible), findsNothing);
+        expect(
+          find.text('Aktif olmayan konumu silmek için satıra basılı tut.'),
+          findsOneWidget,
+        );
+
+        await tester.longPress(find.text('Üsküdar, İstanbul'));
+        await tester.pumpAndSettle();
+        expect(find.text('ÜSKÜDAR, İSTANBUL'), findsOneWidget);
+        expect(find.text('Kopyala'), findsNothing);
+        await tester.tap(find.text('Sil'));
+        await tester.pumpAndSettle();
+
+        expect(await savedIds(), ['kadikoy']);
+        expect(find.text('Üsküdar, İstanbul'), findsNothing);
+
+        await tester.tap(find.text('Geri al'));
+        await tester.pumpAndSettle();
+        expect(await savedIds(), containsAll(['kadikoy', 'uskudar']));
+        expect(find.text('Üsküdar, İstanbul'), findsOneWidget);
+      },
+    );
+
+    testWidgets('Aktif konumda basılı tutma menü açmaz', (tester) async {
+      await pumpList(tester);
+
+      await tester.longPress(find.text('Kadıköy, İstanbul'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Sil'), findsNothing);
+    });
+
+    testWidgets(
+      '"Konumu sil" yalnız aktif olmayan konumda; ekranı kapatıp siler',
+      (tester) async {
+        await pumpList(tester);
+        Finder editIconOf(String name) => find.descendant(
+          of: find.widgetWithText(GroupedRow, name),
+          matching: find.byIcon(Icons.edit_outlined),
+        );
+
+        await tester.tap(editIconOf('Kadıköy, İstanbul'));
+        await tester.pumpAndSettle();
+        expect(find.byType(LocationEditScreen), findsOneWidget);
+        expect(find.text('Konumu sil'), findsNothing);
+        Navigator.of(tester.element(find.byType(LocationEditScreen))).pop();
+        await tester.pumpAndSettle();
+
+        await tester.tap(editIconOf('Üsküdar, İstanbul'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Konumu sil'));
+        await tester.pumpAndSettle();
+
+        expect(find.byType(LocationEditScreen), findsNothing);
+        expect(await savedIds(), ['kadikoy']);
+        expect(find.text('Geri al'), findsOneWidget);
+      },
+    );
   });
 }

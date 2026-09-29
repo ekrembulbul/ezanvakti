@@ -760,7 +760,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get locationsEmptyHint => 'ابحث عن قضائك أو استخدم موقعك';
 
   @override
-  String get locationsSwipeHint => 'اسحب الصف لحذف موقع غير نشط.';
+  String get locationsLongPressHint =>
+      'اضغط مطولاً على الصف لحذف موقع غير نشط.';
 
   @override
   String get locationActive => 'نشط';
@@ -1385,6 +1386,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String locationDeleted(Object location) {
     return 'تم حذف $location';
   }
+
+  @override
+  String get locationDeleteAction => 'حذف الموقع';
 
   @override
   String get androidChannelName => 'إشعارات أوقات الصلاة';

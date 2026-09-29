@@ -4,6 +4,7 @@ import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/features/location/data/places_api.dart';
 import 'package:ezanvakti/features/location/domain/location_repository.dart';
 import 'package:ezanvakti/presentation/screens/location_edit_screen.dart';
+import 'package:ezanvakti/presentation/widgets/common/delete_action_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -140,4 +141,77 @@ void main() {
 
     expect((await storage.getSavedLocations()).single.customName, isNull);
   });
+
+  testWidgets('onDelete verilmezse "Konumu sil" çizilmez', (tester) async {
+    await openScreen(tester);
+
+    expect(find.byType(DeleteActionButton), findsNothing);
+  });
+
+  testWidgets(
+    '"Konumu sil" Kaydet altında kartsız; önce ekranı kapatır, sonra onDelete',
+    (tester) async {
+      late MaterialPageRoute<Location> route;
+      bool? routeActiveAtDelete;
+      var returned = false;
+      Location? result = _sile;
+      await tester.pumpWidget(
+        wrapWithTheme(
+          Builder(
+            builder: (context) => ElevatedButton(
+              onPressed: () async {
+                route = MaterialPageRoute<Location>(
+                  builder: (_) => LocationEditScreen(
+                    locationRepository: LocationRepository(storage: storage),
+                    placesApi: PlacesApi(
+                      client: MockClient((req) async => _silivri(req)),
+                      baseUrl: 'https://t',
+                    ),
+                    location: _sile,
+                    onDelete: () => routeActiveAtDelete = route.isActive,
+                  ),
+                );
+                result = await Navigator.of(context).push(route);
+                returned = true;
+              },
+              child: const Text('open'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester
+            .widget<DeleteActionButton>(find.byType(DeleteActionButton))
+            .framed,
+        isFalse,
+      );
+      expect(
+        tester.getTopLeft(find.text('Konumu sil')).dy,
+        greaterThan(tester.getTopLeft(find.text('Kaydet')).dy),
+      );
+
+      await tester.tap(find.text('Konumu sil'));
+      // İkinci dokunuş aynı karede gelir; alttaki ekran kapanmamalı.
+      await tester.tap(find.text('Konumu sil'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      expect(routeActiveAtDelete, isFalse, reason: 'önce pop, sonra silme');
+      expect(
+        find.text('open'),
+        findsOneWidget,
+        reason: 'alttaki ekran kapanmaz',
+      );
+      expect(returned, isTrue);
+      expect(result, isNull);
+      expect(find.byType(LocationEditScreen), findsNothing);
+      expect(
+        await storage.getSavedLocations(),
+        hasLength(1),
+        reason: 'silmeyi ekran değil çağıran yapar',
+      );
+    },
+  );
 }
