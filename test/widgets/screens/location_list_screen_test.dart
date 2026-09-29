@@ -137,6 +137,50 @@ void main() {
       },
     );
 
+    testWidgets('Listeden çıkıldıktan sonra "Geri al" konumu geri getirir', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        wrapWithTheme(
+          Builder(
+            builder: (context) => TextButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => LocationListScreen(
+                    locationRepository: LocationRepository(storage: storage),
+                    placesApi: placesApi,
+                    gpsService: GpsLocationService(api: placesApi),
+                    currentLocation: active,
+                    onLocationSelected: (_) {},
+                  ),
+                ),
+              ),
+              child: const Text('aç'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('aç'));
+      await tester.pumpAndSettle();
+
+      await tester.longPress(find.text('Üsküdar, İstanbul'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Sil'));
+      await tester.pumpAndSettle();
+      expect(await savedIds(), ['kadikoy']);
+
+      Navigator.of(tester.element(find.byType(LocationListScreen))).pop();
+      await tester.pumpAndSettle();
+      expect(find.byType(LocationListScreen), findsNothing);
+
+      // Çubuk kök ScaffoldMessenger'da; liste kapandıktan sonra da görünür.
+      await tester.tap(find.text('Geri al'));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(await savedIds(), containsAll(['kadikoy', 'uskudar']));
+    });
+
     testWidgets('Aktif konumda basılı tutma menü açmaz', (tester) async {
       await pumpList(tester);
 

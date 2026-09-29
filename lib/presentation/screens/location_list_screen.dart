@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../l10n/l10n_extensions.dart';
+import '../../l10n/app_localizations.dart';
+import '../../core/utils/app_logger.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/tokens_context.dart';
 import '../../core/models/location.dart';
@@ -46,6 +48,8 @@ class _LocationListScreenState extends State<LocationListScreen> {
   }
 
   Future<void> _loadLocations() async {
+    // "Geri al" liste kapandıktan sonra da gelebilir.
+    if (!mounted) return;
     setState(() => _isLoading = true);
     try {
       final locations = await widget.locationRepository.getSavedLocations();
@@ -120,7 +124,7 @@ class _LocationListScreenState extends State<LocationListScreen> {
         action: SnackBarAction(
           label: l10n.snackUndo,
           textColor: Colors.white,
-          onPressed: () => _restoreLocation(location),
+          onPressed: () => _restoreLocation(location, l10n),
         ),
       );
     } catch (e) {
@@ -130,12 +134,19 @@ class _LocationListScreenState extends State<LocationListScreen> {
 
   /// Silinen konumu **aynı id ile** geri yazar; kayıtlı vakitler ve alarm
   /// eşleşmeleri bozulmasın.
-  Future<void> _restoreLocation(Location location) async {
-    final l10n = context.l10n;
+  ///
+  /// "Geri al" çubuğu kök ScaffoldMessenger'da durur; liste kapandıktan sonra
+  /// da dokunulabilir. Bu yüzden çeviri silme anında alınır ve burada
+  /// `context`e dokunulmaz; ekran açıksa liste tazelenir.
+  Future<void> _restoreLocation(
+    Location location,
+    AppLocalizations l10n,
+  ) async {
     try {
       await widget.locationRepository.saveLocation(location);
       _loadLocations();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      AppLogger().error('Location undo failed', e, stackTrace);
       _showSnackBar(l10n.locationUndoFailed(e), isError: true);
     }
   }
