@@ -1858,24 +1858,6 @@ abstract class AppLocalizations {
   /// **'SONRAKİ'**
   String get nextLabel;
 
-  /// Kart başlığı
-  ///
-  /// In tr, this message translates to:
-  /// **'Sıradaki'**
-  String get upcomingTitle;
-
-  /// Düğme
-  ///
-  /// In tr, this message translates to:
-  /// **'Tümü'**
-  String get upcomingAll;
-
-  /// Boş durum
-  ///
-  /// In tr, this message translates to:
-  /// **'Yaklaşan bildirim veya alarm yok'**
-  String get upcomingEmpty;
-
   /// Hata
   ///
   /// In tr, this message translates to:

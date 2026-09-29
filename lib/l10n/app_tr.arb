@@ -1329,18 +1329,6 @@
   "@nextLabel": {
     "description": "Sayaç etiketi"
   },
-  "upcomingTitle": "Sıradaki",
-  "@upcomingTitle": {
-    "description": "Kart başlığı"
-  },
-  "upcomingAll": "Tümü",
-  "@upcomingAll": {
-    "description": "Düğme"
-  },
-  "upcomingEmpty": "Yaklaşan bildirim veya alarm yok",
-  "@upcomingEmpty": {
-    "description": "Boş durum"
-  },
   "alarmQrRequired": "QR görevi için bir kod okut ya da yaz",
   "@alarmQrRequired": {
     "description": "Hata"

@@ -1,11 +1,9 @@
-import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/core/models/location.dart';
-import 'package:ezanvakti/core/models/notification_setting.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/presentation/screens/home_screen.dart';
 import 'package:ezanvakti/presentation/widgets/common/app_nav_bar.dart';
 import 'package:ezanvakti/presentation/widgets/common/main_tab_scaffold.dart';
-import 'package:ezanvakti/presentation/widgets/home/upcoming_card.dart';
+import 'package:ezanvakti/presentation/widgets/home/prayer_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -30,7 +28,6 @@ Future<void> _pumpHome(
   WidgetTester tester, {
   Size size = const Size(402, 874),
   double textScale = 1,
-  bool hasReminders = false,
   Locale locale = const Locale('tr'),
 }) async {
   tester.view.physicalSize = size;
@@ -63,27 +60,6 @@ Future<void> _pumpHome(
               todaysPrayerTime: today,
               tomorrowsPrayerTime: tomorrow,
               lastUpdateTime: today.date,
-              prayerTimes: [today, tomorrow],
-              alarms: hasReminders
-                  ? const [
-                      Alarm(
-                        id: 'home-scroll-alarm',
-                        kind: AlarmKind.fixed,
-                        hour: 7,
-                        label: 'Sabah hazırlığı',
-                      ),
-                    ]
-                  : const [],
-              notificationSettings: hasReminders
-                  ? const [
-                      NotificationSetting(
-                        prayerType: PrayerType.dhuhr,
-                        isActive: true,
-                        minutesBefore: 45,
-                        label: 'Namaz hazırlığı',
-                      ),
-                    ]
-                  : const [],
             ),
             const Center(child: Text('calendar-page')),
           ],
@@ -133,18 +109,18 @@ void main() {
   testWidgets(
     'taşan içerik yukarı kayar, yenilemede ve sekmeye dönünce konumu korur',
     (tester) async {
-      await _pumpHome(tester, size: const Size(360, 520), hasReminders: true);
+      await _pumpHome(tester, size: const Size(360, 420));
       final scroll = tester
           .state<ScrollableState>(_verticalScrollable())
           .position;
       expect(scroll.maxScrollExtent, greaterThan(0));
-      final initialTop = tester.getTopLeft(find.byType(UpcomingCard)).dy;
+      final initialTop = tester.getTopLeft(find.byType(PrayerGrid)).dy;
 
       await tester.drag(_verticalScrollable(), const Offset(0, -120));
       await tester.pumpAndSettle();
       expect(scroll.pixels, greaterThan(0));
       expect(
-        tester.getTopLeft(find.byType(UpcomingCard)).dy,
+        tester.getTopLeft(find.byType(PrayerGrid)).dy,
         lessThan(initialTop),
       );
       final offset = scroll.pixels;
@@ -179,7 +155,6 @@ void main() {
           tester,
           size: const Size(320, 480),
           textScale: 2,
-          hasReminders: true,
           locale: locale,
         );
         expect(tester.takeException(), isNull);
@@ -189,8 +164,19 @@ void main() {
         expect(scroll.maxScrollExtent, greaterThan(0));
         await tester.drag(_verticalScrollable(), const Offset(0, -900));
         await tester.pumpAndSettle();
-        expect(find.text('Sabah hazırlığı').hitTestable(), findsOneWidget);
-        expect(find.text('Namaz hazırlığı').hitTestable(), findsOneWidget);
+        // Son içerik vakit ızgarası; en sondaki metni (Yatsı saati)
+        // görünür ve dokunulabilir olmalı. Izgaranın ortası sütunlar arası
+        // boşluğa düşebildiği için ızgaranın kendisi yoklanmaz.
+        expect(
+          find
+              .descendant(
+                of: find.byType(PrayerGrid),
+                matching: find.byType(Text),
+              )
+              .last
+              .hitTestable(),
+          findsOneWidget,
+        );
         expect(tester.takeException(), isNull);
       },
       variant: TargetPlatformVariant.only(TargetPlatform.iOS),

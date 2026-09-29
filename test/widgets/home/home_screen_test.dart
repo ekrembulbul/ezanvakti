@@ -1,4 +1,3 @@
-import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/presentation/screens/home_screen.dart';
@@ -61,7 +60,9 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
 
-  testWidgets('Veri varken sayac, izgara ve SIRADAKI gorunur', (tester) async {
+  testWidgets('Veri varken sayac ve izgara gorunur; Siradaki karti yok', (
+    tester,
+  ) async {
     await pumpHome(
       tester,
       HomeScreen(
@@ -77,7 +78,8 @@ void main() {
     // Izgaraya ozgu bir vakit: "İMSAK" geri sayim etiketinde de cikabilir,
     // hangi vaktin sirada oldugu testin calistigi saate bagli.
     expect(find.text('GÜNEŞ'), findsOneWidget);
-    expect(find.text('SIRADAKİ'), findsOneWidget);
+    // Bildirim/alarm kartı 2026-09-28'de kalktı.
+    expect(find.text('SIRADAKİ'), findsNothing);
   });
 
   testWidgets('Hata mesaji varken hata durumu gosterilir', (tester) async {
@@ -255,27 +257,5 @@ void main() {
 
     expect(find.byTooltip('أوقات الكراهة'), findsOneWidget);
     expect(tester.takeException(), isNull);
-  });
-
-  testWidgets('Alarm destegi yoksa Siradaki karti alarm gostermez', (
-    tester,
-  ) async {
-    const sahur = Alarm(
-      id: 'sahur',
-      kind: AlarmKind.fixed,
-      label: 'Sahur',
-      hour: 5,
-      minute: 0,
-    );
-    await pumpHome(
-      tester,
-      const HomeScreen(
-        location: _location,
-        alarms: [sahur],
-        alarmsSupported: false,
-      ),
-    );
-
-    expect(find.textContaining('Sahur'), findsNothing);
   });
 }

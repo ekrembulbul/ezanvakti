@@ -15,7 +15,6 @@ import '../../core/models/location.dart';
 import '../../core/interfaces/local_storage.dart';
 import '../../core/utils/app_logger.dart';
 import '../../features/prayer_times/domain/prayer_times_repository.dart';
-import '../../core/models/skipped_occurrence.dart';
 import '../../features/alarms/domain/alarms_manager.dart';
 import '../../features/notifications/domain/skip_manager.dart';
 import '../../features/notifications/domain/notification_settings_manager.dart';
@@ -489,31 +488,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   /// Kullanıcının tetiklediği yenileme (aşağı çekme, takvim ekranı).
   Future<void> _refreshData() => _loadPrayerData(forceRefresh: true);
 
-  /// "SIRADAKİ" kartındaki tek seferlik kapatma.
-  ///
-  /// Kalıcı kapatma Bildirimler/Alarmlar ekranlarında kalır; buradaki anahtar
-  /// yalnızca gösterilen örneği atlar. Görev borcu olan alarmda anahtar
-  /// kilitli, ertelenmişte yerini rozet alır (spec 2026-09-22 D6).
-  Future<void> _toggleSkip(SkippedOccurrence occurrence, bool skipped) async {
-    final appState = context.read<AppState>();
-    final manager = ServiceLocator().get<SkipManager>();
-
-    final next = skipped
-        ? await manager.skip(occurrence)
-        : await manager.unskip(occurrence);
-    appState.setSkips(next);
-
-    try {
-      await ServiceLocator().get<ReminderRescheduler>().reschedule(
-        location: appState.activeLocation,
-        prayerTimes: appState.prayerTimes,
-        skips: next,
-      );
-    } catch (e) {
-      AppLogger().warning('Atlama sonrasi yeniden planlama basarisiz', e);
-    }
-  }
-
   /// Takvim sekme değil, Vakitler ekranından ve Araçlar'dan açılan bir
   /// sayfadır; aynı verinin ikinci görünümü olduğu için gezinmede yer almaz.
   void _openCalendar() {
@@ -668,7 +642,6 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         Consumer<AppState>(
           builder: (context, appState, child) {
             return HomeScreen(
-              missionSessions: appState.missionSessions,
               ramadanActive: _ramadanActive,
               location: appState.activeLocation!,
               todaysPrayerTime: appState.todaysPrayerTime,
@@ -676,18 +649,10 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
               lastUpdateTime: appState.lastUpdateTime,
               isLoading: appState.isLoading,
               isRefreshing: appState.isRefreshing,
-              prayerTimes: appState.prayerTimes,
-              notificationSettings: appState.notificationSettings,
-              alarms: appState.alarms,
-              alarmsSupported: appState.alarmsSupported,
-              skips: appState.skips,
-              onSkipChanged: _toggleSkip,
-              onSnoozedTap: (alarm) => openSnoozedAlarm(context, alarm),
               errorMessage: appState.errorMessage,
               onRefresh: _refreshData,
               onGpsRefresh: _manualGpsRefresh,
               onSettingsTap: _navigateToSettings,
-              onSeeReminders: () => setState(() => _tabIndex = 1),
               onCalendarTap: _openCalendar,
               onLocationTap: _navigateToLocationList,
             );

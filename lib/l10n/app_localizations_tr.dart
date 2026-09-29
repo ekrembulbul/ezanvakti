@@ -986,15 +986,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get nextLabel => 'SONRAKİ';
 
   @override
-  String get upcomingTitle => 'Sıradaki';
-
-  @override
-  String get upcomingAll => 'Tümü';
-
-  @override
-  String get upcomingEmpty => 'Yaklaşan bildirim veya alarm yok';
-
-  @override
   String get alarmQrRequired => 'QR görevi için bir kod okut ya da yaz';
 
   @override

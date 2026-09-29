@@ -1,15 +1,10 @@
-import '../../core/models/mission_session.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../core/models/alarm.dart';
 import '../../core/models/location.dart';
-import '../../core/models/notification_setting.dart';
-import '../../core/models/skipped_occurrence.dart';
 import '../../core/models/prayer_time.dart';
 import '../../core/utils/prayer_utils.dart';
-import '../services/upcoming_resolver.dart';
 import '../widgets/common/app_surface.dart';
 import '../widgets/common/state_widgets.dart';
 import '../../features/ramadan/domain/ramadan_countdown.dart';
@@ -20,7 +15,6 @@ import '../widgets/home/day_ruler.dart';
 import '../widgets/home/home_top_bar.dart';
 import '../widgets/home/kerahat_details_sheet.dart';
 import '../widgets/home/prayer_grid.dart';
-import '../widgets/home/upcoming_card.dart';
 
 class HomeScreen extends StatefulWidget {
   /// Ramazan modu açık mı; sayaç ve başlıklar buna göre değişir.
@@ -33,35 +27,12 @@ class HomeScreen extends StatefulWidget {
   final String dataSource;
   final VoidCallback? onSettingsTap;
 
-  /// "Tümünü gör" — Hatırlatıcılar sekmesine geçer (push değil).
-  final VoidCallback? onSeeReminders;
-
   /// Üst çubuktaki takvim kısayolu; null ise düğme çizilmez.
   final VoidCallback? onCalendarTap;
 
   final VoidCallback? onRefresh;
   final VoidCallback? onGpsRefresh;
   final VoidCallback? onLocationTap;
-
-  /// "SIRADAKİ" kartının kaynağı: pencere içindeki tüm günler, açık bildirim
-  /// ayarları ve kayıtlı alarmlar.
-  final List<PrayerTime> prayerTimes;
-  final List<NotificationSetting> notificationSettings;
-  final List<Alarm> alarms;
-
-  /// Sesli alarm bu cihazda destekleniyor mu (bkz. AppState.alarmsSupported).
-  final bool alarmsSupported;
-
-  /// "Yalnızca bu sefer" atlanmış örnekler ve anahtar geri çağrısı.
-  final Set<SkippedOccurrence> skips;
-
-  /// Bekleyen görev oturumu; ertelenmiş alarm bilgisi için.
-  final List<MissionSession> missionSessions;
-  final void Function(SkippedOccurrence occurrence, bool skipped)?
-  onSkipChanged;
-
-  /// Ertelenmiş alarm satırına dokunuldu; ara ekran açılır.
-  final ValueChanged<Alarm>? onSnoozedTap;
 
   final bool isLoading;
 
@@ -72,7 +43,6 @@ class HomeScreen extends StatefulWidget {
   final String? errorMessage;
 
   const HomeScreen({
-    this.missionSessions = const [],
     this.ramadanActive = false,
     super.key,
     required this.location,
@@ -81,18 +51,10 @@ class HomeScreen extends StatefulWidget {
     this.lastUpdateTime,
     this.dataSource = 'Aladhan API',
     this.onSettingsTap,
-    this.onSeeReminders,
     this.onCalendarTap,
     this.onRefresh,
     this.onGpsRefresh,
     this.onLocationTap,
-    this.prayerTimes = const [],
-    this.notificationSettings = const [],
-    this.alarms = const [],
-    this.alarmsSupported = true,
-    this.skips = const {},
-    this.onSkipChanged,
-    this.onSnoozedTap,
     this.isLoading = false,
     this.isRefreshing = false,
     this.errorMessage,
@@ -226,27 +188,6 @@ class _HomeScreenState extends State<HomeScreen> {
             prayerTime: today,
             now: now,
             currentPrayer: PrayerUtils.getCurrentPrayer(today),
-          ),
-          const SizedBox(height: 24),
-          UpcomingCard(
-            missionSessions: widget.missionSessions,
-            now: now,
-            notification: resolveNextNotification(
-              settings: widget.notificationSettings,
-              prayerTimes: widget.prayerTimes,
-              now: now,
-            ),
-            alarm: resolveNextAlarm(
-              alarms: widget.alarms,
-              prayerTimes: widget.prayerTimes,
-              now: now,
-              missionSessions: widget.missionSessions,
-              supported: widget.alarmsSupported,
-            ),
-            skips: widget.skips,
-            onSkipChanged: widget.onSkipChanged,
-            onSnoozedTap: widget.onSnoozedTap,
-            onSeeAll: widget.onSeeReminders ?? () {},
           ),
           const SizedBox(height: 20),
         ],

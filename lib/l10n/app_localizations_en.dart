@@ -989,15 +989,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get nextLabel => 'NEXT';
 
   @override
-  String get upcomingTitle => 'Upcoming';
-
-  @override
-  String get upcomingAll => 'All';
-
-  @override
-  String get upcomingEmpty => 'No upcoming notification or alarm';
-
-  @override
   String get alarmQrRequired => 'Scan or type a code for the QR task';
 
   @override

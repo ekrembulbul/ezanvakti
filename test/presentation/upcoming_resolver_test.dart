@@ -32,10 +32,42 @@ PrayerTime _dayAt(DateTime date) {
 
 final _window = [_day(3), _day(4), _day(5)];
 
+/// Ana ekran kartı kalktı; en yakın örneği testte seçiyoruz ki satır başına
+/// örnek hesabının kuralları (gün filtresi, Cuma önceliği, türetilmiş
+/// vakitler) sınanmaya devam etsin. Eşitlikte ilk gelen kazanır — sonuç
+/// haritası gün kısıtlı satırları önce ekliyor.
+UpcomingNotification? _earliest({
+  required List<NotificationSetting> settings,
+  required List<PrayerTime> prayerTimes,
+  required DateTime now,
+}) {
+  UpcomingNotification? earliest;
+  for (final occurrence in resolveNextOccurrencePerNotification(
+    settings: settings,
+    prayerTimes: prayerTimes,
+    now: now,
+  ).values) {
+    if (earliest == null || occurrence.time.isBefore(earliest.time)) {
+      earliest = occurrence;
+    }
+  }
+  return earliest;
+}
+
+Map<String, DateTime> _fireTimes({
+  required List<NotificationSetting> settings,
+  required List<PrayerTime> prayerTimes,
+  required DateTime now,
+}) => resolveNextOccurrencePerNotification(
+  settings: settings,
+  prayerTimes: prayerTimes,
+  now: now,
+).map((key, occurrence) => MapEntry(key, occurrence.time));
+
 void main() {
-  group('resolveNextNotification', () {
+  group('resolveNextOccurrencePerNotification — en yakın örnek', () {
     test('Once gelen vakit secilir', () {
-      final next = resolveNextNotification(
+      final next = _earliest(
         settings: const [
           NotificationSetting(prayerType: PrayerType.isha, isActive: true),
           NotificationSetting(prayerType: PrayerType.maghrib, isActive: true),
@@ -49,7 +81,7 @@ void main() {
     });
 
     test('minutesBefore kadar erken tetiklenir', () {
-      final next = resolveNextNotification(
+      final next = _earliest(
         settings: const [
           NotificationSetting(
             prayerType: PrayerType.maghrib,
@@ -65,7 +97,7 @@ void main() {
     });
 
     test('Kapali ayar atlanir', () {
-      final next = resolveNextNotification(
+      final next = _earliest(
         settings: const [
           NotificationSetting(prayerType: PrayerType.maghrib, isActive: false),
           NotificationSetting(prayerType: PrayerType.isha, isActive: true),
@@ -78,7 +110,7 @@ void main() {
     });
 
     test('Gunun vakitleri gectiyse ertesi gune gecer', () {
-      final next = resolveNextNotification(
+      final next = _earliest(
         settings: const [
           NotificationSetting(prayerType: PrayerType.fajr, isActive: true),
         ],
@@ -90,7 +122,7 @@ void main() {
     });
 
     test('prayerDate vaktin gunu', () {
-      final next = resolveNextNotification(
+      final next = _earliest(
         settings: const [
           NotificationSetting(
             prayerType: PrayerType.fajr,
@@ -108,7 +140,7 @@ void main() {
     });
 
     test('Aktif ayar yoksa null', () {
-      final next = resolveNextNotification(
+      final next = _earliest(
         settings: const [
           NotificationSetting(prayerType: PrayerType.fajr, isActive: false),
         ],
@@ -128,7 +160,7 @@ void main() {
         label: 'Cuma namazı',
       );
 
-      final next = resolveNextNotification(
+      final next = _earliest(
         settings: const [friday],
         prayerTimes: [_day(6), _day(7)],
         now: DateTime(2026, 8, 6, 10),
@@ -140,7 +172,7 @@ void main() {
     });
 
     test('uygun tekrar günü yoksa bildirim gösterilmez', () {
-      final next = resolveNextNotification(
+      final next = _earliest(
         settings: const [
           NotificationSetting(
             prayerType: PrayerType.dhuhr,
@@ -173,7 +205,7 @@ void main() {
     ]) {
       test('Cuma çakışmasında gün kısıtlı satır seçilir: '
           '${settings.first.isDayScoped ? 'özel önce' : 'genel önce'}', () {
-        final next = resolveNextNotification(
+        final next = _earliest(
           settings: settings,
           prayerTimes: [_day(7)],
           now: DateTime(2026, 8, 7, 10),
@@ -185,7 +217,7 @@ void main() {
     }
 
     test('vakit günleri sırasız olsa da Cuma satırı çakışmayı kazanır', () {
-      final next = resolveNextNotification(
+      final next = _earliest(
         settings: const [regular, friday],
         prayerTimes: [_day(8), _day(7)],
         now: DateTime(2026, 8, 7, 10),
@@ -223,7 +255,7 @@ void main() {
       ),
     ]) {
       test('${example.kind.name} için hesaplanan vakitten offset düşülür', () {
-        final next = resolveNextNotification(
+        final next = _earliest(
           settings: [
             NotificationSetting(
               prayerType: example.anchor,
@@ -243,7 +275,7 @@ void main() {
 
     for (final kind in [DerivedTimeKind.midnight, DerivedTimeKind.lastThird]) {
       test('${kind.name} ertesi gün verisi olmadan gösterilmez', () {
-        final next = resolveNextNotification(
+        final next = _earliest(
           settings: [
             NotificationSetting(
               prayerType: PrayerType.maghrib,
@@ -260,9 +292,9 @@ void main() {
     }
   });
 
-  group('resolveNextFirePerNotification', () {
+  group('resolveNextOccurrencePerNotification — satır başına an', () {
     test('her satır kendi tekrar günündeki ilk vakti gösterir', () {
-      final result = resolveNextFirePerNotification(
+      final result = _fireTimes(
         settings: const [
           NotificationSetting(prayerType: PrayerType.dhuhr, isActive: true),
           NotificationSetting(
@@ -282,7 +314,7 @@ void main() {
     });
 
     test('offset önceki güne taşsa da gün filtresi vakte uygulanır', () {
-      final result = resolveNextFirePerNotification(
+      final result = _fireTimes(
         settings: const [
           NotificationSetting(
             prayerType: PrayerType.fajr,
@@ -305,7 +337,7 @@ void main() {
     });
 
     test('gece noktalarında gün filtresi hesaplanan vakte uygulanır', () {
-      final result = resolveNextFirePerNotification(
+      final result = _fireTimes(
         settings: const [
           NotificationSetting(
             prayerType: PrayerType.maghrib,
@@ -522,96 +554,5 @@ void main() {
         );
       });
     }
-  });
-
-  group('resolveNextAlarm', () {
-    const fixed = Alarm(
-      id: 'fixed',
-      kind: AlarmKind.fixed,
-      label: 'Sabah',
-      hour: 6,
-      minute: 30,
-    );
-    const anchored = Alarm(
-      id: 'anchored',
-      kind: AlarmKind.anchored,
-      label: 'Sahur',
-      anchor: PrayerType.fajr,
-      offsetMinutes: -30,
-    );
-
-    test('En erken calacak alarm secilir', () {
-      final next = resolveNextAlarm(
-        alarms: const [fixed, anchored],
-        prayerTimes: _window,
-        now: DateTime(2026, 8, 3, 23),
-      );
-
-      // Sahur: 4 Agustos Imsak 04:11 - 30 dk = 03:41; sabit alarm 06:30.
-      expect(next?.alarm.id, 'anchored');
-      expect(next?.time, DateTime(2026, 8, 4, 3, 41));
-    });
-
-    test('Atlanmis alarmi yine de dondurur', () {
-      // D2: kart bir sonrakine gecmez, satir yerinde kalir ki kullanici geri
-      // acabilsin. Bu yuzden resolveNextAlarm skip kumesi ALMAZ.
-      final next = resolveNextAlarm(
-        alarms: const [fixed],
-        prayerTimes: _window,
-        now: DateTime(2026, 8, 3, 23),
-      );
-
-      expect(next?.alarm.id, 'fixed');
-      expect(next?.time, DateTime(2026, 8, 4, 6, 30));
-    });
-
-    test('Kapali alarm atlanir', () {
-      final next = resolveNextAlarm(
-        alarms: const [
-          fixed,
-          Alarm(id: 'off', kind: AlarmKind.fixed, isActive: false),
-        ],
-        prayerTimes: _window,
-        now: DateTime(2026, 8, 3, 23),
-      );
-
-      expect(next?.alarm.id, 'fixed');
-    });
-
-    test('Alarm yoksa null', () {
-      final next = resolveNextAlarm(
-        alarms: const [],
-        prayerTimes: _window,
-        now: DateTime(2026, 8, 3, 12),
-      );
-
-      expect(next, isNull);
-    });
-  });
-
-  group('resolveNextAlarm — platform destegi', () {
-    const sahur = Alarm(id: 'sahur', kind: AlarmKind.fixed, hour: 5, minute: 0);
-
-    test('destek yoksa alarm hic secilmez; kayit dursa bile', () {
-      expect(
-        resolveNextAlarm(
-          alarms: const [sahur],
-          prayerTimes: const [],
-          now: DateTime(2026, 9, 9, 22, 0),
-          supported: false,
-        ),
-        isNull,
-      );
-    });
-
-    test('destek varsa sabit alarm yarina secilir', () {
-      final next = resolveNextAlarm(
-        alarms: const [sahur],
-        prayerTimes: const [],
-        now: DateTime(2026, 9, 9, 22, 0),
-      );
-      expect(next?.alarm.id, 'sahur');
-      expect(next?.time, DateTime(2026, 9, 10, 5, 0));
-    });
   });
 }

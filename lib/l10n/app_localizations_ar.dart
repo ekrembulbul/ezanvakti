@@ -981,15 +981,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nextLabel => 'التالي';
 
   @override
-  String get upcomingTitle => 'التالي';
-
-  @override
-  String get upcomingAll => 'الكل';
-
-  @override
-  String get upcomingEmpty => 'لا توجد تنبيهات أو منبهات قادمة';
-
-  @override
   String get alarmQrRequired => 'امسح أو اكتب رمزًا لمهمة QR';
 
   @override
