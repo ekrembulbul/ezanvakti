@@ -1,6 +1,5 @@
 import 'package:ezanvakti/presentation/widgets/common/app_nav_bar.dart';
 import 'package:ezanvakti/presentation/widgets/common/main_tab_scaffold.dart';
-import 'package:ezanvakti/presentation/widgets/common/swipe_to_delete.dart';
 import 'package:ezanvakti/presentation/widgets/reminders/reminder_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -124,10 +123,16 @@ class _ReminderTabState extends State<_ReminderTab> {
               child: Center(child: Text(row)),
             )
           else
-            SwipeToDelete(
-              itemKey: ValueKey(row),
-              onDelete: () => setState(() => _rows.remove(row)),
-              child: SizedBox(height: 80, child: Center(child: Text(row))),
+            // Gerçek satırlar gibi dokunma ve basılı tutma dinler; yatay
+            // hareket yine de sekme geçişine kalmalı.
+            Material(
+              key: ValueKey(row),
+              type: MaterialType.transparency,
+              child: InkWell(
+                onTap: () {},
+                onLongPress: () {},
+                child: SizedBox(height: 80, child: Center(child: Text(row))),
+              ),
             ),
       ],
     );
@@ -245,15 +250,19 @@ void main() {
     expect(find.text('takvim-govde').hitTestable(), findsOneWidget);
   });
 
-  testWidgets('Satır swipe siler ve ana sekmeyi değiştirmez', (tester) async {
+  testWidgets('Satır üstündeki yatay hareket sekme değiştirir, satırı silmez', (
+    tester,
+  ) async {
     await tester.pumpWidget(reminderShell());
+    expect(find.byType(Dismissible), findsNothing);
 
     await tester.drag(find.text('satır-1'), const Offset(-600, 0));
     await tester.pumpAndSettle();
+    expect(selectedTab(tester), 3);
 
-    expect(selectedTab(tester), 2);
-    expect(find.text('satır-1'), findsNothing);
-    expect(find.text('satır-2').hitTestable(), findsOneWidget);
+    await tester.tap(find.text('Hatırlatıcılar'));
+    await tester.pumpAndSettle();
+    expect(find.text('satır-1').hitTestable(), findsOneWidget);
   });
 
   testWidgets('Liste başlığındaki swipe sekme değiştirir ve satırı silmez', (
