@@ -46,17 +46,19 @@ class _LocationListScreenState extends State<LocationListScreen> {
   }
 
   Future<void> _loadLocations() async {
-    final l10n = context.l10n;
     setState(() => _isLoading = true);
     try {
       final locations = await widget.locationRepository.getSavedLocations();
+      if (!mounted) return;
       setState(() {
         _locations = locations;
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() => _isLoading = false);
-      _showSnackBar(l10n.locationsLoadFailed(e), isError: true);
+      // initState'ten çağrılıyor: çeviri ancak ilk await'ten sonra okunur.
+      _showSnackBar(context.l10n.locationsLoadFailed(e), isError: true);
     }
   }
 
