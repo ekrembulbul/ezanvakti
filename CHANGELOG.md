@@ -4,6 +4,23 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.28.0] - 2026-09-29
+
+### Eklendi
+- **Vakit Takvimi ay ay:** takvim artık bugünden 30 günü değil seçilen ayı gösterir; oklarla bu yılın Ocak'ından gelecek yılın Aralık'ına gidilir. Açılışta bugün görünür, geçen günler soluk; paylaş ayın tamamını tek görsel olarak gönderir. Henüz yayımlanmamış ay için bilgi metni çıkar.
+- Silme için basılı tutma menüsü (alarmlarda Kopyala / Sil; bildirim, konum ve sessiz aralıkta Sil) ve düzenleme ekranlarının altında kırmızı sil düğmesi (Alarmı sil, Bildirimi sil, Konumu sil, Aralığı sil). Silince "Geri al" çıkar; artık sessiz aralıklarda da.
+
+### Değişti
+- Kaydırarak silme kaldırıldı (alarmlar, bildirimler, konumlar, sessiz aralıklar); satırlarda yatay hareket yalnız sekme geçişidir.
+
+### Düzeltildi
+- "Sıradaki çalışa göre" sıralamada "Yalnızca bu sefer" ile atlanan alarm ya da bildirim en üste çıkıyordu; artık bir sonraki gerçek çalışına göre dizilir.
+- Widget'taki kerahat şeridinin ikonu siyah kalıyor, koyu zeminde görünmüyordu; artık yaklaşırken turuncu, kerahatte beyaz.
+- Konum listesinden çıktıktan sonra "Geri al" silinen konumu geri getirmiyordu.
+
+### Kaldırıldı
+- Ana sayfadaki "Sıradaki" kartı (yaklaşan bildirim ve alarm, atlama anahtarı, erteleme rozeti). Tek seferlik atlama ve erteleme Hatırlatıcılar ekranında aynen sürer.
+
 ## [0.27.1] - 2026-09-25
 
 ### Düzeltildi
