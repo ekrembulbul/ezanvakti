@@ -637,9 +637,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get calendarShare => 'Share calendar';
 
   @override
-  String get calendarEmpty => 'No calendar data';
-
-  @override
   String get calendarLoading => 'Loading calendar…';
 
   @override
@@ -649,6 +646,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String calendarDayCount(Object count) {
     return '$count days';
   }
+
+  @override
+  String get calendarPreviousMonth => 'Previous month';
+
+  @override
+  String get calendarNextMonth => 'Next month';
+
+  @override
+  String get calendarMonthUnavailable =>
+      'Prayer times for this month have not been published yet.';
 
   @override
   String get upcomingNext => 'NEXT';

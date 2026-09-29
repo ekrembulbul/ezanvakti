@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ezanvakti/core/data/ramadan_periods.dart';
 import 'package:ezanvakti/core/models/location.dart';
+import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/presentation/screens/calendar_screen.dart';
 import 'package:ezanvakti/presentation/widgets/calendar/imsakiye_share_table.dart';
 import 'package:ezanvakti/presentation/services/widget_image_renderer.dart';
@@ -12,6 +13,15 @@ import '../theme_harness.dart';
 import '../../support/fakes.dart';
 
 const location = Location(id: 'test', province: 'İstanbul', district: 'Fatih');
+
+Future<List<PrayerTime>> _fullMonth({
+  required Location location,
+  required DateTime month,
+  bool forceRefresh = false,
+}) async => [
+  for (var day = 1; day <= DateTime(month.year, month.month + 1, 0).day; day++)
+    prayerTimeFor(DateTime(month.year, month.month, day)),
+];
 void main() {
   testWidgets('phone shows Imsak and Iftar together without repeated source', (
     tester,
@@ -23,7 +33,7 @@ void main() {
       wrapWithTheme(
         CalendarScreen(
           location: location,
-          prayerTimes: const [],
+          monthLoader: _fullMonth,
           imsakiyeLoader:
               ({
                 required location,
@@ -54,7 +64,7 @@ void main() {
         wrapWithTheme(
           CalendarScreen(
             location: location,
-            prayerTimes: [prayerTimeFor(DateTime(2026, 9, 6))],
+            monthLoader: _fullMonth,
             imsakiyeLoader:
                 ({
                   required location,
@@ -180,7 +190,7 @@ void main() {
           data: const MediaQueryData(textScaler: TextScaler.linear(2)),
           child: CalendarScreen(
             location: location,
-            prayerTimes: const [],
+            monthLoader: _fullMonth,
             imsakiyeLoader:
                 ({
                   required location,

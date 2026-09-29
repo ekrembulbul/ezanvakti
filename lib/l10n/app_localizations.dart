@@ -1234,12 +1234,6 @@ abstract class AppLocalizations {
   /// **'Takvimi paylaş'**
   String get calendarShare;
 
-  /// Boş durum
-  ///
-  /// In tr, this message translates to:
-  /// **'Takvim verisi bulunamadı'**
-  String get calendarEmpty;
-
   /// Yükleme
   ///
   /// In tr, this message translates to:
@@ -1257,6 +1251,24 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'{count} gün'**
   String calendarDayCount(Object count);
+
+  /// Vakit Takvimi ay çubuğundaki geri oku; ipucu ve erişilebilirlik etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Önceki ay'**
+  String get calendarPreviousMonth;
+
+  /// Vakit Takvimi ay çubuğundaki ileri oku; ipucu ve erişilebilirlik etiketi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sonraki ay'**
+  String get calendarNextMonth;
+
+  /// Sunucu seçili ayın yılını henüz yayımlamamışken (boş sonuç) tablo yerine gösterilir.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu ayın vakitleri henüz yayımlanmadı.'**
+  String get calendarMonthUnavailable;
 
   /// Kart başlığı
   ///

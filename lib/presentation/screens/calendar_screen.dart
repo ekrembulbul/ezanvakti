@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import '../../l10n/l10n_extensions.dart';
-import 'package:flutter/rendering.dart';
 
 import '../utils/directional_icons.dart';
 
 import '../../core/data/ramadan_periods.dart';
+import '../../features/prayer_times/domain/calendar_month_repository.dart';
 import '../../features/ramadan/domain/imsakiye_repository.dart';
+import '../controllers/calendar_month_controller.dart';
 import '../controllers/imsakiye_controller.dart';
+import '../widgets/calendar/calendar_month_share_table.dart';
 import '../widgets/calendar/imsakiye_view.dart';
 import '../widgets/calendar/imsakiye_share_table.dart';
 import '../services/widget_image_renderer.dart';
 import '../services/calendar_share_service.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/tokens_context.dart';
-import '../../core/models/prayer_time.dart';
 import '../../core/models/location.dart';
 import '../widgets/calendar/calendar_table.dart';
 import '../widgets/common/app_surface.dart';
@@ -21,22 +22,23 @@ import '../widgets/common/state_widgets.dart';
 
 class CalendarScreen extends StatefulWidget {
   final Location location;
-  final List<PrayerTime> prayerTimes;
-  final VoidCallback? onRefresh;
-  final bool isLoading;
-  final String? errorMessage;
+
+  /// Vakit Takvimi ayları bu yükleyiciyle okur. Vakitler depodan, düzeltme
+  /// okuma anında uygulanmış gelir (ADR 0004); ekran ayrı hesap yapmaz.
+  final CalendarMonthLoader monthLoader;
   final ImsakiyeLoader? imsakiyeLoader;
   final int calculationRevision;
+
+  /// Testler sabitler; varsayılan cihaz saati.
+  final DateTime Function()? clock;
 
   const CalendarScreen({
     super.key,
     required this.location,
-    required this.prayerTimes,
-    this.onRefresh,
-    this.isLoading = false,
-    this.errorMessage,
+    required this.monthLoader,
     this.imsakiyeLoader,
     this.calculationRevision = 0,
+    this.clock,
   });
 
   @override
@@ -44,15 +46,46 @@ class CalendarScreen extends StatefulWidget {
 }
 
 class _CalendarScreenState extends State<CalendarScreen> {
-  /// Paylaşılacak alanı işaretler: tablo bu sınırın içinde çizilir.
-  final GlobalKey _tableBoundaryKey = GlobalKey();
+  late CalendarMonthController _month;
   ImsakiyeController? _imsakiye;
   bool _showImsakiye = false;
   bool _sharing = false;
 
+  DateTime _now() => widget.clock?.call() ?? DateTime.now();
+
+  @override
+  void initState() {
+    super.initState();
+    _month = _createMonthController();
+  }
+
+  /// Dinleyici yükleme başladıktan sonra eklenir: ilk "yükleniyor" bildirimi
+  /// initState ya da didUpdateWidget içinde setState'e dönüşmesin. Build
+  /// durumu doğrudan controller'dan okur.
+  CalendarMonthController _createMonthController() {
+    final controller = CalendarMonthController(
+      loader: widget.monthLoader,
+      now: _now(),
+    );
+    controller.updateSource(widget.location, widget.calculationRevision);
+    controller.addListener(_changed);
+    return controller;
+  }
+
   @override
   void didUpdateWidget(CalendarScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.monthLoader != widget.monthLoader) {
+      _month.removeListener(_changed);
+      _month.dispose();
+      _month = _createMonthController();
+    } else {
+      // Konum ya da düzeltme değiştiyse aynı ay yeniden yüklenir.
+      // didUpdateWidget zaten build planlıyor; iç içe setState'ten kaçın.
+      _month.removeListener(_changed);
+      _month.updateSource(widget.location, widget.calculationRevision);
+      _month.addListener(_changed);
+    }
     if (oldWidget.imsakiyeLoader != widget.imsakiyeLoader) {
       _imsakiye?.removeListener(_changed);
       _imsakiye?.dispose();
@@ -85,6 +118,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   @override
   void dispose() {
+    _month.removeListener(_changed);
+    _month.dispose();
     _imsakiye?.removeListener(_changed);
     _imsakiye?.dispose();
     super.dispose();
@@ -122,17 +157,30 @@ class _CalendarScreenState extends State<CalendarScreen> {
           originRect: origin,
         );
       } else {
-        final boundary =
-            _tableBoundaryKey.currentContext?.findRenderObject()
-                as RenderRepaintBoundary?;
-        final l10n = context.l10n;
-        ok = await CalendarShareService().shareTable(
-          boundary: boundary,
-          location: widget.location,
-          date: widget.prayerTimes.isEmpty
-              ? DateTime.now()
-              : widget.prayerTimes.first.date,
-          captionFormat: l10n.shareCaption,
+        final controller = _month;
+        if (!controller.canShare) return;
+        final month = controller.month;
+        final location = widget.location;
+        final caption = CalendarShareService.captionFor(
+          location,
+          month,
+          format: context.l10n.shareCaption,
+        );
+        // Görünen ayın bütün günleri ekran dışında çizilir; ekrandaki
+        // satırlarla sınırlı değil (spec 2026-09-28 §3.5).
+        final bytes = await WidgetImageRenderer.render(
+          context: context,
+          child: CalendarMonthShareTable(
+            location: location,
+            month: month,
+            days: controller.days,
+          ),
+        );
+        ok = await CalendarShareService().sharePng(
+          bytes: bytes,
+          location: location,
+          date: month,
+          caption: caption,
           originRect: origin,
         );
       }
@@ -152,24 +200,23 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final month = _month;
+    final canShare = _showImsakiye
+        ? (_imsakiye?.canShare ?? false)
+        : month.canShare;
+    final monthLabel = calendarMonthLabel(context, month.month);
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       appBar: _CalendarAppBar(
-        location: widget.location,
-        dayCount: _showImsakiye
-            ? (_imsakiye?.days.length ?? 0)
-            : widget.prayerTimes.length,
-        title: _showImsakiye
-            ? context.l10n.imsakiyeTitle
-            : context.l10n.calendarTitle,
-        onShare:
-            _sharing ||
-                (_showImsakiye
-                    ? !(_imsakiye?.canShare ?? false)
-                    : widget.prayerTimes.isEmpty)
-            ? null
-            : _share,
+        title: _showImsakiye ? l10n.imsakiyeTitle : l10n.calendarTitle,
+        subtitle: _showImsakiye
+            ? '${widget.location.displayName} · ${l10n.calendarDayCount(_imsakiye?.days.length ?? 0)}'
+            : '${widget.location.displayName} · $monthLabel',
+        // Yüklenirken ya da ay boşken paylaş düğmesi çizilmez.
+        onShare: _sharing || !canShare ? null : _share,
       ),
       body: AppSurface(
         child: Padding(
@@ -180,14 +227,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
             children: [
               SegmentedButton<bool>(
                 segments: [
-                  ButtonSegment(
-                    value: false,
-                    label: Text(context.l10n.calendarTitle),
-                  ),
-                  ButtonSegment(
-                    value: true,
-                    label: Text(context.l10n.imsakiyeTitle),
-                  ),
+                  ButtonSegment(value: false, label: Text(l10n.calendarTitle)),
+                  ButtonSegment(value: true, label: Text(l10n.imsakiyeTitle)),
                 ],
                 selected: {_showImsakiye},
                 onSelectionChanged: (selection) {
@@ -198,12 +239,31 @@ class _CalendarScreenState extends State<CalendarScreen> {
                 },
               ),
               const SizedBox(height: 8),
+              if (!_showImsakiye) ...[
+                _MonthBar(
+                  label: monthLabel,
+                  onPrevious: month.canGoPrevious ? month.previous : null,
+                  onNext: month.canGoNext ? month.next : null,
+                ),
+                // Ay geçişinde eski tablo kalır; ince çizgi yeni ayın
+                // yüklendiğini gösterir. Yer hep ayrılır ki tablo zıplamasın.
+                SizedBox(
+                  height: 2,
+                  child: month.isLoading && month.days.isNotEmpty
+                      ? LinearProgressIndicator(
+                          minHeight: 2,
+                          color: context.tokens.accent,
+                          backgroundColor: Colors.transparent,
+                        )
+                      : null,
+                ),
+              ],
               Expanded(
                 child: _showImsakiye
                     ? (_imsakiye == null
-                          ? ErrorState(message: context.l10n.imsakiyeLoadFailed)
+                          ? ErrorState(message: l10n.imsakiyeLoadFailed)
                           : ImsakiyeView(controller: _imsakiye!))
-                    : _buildBody(),
+                    : _buildMonthBody(),
               ),
             ],
           ),
@@ -212,49 +272,123 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  Widget _buildBody() {
-    if (widget.isLoading) {
-      return LoadingState(message: context.l10n.calendarLoading);
+  Widget _buildMonthBody() {
+    final month = _month;
+    final l10n = context.l10n;
+    final days = month.days;
+    if (days.isNotEmpty) {
+      // Tablo gösterdiği günlerin ayıyla anahtarlanır, seçili ayla değil:
+      // ay değişirken eski tablo yükleme boyunca yerinde durur (başa
+      // atlamaz); yeni ay gelince yeni tablo kurulur ve başlangıç konumu
+      // (bugün ya da en üst) yeniden hesaplanır.
+      final shownMonth = DateTime(days.first.date.year, days.first.date.month);
+      return CalendarTable(key: ValueKey(shownMonth), days: days, now: _now());
     }
-
-    if (widget.errorMessage != null) {
+    if (month.error != null && !month.isLoading) {
       return ErrorState(
-        message: widget.errorMessage!,
-        onRetry: widget.onRefresh,
+        message: l10n.offlineFetchFailed,
+        onRetry: month.refresh,
       );
     }
-
-    if (widget.prayerTimes.isEmpty) {
+    if (month.isUnavailable) {
       return EmptyState(
         icon: Icons.calendar_month_outlined,
-        message: context.l10n.calendarEmpty,
+        message: l10n.calendarMonthUnavailable,
       );
     }
+    return LoadingState(message: l10n.calendarLoading);
+  }
+}
 
-    // Liste en bastan gosterilir; bugune otomatik kaydirma yok. Veri zaten
-    // bugunden basliyor ve kaydirma, acilista icerigin altindan kaymasi gibi
-    // duruyordu.
-    // Paylaşılan görüntü uygulamadaki tabloyla birebir aynı olsun diye
-    // ekrandaki widget'ın kendisi yakalanıyor, ayrı bir çizim yapılmıyor.
-    return RepaintBoundary(
-      key: _tableBoundaryKey,
-      child: CalendarTable(days: widget.prayerTimes, now: DateTime.now()),
+/// Takvimde segmentin altındaki ay çubuğu: önceki ay · ay adı · sonraki ay.
+class _MonthBar extends StatelessWidget {
+  final String label;
+  final VoidCallback? onPrevious;
+  final VoidCallback? onNext;
+
+  const _MonthBar({required this.label, this.onPrevious, this.onNext});
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Row(
+      children: [
+        // Chevron ikonları matchTextDirection taşır: Icon RTL'de kendini
+        // aynalar ve Row "önceki"yi sağa koyar. directional_icons'taki gibi
+        // ayrıca ikon değiştirmek yönü iki kez çevirirdi.
+        _arrow(
+          context,
+          key: const Key('calendar-previous-month'),
+          icon: Icons.chevron_left_rounded,
+          tooltip: context.l10n.calendarPreviousMonth,
+          onPressed: onPrevious,
+        ),
+        Expanded(
+          child: Center(
+            // Dar ekran ve büyük metinde ay adı küçülür; oklar sabit kalır.
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                key: const Key('calendar-month-label'),
+                maxLines: 1,
+                style: AppTypography.rowTitle.copyWith(
+                  color: tokens.textPrimary,
+                ),
+              ),
+            ),
+          ),
+        ),
+        _arrow(
+          context,
+          key: const Key('calendar-next-month'),
+          icon: Icons.chevron_right_rounded,
+          tooltip: context.l10n.calendarNextMonth,
+          onPressed: onNext,
+        ),
+      ],
+    );
+  }
+
+  /// Geri düğmesiyle aynı 34 pt yüzey kutusu (8 + 18 + 8); sınırda pasif.
+  Widget _arrow(
+    BuildContext context, {
+    required Key key,
+    required IconData icon,
+    required String tooltip,
+    VoidCallback? onPressed,
+  }) {
+    final tokens = context.tokens;
+    return IconButton(
+      key: key,
+      tooltip: tooltip,
+      onPressed: onPressed,
+      icon: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: tokens.surface,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(
+          icon,
+          size: 18,
+          color: onPressed == null ? tokens.textTertiary : tokens.textPrimary,
+        ),
+      ),
     );
   }
 }
 
 class _CalendarAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final Location location;
-  final int dayCount;
   final String title;
+  final String subtitle;
 
   /// Veri yokken null; düğme o zaman çizilmez.
   final VoidCallback? onShare;
 
   const _CalendarAppBar({
-    required this.location,
-    required this.dayCount,
     required this.title,
+    required this.subtitle,
     this.onShare,
   });
 
@@ -300,7 +434,7 @@ class _CalendarAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
             Text(
-              '${location.displayName} · ${context.l10n.calendarDayCount(dayCount)}',
+              subtitle,
               style: AppTypography.hint.copyWith(color: tokens.textTertiary),
             ),
           ],

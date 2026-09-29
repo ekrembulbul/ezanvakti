@@ -826,10 +826,6 @@
   "@calendarShare": {
     "description": "Düğme"
   },
-  "calendarEmpty": "Takvim verisi bulunamadı",
-  "@calendarEmpty": {
-    "description": "Boş durum"
-  },
   "calendarLoading": "Takvim yükleniyor...",
   "@calendarLoading": {
     "description": "Yükleme"
@@ -846,6 +842,18 @@
         "type": "Object"
       }
     }
+  },
+  "calendarPreviousMonth": "Önceki ay",
+  "@calendarPreviousMonth": {
+    "description": "Vakit Takvimi ay çubuğundaki geri oku; ipucu ve erişilebilirlik etiketi."
+  },
+  "calendarNextMonth": "Sonraki ay",
+  "@calendarNextMonth": {
+    "description": "Vakit Takvimi ay çubuğundaki ileri oku; ipucu ve erişilebilirlik etiketi."
+  },
+  "calendarMonthUnavailable": "Bu ayın vakitleri henüz yayımlanmadı.",
+  "@calendarMonthUnavailable": {
+    "description": "Sunucu seçili ayın yılını henüz yayımlamamışken (boş sonuç) tablo yerine gösterilir."
   },
   "upcomingNext": "SIRADAKİ",
   "@upcomingNext": {

@@ -47,6 +47,7 @@ import '../../core/theme/theme_controller.dart';
 import '../widgets/common/app_nav_bar.dart';
 import '../widgets/common/main_tab_scaffold.dart';
 import '../../features/ramadan/domain/imsakiye_repository.dart';
+import '../../features/prayer_times/domain/calendar_month_repository.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -64,6 +65,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   late final GpsLocationService _locationService;
   late final DataLoaderService _dataLoaderService;
   late final ImsakiyeLoader _imsakiyeLoader;
+  late final CalendarMonthLoader _calendarMonthLoader;
   int _calendarRevision = 0;
 
   @override
@@ -91,6 +93,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
   void _initializeServices() {
     _imsakiyeLoader = ImsakiyeRepository(
+      ServiceLocator().get<PrayerTimesRepository>(),
+    ).load;
+    _calendarMonthLoader = CalendarMonthRepository(
       ServiceLocator().get<PrayerTimesRepository>(),
     ).load;
     _locationService = ServiceLocator().get<GpsLocationService>();
@@ -489,19 +494,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   Future<void> _refreshData() => _loadPrayerData(forceRefresh: true);
 
   /// Takvim sekme değil, Vakitler ekranından ve Araçlar'dan açılan bir
-  /// sayfadır; aynı verinin ikinci görünümü olduğu için gezinmede yer almaz.
+  /// sayfadır; ayları depodan kendisi okur (ADR 0004). Consumer etkin konum
+  /// değişince ekranı yeni konumla yeniden kurar, ekran aynı ayı yeniden yükler.
   void _openCalendar() {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => Consumer<AppState>(
           builder: (context, appState, child) => CalendarScreen(
+            monthLoader: _calendarMonthLoader,
             imsakiyeLoader: _imsakiyeLoader,
             calculationRevision: _calendarRevision,
             location: appState.activeLocation!,
-            prayerTimes: appState.prayerTimes,
-            onRefresh: _refreshData,
-            isLoading: appState.isLoading,
-            errorMessage: appState.errorMessage,
           ),
         ),
       ),

@@ -632,9 +632,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get calendarShare => 'مشاركة التقويم';
 
   @override
-  String get calendarEmpty => 'لا توجد بيانات التقويم';
-
-  @override
   String get calendarLoading => 'جارٍ تحميل التقويم…';
 
   @override
@@ -644,6 +641,15 @@ class AppLocalizationsAr extends AppLocalizations {
   String calendarDayCount(Object count) {
     return '$count أيام';
   }
+
+  @override
+  String get calendarPreviousMonth => 'الشهر السابق';
+
+  @override
+  String get calendarNextMonth => 'الشهر التالي';
+
+  @override
+  String get calendarMonthUnavailable => 'لم تُنشر أوقات هذا الشهر بعد.';
 
   @override
   String get upcomingNext => 'التالي';

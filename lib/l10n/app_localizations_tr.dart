@@ -634,9 +634,6 @@ class AppLocalizationsTr extends AppLocalizations {
   String get calendarShare => 'Takvimi paylaş';
 
   @override
-  String get calendarEmpty => 'Takvim verisi bulunamadı';
-
-  @override
   String get calendarLoading => 'Takvim yükleniyor...';
 
   @override
@@ -646,6 +643,16 @@ class AppLocalizationsTr extends AppLocalizations {
   String calendarDayCount(Object count) {
     return '$count gün';
   }
+
+  @override
+  String get calendarPreviousMonth => 'Önceki ay';
+
+  @override
+  String get calendarNextMonth => 'Sonraki ay';
+
+  @override
+  String get calendarMonthUnavailable =>
+      'Bu ayın vakitleri henüz yayımlanmadı.';
 
   @override
   String get upcomingNext => 'SIRADAKİ';
