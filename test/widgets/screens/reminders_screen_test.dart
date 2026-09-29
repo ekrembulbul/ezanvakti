@@ -24,6 +24,7 @@ import 'package:ezanvakti/features/notifications/domain/notification_scheduler.d
 import 'package:ezanvakti/features/notifications/domain/notification_settings_manager.dart';
 import 'package:ezanvakti/presentation/screens/reminders_screen.dart';
 import 'package:ezanvakti/presentation/screens/alarm_edit_screen.dart';
+import 'package:ezanvakti/presentation/screens/notification_edit_screen.dart';
 import 'package:ezanvakti/presentation/services/reminder_rescheduler.dart';
 import 'package:ezanvakti/presentation/services/reminder_list_preferences.dart';
 import 'package:ezanvakti/presentation/services/upcoming_resolver.dart';
@@ -574,9 +575,8 @@ void main() {
     appState.setNotificationSettings(const [dhuhr]);
     await pumpNotifications(tester);
 
-    // Onay sorulmuyor; kaydirmak dogrudan siliyor.
-    await tester.drag(find.text('Öğle · Tam vaktinde'), const Offset(-400, 0));
-    await tester.pumpAndSettle();
+    // Onay sorulmuyor; menüdeki "Sil" doğrudan siliyor.
+    await deleteByLongPress(tester, find.text('Öğle · Tam vaktinde'));
 
     expect(
       appState.notificationSettings,
@@ -595,6 +595,56 @@ void main() {
       reason: 'Silme onaysiz oldugu icin geri alma calismak zorunda',
     );
   });
+
+  testWidgets(
+    'Mevcut bildirimin "Bildirimi sil" düğmesi ekranı kapatır, "Geri al" geri getirir',
+    (tester) async {
+      const dhuhr = NotificationSetting(
+        prayerType: PrayerType.dhuhr,
+        isActive: true,
+        minutesBefore: 0,
+      );
+      await storage.saveNotificationSettings(const [dhuhr]);
+      appState.setNotificationSettings(const [dhuhr]);
+      await pumpNotifications(tester);
+
+      // Yeni bildirimde silinecek kayıt yok.
+      await tester.tap(find.byKey(const Key('add_reminder_button')));
+      await tester.pumpAndSettle();
+      expect(
+        tester
+            .widget<NotificationEditScreen>(find.byType(NotificationEditScreen))
+            .onDelete,
+        isNull,
+      );
+      Navigator.of(tester.element(find.byType(NotificationEditScreen))).pop();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Öğle · Tam vaktinde'));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Bildirimi sil'),
+        300,
+        scrollable: find
+            .descendant(
+              of: find.byType(NotificationEditScreen),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await tester.tap(find.text('Bildirimi sil'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(NotificationEditScreen), findsNothing);
+      expect(appState.notificationSettings, isEmpty);
+
+      await tester.tap(find.text('Geri al'));
+      await tester.pumpAndSettle();
+      expect(appState.notificationSettings.map((s) => s.prayerType), [
+        PrayerType.dhuhr,
+      ]);
+    },
+  );
 
   testWidgets(
     'Ana sayfada atlanan Cuma bildirimi listede aynı örnekten geri açılır',

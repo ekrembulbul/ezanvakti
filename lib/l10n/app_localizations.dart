@@ -1300,6 +1300,12 @@ abstract class AppLocalizations {
   /// **'Bildirim silindi'**
   String get snackNotificationDeleted;
 
+  /// Bildirim düzenleme ekranının en altındaki silme düğmesi; onay sormaz, listede "Geri al" çıkar.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirimi sil'**
+  String get notificationDeleteAction;
+
   /// Hata mesajı
   ///
   /// In tr, this message translates to:
@@ -2266,11 +2272,11 @@ abstract class AppLocalizations {
   /// **'Bu vakitten en fazla {max} önce bildirim ekleyebilirsin.'**
   String remindersMaxOffsetError(String max);
 
-  /// İpucu
+  /// Bildirim listesinin altındaki ipucu: basılı tutma menüsü (Sil).
   ///
   /// In tr, this message translates to:
-  /// **'Silmek için satırı sola kaydırın.'**
-  String get remindersSwipeToDelete;
+  /// **'Silmek için satıra basılı tut.'**
+  String get remindersLongPressHint;
 
   /// Bilgi
   ///

@@ -803,6 +803,7 @@ class _RemindersScreenState extends State<RemindersScreen>
         builder: (_) => NotificationEditScreen(
           initial: initial,
           prayerTimes: appState.prayerTimes,
+          onDelete: initial == null ? null : () => _deleteNotification(initial),
         ),
       ),
     );

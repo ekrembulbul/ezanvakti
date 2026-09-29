@@ -5,13 +5,14 @@ import '../../../core/models/notification_setting.dart';
 import '../../utils/alarm_labels.dart' show weekdaysLabel;
 import '../../utils/reminder_labels.dart';
 import '../../utils/time_format_context.dart';
+import '../common/row_actions_sheet.dart';
 import '../reminders/reminder_row.dart';
 
 /// Bildirim listesindeki tek satır.
 ///
 /// Kendi kartını çizmez; grup içindeki bir [ReminderRow] olarak gelir. Silme,
-/// satırı sola kaydırarak yapılır (bkz. `SwipeToDelete`), bu yüzden ayrı bir
-/// çöp kutusu düğmesi yoktur.
+/// satıra basılı tutunca açılan menüden ya da düzenleme ekranındaki düğmeden
+/// yapılır; ayrı bir çöp kutusu düğmesi yoktur.
 class NotificationTile extends StatelessWidget {
   final NotificationSetting setting;
   final bool hasPermission;
@@ -84,15 +85,26 @@ class NotificationTile extends StatelessWidget {
             '${context.formatTime(fireAt)}',
       if (setting.isDerived) l10n.derivedHint(setting.derivedKind!),
     ];
+    final delete = onDelete;
+    final rule = notificationRuleLabel(setting, l10n);
+    final custom = notificationCustomLabel(setting);
     return ReminderRow(
       days: weekdaysLabel(setting.weekdays, l10n),
       remaining: fireAt != null && !_skipping
           ? reminderRemaining(fireAt.difference(referenceTime), l10n)
           : null,
-      primary: notificationRuleLabel(setting, l10n),
-      label: notificationCustomLabel(setting),
+      primary: rule,
+      label: custom,
       detail: detail.isEmpty ? null : detail.join(' · '),
       onTap: isReordering ? null : onTap,
+      // Sıralama kipinde menü kapalı; başlık kural etiketi ve varsa ad.
+      onLongPress: isReordering || delete == null
+          ? null
+          : () => showRowActionsSheet(
+              context,
+              title: [rule, ?custom].join(' · '),
+              onDelete: delete,
+            ),
       dimmed: !_isOn || !hasPermission,
       trailing: isReordering
           ? const SizedBox.shrink()

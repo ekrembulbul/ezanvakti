@@ -674,6 +674,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get snackNotificationDeleted => 'Notification deleted';
 
   @override
+  String get notificationDeleteAction => 'Delete notification';
+
+  @override
   String get snackNotificationExists => 'This notification already exists';
 
   @override
@@ -1220,7 +1223,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get remindersSwipeToDelete => 'Swipe a row to delete it.';
+  String get remindersLongPressHint => 'Touch and hold a row to delete it.';
 
   @override
   String get remindersIntro =>

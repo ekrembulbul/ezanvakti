@@ -82,4 +82,75 @@ void main() {
 
     expect(toggled, [dhuhr]);
   });
+
+  testWidgets('Kaydırarak silme yok; basılı tutma menüsünde yalnız Sil var', (
+    tester,
+  ) async {
+    final deleted = <NotificationSetting>[];
+    await tester.pumpWidget(
+      wrapWithTheme(
+        NotificationsSection(
+          settings: const [dhuhr],
+          hasPermission: true,
+          exactAlarmAllowed: true,
+          onPermissionChanged: (_) {},
+          onOpenExactAlarmSettings: () {},
+          onToggle: (_) {},
+          onEdit: (_) {},
+          onDelete: (setting) async => deleted.add(setting),
+        ),
+      ),
+    );
+
+    expect(find.byType(Dismissible), findsNothing);
+    expect(find.text('Silmek için satıra basılı tut.'), findsOneWidget);
+
+    await tester.longPress(find.text('Öğle · Tam vaktinde'));
+    await tester.pumpAndSettle();
+    expect(find.text('ÖĞLE · TAM VAKTİNDE'), findsOneWidget);
+    expect(find.text('Kopyala'), findsNothing);
+
+    await tester.tap(find.text('Sil'));
+    await tester.pumpAndSettle();
+    expect(deleted, [dhuhr]);
+  });
+
+  testWidgets('Menü başlığı kullanıcının verdiği adı da yazar', (tester) async {
+    const friday = NotificationSetting(
+      prayerType: PrayerType.dhuhr,
+      isActive: true,
+      minutesBefore: 45,
+      weekdays: {5},
+      label: 'Cuma namazı',
+    );
+    await tester.pumpWidget(build(settings: const [friday]));
+
+    await tester.longPress(find.text('Öğle · 45 dk önce'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('ÖĞLE · 45 DK ÖNCE · CUMA NAMAZI'), findsOneWidget);
+  });
+
+  testWidgets('Sıralama kipinde basılı tutma menü açmaz', (tester) async {
+    await tester.pumpWidget(
+      wrapWithTheme(
+        NotificationsSection(
+          settings: const [dhuhr, fajr],
+          hasPermission: true,
+          exactAlarmAllowed: true,
+          onPermissionChanged: (_) {},
+          onOpenExactAlarmSettings: () {},
+          onToggle: (_) {},
+          onEdit: (_) {},
+          onDelete: (_) async {},
+          isReordering: true,
+          onReorder: (_, _) {},
+        ),
+      ),
+    );
+
+    await tester.longPress(find.text('Öğle · Tam vaktinde'));
+    await tester.pumpAndSettle();
+    expect(find.text('Sil'), findsNothing);
+  });
 }

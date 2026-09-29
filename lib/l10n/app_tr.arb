@@ -880,6 +880,10 @@
   "@snackNotificationDeleted": {
     "description": "Bildirim mesajı"
   },
+  "notificationDeleteAction": "Bildirimi sil",
+  "@notificationDeleteAction": {
+    "description": "Bildirim düzenleme ekranının en altındaki silme düğmesi; onay sormaz, listede \"Geri al\" çıkar."
+  },
   "snackNotificationExists": "Bu bildirim zaten mevcut",
   "@snackNotificationExists": {
     "description": "Hata mesajı"
@@ -1628,9 +1632,9 @@
       }
     }
   },
-  "remindersSwipeToDelete": "Silmek için satırı sola kaydırın.",
-  "@remindersSwipeToDelete": {
-    "description": "İpucu"
+  "remindersLongPressHint": "Silmek için satıra basılı tut.",
+  "@remindersLongPressHint": {
+    "description": "Bildirim listesinin altındaki ipucu: basılı tutma menüsü (Sil)."
   },
   "remindersIntro": "Her vakit için tam vaktinde veya X dakika önce hatırlatma alabilirsiniz.",
   "@remindersIntro": {

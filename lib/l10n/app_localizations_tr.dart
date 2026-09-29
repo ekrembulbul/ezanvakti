@@ -671,6 +671,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get snackNotificationDeleted => 'Bildirim silindi';
 
   @override
+  String get notificationDeleteAction => 'Bildirimi sil';
+
+  @override
   String get snackNotificationExists => 'Bu bildirim zaten mevcut';
 
   @override
@@ -1216,7 +1219,7 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get remindersSwipeToDelete => 'Silmek için satırı sola kaydırın.';
+  String get remindersLongPressHint => 'Silmek için satıra basılı tut.';
 
   @override
   String get remindersIntro =>

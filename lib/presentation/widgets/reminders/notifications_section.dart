@@ -12,7 +12,6 @@ import 'reminder_list.dart';
 import '../common/info_banner.dart';
 import '../common/section_label.dart';
 import '../common/state_widgets.dart';
-import '../common/swipe_to_delete.dart';
 import '../notifications/notification_tile.dart';
 import '../notifications/permission_warning_card.dart';
 
@@ -144,7 +143,7 @@ class NotificationsSection extends StatelessWidget {
         child: Text(
           isReordering
               ? context.l10n.reminderReorderHint
-              : context.l10n.remindersSwipeToDelete,
+              : context.l10n.remindersLongPressHint,
           style: AppTypography.hint.copyWith(color: tokens.textTertiary),
         ),
       ),
@@ -192,7 +191,7 @@ class NotificationsSection extends StatelessWidget {
   }
 
   Widget _row(NotificationSetting setting) {
-    final tile = NotificationTile(
+    return NotificationTile(
       setting: setting,
       hasPermission: hasPermission,
       now: now,
@@ -204,14 +203,8 @@ class NotificationsSection extends StatelessWidget {
           : () => onSkipChanged!(_occurrence(setting), !_isSkipped(setting)),
       onToggle: () => onToggle(setting),
       onTap: () => onEdit(setting),
+      onDelete: () => onDelete(setting),
     );
-    return isReordering
-        ? tile
-        : SwipeToDelete(
-            itemKey: ValueKey(notificationKey(setting)),
-            onDelete: () => onDelete(setting),
-            child: tile,
-          );
   }
 
   List<NotificationSetting> _sorted() {

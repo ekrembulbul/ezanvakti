@@ -669,6 +669,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get snackNotificationDeleted => 'تم حذف التنبيه';
 
   @override
+  String get notificationDeleteAction => 'حذف التنبيه';
+
+  @override
   String get snackNotificationExists => 'هذا التنبيه موجود بالفعل';
 
   @override
@@ -1209,7 +1212,7 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get remindersSwipeToDelete => 'اسحب الصف لحذفه.';
+  String get remindersLongPressHint => 'اضغط مطولاً على الصف لحذفه.';
 
   @override
   String get remindersIntro =>

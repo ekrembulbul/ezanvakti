@@ -8,6 +8,7 @@ import 'package:ezanvakti/core/utils/time_formatter.dart';
 import 'package:ezanvakti/l10n/app_localizations.dart';
 import 'package:ezanvakti/l10n/l10n_extensions.dart';
 import 'package:ezanvakti/presentation/screens/notification_edit_screen.dart';
+import 'package:ezanvakti/presentation/widgets/common/delete_action_button.dart';
 import 'package:ezanvakti/presentation/widgets/common/section_label.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -301,4 +302,94 @@ void main() {
       expect(overlay.background.a, lessThan(1.0));
     });
   }
+
+  group('Silme düğmesi', () {
+    const saved = NotificationSetting(
+      prayerType: PrayerType.dhuhr,
+      isActive: true,
+    );
+
+    Finder form() => find
+        .descendant(
+          of: find.byType(NotificationEditScreen),
+          matching: find.byType(Scrollable),
+        )
+        .first;
+
+    Future<void> scrollToEnd(WidgetTester tester) async {
+      final position = tester.state<ScrollableState>(form()).position;
+      for (
+        var i = 0;
+        i < 10 && position.pixels < position.maxScrollExtent;
+        i++
+      ) {
+        position.jumpTo(position.maxScrollExtent);
+        await tester.pumpAndSettle();
+      }
+    }
+
+    testWidgets('onDelete verilmezse düğme çizilmez', (tester) async {
+      await open(tester, initial: saved);
+      await scrollToEnd(tester);
+
+      expect(find.byType(DeleteActionButton), findsNothing);
+    });
+
+    testWidgets('Basınca önce ekran kapanır, sonra onDelete; taslak dönmez', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1206, 2622);
+      tester.view.devicePixelRatio = 3.0;
+      addTearDown(tester.view.reset);
+      late MaterialPageRoute<NotificationDraft> route;
+      bool? routeActiveAtDelete;
+      var returned = false;
+      NotificationDraft? draft;
+      await tester.pumpWidget(
+        wrapWithTheme(
+          Builder(
+            builder: (context) => TextButton(
+              onPressed: () async {
+                route = MaterialPageRoute<NotificationDraft>(
+                  builder: (_) => NotificationEditScreen(
+                    initial: saved,
+                    prayerTimes: prayerTimes,
+                    clock: () => now,
+                    onDelete: () => routeActiveAtDelete = route.isActive,
+                  ),
+                );
+                draft = await Navigator.of(context).push(route);
+                returned = true;
+              },
+              child: const Text('aç'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('aç'));
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.text('Bildirimi sil'),
+        300,
+        scrollable: form(),
+      );
+      expect(
+        tester
+            .widget<DeleteActionButton>(find.byType(DeleteActionButton))
+            .framed,
+        isTrue,
+      );
+      await tester.tap(find.text('Bildirimi sil'));
+      // İkinci dokunuş aynı karede gelir; alttaki ekran kapanmamalı.
+      await tester.tap(find.text('Bildirimi sil'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      expect(routeActiveAtDelete, isFalse, reason: 'önce pop, sonra silme');
+      expect(find.text('aç'), findsOneWidget, reason: 'alttaki ekran kapanmaz');
+      expect(returned, isTrue);
+      expect(draft, isNull);
+      expect(find.byType(NotificationEditScreen), findsNothing);
+    });
+  });
 }

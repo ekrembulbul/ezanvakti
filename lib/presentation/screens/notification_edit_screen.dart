@@ -19,6 +19,7 @@ import '../utils/reminder_labels.dart';
 import '../utils/time_format_context.dart';
 import '../widgets/common/app_bar_widgets.dart';
 import '../widgets/common/app_surface.dart';
+import '../widgets/common/delete_action_button.dart';
 import '../widgets/common/option_picker.dart';
 import '../widgets/common/section_label.dart';
 
@@ -40,11 +41,16 @@ class NotificationEditScreen extends StatefulWidget {
   /// Testler sabitler; varsayılan cihaz saati.
   final DateTime Function()? clock;
 
+  /// Verilirse formun en altında "Bildirimi sil" çizilir; yalnız mevcut
+  /// kayıtta verilir.
+  final VoidCallback? onDelete;
+
   const NotificationEditScreen({
     super.key,
     this.initial,
     required this.prayerTimes,
     this.clock,
+    this.onDelete,
   });
 
   @override
@@ -162,6 +168,13 @@ class _NotificationEditScreenState extends State<NotificationEditScreen> {
     );
   }
 
+  /// Önce ekran kapanır, sonra silinir: "Geri al" çubuğu listenin üstünde
+  /// çıkar. Taslak dönmez; çağıranın "sonuç yoksa çık" dalı buna uyar.
+  void _delete() {
+    Navigator.of(context).pop();
+    widget.onDelete!();
+  }
+
   void _toggleDay(int day) {
     setState(() {
       if (_weekdays.contains(day)) {
@@ -209,6 +222,10 @@ class _NotificationEditScreenState extends State<NotificationEditScreen> {
             _section(l10n.remindersDaysSection, _weekdaySelector(l10n)),
             const SizedBox(height: 16),
             _section(l10n.remindersLabelSection, _labelField(l10n)),
+            if (widget.onDelete != null) ...[
+              const SizedBox(height: 28),
+              DeleteActionButton(l10n.notificationDeleteAction, _delete),
+            ],
           ],
         ),
       ),
