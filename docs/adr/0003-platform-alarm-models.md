@@ -49,7 +49,7 @@ iOS alert'inde yalnızca sistemin stop kontrolü vardır; ikincil düğme yoktur
 
 ### Eski iOS'ta alarm kapalı (9 Eylül)
 
-Deployment target iOS 17.0 kalır: vakitler, bildirimler ve widget herkes için çalışır. AlarmKit yoksa (`isSupported == false`) alarm **kurdurulmaz**: Alarmlar sekmesi yalnız bilgi kartı gösterir, ana ekranın Sıradaki kartı alarm listelemez, `AlarmScheduler` köprüye hiç gitmez ve eski `reconcile_failed` kayıtlarını temizler. Kayıtlı alarm verisi silinmez; cihaz 26.1'e güncellenince alarmlar geri gelir. Önceki davranış ("alarmlar kaydedilir ancak çalmaz") çalmayan alarm kurdurduğu ve her açılışta köprü hatası ürettiği için terk edildi. Eski iOS için arka plan ses yöntemi, ADR'nin alternatifler bölümündeki gerekçeyle yeniden elendi.
+Deployment target iOS 17.0 kalır: vakitler, bildirimler ve widget herkes için çalışır. AlarmKit yoksa (`isSupported == false`) alarm **kurdurulmaz**: Alarmlar sekmesi yalnız bilgi kartı gösterir (ana ekranda alarm gösterimi 2026-09-28'de tamamen kalktı), `AlarmScheduler` köprüye hiç gitmez ve eski `reconcile_failed` kayıtlarını temizler. Kayıtlı alarm verisi silinmez; cihaz 26.1'e güncellenince alarmlar geri gelir. Önceki davranış ("alarmlar kaydedilir ancak çalmaz") çalmayan alarm kurdurduğu ve her açılışta köprü hatası ürettiği için terk edildi. Eski iOS için arka plan ses yöntemi, ADR'nin alternatifler bölümündeki gerekçeyle yeniden elendi.
 
 ## Sonuçlar
 

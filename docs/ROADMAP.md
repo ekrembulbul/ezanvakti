@@ -6,7 +6,7 @@ Mevcut durum, kısa vadeli iyileştirmeler ve planlanan özellikler. Ürün sın
 
 - ✅ İl/ilçe araması (sunucuda) ve GPS ile en yakın ilçe; konum düzenleme (özel ad, ilçe değiştir)
 - ✅ Vakit başına ± dakika düzeltmesi
-- ✅ Günün vakitleri + geri sayım, 30 günlük takvim
+- ✅ Günün vakitleri + geri sayım, aylık vakit takvimi (bu yıl ve gelecek yıl)
 - ✅ Diyanet ilçe tablosu (`server/` → `vakit-api`, yıllık dosya + ETag), SQLite cache, offline gösterim (ADR 0006)
 - ✅ Vakit bazlı bildirimler (tam vakit + X dk önce), izin yönetimi
 - ✅ Hicri tarih (Diyanet verisi), karanlık tema
