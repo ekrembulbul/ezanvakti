@@ -622,6 +622,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get alarmDuplicate => 'Kopyala';
 
   @override
+  String get alarmDeleteAction => 'Alarmı sil';
+
+  @override
   String get errorGeneric => 'Bir şeyler ters gitti';
 
   @override
@@ -1220,8 +1223,8 @@ class AppLocalizationsTr extends AppLocalizations {
       'Her vakit için tam vaktinde veya X dakika önce hatırlatma alabilirsiniz.';
 
   @override
-  String get alarmsSwipeHint =>
-      'Kopyalamak için basılı tut; silmek için sola kaydır. Silinen alarmı \"Geri al\" ile geri getirebilirsin.';
+  String get alarmsLongPressHint =>
+      'Kopyalamak ya da silmek için satıra basılı tut. Silinen alarmı \"Geri al\" ile geri getirebilirsin.';
 
   @override
   String get alarmsRescheduleNote =>

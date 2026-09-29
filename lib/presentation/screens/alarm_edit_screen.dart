@@ -28,6 +28,7 @@ import '../../core/theme/tokens_context.dart';
 import '../utils/prayer_name_helper.dart';
 import '../widgets/common/app_bar_widgets.dart';
 import '../widgets/common/app_surface.dart';
+import '../widgets/common/delete_action_button.dart';
 import '../widgets/common/section_label.dart';
 import '../widgets/common/sliding_segment.dart';
 
@@ -40,7 +41,11 @@ class AlarmEditScreen extends StatefulWidget {
   /// Parametre testlerin platformu sabitlemesi için.
   final bool fadeInSupported;
 
-  AlarmEditScreen({super.key, this.alarm, bool? fadeInSupported})
+  /// Verilirse formun en altında "Alarmı sil" çizilir; yalnız kayıtlı
+  /// alarmda verilir (yeni alarm ve kopya için `null`).
+  final VoidCallback? onDelete;
+
+  AlarmEditScreen({super.key, this.alarm, this.onDelete, bool? fadeInSupported})
     : fadeInSupported = fadeInSupported ?? Platform.isAndroid;
 
   @override
@@ -156,6 +161,13 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
     Navigator.of(context).pop(normalizeAlarmSnoozeLimit(alarm));
   }
 
+  /// Önce ekran kapanır, sonra silinir: "Geri al" çubuğu listenin üstünde
+  /// çıkar. Sonuç dönmez; çağıranın "sonuç yoksa çık" dalı buna uyar.
+  void _delete() {
+    Navigator.of(context).pop();
+    widget.onDelete!();
+  }
+
   Future<void> _pickTime() async {
     final picked = await showTimePicker(
       context: context,
@@ -265,6 +277,10 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
                   label: Text(context.l10n.alarmPickSavedCode),
                 ),
               ),
+            ],
+            if (widget.onDelete != null) ...[
+              const SizedBox(height: 28),
+              DeleteActionButton(context.l10n.alarmDeleteAction, _delete),
             ],
           ],
         ),

@@ -628,8 +628,18 @@ class _RemindersScreenState extends State<RemindersScreen>
 
   Future<void> _addOrEditAlarm([Alarm? existing]) async {
     final appState = context.read<AppState>();
+    // Kopya da `existing` ile açılır ama henüz kayıtlı değildir; silme
+    // düğmesi yalnız listede duran alarm için çizilir.
+    final saved = existing == null
+        ? null
+        : appState.alarms.where((alarm) => alarm.id == existing.id).firstOrNull;
     final result = await Navigator.of(context).push<Alarm>(
-      MaterialPageRoute(builder: (_) => AlarmEditScreen(alarm: existing)),
+      MaterialPageRoute(
+        builder: (_) => AlarmEditScreen(
+          alarm: existing,
+          onDelete: saved == null ? null : () => _deleteAlarm(saved),
+        ),
+      ),
     );
     if (result == null) return;
 

@@ -620,6 +620,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get alarmDuplicate => 'نسخ';
 
   @override
+  String get alarmDeleteAction => 'حذف المنبه';
+
+  @override
   String get errorGeneric => 'حدث خطأ ما';
 
   @override
@@ -1213,8 +1216,8 @@ class AppLocalizationsAr extends AppLocalizations {
       'لكل صلاة يمكنك التذكير في وقتها أو قبلها بدقائق.';
 
   @override
-  String get alarmsSwipeHint =>
-      'اضغط مطولاً لنسخ المنبه، واسحب لليسار لحذفه. استخدم «تراجع» لاستعادة المنبه المحذوف.';
+  String get alarmsLongPressHint =>
+      'اضغط مطولاً على الصف لنسخ المنبه أو حذفه. استخدم «تراجع» لاستعادة المنبه المحذوف.';
 
   @override
   String get alarmsRescheduleNote =>

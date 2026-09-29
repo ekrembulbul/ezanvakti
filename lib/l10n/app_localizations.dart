@@ -1210,6 +1210,12 @@ abstract class AppLocalizations {
   /// **'Kopyala'**
   String get alarmDuplicate;
 
+  /// Alarm düzenleme ekranının en altındaki silme düğmesi; onay sormaz, listede "Geri al" çıkar.
+  ///
+  /// In tr, this message translates to:
+  /// **'Alarmı sil'**
+  String get alarmDeleteAction;
+
   /// Hata
   ///
   /// In tr, this message translates to:
@@ -2272,11 +2278,11 @@ abstract class AppLocalizations {
   /// **'Her vakit için tam vaktinde veya X dakika önce hatırlatma alabilirsiniz.'**
   String get remindersIntro;
 
-  /// İpucu
+  /// Alarm listesinin altındaki ipucu: basılı tutma menüsü (Kopyala / Sil).
   ///
   /// In tr, this message translates to:
-  /// **'Kopyalamak için basılı tut; silmek için sola kaydır. Silinen alarmı \"Geri al\" ile geri getirebilirsin.'**
-  String get alarmsSwipeHint;
+  /// **'Kopyalamak ya da silmek için satıra basılı tut. Silinen alarmı \"Geri al\" ile geri getirebilirsin.'**
+  String get alarmsLongPressHint;
 
   /// Bilgi
   ///

@@ -625,6 +625,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get alarmDuplicate => 'Duplicate';
 
   @override
+  String get alarmDeleteAction => 'Delete alarm';
+
+  @override
   String get errorGeneric => 'Something went wrong';
 
   @override
@@ -1224,8 +1227,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'For each prayer you can be reminded on time or X minutes before.';
 
   @override
-  String get alarmsSwipeHint =>
-      'Touch and hold to duplicate; swipe left to delete. Use \"Undo\" to restore a deleted alarm.';
+  String get alarmsLongPressHint =>
+      'Touch and hold a row to duplicate or delete it. Use \"Undo\" to restore a deleted alarm.';
 
   @override
   String get alarmsRescheduleNote =>

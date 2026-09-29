@@ -4,6 +4,7 @@ import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/core/models/alarm_mission.dart';
 import 'package:ezanvakti/core/models/qr_code_entry.dart';
 import 'package:ezanvakti/presentation/screens/alarm_edit_screen.dart';
+import 'package:ezanvakti/presentation/widgets/common/delete_action_button.dart';
 import 'package:ezanvakti/presentation/widgets/common/option_picker.dart';
 import 'package:ezanvakti/presentation/widgets/missions/qr_payload_field.dart';
 import 'package:flutter/material.dart';
@@ -25,13 +26,18 @@ void main() {
     WidgetTester tester, {
     Alarm? alarm,
     bool fadeInSupported = false,
+    VoidCallback? onDelete,
   }) async {
     tester.view.physicalSize = const Size(1206, 2622);
     tester.view.devicePixelRatio = 3.0;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       wrapWithTheme(
-        AlarmEditScreen(alarm: alarm, fadeInSupported: fadeInSupported),
+        AlarmEditScreen(
+          alarm: alarm,
+          fadeInSupported: fadeInSupported,
+          onDelete: onDelete,
+        ),
       ),
     );
     await tester.pump();
@@ -415,6 +421,100 @@ void main() {
 
       final tile = find.widgetWithText(SwitchListTile, 'Ses yavaşça yükselsin');
       expect(tester.widget<SwitchListTile>(tile).value, isTrue);
+    });
+  });
+
+  group('Silme düğmesi', () {
+    const saved = Alarm(id: '1', kind: AlarmKind.fixed, hour: 6, minute: 30);
+
+    Finder form() => find
+        .descendant(
+          of: find.byType(AlarmEditScreen),
+          matching: find.byType(Scrollable),
+        )
+        .first;
+
+    /// Liste tembel kuruluyor; en alttaki öğe ancak sona inince var olur.
+    Future<void> scrollToEnd(WidgetTester tester) async {
+      final position = tester.state<ScrollableState>(form()).position;
+      for (
+        var i = 0;
+        i < 10 && position.pixels < position.maxScrollExtent;
+        i++
+      ) {
+        position.jumpTo(position.maxScrollExtent);
+        await tester.pumpAndSettle();
+      }
+    }
+
+    testWidgets('onDelete verilmezse düğme çizilmez', (tester) async {
+      await pumpEdit(tester, alarm: saved);
+      await scrollToEnd(tester);
+
+      expect(find.byType(DeleteActionButton), findsNothing);
+    });
+
+    testWidgets('onDelete verilince en altta kartlı "Alarmı sil" çizilir', (
+      tester,
+    ) async {
+      await pumpEdit(tester, alarm: saved, onDelete: () {});
+      await scrollToEnd(tester);
+
+      final button = tester.widget<DeleteActionButton>(
+        find.byType(DeleteActionButton),
+      );
+      expect(button.label, 'Alarmı sil');
+      expect(button.framed, isTrue);
+    });
+
+    testWidgets('Basınca önce ekran kapanır, sonra onDelete; sonuç dönmez', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1206, 2622);
+      tester.view.devicePixelRatio = 3.0;
+      addTearDown(tester.view.reset);
+      late MaterialPageRoute<Alarm> route;
+      bool? routeActiveAtDelete;
+      var returned = false;
+      Alarm? result = saved;
+      await tester.pumpWidget(
+        wrapWithTheme(
+          Builder(
+            builder: (context) => TextButton(
+              onPressed: () async {
+                route = MaterialPageRoute<Alarm>(
+                  builder: (_) => AlarmEditScreen(
+                    alarm: saved,
+                    fadeInSupported: false,
+                    onDelete: () => routeActiveAtDelete = route.isActive,
+                  ),
+                );
+                result = await Navigator.of(context).push(route);
+                returned = true;
+              },
+              child: const Text('aç'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('aç'));
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.text('Alarmı sil'),
+        300,
+        scrollable: form(),
+      );
+      await tester.tap(find.text('Alarmı sil'));
+      // İkinci dokunuş aynı karede gelir; alttaki ekran kapanmamalı.
+      await tester.tap(find.text('Alarmı sil'), warnIfMissed: false);
+      await tester.pumpAndSettle();
+
+      expect(routeActiveAtDelete, isFalse, reason: 'önce pop, sonra silme');
+      expect(find.text('aç'), findsOneWidget, reason: 'alttaki ekran kapanmaz');
+      expect(returned, isTrue);
+      expect(result, isNull, reason: 'silmede sonuç dönmez');
+      expect(find.byType(AlarmEditScreen), findsNothing);
     });
   });
 }

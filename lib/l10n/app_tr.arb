@@ -810,6 +810,10 @@
   "@alarmDuplicate": {
     "description": "Menü"
   },
+  "alarmDeleteAction": "Alarmı sil",
+  "@alarmDeleteAction": {
+    "description": "Alarm düzenleme ekranının en altındaki silme düğmesi; onay sormaz, listede \"Geri al\" çıkar."
+  },
   "errorGeneric": "Bir şeyler ters gitti",
   "@errorGeneric": {
     "description": "Hata"
@@ -1632,9 +1636,9 @@
   "@remindersIntro": {
     "description": "Bilgi"
   },
-  "alarmsSwipeHint": "Kopyalamak için basılı tut; silmek için sola kaydır. Silinen alarmı \"Geri al\" ile geri getirebilirsin.",
-  "@alarmsSwipeHint": {
-    "description": "İpucu"
+  "alarmsLongPressHint": "Kopyalamak ya da silmek için satıra basılı tut. Silinen alarmı \"Geri al\" ile geri getirebilirsin.",
+  "@alarmsLongPressHint": {
+    "description": "Alarm listesinin altındaki ipucu: basılı tutma menüsü (Kopyala / Sil)."
   },
   "alarmsRescheduleNote": "Alarmlar vakit verisi güncellendikçe yeniden planlanır.",
   "@alarmsRescheduleNote": {

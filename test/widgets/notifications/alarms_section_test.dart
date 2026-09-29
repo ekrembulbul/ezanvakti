@@ -197,4 +197,60 @@ void main() {
     expect(toggledAlarm, sahur);
     expect(toggledValue, isFalse);
   });
+
+  testWidgets(
+    'Kaydırarak silme yok; basılı tutma menüsü alarmı tanıtır ve siler',
+    (tester) async {
+      final deleted = <Alarm>[];
+      await tester.pumpWidget(
+        wrapWithTheme(
+          AlarmsSection(
+            alarms: const [sahur],
+            isSupported: true,
+            isPermissionGranted: true,
+            onRequestPermission: () {},
+            onToggle: (_, _) {},
+            onEdit: (_) {},
+            onDelete: (alarm) async => deleted.add(alarm),
+            onDuplicate: (_) {},
+          ),
+        ),
+      );
+
+      expect(find.byType(Dismissible), findsNothing);
+      expect(find.textContaining('satıra basılı tut'), findsOneWidget);
+
+      await tester.longPress(find.text('06:30'));
+      await tester.pumpAndSettle();
+      expect(find.text('06:30 · SAHUR'), findsOneWidget);
+      expect(find.text('Kopyala'), findsOneWidget);
+
+      await tester.tap(find.text('Sil'));
+      await tester.pumpAndSettle();
+      expect(deleted, [sahur]);
+      expect(find.text('Sil'), findsNothing);
+    },
+  );
+
+  testWidgets('Sıralama kipinde basılı tutma menü açmaz', (tester) async {
+    await tester.pumpWidget(
+      wrapWithTheme(
+        AlarmsSection(
+          alarms: const [sahur],
+          isSupported: true,
+          isPermissionGranted: true,
+          onRequestPermission: () {},
+          onToggle: (_, _) {},
+          onEdit: (_) {},
+          onDelete: (_) async {},
+          isReordering: true,
+          onReorder: (_, _) {},
+        ),
+      ),
+    );
+
+    await tester.longPress(find.text('06:30'));
+    await tester.pumpAndSettle();
+    expect(find.text('Sil'), findsNothing);
+  });
 }

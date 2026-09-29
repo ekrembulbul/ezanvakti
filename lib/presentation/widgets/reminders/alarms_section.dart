@@ -20,7 +20,7 @@ import 'reminder_row.dart';
 import '../common/info_banner.dart';
 import '../common/section_label.dart';
 import '../common/state_widgets.dart';
-import '../common/swipe_to_delete.dart';
+import '../common/row_actions_sheet.dart';
 
 /// Hatırlatıcılar ekranının "Alarmlar" bölümü.
 ///
@@ -195,6 +195,13 @@ class AlarmsSection extends StatelessWidget {
             ? context.l10n.reminderTimeUnavailable
             : null);
     final label = alarm.label.trim();
+    // Saat biçimi AppState'i izliyor; yalnız build sırasında okunabilir.
+    // Menü başlığı da bu değeri kullanır.
+    final time = alarmTimeLabel(
+      alarm,
+      l10n: context.l10n,
+      formatHourMinute: context.formatHourMinute,
+    );
     final detail = <String>[
       ?status,
       if (displayTime != null &&
@@ -214,11 +221,7 @@ class AlarmsSection extends StatelessWidget {
               context.l10n,
             )
           : null,
-      primary: alarmTimeLabel(
-        alarm,
-        l10n: context.l10n,
-        formatHourMinute: context.formatHourMinute,
-      ),
+      primary: time,
       primaryIcon: missionIcon(alarm.mission),
       primaryIconTooltip: alarm.mission.requiresGate
           ? missionLabel(alarm.mission, context.l10n)
@@ -234,7 +237,9 @@ class AlarmsSection extends StatelessWidget {
           : snoozed && onSnoozedTap != null
           ? () => onSnoozedTap!(alarm)
           : () => onEdit(alarm),
-      onLongPress: isReordering ? null : () => _showRowMenu(context, alarm),
+      onLongPress: isReordering
+          ? null
+          : () => _showRowMenu(context, alarm, time),
       dimmed: !isOn,
       trailing: isReordering
           ? const SizedBox.shrink()
@@ -266,44 +271,19 @@ class AlarmsSection extends StatelessWidget {
                     },
             ),
     );
-    return isReordering
-        ? row
-        : SwipeToDelete(
-            itemKey: ValueKey(alarm.id),
-            onDelete: () => onDelete(alarm),
-            child: row,
-          );
+    return row;
   }
 
-  /// Uzun basma menüsü: Kopyala / Sil. Silme swipe ile de yapılabiliyor;
-  /// burada kopyalamanın yanında ikinci bir keşfedilebilir yol olarak durur.
-  void _showRowMenu(BuildContext context, Alarm alarm) {
-    showModalBottomSheet<void>(
-      context: context,
-      builder: (sheetContext) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (onDuplicate != null)
-              ListTile(
-                leading: const Icon(Icons.copy_rounded),
-                title: Text(context.l10n.alarmDuplicate),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  onDuplicate!(alarm);
-                },
-              ),
-            ListTile(
-              leading: const Icon(Icons.delete_outline_rounded),
-              title: Text(context.l10n.actionDelete),
-              onTap: () {
-                Navigator.pop(sheetContext);
-                onDelete(alarm);
-              },
-            ),
-          ],
-        ),
-      ),
+  /// Basılı tutma menüsü: Kopyala / Sil. Başlık alarmı tanıtır: saat
+  /// etiketi ([time], build'de hesaplanır) ve varsa adı (spec 2026-09-28
+  /// §3.3).
+  void _showRowMenu(BuildContext context, Alarm alarm, String time) {
+    final label = alarm.label.trim();
+    showRowActionsSheet(
+      context,
+      title: label.isEmpty ? time : '$time · $label',
+      onDuplicate: onDuplicate == null ? null : () => onDuplicate!(alarm),
+      onDelete: () => onDelete(alarm),
     );
   }
 
@@ -322,7 +302,7 @@ class AlarmsSection extends StatelessWidget {
         child: Text(
           isReordering
               ? context.l10n.reminderReorderHint
-              : context.l10n.alarmsSwipeHint,
+              : context.l10n.alarmsLongPressHint,
           style: AppTypography.hint.copyWith(
             color: tokens.textTertiary,
             height: 1.5,

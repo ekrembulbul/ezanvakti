@@ -218,6 +218,15 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// Satıra basılı tutup açılan menüden "Sil"e basar; kaydırarak silme
+  /// kaldırıldı (spec 2026-09-28 §3.3).
+  Future<void> deleteByLongPress(WidgetTester tester, Finder row) async {
+    await tester.longPress(row);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Sil'));
+    await tester.pumpAndSettle();
+  }
+
   for (final alarmFails in [true, false]) {
     testWidgets(
       'Bildirim hatasında alarm durum uyarısı yenilenir (alarmFails=$alarmFails)',
@@ -399,9 +408,8 @@ void main() {
     await tester.tap(find.text('Alarmlar'));
     await tester.pumpAndSettle();
 
-    // Alarm satirinda onay sorulmuyor; kaydirmak dogrudan siliyor.
-    await tester.drag(find.textContaining('06:30'), const Offset(-400, 0));
-    await tester.pumpAndSettle();
+    // Onay sorulmuyor; menüdeki "Sil" doğrudan siliyor.
+    await deleteByLongPress(tester, find.textContaining('06:30'));
 
     expect(
       appState.alarms,
@@ -422,8 +430,7 @@ void main() {
     await pump(tester);
     await tester.tap(find.text('Alarmlar'));
     await tester.pumpAndSettle();
-    await tester.drag(find.textContaining('06:30'), const Offset(-400, 0));
-    await tester.pumpAndSettle();
+    await deleteByLongPress(tester, find.textContaining('06:30'));
     expect(tester.takeException(), isNull);
     expect(native.attempts, 1);
     expect(find.byType(SnackBarAction), findsOneWidget);
@@ -454,6 +461,11 @@ void main() {
           .widget<AlarmEditScreen>(find.byType(AlarmEditScreen))
           .alarm!;
       expect(draft.id, isNot(sahur.id));
+      expect(
+        tester.widget<AlarmEditScreen>(find.byType(AlarmEditScreen)).onDelete,
+        isNull,
+        reason: 'kopya henüz kayıtlı değil; silme düğmesi çizilmez',
+      );
       expect(draft.label, 'Sahur (kopya)');
       expect(draft.hour, 6);
       expect(draft.minute, 30);
@@ -499,8 +511,7 @@ void main() {
     await tester.tap(find.text('Alarmlar'));
     await tester.pumpAndSettle();
 
-    await tester.drag(find.textContaining('06:30'), const Offset(-400, 0));
-    await tester.pumpAndSettle();
+    await deleteByLongPress(tester, find.textContaining('06:30'));
     expect(appState.alarms, isEmpty);
 
     await tester.tap(find.text('Geri al'));
@@ -508,6 +519,50 @@ void main() {
 
     expect(appState.alarms.map((a) => a.id), [sahur.id]);
   });
+
+  testWidgets(
+    'Kayıtlı alarmın "Alarmı sil" düğmesi ekranı kapatır, "Geri al" geri getirir',
+    (tester) async {
+      await storage.saveAlarm(sahur);
+      appState.setAlarms(const [sahur]);
+      await pump(tester);
+      await tester.tap(find.text('Alarmlar'));
+      await tester.pumpAndSettle();
+
+      // Yeni alarmda silinecek kayıt yok.
+      await tester.tap(find.byKey(const Key('add_reminder_button')));
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<AlarmEditScreen>(find.byType(AlarmEditScreen)).onDelete,
+        isNull,
+      );
+      Navigator.of(tester.element(find.byType(AlarmEditScreen))).pop();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.textContaining('06:30'));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Alarmı sil'),
+        300,
+        scrollable: find
+            .descendant(
+              of: find.byType(AlarmEditScreen),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await tester.tap(find.text('Alarmı sil'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AlarmEditScreen), findsNothing);
+      expect(appState.alarms, isEmpty);
+      expect(await storage.getAlarms(), isEmpty);
+
+      await tester.tap(find.text('Geri al'));
+      await tester.pumpAndSettle();
+      expect(appState.alarms.map((a) => a.id), [sahur.id]);
+    },
+  );
 
   testWidgets('Bildirim silinince AppState tazelenir', (tester) async {
     const dhuhr = NotificationSetting(
@@ -599,8 +654,7 @@ void main() {
     await tester.tap(find.text('Alarmlar'));
     await tester.pumpAndSettle();
 
-    await tester.drag(find.textContaining('06:30'), const Offset(-400, 0));
-    await tester.pumpAndSettle();
+    await deleteByLongPress(tester, find.textContaining('06:30'));
 
     expect(
       find.text('Geri al'),
