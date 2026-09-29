@@ -649,6 +649,54 @@ void main() {
     expect(appState.skips.single.reference, sahur.id);
   });
 
+  testWidgets(
+    '"Sıradaki çalışa göre" sıralamada "Yalnızca bu sefer" alarmı en üste taşımaz',
+    (tester) async {
+      // Saatler şimdiden türetilir: alfa her zaman betadan önce çalar ve
+      // alfanın bir sonraki gerçek çalışı (ertesi gün) betadan sonraya düşer.
+      final now = DateTime.now();
+      final alfaAt = now.add(const Duration(hours: 2));
+      final betaAt = now.add(const Duration(hours: 3));
+      final alfa = Alarm(
+        id: 'alfa',
+        kind: AlarmKind.fixed,
+        label: 'Alfa',
+        hour: alfaAt.hour,
+        minute: alfaAt.minute,
+      );
+      final beta = Alarm(
+        id: 'beta',
+        kind: AlarmKind.fixed,
+        label: 'Beta',
+        hour: betaAt.hour,
+        minute: betaAt.minute,
+      );
+      await storage.saveAlarm(alfa);
+      await storage.saveAlarm(beta);
+      appState.setAlarms([alfa, beta]);
+      await ReminderListPreferencesStore(storage: storage).save(
+        ReminderListKind.alarms,
+        const ReminderListPreferences(sortMode: ReminderSortMode.nextFire),
+      );
+      await pump(tester);
+
+      double top(String label) => tester.getTopLeft(find.text(label)).dy;
+      expect(top('Alfa'), lessThan(top('Beta')), reason: 'önce alfa çalar');
+
+      await tester.tap(find.byType(Switch).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Yalnızca bu sefer'));
+      await tester.pumpAndSettle();
+
+      expect(appState.skips, hasLength(1));
+      expect(
+        top('Beta'),
+        lessThan(top('Alfa')),
+        reason: 'alfanın sıradaki gerçek çalışı ertesi gün; beta önce çalar',
+      );
+    },
+  );
+
   testWidgets('Kapatma cubugu dokunulmazsa kendiliginden kalkar', (
     tester,
   ) async {

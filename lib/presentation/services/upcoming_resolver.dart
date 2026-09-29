@@ -7,6 +7,7 @@ import '../../core/models/skipped_occurrence.dart';
 import '../../features/alarms/domain/alarm_scheduler.dart';
 import '../../features/notifications/domain/notification_scheduler.dart';
 import '../../features/notifications/domain/notification_time_rules.dart';
+import '../../features/notifications/domain/skip_rules.dart';
 
 /// Ana ekrandaki "SIRADAKİ" kartının bir satırı: bildirim.
 ///
@@ -63,14 +64,18 @@ Map<String, DateTime> resolveNextFirePerNotification({
   now: now,
 ).map((key, occurrence) => MapEntry(key, occurrence.time));
 
-/// Her aktif ayarın atlanmadan önceki ilk örneği, kaynak vakit günüyle birlikte.
+/// Her aktif ayarın sıradaki örneği, kaynak vakit günüyle birlikte.
 ///
 /// Gün filtresi ve türetilmiş vakit hesabı planlayıcıyla aynıdır. Kaynak gün,
 /// gece noktalarında ve önceki güne taşan sapmalarda atlama kimliğini korur.
+/// [skips] boşken atlanmış örnek de döner: satır ve "Yalnızca bu sefer" tam
+/// o örneği gösterir. Sıralama anahtarı için [skips] verilir; atlanan örnek
+/// planlayıcıyla aynı kimlikle (`notificationIdFor`) geçilir.
 Map<String, UpcomingNotification> resolveNextOccurrencePerNotification({
   required List<NotificationSetting> settings,
   required List<PrayerTime> prayerTimes,
   required DateTime now,
+  Set<SkippedOccurrence> skips = const {},
 }) {
   final result = <String, UpcomingNotification>{};
   final byDate = <DateTime, PrayerTime>{
@@ -93,6 +98,19 @@ Map<String, UpcomingNotification> resolveNextOccurrencePerNotification({
         Duration(minutes: setting.minutesBefore),
       );
       if (!fireAt.isAfter(now)) continue;
+      if (skips.isNotEmpty &&
+          isSkipped(
+            skips,
+            kind: SkipKind.notification,
+            reference: NotificationScheduler.notificationIdFor(
+              date: day.date,
+              pointIndex: NotificationScheduler.pointIndexOf(setting),
+              minutesBefore: setting.minutesBefore,
+            ),
+            fireAt: fireAt,
+          )) {
+        continue;
+      }
 
       final key = notificationKey(setting);
       final current = result[key];
@@ -171,4 +189,42 @@ UpcomingAlarm? resolveNextAlarm({
   }
 
   return earliest;
+}
+
+/// Her açık alarmın **gerçekten** çalacağı sıradaki an: atlanan çalış geçilir,
+/// ertelenmiş alarm erteleme bitişini alır.
+///
+/// Yalnız "Sıradaki çalışa göre" sıralamanın anahtarıdır. Satırın gösterdiği
+/// ve atlamanın uygulandığı örnek atlama uygulanmadan hesaplanır; kullanıcı
+/// tam da o örneği atlıyor ya da geri alıyor. Kapalı alarmın anahtarı yoktur,
+/// liste sonuna düşer.
+Map<String, DateTime> resolveEffectiveNextFirePerAlarm({
+  required List<Alarm> alarms,
+  required List<PrayerTime> prayerTimes,
+  required DateTime now,
+  List<MissionSession> missionSessions = const [],
+  Set<SkippedOccurrence> skips = const {},
+}) {
+  final byDate = <DateTime, PrayerTime>{
+    for (final day in prayerTimes)
+      DateTime(day.date.year, day.date.month, day.date.day): day,
+  };
+  final result = <String, DateTime>{};
+  for (final alarm in alarms) {
+    if (!alarm.isActive) continue;
+    final snoozedUntil = MissionSession.pendingForAlarm(
+      missionSessions,
+      alarm.id,
+    )?.snoozedUntil;
+    final fire = snoozedUntil?.isAfter(now) == true
+        ? snoozedUntil
+        : AlarmScheduler.computeNextFire(
+            alarm: alarm,
+            now: now,
+            prayerTimesByDate: byDate,
+            skips: skips,
+          );
+    if (fire != null) result[alarm.id] = fire;
+  }
+  return result;
 }

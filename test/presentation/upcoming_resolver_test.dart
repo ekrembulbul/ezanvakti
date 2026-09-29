@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/core/models/derived_time.dart';
 import 'package:ezanvakti/core/models/location.dart';
+import 'package:ezanvakti/core/models/mission_session.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/core/models/skipped_occurrence.dart';
@@ -326,6 +327,120 @@ void main() {
       expect(result, {
         'maghrib-last_third-0-5': DateTime(2026, 8, 7, 1, 35, 40),
       });
+    });
+  });
+
+  group('resolveNextOccurrencePerNotification — atlama', () {
+    const maghrib = NotificationSetting(
+      prayerType: PrayerType.maghrib,
+      isActive: true,
+    );
+    final now = DateTime(2026, 8, 3, 18);
+
+    test('atlama verilmezse atlanmamış örnek döner', () {
+      final next = resolveNextOccurrencePerNotification(
+        settings: const [maghrib],
+        prayerTimes: _window,
+        now: now,
+      )[notificationKey(maghrib)];
+
+      expect(next?.time, DateTime(2026, 8, 3, 20, 25));
+    });
+
+    test('atlanan örnek geçilir, sıradaki gün gelir', () {
+      final first = resolveNextOccurrencePerNotification(
+        settings: const [maghrib],
+        prayerTimes: _window,
+        now: now,
+      )[notificationKey(maghrib)]!;
+
+      final next = resolveNextOccurrencePerNotification(
+        settings: const [maghrib],
+        prayerTimes: _window,
+        now: now,
+        skips: {notificationOccurrence(first)},
+      )[notificationKey(maghrib)];
+
+      expect(next?.time, DateTime(2026, 8, 4, 20, 25));
+      expect(next?.prayerDate, DateTime(2026, 8, 4));
+    });
+  });
+
+  group('resolveEffectiveNextFirePerAlarm', () {
+    const fixed = Alarm(
+      id: 'fixed',
+      kind: AlarmKind.fixed,
+      label: 'Sabah',
+      hour: 6,
+      minute: 30,
+    );
+    const anchored = Alarm(
+      id: 'anchored',
+      kind: AlarmKind.anchored,
+      label: 'Sahur',
+      anchor: PrayerType.fajr,
+      offsetMinutes: -30,
+    );
+
+    test('her açık alarmın sıradaki çalışı', () {
+      final result = resolveEffectiveNextFirePerAlarm(
+        alarms: const [fixed, anchored],
+        prayerTimes: _window,
+        now: DateTime(2026, 8, 3, 23),
+      );
+
+      // Sahur: 4 Ağustos İmsak 04:11 − 30 dk = 03:41.
+      expect(result, {
+        'fixed': DateTime(2026, 8, 4, 6, 30),
+        'anchored': DateTime(2026, 8, 4, 3, 41),
+      });
+    });
+
+    test('atlanan çalış geçilir', () {
+      final result = resolveEffectiveNextFirePerAlarm(
+        alarms: const [fixed],
+        prayerTimes: _window,
+        now: DateTime(2026, 8, 3, 23),
+        skips: {
+          SkippedOccurrence(
+            kind: SkipKind.alarm,
+            reference: 'fixed',
+            fireAt: DateTime(2026, 8, 4, 6, 30),
+          ),
+        },
+      );
+
+      expect(result['fixed'], DateTime(2026, 8, 5, 6, 30));
+    });
+
+    test('ertelenmiş alarm erteleme bitişini alır', () {
+      final result = resolveEffectiveNextFirePerAlarm(
+        alarms: const [fixed],
+        prayerTimes: _window,
+        now: DateTime(2026, 8, 4, 6, 32),
+        missionSessions: [
+          MissionSession(
+            alarmId: 'fixed',
+            firedAt: DateTime(2026, 8, 4, 6, 30),
+            snoozedUntil: DateTime(2026, 8, 4, 6, 40),
+          ),
+        ],
+      );
+
+      expect(result['fixed'], DateTime(2026, 8, 4, 6, 40));
+    });
+
+    test('kapalı alarmın anahtarı yok', () {
+      final result = resolveEffectiveNextFirePerAlarm(
+        alarms: const [
+          fixed,
+          Alarm(id: 'off', kind: AlarmKind.fixed, isActive: false),
+        ],
+        prayerTimes: _window,
+        now: DateTime(2026, 8, 3, 23),
+      );
+
+      expect(result.keys, ['fixed']);
     });
   });
 

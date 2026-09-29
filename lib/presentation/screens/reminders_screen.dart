@@ -920,6 +920,21 @@ class _RemindersScreenState extends State<RemindersScreen>
           now: now,
         );
         final nextAlarmTimes = _nextFireByAlarm(appState, now: now);
+        // Sıralama bir sonraki *gerçek* çalışa göre: atlanan örnek geçilir.
+        // Satırlar ve atlama arayüzü atlamasız örneği göstermeye devam eder.
+        final sortFireByAlarm = resolveEffectiveNextFirePerAlarm(
+          alarms: appState.alarms,
+          prayerTimes: appState.prayerTimes,
+          now: now,
+          missionSessions: appState.missionSessions,
+          skips: appState.skips,
+        );
+        final sortOccurrences = resolveNextOccurrencePerNotification(
+          settings: appState.notificationSettings,
+          prayerTimes: appState.prayerTimes,
+          now: now,
+          skips: appState.skips,
+        );
         final alarms = sortReminderItems(
           items: appState.alarms,
           preferences: _orderFor(ReminderListKind.alarms),
@@ -927,8 +942,7 @@ class _RemindersScreenState extends State<RemindersScreen>
           nameOf: (alarm) => alarm.label.trim().isEmpty
               ? alarmTimeLabel(alarm, l10n: context.l10n)
               : alarm.label.trim(),
-          nextFireOf: (alarm) =>
-              alarm.isActive ? nextAlarmTimes[alarm.id] : null,
+          nextFireOf: (alarm) => sortFireByAlarm[alarm.id],
         );
         final defaultNotifications = [...appState.notificationSettings]
           ..sort((a, b) {
@@ -944,7 +958,8 @@ class _RemindersScreenState extends State<RemindersScreen>
           preferences: _orderFor(ReminderListKind.notifications),
           idOf: notificationKey,
           nameOf: (setting) => notificationTitle(setting, context.l10n),
-          nextFireOf: (setting) => occurrences[notificationKey(setting)]?.time,
+          nextFireOf: (setting) =>
+              sortOccurrences[notificationKey(setting)]?.time,
         );
         return IndexedStack(
           index: _tab.index,
