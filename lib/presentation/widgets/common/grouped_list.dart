@@ -64,6 +64,10 @@ class GroupedRow extends StatelessWidget {
   final Widget? trailing;
   final VoidCallback? onTap;
 
+  /// Basılı tutma; satır eylem menüsünü açar. Verilmezse satır basılı
+  /// tutmaya tepki vermez (ör. aktif konum).
+  final VoidCallback? onLongPress;
+
   /// İkonun rengi. Varsayılan Metin2; satırın türünü vurgulamak gerektiğinde
   /// (ör. "SIRADAKİ" kartındaki alarm satırı) `accent` verilir.
   final Color? iconColor;
@@ -86,6 +90,7 @@ class GroupedRow extends StatelessWidget {
     this.subtitle,
     this.trailing,
     this.onTap,
+    this.onLongPress,
     this.iconColor,
     this.height = 74,
     this.growWithContent = false,
@@ -155,10 +160,10 @@ class GroupedRow extends StatelessWidget {
 
     final content = Opacity(opacity: dimmed ? 0.45 : 1.0, child: row);
 
-    if (onTap == null) return content;
+    if (onTap == null && onLongPress == null) return content;
     return Material(
       type: MaterialType.transparency,
-      child: InkWell(onTap: onTap, child: content),
+      child: InkWell(onTap: onTap, onLongPress: onLongPress, child: content),
     );
   }
 }

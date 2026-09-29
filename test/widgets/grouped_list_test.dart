@@ -100,6 +100,28 @@ void main() {
       expect(tapped, isTrue);
     });
 
+    testWidgets('onLongPress onTap olmadan da basili tutmayi yakalar', (
+      tester,
+    ) async {
+      var pressed = false;
+
+      await tester.pumpWidget(
+        wrapWithTheme(
+          GroupedList(
+            children: [
+              GroupedRow(
+                title: const Text('Üsküdar'),
+                onLongPress: () => pressed = true,
+              ),
+            ],
+          ),
+        ),
+      );
+
+      await tester.longPress(find.text('Üsküdar'));
+      expect(pressed, isTrue);
+    });
+
     testWidgets('dimmed satir sondurulur', (tester) async {
       await tester.pumpWidget(
         wrapWithTheme(
