@@ -12,7 +12,8 @@ import '../widgets/common/app_surface.dart';
 import '../widgets/common/grouped_list.dart';
 import '../widgets/common/option_picker.dart';
 import '../widgets/common/section_label.dart';
-import '../widgets/common/swipe_to_delete.dart';
+import '../widgets/common/delete_action_button.dart';
+import '../widgets/common/row_actions_sheet.dart';
 import '../../core/utils/duration_formatter.dart';
 
 /// Bildirimlerin susturulacağı zaman aralıkları.
@@ -52,7 +53,13 @@ class _QuietWindowsScreenState extends State<QuietWindowsScreen> {
   }
 
   Future<void> _persist(List<QuietWindow> next) async {
-    setState(() => _windows = next);
+    // "Geri al" ekran kapandıktan sonra da gelebilir: çubuk alttaki ekranda
+    // kalır. Kayıt ve yeniden planlama yine yapılır.
+    if (mounted) {
+      setState(() => _windows = next);
+    } else {
+      _windows = next;
+    }
     await _storage.saveQuietWindows(next);
     await widget.onChanged?.call();
   }
@@ -94,8 +101,48 @@ class _QuietWindowsScreenState extends State<QuietWindowsScreen> {
     await _persist(next);
   }
 
+  /// Onay sormadan siler; "Geri al" kaydı eski sırasına geri koyar
+  /// (spec 2026-09-28 §3.3).
   Future<void> _delete(QuietWindow window) async {
-    await _persist(_windows.where((w) => w.id != window.id).toList());
+    final l10n = context.l10n;
+    final index = _windows.indexWhere((w) => w.id == window.id);
+    if (index < 0) return;
+    await _persist([..._windows]..removeAt(index));
+    _showUndo(l10n.quietWindowDeleted, () => _restore(window, index));
+  }
+
+  /// Silinen aralığı aynı kimlikle, silindiği sıraya geri yazar. Güncel liste
+  /// depodan okunur: çubuğa ekran kapandıktan sonra da dokunulabilir.
+  Future<void> _restore(QuietWindow window, int index) async {
+    final current = await _storage.getQuietWindows();
+    if (current.any((w) => w.id == window.id)) return;
+    final next = [...current];
+    next.insert(index > next.length ? next.length : index, window);
+    await _persist(next);
+  }
+
+  void _showUndo(String message, VoidCallback onUndo) {
+    if (!mounted) return;
+    // Onceki cubugu hemen kaldir; yeni mesaj beklemeden gorunsun.
+    final messenger = ScaffoldMessenger.of(context)..clearSnackBars();
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(message),
+        action: SnackBarAction(
+          label: context.l10n.snackUndo,
+          textColor: Colors.white,
+          onPressed: onUndo,
+        ),
+        backgroundColor: context.tokens.accent,
+        // Eylemli snackbar varsayilan olarak kalici (`persist = action !=
+        // null`); sure dolunca kendiliginden kalksin.
+        persist: false,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        margin: const EdgeInsets.all(16),
+        actionOverflowThreshold: 0.5,
+      ),
+    );
   }
 
   @override
@@ -211,25 +258,33 @@ class _QuietWindowsScreenState extends State<QuietWindowsScreen> {
   Widget _customRow(QuietWindow window) {
     final tokens = context.tokens;
     final name = context.l10n.prayerName(window.prayerType ?? PrayerType.dhuhr);
+    final duration = context.l10n.quietWindowDurationSummary(
+      formatCompactMinutes(window.minutesBefore, context.l10n),
+      formatCompactMinutes(window.minutesAfter, context.l10n),
+    );
 
-    return SwipeToDelete(
-      itemKey: ValueKey(window.id),
-      onDelete: () => _delete(window),
-      child: GroupedRow(
-        icon: Icons.notifications_off_rounded,
-        title: Text(name),
-        subtitle: Text(
-          '${context.l10n.quietWindowDurationSummary(formatCompactMinutes(window.minutesBefore, context.l10n), formatCompactMinutes(window.minutesAfter, context.l10n))} · '
-          '${window.mode == QuietMode.skip ? context.l10n.quietModeSkip : context.l10n.quietModeSilent}',
-        ),
-        dimmed: !window.isActive,
-        onTap: () => _editCustom(window),
-        trailing: Switch(
-          value: window.isActive,
-          activeThumbColor: tokens.accent,
-          onChanged: (value) =>
-              _updateWindow(window, window.copyWith(isActive: value)),
-        ),
+    return GroupedRow(
+      // Silinince anahtarlar komşu satıra kaymasın.
+      key: ValueKey(window.id),
+      icon: Icons.notifications_off_rounded,
+      title: Text(name),
+      subtitle: Text(
+        '$duration · '
+        '${window.mode == QuietMode.skip ? context.l10n.quietModeSkip : context.l10n.quietModeSilent}',
+      ),
+      dimmed: !window.isActive,
+      onTap: () => _editCustom(window),
+      // Cuma kartında menü yok; yalnız özel aralıklar silinir.
+      onLongPress: () => showRowActionsSheet(
+        context,
+        title: '$name · $duration',
+        onDelete: () => _delete(window),
+      ),
+      trailing: Switch(
+        value: window.isActive,
+        activeThumbColor: tokens.accent,
+        onChanged: (value) =>
+            _updateWindow(window, window.copyWith(isActive: value)),
       ),
     );
   }
@@ -274,6 +329,13 @@ class _QuietWindowsScreenState extends State<QuietWindowsScreen> {
                   ),
                   _rangeRow(current, onChanged: () => setSheetState(() {})),
                   _modeRow(current, onChanged: () => setSheetState(() {})),
+                  const SizedBox(height: 20),
+                  DeleteActionButton(context.l10n.quietWindowDeleteAction, () {
+                    // Önce panel kapanır, sonra silinir: "Geri al" çubuğu
+                    // listenin üstünde çıkar.
+                    Navigator.pop(sheetContext);
+                    _delete(current);
+                  }),
                 ],
               ),
             ),

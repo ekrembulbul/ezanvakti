@@ -466,6 +466,8 @@
   "reminderBeforeDuration": "{duration} before",
   "reminderAfterDuration": "{duration} after",
   "quietWindowDurationSummary": "{before} before – {after} after",
+  "quietWindowDeleteAction": "Delete window",
+  "quietWindowDeleted": "Quiet window deleted",
   "durationAgo": "{duration} ago",
   "notificationDurationLeft": "{duration} until {name}",
   "kerahatBandLabel": "Disliked time",

@@ -1608,6 +1608,12 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
+  String get quietWindowDeleteAction => 'Aralığı sil';
+
+  @override
+  String get quietWindowDeleted => 'Sessiz aralık silindi';
+
+  @override
   String durationAgo(String duration) {
     return '$duration önce';
   }

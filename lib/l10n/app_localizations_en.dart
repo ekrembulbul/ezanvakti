@@ -1611,6 +1611,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get quietWindowDeleteAction => 'Delete window';
+
+  @override
+  String get quietWindowDeleted => 'Quiet window deleted';
+
+  @override
   String durationAgo(String duration) {
     return '$duration ago';
   }

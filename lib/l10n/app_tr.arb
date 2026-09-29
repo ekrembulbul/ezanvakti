@@ -2153,6 +2153,14 @@
       "after": {"type": "String"}
     }
   },
+  "quietWindowDeleteAction": "Aralığı sil",
+  "@quietWindowDeleteAction": {
+    "description": "Sessiz aralık düzenleme panelinin en altındaki silme düğmesi."
+  },
+  "quietWindowDeleted": "Sessiz aralık silindi",
+  "@quietWindowDeleted": {
+    "description": "Sessiz aralık silinince çıkan çubuk; yanında \"Geri al\" durur."
+  },
   "durationAgo": "{duration} önce",
   "@durationAgo": {
     "description": "Bir olaydan bu yana geçen süre.",

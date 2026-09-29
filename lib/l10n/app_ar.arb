@@ -466,6 +466,8 @@
   "reminderBeforeDuration": "قبل {duration}",
   "reminderAfterDuration": "بعد {duration}",
   "quietWindowDurationSummary": "قبل {before} – بعد {after}",
+  "quietWindowDeleteAction": "حذف الفترة",
+  "quietWindowDeleted": "تم حذف فترة الصمت",
   "durationAgo": "منذ {duration}",
   "notificationDurationLeft": "متبقي {duration} على {name}",
   "kerahatBandLabel": "وقت الكراهة",

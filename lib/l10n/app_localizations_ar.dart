@@ -1599,6 +1599,12 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get quietWindowDeleteAction => 'حذف الفترة';
+
+  @override
+  String get quietWindowDeleted => 'تم حذف فترة الصمت';
+
+  @override
   String durationAgo(String duration) {
     return 'منذ $duration';
   }

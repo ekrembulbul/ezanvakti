@@ -2896,6 +2896,18 @@ abstract class AppLocalizations {
   /// **'{before} önce – {after} sonra'**
   String quietWindowDurationSummary(String before, String after);
 
+  /// Sessiz aralık düzenleme panelinin en altındaki silme düğmesi.
+  ///
+  /// In tr, this message translates to:
+  /// **'Aralığı sil'**
+  String get quietWindowDeleteAction;
+
+  /// Sessiz aralık silinince çıkan çubuk; yanında "Geri al" durur.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sessiz aralık silindi'**
+  String get quietWindowDeleted;
+
   /// Bir olaydan bu yana geçen süre.
   ///
   /// In tr, this message translates to:
