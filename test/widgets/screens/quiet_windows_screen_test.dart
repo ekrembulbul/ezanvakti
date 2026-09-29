@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:ezanvakti/core/di/service_locator.dart';
 import 'package:ezanvakti/core/interfaces/local_storage.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart'
@@ -115,4 +117,54 @@ void main() {
       expect(await savedIds(), ['q1', 'q2']);
     },
   );
+
+  testWidgets('"Geri al" çubuğu yeniden planlamayı beklemeden çıkar', (
+    tester,
+  ) async {
+    final reschedule = Completer<void>();
+    await storage.saveQuietWindows([dhuhr, asr]);
+    await tester.pumpWidget(
+      wrapWithTheme(QuietWindowsScreen(onChanged: () => reschedule.future)),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.longPress(find.widgetWithText(GroupedRow, 'Öğle'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Sil'));
+    await tester.pumpAndSettle();
+
+    expect(await savedIds(), ['q2']);
+    expect(
+      find.text('Sessiz aralık silindi'),
+      findsOneWidget,
+      reason: 'planlama sürerken de geri alma sunulur',
+    );
+    reschedule.complete();
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('Yeniden planlama hata verse de silme kalır ve "Geri al" çıkar', (
+    tester,
+  ) async {
+    await storage.saveQuietWindows([dhuhr, asr]);
+    await tester.pumpWidget(
+      wrapWithTheme(
+        QuietWindowsScreen(onChanged: () async => throw Exception('plan')),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.longPress(find.widgetWithText(GroupedRow, 'Öğle'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Sil'));
+    await tester.pumpAndSettle();
+
+    expect(await savedIds(), ['q2']);
+    expect(find.text('Sessiz aralık silindi'), findsOneWidget);
+
+    await tester.tap(find.text('Geri al'));
+    await tester.pumpAndSettle();
+    expect(await savedIds(), ['q1', 'q2']);
+    expect(tester.takeException(), isNull);
+  });
 }

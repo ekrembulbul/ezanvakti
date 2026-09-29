@@ -14,6 +14,7 @@ import '../widgets/common/option_picker.dart';
 import '../widgets/common/section_label.dart';
 import '../widgets/common/delete_action_button.dart';
 import '../widgets/common/row_actions_sheet.dart';
+import '../../core/utils/app_logger.dart';
 import '../../core/utils/duration_formatter.dart';
 
 /// Bildirimlerin susturulacağı zaman aralıkları.
@@ -53,15 +54,30 @@ class _QuietWindowsScreenState extends State<QuietWindowsScreen> {
   }
 
   Future<void> _persist(List<QuietWindow> next) async {
-    // "Geri al" ekran kapandıktan sonra da gelebilir: çubuk alttaki ekranda
-    // kalır. Kayıt ve yeniden planlama yine yapılır.
+    await _store(next);
+    await _reschedule();
+  }
+
+  /// Ekrana ve depoya yazar. "Geri al" ekran kapandıktan sonra da gelebilir:
+  /// çubuk alttaki ekranda kalır, kayıt yine yapılır.
+  Future<void> _store(List<QuietWindow> next) async {
     if (mounted) {
       setState(() => _windows = next);
     } else {
       _windows = next;
     }
     await _storage.saveQuietWindows(next);
-    await widget.onChanged?.call();
+  }
+
+  /// Bildirim ve alarm planı sessiz pencerelere göre yeniden kurulur. Hata
+  /// burada loglanır: kayıt ve "Geri al" çubuğu planlamanın sonucuna bağlı
+  /// kalmaz.
+  Future<void> _reschedule() async {
+    try {
+      await widget.onChanged?.call();
+    } catch (error, stackTrace) {
+      AppLogger().error('Quiet window reschedule failed', error, stackTrace);
+    }
   }
 
   QuietWindow? get _friday =>
@@ -107,8 +123,10 @@ class _QuietWindowsScreenState extends State<QuietWindowsScreen> {
     final l10n = context.l10n;
     final index = _windows.indexWhere((w) => w.id == window.id);
     if (index < 0) return;
-    await _persist([..._windows]..removeAt(index));
+    await _store([..._windows]..removeAt(index));
+    // Çubuk planlamayı beklemez; yeniden planlama birkaç yüz ms sürebilir.
     _showUndo(l10n.quietWindowDeleted, () => _restore(window, index));
+    await _reschedule();
   }
 
   /// Silinen aralığı aynı kimlikle, silindiği sıraya geri yazar. Güncel liste
