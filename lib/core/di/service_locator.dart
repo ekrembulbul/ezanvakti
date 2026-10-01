@@ -5,6 +5,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../features/daily_content/data/daily_content_api.dart';
 import '../../features/daily_content/domain/daily_content_repository.dart';
 import '../../features/location/data/gps_location_service.dart';
+import '../../features/sermons/data/sermons_api.dart';
+import '../../features/sermons/domain/sermon_repository.dart';
 import '../../features/location/data/places_api.dart';
 import '../../features/prayer_times/data/diyanet_provider.dart';
 import '../../features/prayer_times/data/sqlite_storage.dart';
@@ -88,6 +90,12 @@ class ServiceLocator {
         osVersion: Platform.operatingSystemVersion,
         canOpen: canLaunchUrl,
         open: (uri) => launchUrl(uri, mode: LaunchMode.externalApplication),
+      ),
+    );
+    register<SermonRepository>(
+      SermonRepository(
+        api: SermonsApi(client: httpClient),
+        storage: localStorage,
       ),
     );
     register<DailyContentRepository>(
