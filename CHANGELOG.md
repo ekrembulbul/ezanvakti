@@ -4,6 +4,11 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.28.1] - 2026-10-01
+
+### Değişti
+- Kilit ekranı widget'ında vakit adı (Öğle, İkindi…) ana ekran widget'ındaki gibi büyük harf ve daha küçük yazılır; vakit saati ve geri sayım aynı kalır.
+
 ## [0.28.0] - 2026-09-29
 
 ### Eklendi
