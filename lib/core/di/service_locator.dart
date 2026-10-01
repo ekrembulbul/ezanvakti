@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import '../../features/daily_content/data/daily_content_api.dart';
+import '../../features/daily_content/domain/daily_content_repository.dart';
 import '../../features/location/data/gps_location_service.dart';
 import '../../features/location/data/places_api.dart';
 import '../../features/prayer_times/data/diyanet_provider.dart';
@@ -77,6 +79,12 @@ class ServiceLocator {
     register<PlacesApi>(placesApi);
     final gpsLocationService = GpsLocationService(api: placesApi);
     register<GpsLocationService>(gpsLocationService);
+    register<DailyContentRepository>(
+      DailyContentRepository(
+        api: DailyContentApi(client: httpClient),
+        storage: localStorage,
+      ),
+    );
 
     // Sağlayıcı ETag'leri depoda tutar; depo önce kurulur.
     logger.debug('Initializing Prayer Time Provider (Diyanet / vakit-api)');
