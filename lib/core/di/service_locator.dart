@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 import '../../features/daily_content/data/daily_content_api.dart';
 import '../../features/daily_content/domain/daily_content_repository.dart';
 import '../../features/location/data/gps_location_service.dart';
@@ -31,6 +32,7 @@ import '../services/timezone_service.dart';
 import '../services/exact_alarm_service.dart';
 import '../theme/theme_controller.dart';
 import '../utils/app_logger.dart';
+import '../../presentation/services/nearby_mosques_launcher.dart';
 import '../../presentation/services/reminder_rescheduler.dart';
 
 class ServiceLocator {
@@ -79,6 +81,15 @@ class ServiceLocator {
     register<PlacesApi>(placesApi);
     final gpsLocationService = GpsLocationService(api: placesApi);
     register<GpsLocationService>(gpsLocationService);
+    register<NearbyMosquesLauncher>(
+      NearbyMosquesLauncher(
+        storage: localStorage,
+        isIOS: Platform.isIOS,
+        osVersion: Platform.operatingSystemVersion,
+        canOpen: canLaunchUrl,
+        open: (uri) => launchUrl(uri, mode: LaunchMode.externalApplication),
+      ),
+    );
     register<DailyContentRepository>(
       DailyContentRepository(
         api: DailyContentApi(client: httpClient),

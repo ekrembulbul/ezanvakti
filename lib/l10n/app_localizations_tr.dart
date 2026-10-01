@@ -174,7 +174,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get toolsPrivacyNote =>
-      'Araçlar cihazında çalışır; hiçbir veri dışarı gönderilmez.';
+      'Kıble, takvim, takip ve zikirmatik cihazında çalışır. Cami araması harita uygulamanda açılır.';
 
   @override
   String get qiblaTitle => 'Kıble';
@@ -1320,7 +1320,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get privacyBody =>
-      'Konumun ve kayıtlı ilçelerin cihazında saklanır. Arama metni ve konum çözümleme için yaklaşık koordinat (~100 m) yalnızca bize ait vakit sunucusuna gönderilir; sunucu bunları saklamaz ve kimliğinle ilişkilendirmez. Vakit verisi Diyanet İşleri Başkanlığı\'ndan alınır.';
+      'Konumun ve kayıtlı ilçelerin cihazında saklanır. Arama metni ve konum çözümleme için yaklaşık koordinat (~100 m) yalnızca bize ait vakit sunucusuna gönderilir; sunucu bunları saklamaz ve kimliğinle ilişkilendirmez. Vakit verisi Diyanet İşleri Başkanlığı\'ndan alınır. Yakındaki camiler aramasında koordinat yalnız açtığın harita uygulamasına iletilir.';
 
   @override
   String dstSummer(Object offset) {
@@ -1743,4 +1743,53 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get dailyContentCopied => 'Kopyalandı';
+
+  @override
+  String get toolsMosques => 'Yakındaki camiler';
+
+  @override
+  String get toolsMosquesHint => 'Harita uygulamanda ara';
+
+  @override
+  String get mosqueSearchQuery => 'cami';
+
+  @override
+  String mosquesByPrayerLocation(String place) {
+    return 'Vakit konumuna göre ($place)';
+  }
+
+  @override
+  String get mosquesByCurrentLocation => 'Bulunduğum yere göre';
+
+  @override
+  String get mosquesLocationFailed =>
+      'Konumun alınamadı. Vakit konumuna göre aransın mı?';
+
+  @override
+  String get mosquesSearchAction => 'Ara';
+
+  @override
+  String get mosquesPermissionBody =>
+      'Bulunduğun yerin çevresindeki camileri aramak için konumun bir kez okunur. Konum yalnız açtığın harita uygulamasına iletilir.';
+
+  @override
+  String get mosquesOpenFailed => 'Harita uygulaması açılamadı';
+
+  @override
+  String get mapAppPickerTitle => 'Harita uygulaması';
+
+  @override
+  String get settingsMapApp => 'Yakındaki camiler için harita';
+
+  @override
+  String get mapAppApple => 'Apple Haritalar';
+
+  @override
+  String get mapAppGoogle => 'Google Haritalar';
+
+  @override
+  String get mapAppYandex => 'Yandex Haritalar';
+
+  @override
+  String get mapAppAsk => 'Her seferinde sor';
 }

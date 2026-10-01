@@ -184,4 +184,25 @@ void main() {
       await tester.pumpAndSettle();
     });
   });
+
+  testWidgets(
+    'Yakındaki camiler satırı callback verilince çizilir ve çağırır',
+    (tester) async {
+      var tapped = false;
+      tester.view.physicalSize = const Size(1206, 2622);
+      tester.view.devicePixelRatio = 3.0;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        wrapWithTheme(ToolsScreen(onFindMosques: () => tapped = true)),
+      );
+      await tester.pump();
+      await tester.tap(find.text('Yakındaki camiler'));
+      expect(tapped, isTrue);
+    },
+  );
+
+  testWidgets('Yakındaki camiler callback yoksa çizilmez', (tester) async {
+    await pumpTools(tester);
+    expect(find.text('Yakındaki camiler'), findsNothing);
+  });
 }

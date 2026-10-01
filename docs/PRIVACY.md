@@ -24,7 +24,10 @@ servisi kullanılmaz.
   seçildiğinde GPS koordinatınız, en yakın ilçeyi bulmak için yaklaşık 100 m
   hassasiyete yuvarlanarak sunucumuza gönderilir; sunucu bunu saklamaz.
   Cihazınızda saklanan koordinat kıble yönü içindir. Elle arama yaptığınızda
-  yazdığınız il/ilçe metni sunucumuza gönderilir.
+  yazdığınız il/ilçe metni sunucumuza gönderilir. "Yakındaki camiler"de
+  seçtiğiniz konumun (vakit konumu ya da o anki konumunuz) koordinatı yalnız
+  açtığınız harita uygulamasına (Apple, Google veya Yandex Haritalar) iletilir;
+  sunucumuza gönderilmez.
 - **Uygulama tercihleri:** Bildirim ayarları, vakit düzeltme tercihi, kayıtlı
   konumlar — tümü cihazınızda saklanır.
 - **Namaz vakitleri:** Çevrimdışı kullanım için cihazınızda (SQLite) önbelleğe
@@ -68,7 +71,8 @@ değiştirebilir veya kaldırabilirsiniz.
 
 Uygulama şu izinleri, yalnızca ilgili işlev için ister:
 
-- **Konum:** Bulunduğunuz ilçeyi bulup vakitleri ona göre göstermek için.
+- **Konum:** Bulunduğunuz ilçeyi bulup vakitleri ona göre göstermek ve
+  "Yakındaki camiler"de bulunduğunuz yerin çevresinde arama yapmak için.
 - **Bildirim:** Vakit hatırlatmalarını göstermek için.
 - **Tam zamanlı alarm (Android 12+):** Hatırlatmaların doğru vakitte çalması için.
 - **Yeniden başlatmada çalışma (Android):** Cihaz yeniden başladığında planlanmış

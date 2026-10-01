@@ -174,7 +174,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get toolsDhikrHint => 'Counter with a target';
 
   @override
-  String get toolsPrivacyNote => 'Tools run on your device; no data leaves it.';
+  String get toolsPrivacyNote =>
+      'Qibla, calendar, tracking and dhikr counter work on your device. Mosque search opens in your maps app.';
 
   @override
   String get qiblaTitle => 'Qibla';
@@ -1324,7 +1325,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacyBody =>
-      'Your location and saved districts stay on your device. Search text and an approximate coordinate (~100 m) for location resolution are sent only to our own prayer-time server; it does not store them or link them to you. Prayer times come from the Presidency of Religious Affairs (Diyanet).';
+      'Your location and saved districts stay on your device. Search text and an approximate coordinate (~100 m) for location resolution are sent only to our own prayer-time server; it does not store them or link them to you. Prayer times come from the Presidency of Religious Affairs (Diyanet). For nearby mosques, the coordinate is passed only to the maps app you open.';
 
   @override
   String dstSummer(Object offset) {
@@ -1749,4 +1750,53 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dailyContentCopied => 'Copied';
+
+  @override
+  String get toolsMosques => 'Nearby mosques';
+
+  @override
+  String get toolsMosquesHint => 'Search in your maps app';
+
+  @override
+  String get mosqueSearchQuery => 'mosque';
+
+  @override
+  String mosquesByPrayerLocation(String place) {
+    return 'Around my prayer-time location ($place)';
+  }
+
+  @override
+  String get mosquesByCurrentLocation => 'Around where I am now';
+
+  @override
+  String get mosquesLocationFailed =>
+      'Couldn\'t get your location. Search around your prayer-time location instead?';
+
+  @override
+  String get mosquesSearchAction => 'Search';
+
+  @override
+  String get mosquesPermissionBody =>
+      'To search for mosques around you, your location is read once. It is passed only to the maps app you open.';
+
+  @override
+  String get mosquesOpenFailed => 'Couldn\'t open the maps app';
+
+  @override
+  String get mapAppPickerTitle => 'Maps app';
+
+  @override
+  String get settingsMapApp => 'Maps app for nearby mosques';
+
+  @override
+  String get mapAppApple => 'Apple Maps';
+
+  @override
+  String get mapAppGoogle => 'Google Maps';
+
+  @override
+  String get mapAppYandex => 'Yandex Maps';
+
+  @override
+  String get mapAppAsk => 'Ask each time';
 }

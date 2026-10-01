@@ -174,7 +174,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get toolsPrivacyNote =>
-      'تعمل الأدوات على جهازك؛ ولا تُرسَل أي بيانات للخارج.';
+      'تعمل القبلة والتقويم والمتابعة والمسبحة على جهازك. يُفتح البحث عن المساجد في تطبيق الخرائط.';
 
   @override
   String get qiblaTitle => 'القبلة';
@@ -1311,7 +1311,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get privacyBody =>
-      'يبقى موقعك والأقضية المحفوظة على جهازك. يُرسل نص البحث وإحداثية تقريبية (~100 م) لتحديد القضاء إلى خادم الأوقات الخاص بنا فقط؛ ولا يخزنها ولا يربطها بهويتك. تأتي أوقات الصلاة من رئاسة الشؤون الدينية (ديانت).';
+      'يبقى موقعك والأقضية المحفوظة على جهازك. يُرسل نص البحث وإحداثية تقريبية (~100 م) لتحديد القضاء إلى خادم الأوقات الخاص بنا فقط؛ ولا يخزنها ولا يربطها بهويتك. تأتي أوقات الصلاة من رئاسة الشؤون الدينية (ديانت). عند البحث عن المساجد القريبة، تُرسل الإحداثيات فقط إلى تطبيق الخرائط الذي تفتحه.';
 
   @override
   String dstSummer(Object offset) {
@@ -1733,4 +1733,53 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dailyContentCopied => 'تم النسخ';
+
+  @override
+  String get toolsMosques => 'المساجد القريبة';
+
+  @override
+  String get toolsMosquesHint => 'ابحث في تطبيق الخرائط';
+
+  @override
+  String get mosqueSearchQuery => 'مسجد';
+
+  @override
+  String mosquesByPrayerLocation(String place) {
+    return 'حول موقع المواقيت ($place)';
+  }
+
+  @override
+  String get mosquesByCurrentLocation => 'حول موقعي الحالي';
+
+  @override
+  String get mosquesLocationFailed =>
+      'تعذّر تحديد موقعك. هل تريد البحث حول موقع المواقيت بدلًا من ذلك؟';
+
+  @override
+  String get mosquesSearchAction => 'ابحث';
+
+  @override
+  String get mosquesPermissionBody =>
+      'للبحث عن المساجد من حولك، يُقرأ موقعك مرة واحدة ويُرسل فقط إلى تطبيق الخرائط الذي تفتحه.';
+
+  @override
+  String get mosquesOpenFailed => 'تعذّر فتح تطبيق الخرائط';
+
+  @override
+  String get mapAppPickerTitle => 'تطبيق الخرائط';
+
+  @override
+  String get settingsMapApp => 'تطبيق الخرائط للمساجد القريبة';
+
+  @override
+  String get mapAppApple => 'خرائط Apple';
+
+  @override
+  String get mapAppGoogle => 'خرائط Google';
+
+  @override
+  String get mapAppYandex => 'خرائط Yandex';
+
+  @override
+  String get mapAppAsk => 'اسأل في كل مرة';
 }

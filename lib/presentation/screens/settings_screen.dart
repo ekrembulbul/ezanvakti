@@ -12,6 +12,10 @@ import '../widgets/common/app_bar_widgets.dart';
 import '../widgets/common/app_surface.dart';
 import '../widgets/common/grouped_list.dart';
 import '../widgets/common/section_label.dart';
+import '../../features/mosques/domain/map_links.dart';
+import '../services/nearby_mosques_launcher.dart';
+import '../widgets/common/option_picker.dart';
+import '../widgets/tools/nearby_mosques_flow.dart' show mapAppLabel;
 import '../widgets/settings/appearance_section.dart';
 import '../widgets/settings/general_section.dart';
 import '../widgets/settings/notification_prefs_section.dart';
@@ -28,6 +32,10 @@ class SettingsScreen extends StatefulWidget {
   /// Verilmezse ekran kendi özet diyaloğunu gösterir.
   final VoidCallback? onPrivacy;
 
+  /// Yakındaki camiler için harita uygulaması seçimi; yalnız iOS'ta verilir
+  /// (Android'de seçimi sistem yapar). Null ise satır çizilmez.
+  final NearbyMosquesLauncher? mapsLauncher;
+
   const SettingsScreen({
     super.key,
     required this.currentLocation,
@@ -36,6 +44,7 @@ class SettingsScreen extends StatefulWidget {
     this.onQuietWindows,
     this.onNotificationPrefsChanged,
     this.onPrivacy,
+    this.mapsLauncher,
   });
 
   @override
@@ -44,11 +53,48 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   String _version = '';
+  List<MapApp> _mapApps = const [];
+  MapApp? _mapApp;
+
+  static const String _askEachTime = 'ask';
 
   @override
   void initState() {
     super.initState();
     _loadVersion();
+    _loadMapApp();
+  }
+
+  Future<void> _loadMapApp() async {
+    final launcher = widget.mapsLauncher;
+    if (launcher == null) return;
+    final apps = await launcher.installedApps();
+    final saved = await launcher.savedApp();
+    if (mounted) {
+      setState(() {
+        _mapApps = apps;
+        _mapApp = saved;
+      });
+    }
+  }
+
+  Future<void> _pickMapApp() async {
+    final launcher = widget.mapsLauncher!;
+    final l10n = context.l10n;
+    final picked = await showOptionPicker<String>(
+      context: context,
+      title: l10n.mapAppPickerTitle,
+      selected: _mapApp?.name ?? _askEachTime,
+      items: [
+        OptionItem(value: _askEachTime, label: l10n.mapAppAsk),
+        for (final app in _mapApps)
+          OptionItem(value: app.name, label: mapAppLabel(l10n, app)),
+      ],
+    );
+    if (picked == null) return;
+    final app = MapApp.values.asNameMap()[picked];
+    await launcher.saveApp(app);
+    if (mounted) setState(() => _mapApp = app);
   }
 
   Future<void> _loadVersion() async {
@@ -93,6 +139,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             const SizedBox(height: 12),
             const GeneralSection(),
+            if (widget.mapsLauncher != null) ...[
+              const SizedBox(height: 12),
+              GroupedList(
+                children: [
+                  _row(
+                    icon: Icons.mosque_outlined,
+                    title: context.l10n.settingsMapApp,
+                    value: _mapApp == null
+                        ? context.l10n.mapAppAsk
+                        : mapAppLabel(context.l10n, _mapApp!),
+                    onTap: _pickMapApp,
+                  ),
+                ],
+              ),
+            ],
             const SizedBox(height: 26),
             SectionLabel(context.l10n.settingsNotificationsAndSound),
             const SizedBox(height: 10),

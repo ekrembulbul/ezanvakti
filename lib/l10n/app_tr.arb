@@ -191,7 +191,7 @@
   "@toolsDhikrHint": {
     "description": "Araç açıklaması"
   },
-  "toolsPrivacyNote": "Araçlar cihazında çalışır; hiçbir veri dışarı gönderilmez.",
+  "toolsPrivacyNote": "Kıble, takvim, takip ve zikirmatik cihazında çalışır. Cami araması harita uygulamanda açılır.",
   "@toolsPrivacyNote": {
     "description": "Alt bilgi"
   },
@@ -1752,7 +1752,7 @@
   "@settingsFooter": {
     "description": "Alt bilgi"
   },
-  "privacyBody": "Konumun ve kayıtlı ilçelerin cihazında saklanır. Arama metni ve konum çözümleme için yaklaşık koordinat (~100 m) yalnızca bize ait vakit sunucusuna gönderilir; sunucu bunları saklamaz ve kimliğinle ilişkilendirmez. Vakit verisi Diyanet İşleri Başkanlığı'ndan alınır.",
+  "privacyBody": "Konumun ve kayıtlı ilçelerin cihazında saklanır. Arama metni ve konum çözümleme için yaklaşık koordinat (~100 m) yalnızca bize ait vakit sunucusuna gönderilir; sunucu bunları saklamaz ve kimliğinle ilişkilendirmez. Vakit verisi Diyanet İşleri Başkanlığı'ndan alınır. Yakındaki camiler aramasında koordinat yalnız açtığın harita uygulamasına iletilir.",
   "@privacyBody": {
     "description": "Gizlilik metni"
   },
@@ -2248,5 +2248,35 @@
   "dailyPrayerTitle": "Günün Duası",
   "@dailyPrayerTitle": {"description": "Ana sayfa kartı başlığı"},
   "dailyContentCopied": "Kopyalandı",
-  "@dailyContentCopied": {"description": "Karta basılı tutunca metin panoya kopyalandı"}
+  "@dailyContentCopied": {"description": "Karta basılı tutunca metin panoya kopyalandı"},
+  "toolsMosques": "Yakındaki camiler",
+  "@toolsMosques": {"description": "Araç adı"},
+  "toolsMosquesHint": "Harita uygulamanda ara",
+  "@toolsMosquesHint": {"description": "Araç açıklaması"},
+  "mosqueSearchQuery": "cami",
+  "@mosqueSearchQuery": {"description": "Harita uygulamasına gönderilen arama metni"},
+  "mosquesByPrayerLocation": "Vakit konumuna göre ({place})",
+  "@mosquesByPrayerLocation": {"description": "Cami araması konum seçeneği", "placeholders": {"place": {"type": "String"}}},
+  "mosquesByCurrentLocation": "Bulunduğum yere göre",
+  "@mosquesByCurrentLocation": {"description": "Cami araması konum seçeneği"},
+  "mosquesLocationFailed": "Konumun alınamadı. Vakit konumuna göre aransın mı?",
+  "@mosquesLocationFailed": {"description": "Telefon konumu alınamadığında soru"},
+  "mosquesSearchAction": "Ara",
+  "@mosquesSearchAction": {"description": "Vakit konumuyla aramayı onaylayan düğme"},
+  "mosquesPermissionBody": "Bulunduğun yerin çevresindeki camileri aramak için konumun bir kez okunur. Konum yalnız açtığın harita uygulamasına iletilir.",
+  "@mosquesPermissionBody": {"description": "Cami araması için konum izni açıklaması"},
+  "mosquesOpenFailed": "Harita uygulaması açılamadı",
+  "@mosquesOpenFailed": {"description": "Hata mesajı"},
+  "mapAppPickerTitle": "Harita uygulaması",
+  "@mapAppPickerTitle": {"description": "Harita uygulaması seçici başlığı"},
+  "settingsMapApp": "Yakındaki camiler için harita",
+  "@settingsMapApp": {"description": "Ayarlar satırı"},
+  "mapAppApple": "Apple Haritalar",
+  "@mapAppApple": {"description": "Harita uygulaması adı"},
+  "mapAppGoogle": "Google Haritalar",
+  "@mapAppGoogle": {"description": "Harita uygulaması adı"},
+  "mapAppYandex": "Yandex Haritalar",
+  "@mapAppYandex": {"description": "Harita uygulaması adı"},
+  "mapAppAsk": "Her seferinde sor",
+  "@mapAppAsk": {"description": "Harita uygulaması seçilmemiş"}
 }

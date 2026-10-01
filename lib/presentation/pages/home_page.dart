@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import '../../l10n/l10n_extensions.dart';
 import 'package:flutter/foundation.dart';
 
@@ -14,6 +15,8 @@ import '../screens/mission_launcher.dart';
 import '../../core/models/location.dart';
 import '../../core/interfaces/local_storage.dart';
 import '../../core/utils/app_logger.dart';
+import '../services/nearby_mosques_launcher.dart';
+import '../widgets/tools/nearby_mosques_flow.dart';
 import '../../features/daily_content/domain/daily_content.dart';
 import '../../features/daily_content/domain/daily_content_repository.dart';
 import '../../features/prayer_times/domain/prayer_times_repository.dart';
@@ -178,6 +181,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   DailyContent? _dailyContent;
+
+  void _findMosques() {
+    final location = context.read<AppState>().activeLocation;
+    if (location == null) return;
+    showNearbyMosquesFlow(
+      context,
+      location: location,
+      launcher: ServiceLocator().get<NearbyMosquesLauncher>(),
+      gps: ServiceLocator().get<GpsLocationService>(),
+    );
+  }
 
   /// Günün içeriği yalnız Türkçe arayüzde istenir; hata vakit akışını
   /// etkilemez (depo fırlatmaz).
@@ -547,6 +561,9 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           onPrayerTune: _navigateToPrayerTune,
           onQuietWindows: _navigateToQuietWindows,
           onNotificationPrefsChanged: _rescheduleReminders,
+          mapsLauncher: Platform.isIOS
+              ? ServiceLocator().get<NearbyMosquesLauncher>()
+              : null,
         ),
       ),
     );
@@ -688,7 +705,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           },
         ),
         const RemindersScreen(),
-        ToolsScreen(onOpenCalendar: _openCalendar),
+        ToolsScreen(onOpenCalendar: _openCalendar, onFindMosques: _findMosques),
       ],
     );
   }

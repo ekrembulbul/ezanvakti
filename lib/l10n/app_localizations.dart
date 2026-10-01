@@ -421,7 +421,7 @@ abstract class AppLocalizations {
   /// Alt bilgi
   ///
   /// In tr, this message translates to:
-  /// **'Araçlar cihazında çalışır; hiçbir veri dışarı gönderilmez.'**
+  /// **'Kıble, takvim, takip ve zikirmatik cihazında çalışır. Cami araması harita uygulamanda açılır.'**
   String get toolsPrivacyNote;
 
   /// Ekran başlığı
@@ -2431,7 +2431,7 @@ abstract class AppLocalizations {
   /// Gizlilik metni
   ///
   /// In tr, this message translates to:
-  /// **'Konumun ve kayıtlı ilçelerin cihazında saklanır. Arama metni ve konum çözümleme için yaklaşık koordinat (~100 m) yalnızca bize ait vakit sunucusuna gönderilir; sunucu bunları saklamaz ve kimliğinle ilişkilendirmez. Vakit verisi Diyanet İşleri Başkanlığı\'ndan alınır.'**
+  /// **'Konumun ve kayıtlı ilçelerin cihazında saklanır. Arama metni ve konum çözümleme için yaklaşık koordinat (~100 m) yalnızca bize ait vakit sunucusuna gönderilir; sunucu bunları saklamaz ve kimliğinle ilişkilendirmez. Vakit verisi Diyanet İşleri Başkanlığı\'ndan alınır. Yakındaki camiler aramasında koordinat yalnız açtığın harita uygulamasına iletilir.'**
   String get privacyBody;
 
   /// Saat dilimi
@@ -3129,6 +3129,96 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Kopyalandı'**
   String get dailyContentCopied;
+
+  /// Araç adı
+  ///
+  /// In tr, this message translates to:
+  /// **'Yakındaki camiler'**
+  String get toolsMosques;
+
+  /// Araç açıklaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Harita uygulamanda ara'**
+  String get toolsMosquesHint;
+
+  /// Harita uygulamasına gönderilen arama metni
+  ///
+  /// In tr, this message translates to:
+  /// **'cami'**
+  String get mosqueSearchQuery;
+
+  /// Cami araması konum seçeneği
+  ///
+  /// In tr, this message translates to:
+  /// **'Vakit konumuna göre ({place})'**
+  String mosquesByPrayerLocation(String place);
+
+  /// Cami araması konum seçeneği
+  ///
+  /// In tr, this message translates to:
+  /// **'Bulunduğum yere göre'**
+  String get mosquesByCurrentLocation;
+
+  /// Telefon konumu alınamadığında soru
+  ///
+  /// In tr, this message translates to:
+  /// **'Konumun alınamadı. Vakit konumuna göre aransın mı?'**
+  String get mosquesLocationFailed;
+
+  /// Vakit konumuyla aramayı onaylayan düğme
+  ///
+  /// In tr, this message translates to:
+  /// **'Ara'**
+  String get mosquesSearchAction;
+
+  /// Cami araması için konum izni açıklaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Bulunduğun yerin çevresindeki camileri aramak için konumun bir kez okunur. Konum yalnız açtığın harita uygulamasına iletilir.'**
+  String get mosquesPermissionBody;
+
+  /// Hata mesajı
+  ///
+  /// In tr, this message translates to:
+  /// **'Harita uygulaması açılamadı'**
+  String get mosquesOpenFailed;
+
+  /// Harita uygulaması seçici başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Harita uygulaması'**
+  String get mapAppPickerTitle;
+
+  /// Ayarlar satırı
+  ///
+  /// In tr, this message translates to:
+  /// **'Yakındaki camiler için harita'**
+  String get settingsMapApp;
+
+  /// Harita uygulaması adı
+  ///
+  /// In tr, this message translates to:
+  /// **'Apple Haritalar'**
+  String get mapAppApple;
+
+  /// Harita uygulaması adı
+  ///
+  /// In tr, this message translates to:
+  /// **'Google Haritalar'**
+  String get mapAppGoogle;
+
+  /// Harita uygulaması adı
+  ///
+  /// In tr, this message translates to:
+  /// **'Yandex Haritalar'**
+  String get mapAppYandex;
+
+  /// Harita uygulaması seçilmemiş
+  ///
+  /// In tr, this message translates to:
+  /// **'Her seferinde sor'**
+  String get mapAppAsk;
 }
 
 class _AppLocalizationsDelegate

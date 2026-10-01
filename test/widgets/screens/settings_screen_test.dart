@@ -9,6 +9,7 @@ import 'package:ezanvakti/core/models/appearance_settings.dart';
 import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/theme/theme_controller.dart';
 import 'package:ezanvakti/presentation/screens/settings_screen.dart';
+import 'package:ezanvakti/presentation/services/nearby_mosques_launcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -126,6 +127,7 @@ void main() {
   Future<void> pumpSettings(
     WidgetTester tester, {
     VoidCallback? onPrayerTune,
+    NearbyMosquesLauncher? mapsLauncher,
   }) async {
     // Ekran bolum bolum uzuyor; alt bolumlerin (Gorunum/Bilgi) testte
     // gorunur kalmasi icin yuzey uzun tutuluyor. Boyut yetmezse
@@ -148,6 +150,7 @@ void main() {
           SettingsScreen(
             currentLocation: _location,
             onPrayerTune: onPrayerTune,
+            mapsLauncher: mapsLauncher,
           ),
         ),
       ),
@@ -209,5 +212,38 @@ void main() {
 
     expect(find.textContaining('vakit sunucusuna'), findsWidgets);
     expect(find.text('Tamam'), findsOneWidget);
+  });
+
+  group('Harita uygulaması satırı', () {
+    late _InMemoryStorage storage;
+    NearbyMosquesLauncher launcher() => NearbyMosquesLauncher(
+      storage: storage,
+      isIOS: true,
+      osVersion: '26.0',
+      canOpen: (uri) async => uri.scheme == 'comgooglemaps',
+      open: (_) async => true,
+    );
+
+    setUp(() => storage = _InMemoryStorage());
+
+    testWidgets('launcher verilmezse satır yok', (tester) async {
+      await pumpSettings(tester);
+      expect(find.text('Yakındaki camiler için harita'), findsNothing);
+    });
+
+    testWidgets('seçim yoksa "Her seferinde sor", seçilince kaydeder', (
+      tester,
+    ) async {
+      await pumpSettings(tester, mapsLauncher: launcher());
+      await tester.pumpAndSettle();
+      expect(find.text('Yakındaki camiler için harita'), findsOneWidget);
+      expect(find.text('Her seferinde sor'), findsOneWidget);
+      await tester.tap(find.text('Yakındaki camiler için harita'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Google Haritalar'));
+      await tester.pumpAndSettle();
+      expect(await storage.getSetting('maps_app'), 'google');
+      expect(find.text('Google Haritalar'), findsOneWidget);
+    });
   });
 }

@@ -20,7 +20,10 @@ class ToolsScreen extends StatelessWidget {
   /// kurulduğu için buradan yalnızca çağrılır. Null ise bölüm çizilmez.
   final VoidCallback? onOpenCalendar;
 
-  const ToolsScreen({super.key, this.onOpenCalendar});
+  /// Yakındaki camileri harita uygulamasında arar; null ise satır çizilmez.
+  final VoidCallback? onFindMosques;
+
+  const ToolsScreen({super.key, this.onOpenCalendar, this.onFindMosques});
 
   @override
   Widget build(BuildContext context) {
@@ -68,6 +71,14 @@ class ToolsScreen extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (onFindMosques != null)
+                  _row(
+                    context,
+                    icon: Icons.mosque_outlined,
+                    title: context.l10n.toolsMosques,
+                    subtitle: context.l10n.toolsMosquesHint,
+                    onTap: onFindMosques,
+                  ),
               ],
             ),
             const SizedBox(height: 26),
