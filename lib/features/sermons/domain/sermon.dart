@@ -26,6 +26,10 @@ class SermonSummary {
   /// Dil koduna göre PDF (`en`, `ar`); yoksa boş.
   final Map<String, SermonPdf> pdfs;
 
+  /// Diyanet Haber'deki metnin son değişiklik zamanı (sunucunun verdiği gibi);
+  /// saklanan metnin eskidiğini anlamak için.
+  final String? modifiedAt;
+
   const SermonSummary({
     required this.id,
     required this.date,
@@ -33,6 +37,7 @@ class SermonSummary {
     required this.title,
     required this.sourceUrl,
     this.pdfs = const {},
+    this.modifiedAt,
   });
 
   factory SermonSummary.fromJson(Map<String, dynamic> json) {
@@ -55,6 +60,7 @@ class SermonSummary {
       title: _string(json, 'title', 'SermonSummary'),
       sourceUrl: _uri(json, 'sourceUrl', 'SermonSummary'),
       pdfs: pdfs,
+      modifiedAt: _optional(json, 'modifiedAt'),
     );
   }
 
@@ -65,6 +71,7 @@ class SermonSummary {
     'title': title,
     'sourceUrl': sourceUrl.toString(),
     'pdfs': {for (final e in pdfs.entries) e.key: e.value.toJson()},
+    'modifiedAt': modifiedAt,
   };
 }
 
@@ -87,6 +94,7 @@ class SermonText {
   final List<SermonFootnote> footnotes;
   final String signature;
   final Uri sourceUrl;
+  final String? modifiedAt;
 
   const SermonText({
     required this.id,
@@ -98,6 +106,7 @@ class SermonText {
     required this.footnotes,
     required this.signature,
     required this.sourceUrl,
+    this.modifiedAt,
   });
 
   factory SermonText.fromJson(Map<String, dynamic> json) {
@@ -127,6 +136,7 @@ class SermonText {
       ],
       signature: json['signature'] is String ? json['signature'] as String : '',
       sourceUrl: _uri(json, 'sourceUrl', 'SermonText'),
+      modifiedAt: _optional(json, 'modifiedAt'),
     );
   }
 
@@ -142,6 +152,7 @@ class SermonText {
     ],
     'signature': signature,
     'sourceUrl': sourceUrl.toString(),
+    'modifiedAt': modifiedAt,
   };
 }
 
@@ -149,6 +160,11 @@ String _formatDate(DateTime d) =>
     '${d.year.toString().padLeft(4, '0')}-'
     '${d.month.toString().padLeft(2, '0')}-'
     '${d.day.toString().padLeft(2, '0')}';
+
+String? _optional(Map json, String key) {
+  final value = json[key];
+  return value is String && value.isNotEmpty ? value : null;
+}
 
 String _string(Map json, String key, String ctx) {
   final value = json[key];

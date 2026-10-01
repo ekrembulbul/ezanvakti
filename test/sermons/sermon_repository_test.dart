@@ -113,6 +113,58 @@ void main() {
       expect(paths, ['/v1/sermons/2026-09-25-cuma']);
     });
 
+    test('listede değişiklik zamanı farklıysa metni yeniden ister', () async {
+      final r = repo();
+      now = DateTime(2026, 9, 27, 12); // hutbe günü geçti
+      await r.index();
+      await r.text('2026-09-25-cuma');
+      handler = (req) async => req.url.path == '/v1/sermons'
+          ? ok(
+              indexJson([
+                {...summaryJson(), 'modifiedAt': '2026-09-25T11:40:00+03:00'},
+              ]),
+            )
+          : ok({
+              ...textJson(),
+              'modifiedAt': '2026-09-25T11:40:00+03:00',
+              'heading': 'DÜZELTİLMİŞ',
+            });
+      await r.index(force: true);
+      final t = await r.text('2026-09-25-cuma');
+      expect(t.heading, 'DÜZELTİLMİŞ');
+      expect(paths.where((p) => p.endsWith('2026-09-25-cuma')), hasLength(2));
+    });
+
+    test('hutbe günü gelmediyse saklı olsa da yeniden ister', () async {
+      final r = repo();
+      now = DateTime(2026, 9, 24, 20); // perşembe akşamı, hutbe yarın
+      await r.index();
+      await r.text('2026-09-25-cuma');
+      await r.text('2026-09-25-cuma');
+      expect(paths.where((p) => p.endsWith('2026-09-25-cuma')), hasLength(2));
+    });
+
+    test('günü geçmiş ve değişmemiş metin için istek atmaz', () async {
+      final r = repo();
+      now = DateTime(2026, 9, 27, 12);
+      await r.index();
+      await r.text('2026-09-25-cuma');
+      await r.text('2026-09-25-cuma');
+      expect(paths.where((p) => p.endsWith('2026-09-25-cuma')), hasLength(1));
+    });
+
+    test('yeniden isterken ağ yoksa saklananı döner', () async {
+      final r = repo();
+      now = DateTime(2026, 9, 24, 20);
+      await r.index();
+      await r.text('2026-09-25-cuma');
+      handler = (_) async => throw const SocketException('offline');
+      expect(
+        (await r.text('2026-09-25-cuma')).heading,
+        'TEBLİĞ SORUMLULUĞUMUZ',
+      );
+    });
+
     test('ağ yok ve saklı değilse hata', () {
       handler = (_) async => throw const SocketException('offline');
       expect(repo().text('2026-09-25-cuma'), throwsA(isA<SocketException>()));
@@ -162,6 +214,27 @@ void main() {
         same(list.first),
       );
       expect(SermonRepository.featured(list, DateTime(2027, 3, 8, 20)), isNull);
+    });
+
+    test('bayram hutbesi erken yayımlansa da o haftanın cuma kartı çıkar', () {
+      // Bayram pazar; hutbesi perşembe yayımlandı, cuma hutbesi de var.
+      final list = [s('2027-05-16', 'bayram'), s('2027-05-14', 'cuma')];
+      expect(
+        SermonRepository.featured(list, DateTime(2027, 5, 13, 18)),
+        same(list.last),
+      ); // perşembe → cuma kartı
+      expect(
+        SermonRepository.featured(list, DateTime(2027, 5, 15, 18)),
+        same(list.first),
+      ); // cumartesi → bayram kartı
+    });
+
+    test('bugünkü hutbe yarınkinden önce gelir', () {
+      final list = [s('2027-05-15', 'bayram'), s('2027-05-14', 'cuma')];
+      expect(
+        SermonRepository.featured(list, DateTime(2027, 5, 14, 9)),
+        same(list.last),
+      );
     });
 
     test('boş liste null', () {

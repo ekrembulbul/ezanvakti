@@ -55,21 +55,43 @@ class SermonRepository {
     }
   }
 
-  /// Saklıysa saklananı, değilse indirip saklar.
+  /// Saklıysa saklananı döner; saklı değilse, listedeki değişiklik zamanı
+  /// saklanandan farklıysa ya da hutbe günü henüz geçmediyse (Diyanet metni
+  /// cuma ~11:30'a kadar düzeltebiliyor) sunucuya sorar. Sorarken ağ hatası
+  /// olursa saklananı döner; saklı metin yoksa hata fırlatır.
   Future<SermonText> text(String id) async {
     final texts = await _readTexts();
-    final stored = texts[id];
-    if (stored != null) {
+    SermonText? stored;
+    final raw = texts[id];
+    if (raw != null) {
       try {
-        return SermonText.fromJson(stored as Map<String, dynamic>);
+        stored = SermonText.fromJson(raw as Map<String, dynamic>);
       } catch (e, s) {
         AppLogger().warning('Stored sermon text unreadable', e, s);
       }
     }
-    final fresh = await api.fetchText(id);
-    texts[id] = fresh.toJson();
-    await storage.setSetting(_textsKey, jsonEncode(texts));
-    return fresh;
+    if (stored != null && !await _isStale(stored)) return stored;
+    try {
+      final fresh = await api.fetchText(id);
+      texts[id] = fresh.toJson();
+      await storage.setSetting(_textsKey, jsonEncode(texts));
+      return fresh;
+    } catch (e, s) {
+      if (stored == null) rethrow;
+      AppLogger().warning('Sermon text refresh failed; using stored', e, s);
+      return stored;
+    }
+  }
+
+  Future<bool> _isStale(SermonText stored) async {
+    final now = _now();
+    final today = DateTime(now.year, now.month, now.day);
+    if (!stored.date.isBefore(today)) return true;
+    final summary = (await _readIndex())
+        ?.where((s) => s.id == stored.id)
+        .firstOrNull;
+    final listed = summary?.modifiedAt;
+    return listed != null && listed != stored.modifiedAt;
   }
 
   /// Okuma ekranı yazı boyutu kademesi (0–4).
@@ -81,13 +103,14 @@ class SermonRepository {
   Future<void> setFontStep(int step) =>
       storage.setSetting(_fontStepKey, '${step.clamp(0, fontStepCount - 1)}');
 
-  /// Ana sayfa kartı: en yeni hutbenin günü bugün ya da yarınsa o.
+  /// Ana sayfa kartı: tarihi bugün olan hutbe, yoksa yarın olan. Bayram
+  /// hutbesi bayramdan günler önce yayımlanabildiği için "en yeni" hutbeye
+  /// bakılmaz; o haftanın cuma kartı da çıkar.
   static SermonSummary? featured(List<SermonSummary> index, DateTime now) {
-    if (index.isEmpty) return null;
-    final latest = index.reduce((a, b) => a.date.isAfter(b.date) ? a : b);
     final today = DateTime(now.year, now.month, now.day);
-    final days = latest.date.difference(today).inDays;
-    return days == 0 || days == 1 ? latest : null;
+    SermonSummary? on(DateTime day) =>
+        index.where((s) => s.date == day).firstOrNull;
+    return on(today) ?? on(DateTime(now.year, now.month, now.day + 1));
   }
 
   Future<List<SermonSummary>?> _readIndex() async {

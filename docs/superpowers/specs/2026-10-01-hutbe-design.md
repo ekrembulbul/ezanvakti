@@ -85,7 +85,7 @@ cuma ve bayram hutbelerini kapsar.
   Üst çubukta yazı boyutu (küçült/büyüt, 5 kademe, seçim hatırlanır) ve
   paylaş (Diyanet Haber bağlantısı + başlık). Sistem yazı ölçeğine ek olarak
   uygulanır.
-- **Ana sayfa kartı:** en yeni hutbenin tarihi bugün ya da yarınsa vakit
+- **Ana sayfa kartı:** tarihi bugün (yoksa yarın) olan hutbe varsa vakit
   ızgarasının altında, günün içeriği kartlarının üstünde "Bu haftanın hutbesi"
   / bayramda "Bayram hutbesi" kartı: başlık + "Oku". Her dilde görünür;
   İngilizce/Arapça'da o dilin PDF'i yoksa görünmez.
