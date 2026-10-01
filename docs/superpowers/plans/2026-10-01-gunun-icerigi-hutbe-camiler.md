@@ -45,7 +45,7 @@
 
 ## Part A — Günün içeriği
 
-### Task A1: Sunucu — tarihsiz günlük içerik işi
+### Task 1 (A1): Sunucu — tarihsiz günlük içerik işi
 
 **Files:**
 - Modify: `server/internal/source/source.go:26` (imza), `server/internal/source/awqatsrc/awqatsrc.go:116-124`, `server/internal/source/web/web.go:176-178`, `server/internal/source/web/web_test.go:170`
@@ -174,7 +174,7 @@ func DailyContent(ctx context.Context, d Deps) (Result, error) {
 - [ ] **Step 4: Run** `cd server && gofmt -l . && go vet ./... && go test -race ./...` → temiz, PASS.
 - [ ] **Step 5: Commit** `feat(server): günlük içeriği Diyanet'in tarihsiz ucundan çek`.
 
-### Task A2: Uygulama — günlük içerik veri katmanı
+### Task 2 (A2): Uygulama — günlük içerik veri katmanı
 
 **Files:**
 - Create: `lib/features/daily_content/domain/daily_content.dart`, `lib/features/daily_content/data/daily_content_api.dart`, `lib/features/daily_content/domain/daily_content_repository.dart`
@@ -224,7 +224,7 @@ Future<DailyContent?> load() async {
 - [ ] **Step 4: Run** testler PASS; `dart format` (yalnız yeni/değişen dosyalar); `flutter analyze`.
 - [ ] **Step 5: Commit** `feat(app): günlük içerik veri katmanı`.
 
-### Task A3: Uygulama — ana sayfa kartları
+### Task 3 (A3): Uygulama — ana sayfa kartları
 
 **Files:**
 - Create: `lib/presentation/widgets/home/daily_content_section.dart`
@@ -255,7 +255,7 @@ Future<DailyContent?> load() async {
 
 ## Part B — Yakındaki camiler
 
-### Task B1: `url_launcher`, platform ayarları ve bağlantı üretimi
+### Task 4 (B1): `url_launcher`, platform ayarları ve bağlantı üretimi
 
 **Files:**
 - Modify: `pubspec.yaml` (`url_launcher`), `ios/Runner/Info.plist` (`LSApplicationQueriesSchemes`: `comgooglemaps`, `yandexmaps`), `android/app/src/main/AndroidManifest.xml` (`<queries>`: `VIEW` + `geo`, `VIEW` + `https`)
@@ -301,7 +301,7 @@ Future<DailyContent?> load() async {
 - [ ] **Step 4: Run** testler PASS, `flutter analyze`.
 - [ ] **Step 5: Commit** `feat(app): harita arama bağlantıları ve url_launcher`.
 
-### Task B2: GPS — tek seferlik koordinat
+### Task 5 (B2): GPS — tek seferlik koordinat
 
 **Files:**
 - Modify: `lib/features/location/data/gps_location_service.dart:42-67`
@@ -314,7 +314,7 @@ Future<DailyContent?> load() async {
 - [ ] **Step 2: Run** `flutter test test/location/` → PASS (davranış değişmedi); `flutter analyze`.
 - [ ] **Step 3: Commit** `refactor(location): koordinatı ilçe çözümlemesinden ayır`.
 
-### Task B3: Yakındaki camiler akışı, Araçlar ve Ayarlar satırları
+### Task 6 (B3): Yakındaki camiler akışı, Araçlar ve Ayarlar satırları
 
 **Files:**
 - Create: `lib/presentation/services/nearby_mosques_launcher.dart`, `lib/presentation/widgets/tools/nearby_mosques_sheet.dart`
@@ -389,7 +389,7 @@ Future<DailyContent?> load() async {
 
 `kind`: `cuma` | `bayram`. `pdfs` boş nesne olabilir. Sıralama tarih azalan, en çok 20.
 
-### Task C1: Sunucu — hutbe ayrıştırıcıları (worker)
+### Task 7 (C1): Sunucu — hutbe ayrıştırıcıları (worker)
 
 **Files:**
 - Create: `server/internal/sermon/model.go`, `rss.go`, `article.go`, `dinhizmetleri.go`, `client.go`, `*_test.go`, `testdata/` (fixture'lar: `diyanethaber_rss.xml`, `diyanethaber_2026-09-25.html`, `diyanethaber_bayram_2026-05-27.html`, `dinhizmetleri_home.html`, `dinhizmetleri_detay_1318.html`, `dinhizmetleri_detay_1251.html` — kaynak: scratchpad `hutbe_fx/trimmed/`)
@@ -415,7 +415,7 @@ Future<DailyContent?> load() async {
 - [ ] **Step 4:** Uygula (`golang.org/x/net/html` ile; `encoding/xml` RSS için).
 - [ ] **Step 5:** `gofmt -l . && go vet ./... && go test -race ./internal/sermon/` → PASS.
 
-### Task C2: Sunucu — hutbe işi, uçlar, CLI, cron (worker)
+### Task 8 (C2): Sunucu — hutbe işi, uçlar, CLI, cron (worker)
 
 **Files:**
 - Create: `server/internal/jobs/sermons.go`, `server/internal/jobs/sermons_test.go`, `server/internal/httpapi/sermons_test.go` (ya da `handler_test.go`'ya ekleme)
@@ -446,7 +446,7 @@ Future<DailyContent?> load() async {
 - [ ] **Step 4:** `gofmt -l . && go vet ./... && go test -race ./...` → PASS.
 - [ ] **Step 5 (ana oturum):** diff'i dosya listesine karşı doğrula, testleri koş, commit `feat(server): Diyanet hutbelerini çek ve yayımla`.
 
-### Task C3: Uygulama — hutbe veri katmanı
+### Task 9 (C3): Uygulama — hutbe veri katmanı
 
 **Files:**
 - Create: `lib/features/sermons/domain/sermon.dart`, `lib/features/sermons/data/sermons_api.dart`, `lib/features/sermons/domain/sermon_repository.dart`
@@ -468,7 +468,7 @@ Future<DailyContent?> load() async {
 - [ ] **Step 2–4:** FAIL → uygula (A2 kalıbı; `index` 1 saat throttle) → PASS, analyze, format.
 - [ ] **Step 5: Commit** `feat(app): hutbe veri katmanı`.
 
-### Task C4: Uygulama — hutbe ekranları ve ana sayfa kartı
+### Task 10 (C4): Uygulama — hutbe ekranları ve ana sayfa kartı
 
 **Files:**
 - Create: `lib/presentation/screens/sermon_list_screen.dart`, `lib/presentation/screens/sermon_reader_screen.dart`, `lib/presentation/widgets/home/sermon_card.dart`
