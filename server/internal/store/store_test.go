@@ -83,3 +83,22 @@ func TestPaths(t *testing.T) {
 		t.Error("CityYearKey")
 	}
 }
+
+func TestRemove_DeletesFile(t *testing.T) {
+	s := New(t.TempDir())
+	if err := s.WriteJSON("a/b.json", map[string]int{"x": 1}); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Remove("a/b.json"); err != nil {
+		t.Fatal(err)
+	}
+	if s.Exists("a/b.json") {
+		t.Fatal("dosya silinmeliydi")
+	}
+}
+
+func TestRemove_MissingIsNil(t *testing.T) {
+	if err := New(t.TempDir()).Remove("yok/x.json"); err != nil {
+		t.Fatal(err)
+	}
+}

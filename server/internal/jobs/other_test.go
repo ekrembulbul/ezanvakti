@@ -75,28 +75,116 @@ func TestReligiousDays_QuotaStops(t *testing.T) {
 	}
 }
 
-func TestDailyContent_FetchesTodayAndAheadSkippingExisting(t *testing.T) {
+// trNoon, Türkiye gününün öğlesini verir; DailyContentPath yerel yıl gününü kullanır.
+func trNoon(y int, m time.Month, d int) time.Time { return time.Date(y, m, d, 12, 0, 0, 0, TurkeyZone) }
+
+func fullContent(dayOfYear int) *model.DailyContent {
+	return &model.DailyContent{DayOfYear: dayOfYear, Verse: "v", VerseSource: "vs", Hadith: "h", HadithSource: "hs", Prayer: "p"}
+}
+
+func TestDailyContent_WritesTurkeyDayWhenDayMatches(t *testing.T) {
 	f := newFake()
-	for i := 0; i < 3; i++ {
-		day := time.Date(2026, 9, 16+i, 0, 0, 0, 0, time.UTC)
-		f.daily[day.Format(model.DateLayout)] = &model.DailyContent{Date: day.Format(model.DateLayout), DayOfYear: day.YearDay(), Verse: "v"}
-	}
 	d := testDeps(t, f)
-	res, err := DailyContent(context.Background(), d, 2)
-	if err != nil || res.Written != 3 || res.Fetched != 3 {
+	d.Now = func() time.Time { return time.Date(2026, 10, 1, 21, 5, 0, 0, time.UTC) } // TR 2 Ekim 00:05
+	f.today = fullContent(275)
+	res, err := DailyContent(context.Background(), d)
+	if err != nil || res.Written != 1 || res.Fetched != 1 {
 		t.Fatalf("%+v %v", res, err)
 	}
 	var got model.DailyContent
-	if err := d.Store.ReadJSON(store.DailyContentPath(time.Date(2026, 9, 17, 0, 0, 0, 0, time.UTC)), &got); err != nil || got.Date != "2026-09-17" {
+	if err := d.Store.ReadJSON(store.DailyContentPath(trNoon(2026, 10, 2)), &got); err != nil || got.Date != "2026-10-02" {
 		t.Fatalf("%+v %v", got, err)
 	}
-	f.calls["daily"] = 0
-	res, err = DailyContent(context.Background(), d, 2)
-	if err != nil || res.Skipped != 3 || f.calls["daily"] != 0 {
-		t.Fatalf("second run must skip existing: %+v calls=%d", res, f.calls["daily"])
-	}
-	if d.State.DailyContent.Days != 3 {
+	if d.State.DailyContent.UpdatedAt.IsZero() || d.State.DailyContent.Days != 1 {
 		t.Fatalf("%+v", d.State.DailyContent)
+	}
+}
+
+func TestDailyContent_BeforeTurkeyMidnightUsesPreviousDay(t *testing.T) {
+	f := newFake()
+	d := testDeps(t, f)
+	d.Now = func() time.Time { return time.Date(2026, 10, 1, 20, 59, 0, 0, time.UTC) } // TR 1 Ekim 23:59
+	f.today = fullContent(274)
+	if res, err := DailyContent(context.Background(), d); err != nil || res.Written != 1 {
+		t.Fatalf("%+v %v", res, err)
+	}
+	if !d.Store.Exists(store.DailyContentPath(trNoon(2026, 10, 1))) {
+		t.Fatal("1 Ekim dosyası yazılmalıydı")
+	}
+}
+
+func TestDailyContent_DayMismatchWritesNothing(t *testing.T) {
+	f := newFake()
+	d := testDeps(t, f)
+	d.Now = func() time.Time { return time.Date(2026, 10, 1, 21, 5, 0, 0, time.UTC) }
+	f.today = fullContent(274) // Diyanet henüz 1 Ekim'de
+	res, err := DailyContent(context.Background(), d)
+	if err != nil || res.Written != 0 || res.Skipped != 1 {
+		t.Fatalf("%+v %v", res, err)
+	}
+	for _, day := range []time.Time{trNoon(2026, 10, 1), trNoon(2026, 10, 2)} {
+		if d.Store.Exists(store.DailyContentPath(day)) {
+			t.Fatalf("%s yazılmamalıydı", day.Format(model.DateLayout))
+		}
+	}
+}
+
+func TestDailyContent_ExistingTodaySkipsFetch(t *testing.T) {
+	f := newFake()
+	d := testDeps(t, f)
+	d.Now = func() time.Time { return time.Date(2026, 10, 1, 21, 5, 0, 0, time.UTC) }
+	if err := d.Store.WriteJSON(store.DailyContentPath(trNoon(2026, 10, 2)), fullContent(275)); err != nil {
+		t.Fatal(err)
+	}
+	f.today = fullContent(275)
+	res, err := DailyContent(context.Background(), d)
+	if err != nil || res.Skipped != 1 || f.calls["daily"] != 0 {
+		t.Fatalf("%+v %v calls=%d", res, err, f.calls["daily"])
+	}
+}
+
+func TestDailyContent_IncompleteRejected(t *testing.T) {
+	f := newFake()
+	d := testDeps(t, f)
+	d.Now = func() time.Time { return time.Date(2026, 10, 1, 21, 5, 0, 0, time.UTC) }
+	f.today = fullContent(275)
+	f.today.Hadith = ""
+	res, err := DailyContent(context.Background(), d)
+	if err != nil || res.Rejected != 1 || res.Written != 0 {
+		t.Fatalf("%+v %v", res, err)
+	}
+	if d.Store.Exists(store.DailyContentPath(trNoon(2026, 10, 2))) {
+		t.Fatal("eksik içerik yazılmamalı")
+	}
+}
+
+func TestDailyContent_PrunesOlderThanSevenDays(t *testing.T) {
+	f := newFake()
+	d := testDeps(t, f)
+	d.Now = func() time.Time { return time.Date(2026, 10, 1, 21, 5, 0, 0, time.UTC) } // TR 2 Ekim
+	old := []time.Time{trNoon(2026, 9, 24), trNoon(2025, 12, 31)}
+	kept := []time.Time{trNoon(2026, 9, 25), trNoon(2026, 9, 30)}
+	for _, day := range append(append([]time.Time{}, old...), kept...) {
+		if err := d.Store.WriteJSON(store.DailyContentPath(day), fullContent(day.YearDay())); err != nil {
+			t.Fatal(err)
+		}
+	}
+	f.today = fullContent(275)
+	if _, err := DailyContent(context.Background(), d); err != nil {
+		t.Fatal(err)
+	}
+	for _, day := range old {
+		if d.Store.Exists(store.DailyContentPath(day)) {
+			t.Fatalf("%s silinmeliydi", day.Format(model.DateLayout))
+		}
+	}
+	for _, day := range kept {
+		if !d.Store.Exists(store.DailyContentPath(day)) {
+			t.Fatalf("%s kalmalıydı", day.Format(model.DateLayout))
+		}
+	}
+	if d.State.DailyContent.Days != 3 { // 25 Eylül, 30 Eylül, 2 Ekim
+		t.Fatalf("days=%d", d.State.DailyContent.Days)
 	}
 }
 
@@ -104,9 +192,18 @@ func TestDailyContent_UnsupportedSkips(t *testing.T) {
 	f := newFake()
 	f.unsupported = true
 	d := testDeps(t, f)
-	res, err := DailyContent(context.Background(), d, 7)
-	if err != nil || res.Skipped != 8 || res.Fetched != 0 {
+	res, err := DailyContent(context.Background(), d)
+	if err != nil || res.Skipped != 1 || res.Fetched != 0 {
 		t.Fatalf("%+v %v", res, err)
+	}
+}
+
+func TestDailyContent_QuotaStops(t *testing.T) {
+	f := newFake()
+	f.failWith = source.ErrQuotaExceeded
+	d := testDeps(t, f)
+	if _, err := DailyContent(context.Background(), d); !errors.Is(err, source.ErrQuotaExceeded) {
+		t.Fatal(err)
 	}
 }
 

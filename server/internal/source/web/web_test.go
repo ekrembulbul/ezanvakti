@@ -8,7 +8,6 @@ import (
 	"os"
 	"strings"
 	"testing"
-	"time"
 
 	"vakit/internal/source"
 )
@@ -167,7 +166,7 @@ func TestUnsupportedOperations(t *testing.T) {
 	if _, err := s.ReligiousDays(ctx, 2026); !errors.Is(err, source.ErrUnsupported) {
 		t.Fatal(err)
 	}
-	if _, err := s.DailyContent(ctx, time.Now()); !errors.Is(err, source.ErrUnsupported) {
+	if _, err := s.DailyContent(ctx); !errors.Is(err, source.ErrUnsupported) {
 		t.Fatal(err)
 	}
 	if s.Name() != "web" {

@@ -7,7 +7,9 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 )
@@ -92,6 +94,15 @@ func (s *Store) ReadJSON(rel string, v any) error {
 		return fmt.Errorf("store: decode %s: %w", rel, err)
 	}
 	return nil
+}
+
+// Remove, dosyayı siler; dosya yoksa hata vermez.
+func (s *Store) Remove(rel string) error {
+	err := os.Remove(s.full(rel))
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil
+	}
+	return err
 }
 
 func (s *Store) Exists(rel string) bool {

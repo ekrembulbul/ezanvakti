@@ -5,7 +5,6 @@ package source
 import (
 	"context"
 	"errors"
-	"time"
 
 	"vakit/internal/model"
 )
@@ -23,5 +22,6 @@ type Source interface {
 	CityDetail(ctx context.Context, cityID int) (*model.CityDetail, error)
 	PrayerTimes(ctx context.Context, cityID, year int) ([]model.Day, error)
 	ReligiousDays(ctx context.Context, year int) ([]model.ReligiousDay, error)
-	DailyContent(ctx context.Context, date time.Time) (*model.DailyContent, error)
+	// DailyContent, Diyanet'in o anki günlük ayet/hadis/duasını döner (tarihsiz uç).
+	DailyContent(ctx context.Context) (*model.DailyContent, error)
 }

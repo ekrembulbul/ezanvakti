@@ -173,7 +173,7 @@ func (s *Source) ReligiousDays(context.Context, int) ([]model.ReligiousDay, erro
 	return nil, source.ErrUnsupported
 }
 
-func (s *Source) DailyContent(context.Context, time.Time) (*model.DailyContent, error) {
+func (s *Source) DailyContent(context.Context) (*model.DailyContent, error) {
 	return nil, source.ErrUnsupported
 }
 

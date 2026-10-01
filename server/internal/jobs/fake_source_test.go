@@ -2,7 +2,6 @@ package jobs
 
 import (
 	"context"
-	"time"
 
 	"vakit/internal/model"
 	"vakit/internal/source"
@@ -18,7 +17,7 @@ type fakeSource struct {
 	details       map[int]*model.CityDetail
 	prayerTimes   map[string][]model.Day // store.CityYearKey
 	religiousDays map[int][]model.ReligiousDay
-	daily         map[string]*model.DailyContent
+	today         *model.DailyContent
 	failWith      error // nil değilse veri uçları bu hatayı döner
 	unsupported   bool  // CityDetail/ReligiousDays/DailyContent → ErrUnsupported
 	calls         map[string]int
@@ -27,7 +26,7 @@ type fakeSource struct {
 func newFake() *fakeSource {
 	return &fakeSource{name: "fake", states: map[int][]model.State{}, cities: map[int][]model.City{},
 		details: map[int]*model.CityDetail{}, prayerTimes: map[string][]model.Day{},
-		religiousDays: map[int][]model.ReligiousDay{}, daily: map[string]*model.DailyContent{}, calls: map[string]int{}}
+		religiousDays: map[int][]model.ReligiousDay{}, calls: map[string]int{}}
 }
 
 func (f *fakeSource) Name() string { return f.name }
@@ -74,7 +73,7 @@ func (f *fakeSource) ReligiousDays(_ context.Context, year int) ([]model.Religio
 	return f.religiousDays[year], f.failWith
 }
 
-func (f *fakeSource) DailyContent(_ context.Context, date time.Time) (*model.DailyContent, error) {
+func (f *fakeSource) DailyContent(context.Context) (*model.DailyContent, error) {
 	f.calls["daily"]++
 	if f.unsupported {
 		return nil, source.ErrUnsupported
@@ -82,5 +81,9 @@ func (f *fakeSource) DailyContent(_ context.Context, date time.Time) (*model.Dai
 	if f.failWith != nil {
 		return nil, f.failWith
 	}
-	return f.daily[date.Format(model.DateLayout)], nil
+	if f.today == nil {
+		return nil, nil
+	}
+	c := *f.today
+	return &c, nil
 }

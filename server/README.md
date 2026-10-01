@@ -30,7 +30,7 @@ Tasarım: `docs/superpowers/specs/2026-09-15-vakit-api-sunucu-design.md`.
     GET /v1/places/resolve?lat=41.17&lon=29.6  GPS → en yakın ilçe (60 km dışı: 404 NO_COVERAGE)
     GET /v1/prayer-times/{cityId}/{year}       yıllık vakitler + Hicri
     GET /v1/religious-days/{year}              dinî günler (API onayı sonrası)
-    GET /v1/daily-content/{YYYY-MM-DD}         günün ayet/hadis/duası (API onayı sonrası)
+    GET /v1/daily-content/{YYYY-MM-DD}         günün ayet/hadis/duası (Türkiye günü, son 7 gün)
     GET /v1/health
 
 Gizlilik: arama metni ve koordinat loglanmaz; koordinat ~100 m'ye yuvarlanır, saklanmaz.
@@ -41,7 +41,7 @@ Gizlilik: arama metni ve koordinat loglanmaz; koordinat ~100 m'ye yuvarlanır, s
     vakit sync places
     vakit sync prayer-times [--year Y]... [--batch N]
     vakit sync religious-days [--year Y]...
-    vakit sync daily-content [--ahead N]
+    vakit sync daily-content
     vakit sync quota          # yalnız awqat kaynağı
     vakit sync verify         # ağ yok; sorun varsa çıkış kodu 1
     vakit version
@@ -75,7 +75,10 @@ Sunucuda (`ezanvakti` kullanıcısı, docker grubunda, sudo yok) her dağıtım 
 
 Senkron işleri dağıtımda çalışmaz, `deploy/crontab` zamanlar (UTC): vakitler her gün 03:00
 (`VAKIT_SYNC_BATCH` kadar ilçe-yıl), yer listesi pazartesi, dinî günler ayın 1'i, `verify` pazar.
-`daily-content` yok: hesabın `Developer` rolü tarihli içerik ucuna yetkili değil (HTTP 403).
+`daily-content` Türkiye saatiyle 00:05–06:05 arası saat başı: tarihsiz `GET /api/DailyContent`
+ucu kullanılır (hesabın `Developer` rolü tarihli uca yetkili değil, HTTP 403). Gelen `dayOfYear`
+Türkiye günüyle eşleşmezse yazılmaz, sonraki saatte yeniden denenir; o günün dosyası varsa
+istek atılmaz. 7 günden eski günler silinir.
 
 Elle işlem (`ezanvakti` olarak, `~/vakit-api` içinde):
 

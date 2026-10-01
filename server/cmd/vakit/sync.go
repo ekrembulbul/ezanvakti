@@ -35,7 +35,7 @@ const syncUsage = `vakit sync <iş> [flags]
   places                                   ülke/il/ilçe listeleri (+ kıble, koordinat)
   prayer-times [--year Y]... [--batch N]   ilçe bazlı yıllık vakitler (varsayılan: bu yıl ve gelecek yıl)
   religious-days [--year Y]...             dinî günler
-  daily-content [--ahead N]                günün ayet/hadis/duası (varsayılan 7 gün ileri)
+  daily-content                            günün ayet/hadis/duası (Türkiye günü; son 7 gün tutulur)
   quota                                    Diyanet kota durumunu yazdırır (yalnız awqat kaynağı)
   verify                                   yayınlanmış dosyaları yeniden doğrular (ağ yok)
 `
@@ -169,11 +169,10 @@ func runSync(args []string, stdout, stderr io.Writer) int {
 	case "daily-content":
 		fs := flag.NewFlagSet("daily-content", flag.ContinueOnError)
 		fs.SetOutput(stderr)
-		ahead := fs.Int("ahead", 7, "kaç gün ileri")
 		if err := fs.Parse(rest); err != nil {
 			return 2
 		}
-		res, jobErr = jobs.DailyContent(ctx, deps, *ahead)
+		res, jobErr = jobs.DailyContent(ctx, deps)
 	default:
 		fmt.Fprintf(stderr, "bilinmeyen iş: %q\n\n%s", job, syncUsage)
 		return 2

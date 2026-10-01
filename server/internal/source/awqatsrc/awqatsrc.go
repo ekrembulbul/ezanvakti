@@ -113,12 +113,14 @@ func (s *Source) ReligiousDays(ctx context.Context, year int) ([]model.Religious
 	return out, nil
 }
 
-func (s *Source) DailyContent(ctx context.Context, date time.Time) (*model.DailyContent, error) {
-	rec, err := s.c.DailyContentByDate(ctx, date)
+// DailyContent, tarihsiz ucu kullanır: hesabın rolü tarihli uca (VerseHadithAndPrayer)
+// yetkili değil (403). Günü iş belirler; Date boş döner.
+func (s *Source) DailyContent(ctx context.Context) (*model.DailyContent, error) {
+	rec, err := s.c.DailyContent(ctx)
 	if err != nil {
 		return nil, wrap(err)
 	}
-	return &model.DailyContent{Date: date.Format(model.DateLayout), DayOfYear: rec.DayOfYear, Verse: rec.Verse,
+	return &model.DailyContent{DayOfYear: rec.DayOfYear, Verse: rec.Verse,
 		VerseSource: rec.VerseSource, Hadith: rec.Hadith, HadithSource: rec.HadithSource, Prayer: rec.Pray,
 		PrayerSource: rec.PraySource}, nil
 }
