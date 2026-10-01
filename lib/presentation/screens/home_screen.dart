@@ -5,12 +5,14 @@ import 'package:flutter/material.dart';
 import '../../core/models/location.dart';
 import '../../core/models/prayer_time.dart';
 import '../../core/utils/prayer_utils.dart';
+import '../../features/daily_content/domain/daily_content.dart';
 import '../widgets/common/app_surface.dart';
 import '../widgets/common/state_widgets.dart';
 import '../../features/ramadan/domain/ramadan_countdown.dart';
 import '../../features/prayer_times/domain/kerahat_times.dart';
 import '../../l10n/l10n_extensions.dart';
 import '../widgets/home/countdown_hero.dart';
+import '../widgets/home/daily_content_section.dart';
 import '../widgets/home/day_ruler.dart';
 import '../widgets/home/home_top_bar.dart';
 import '../widgets/home/kerahat_details_sheet.dart';
@@ -42,6 +44,9 @@ class HomeScreen extends StatefulWidget {
 
   final String? errorMessage;
 
+  /// Günün ayeti, hadisi ve duası; yalnız Türkçe arayüzde gösterilir.
+  final DailyContent? dailyContent;
+
   const HomeScreen({
     this.ramadanActive = false,
     super.key,
@@ -58,6 +63,7 @@ class HomeScreen extends StatefulWidget {
     this.isLoading = false,
     this.isRefreshing = false,
     this.errorMessage,
+    this.dailyContent,
   });
 
   @override
@@ -190,6 +196,11 @@ class _HomeScreenState extends State<HomeScreen> {
             currentPrayer: PrayerUtils.getCurrentPrayer(today),
           ),
           const SizedBox(height: 20),
+          if (widget.dailyContent case final content?
+              when Localizations.localeOf(context).languageCode == 'tr') ...[
+            DailyContentSection(content: content),
+            const SizedBox(height: 20),
+          ],
         ],
       ),
     );

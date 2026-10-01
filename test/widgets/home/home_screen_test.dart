@@ -1,5 +1,7 @@
 import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
+import 'package:ezanvakti/features/daily_content/domain/daily_content.dart';
+import 'package:ezanvakti/presentation/widgets/home/daily_content_section.dart';
 import 'package:ezanvakti/presentation/screens/home_screen.dart';
 import 'package:ezanvakti/presentation/widgets/home/prayer_grid.dart';
 import 'package:flutter/material.dart';
@@ -257,5 +259,46 @@ void main() {
 
     expect(find.byTooltip('أوقات الكراهة'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  group('Günün içeriği', () {
+    const content = DailyContent(
+      date: '2026-08-02',
+      verse: 'ayet',
+      verseSource: '(Nahl, 16/45)',
+      hadith: 'hadis',
+      hadithSource: '(Müslim)',
+      prayer: 'dua',
+    );
+
+    Widget home({DailyContent? dailyContent}) => HomeScreen(
+      location: _location,
+      todaysPrayerTime: _day(2),
+      tomorrowsPrayerTime: _day(3),
+      lastUpdateTime: DateTime(2026, 8, 2),
+      dailyContent: dailyContent,
+    );
+
+    testWidgets('Türkçede kartlar ızgaranın altında görünür', (tester) async {
+      await pumpHome(tester, home(dailyContent: content));
+      expect(find.byType(DailyContentSection), findsOneWidget);
+    });
+
+    testWidgets('İngilizcede kartlar görünmez', (tester) async {
+      tester.view.physicalSize = const Size(1206, 2622);
+      tester.view.devicePixelRatio = 3.0;
+      addTearDown(tester.view.reset);
+      await initializeDateFormatting('en', null);
+      await tester.pumpWidget(
+        wrapWithTheme(home(dailyContent: content), locale: const Locale('en')),
+      );
+      await tester.pump();
+      expect(find.byType(DailyContentSection), findsNothing);
+    });
+
+    testWidgets('içerik yoksa kartlar görünmez', (tester) async {
+      await pumpHome(tester, home());
+      expect(find.byType(DailyContentSection), findsNothing);
+    });
   });
 }

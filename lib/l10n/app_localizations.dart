@@ -3105,6 +3105,30 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'İlçe koordinatları © OpenStreetMap katkıcıları'**
   String get osmDistrictAttribution;
+
+  /// Ana sayfa kartı başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Günün Ayeti'**
+  String get dailyVerseTitle;
+
+  /// Ana sayfa kartı başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Günün Hadisi'**
+  String get dailyHadithTitle;
+
+  /// Ana sayfa kartı başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Günün Duası'**
+  String get dailyPrayerTitle;
+
+  /// Karta basılı tutunca metin panoya kopyalandı
+  ///
+  /// In tr, this message translates to:
+  /// **'Kopyalandı'**
+  String get dailyContentCopied;
 }
 
 class _AppLocalizationsDelegate

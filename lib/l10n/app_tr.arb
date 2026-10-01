@@ -2240,5 +2240,13 @@
   "actionSelect": "Seç",
   "@actionSelect": {"description": "Seçim düğmesi"},
   "osmDistrictAttribution": "İlçe koordinatları © OpenStreetMap katkıcıları",
-  "@osmDistrictAttribution": {"description": "Ayarlar > Bilgi altındaki atıf satırı"}
+  "@osmDistrictAttribution": {"description": "Ayarlar > Bilgi altındaki atıf satırı"},
+  "dailyVerseTitle": "Günün Ayeti",
+  "@dailyVerseTitle": {"description": "Ana sayfa kartı başlığı"},
+  "dailyHadithTitle": "Günün Hadisi",
+  "@dailyHadithTitle": {"description": "Ana sayfa kartı başlığı"},
+  "dailyPrayerTitle": "Günün Duası",
+  "@dailyPrayerTitle": {"description": "Ana sayfa kartı başlığı"},
+  "dailyContentCopied": "Kopyalandı",
+  "@dailyContentCopied": {"description": "Karta basılı tutunca metin panoya kopyalandı"}
 }

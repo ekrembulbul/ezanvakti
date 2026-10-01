@@ -500,5 +500,9 @@
   "migrationActiveCannotDelete": "The active location can't be deleted; pick a district.",
   "locationNeedsVerification": "This location needs its district verified. Connect to the internet and try again.",
   "actionSelect": "Select",
-  "osmDistrictAttribution": "District coordinates © OpenStreetMap contributors"
+  "osmDistrictAttribution": "District coordinates © OpenStreetMap contributors",
+  "dailyVerseTitle": "Verse of the Day",
+  "dailyHadithTitle": "Hadith of the Day",
+  "dailyPrayerTitle": "Prayer of the Day",
+  "dailyContentCopied": "Copied"
 }

@@ -14,6 +14,8 @@ import '../screens/mission_launcher.dart';
 import '../../core/models/location.dart';
 import '../../core/interfaces/local_storage.dart';
 import '../../core/utils/app_logger.dart';
+import '../../features/daily_content/domain/daily_content.dart';
+import '../../features/daily_content/domain/daily_content_repository.dart';
 import '../../features/prayer_times/domain/prayer_times_repository.dart';
 import '../../features/alarms/domain/alarms_manager.dart';
 import '../../features/notifications/domain/skip_manager.dart';
@@ -81,6 +83,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       _loadGeneralSettings();
       _refreshRamadanMode();
       _loadPrayerData();
+      unawaited(_loadDailyContent());
       _startLocationMonitoring();
       _scheduleMidnightRefresh();
       // Soguk acilis `resumed` yasam dongusu olayi uretmiyor: uygulama
@@ -127,6 +130,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     _midnightTimer = Timer(delayToNextMidnight(DateTime.now()), () {
       if (!mounted) return;
       _loadPrayerData();
+      unawaited(_loadDailyContent());
       _scheduleMidnightRefresh();
       // Gün dönünce Ramazan'a girilmiş ya da çıkılmış olabilir.
       _refreshRamadanMode();
@@ -162,6 +166,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       // Gün dönümü timer'ı da askıdayken tetiklenmez: uygulama gece açık
       // bırakılıp sabah öne getirilirse veri dünde kalırdı.
       _scheduleMidnightRefresh();
+      unawaited(_loadDailyContent());
       final appState = context.read<AppState>();
       if (isPrayerDataStale(appState.todaysPrayerTime, DateTime.now())) {
         _loadPrayerData();
@@ -170,6 +175,26 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
 
       _rescheduleOnResume();
     }
+  }
+
+  DailyContent? _dailyContent;
+
+  /// Günün içeriği yalnız Türkçe arayüzde istenir; hata vakit akışını
+  /// etkilemez (depo fırlatmaz).
+  Future<void> _loadDailyContent() async {
+    if (!mounted ||
+        Localizations.localeOf(context).languageCode != 'tr' ||
+        !ServiceLocator().isRegistered<DailyContentRepository>()) {
+      return;
+    }
+    final content = await ServiceLocator().get<DailyContentRepository>().load();
+    if (!mounted) return;
+    setState(
+      () => _dailyContent = DailyContentRepository.visible(
+        content,
+        DateTime.now(),
+      ),
+    );
   }
 
   Future<void> _rescheduleOnResume() async {
@@ -646,6 +671,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           builder: (context, appState, child) {
             return HomeScreen(
               ramadanActive: _ramadanActive,
+              dailyContent: _dailyContent,
               location: appState.activeLocation!,
               todaysPrayerTime: appState.todaysPrayerTime,
               tomorrowsPrayerTime: appState.tomorrowsPrayerTime,

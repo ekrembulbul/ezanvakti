@@ -43,17 +43,18 @@ bilgilerini **toplamaz**.
 
 ## Sunucu ve veri kaynakları
 
-Vakit tabloları, il/ilçe araması ve konum çözümleme için yalnızca **bize ait
-vakit sunucusuna** istek gönderilir. Sunucuya giden veriler:
+Vakit tabloları, il/ilçe araması, konum çözümleme ve günün içeriği için yalnızca
+**bize ait vakit sunucusuna** istek gönderilir. Sunucuya giden veriler:
 
 - İlçe araması için yazdığınız metin,
 - Konum çözümleme için yaklaşık (~100 m) koordinat,
-- Vakit tablosu için seçilen ilçenin kimliği.
+- Vakit tablosu için seçilen ilçenin kimliği,
+- Günün ayeti, hadisi ve duası için yalnız tarih.
 
 Sunucu bu istekleri saklamaz, günlüğe yazmaz ve kimliğinizle ilişkilendirmez;
 hesap veya cihaz kimliği gönderilmez. Bağlantı HTTPS ile şifrelenir.
 
-Vakit tabloları **Diyanet İşleri Başkanlığı**'ndan alınır. Sunucudaki ilçe
+Vakit tabloları ve günün içeriği **Diyanet İşleri Başkanlığı**'ndan alınır. Sunucudaki ilçe
 koordinatları © OpenStreetMap katkıcıları. Üçüncü taraf bir vakit ya da adres
 servisine veri gönderilmez.
 

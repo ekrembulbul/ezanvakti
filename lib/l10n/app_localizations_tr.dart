@@ -1731,4 +1731,16 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get osmDistrictAttribution =>
       'İlçe koordinatları © OpenStreetMap katkıcıları';
+
+  @override
+  String get dailyVerseTitle => 'Günün Ayeti';
+
+  @override
+  String get dailyHadithTitle => 'Günün Hadisi';
+
+  @override
+  String get dailyPrayerTitle => 'Günün Duası';
+
+  @override
+  String get dailyContentCopied => 'Kopyalandı';
 }

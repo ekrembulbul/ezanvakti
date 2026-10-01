@@ -500,5 +500,9 @@
   "migrationActiveCannotDelete": "لا يمكن حذف الموقع النشط؛ اختر قضاءً.",
   "locationNeedsVerification": "يحتاج هذا الموقع إلى التحقق من قضائه. اتصل بالإنترنت وحاول مجددًا.",
   "actionSelect": "اختيار",
-  "osmDistrictAttribution": "إحداثيات الأقضية © مساهمو OpenStreetMap"
+  "osmDistrictAttribution": "إحداثيات الأقضية © مساهمو OpenStreetMap",
+  "dailyVerseTitle": "آية اليوم",
+  "dailyHadithTitle": "حديث اليوم",
+  "dailyPrayerTitle": "دعاء اليوم",
+  "dailyContentCopied": "تم النسخ"
 }

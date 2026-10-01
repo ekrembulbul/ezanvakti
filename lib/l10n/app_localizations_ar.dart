@@ -1721,4 +1721,16 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get osmDistrictAttribution =>
       'إحداثيات الأقضية © مساهمو OpenStreetMap';
+
+  @override
+  String get dailyVerseTitle => 'آية اليوم';
+
+  @override
+  String get dailyHadithTitle => 'حديث اليوم';
+
+  @override
+  String get dailyPrayerTitle => 'دعاء اليوم';
+
+  @override
+  String get dailyContentCopied => 'تم النسخ';
 }

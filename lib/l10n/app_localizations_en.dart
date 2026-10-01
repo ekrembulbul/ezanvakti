@@ -1737,4 +1737,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get osmDistrictAttribution =>
       'District coordinates © OpenStreetMap contributors';
+
+  @override
+  String get dailyVerseTitle => 'Verse of the Day';
+
+  @override
+  String get dailyHadithTitle => 'Hadith of the Day';
+
+  @override
+  String get dailyPrayerTitle => 'Prayer of the Day';
+
+  @override
+  String get dailyContentCopied => 'Copied';
 }
