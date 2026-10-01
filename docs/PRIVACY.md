@@ -57,7 +57,9 @@ Vakit tabloları, il/ilçe araması, konum çözümleme ve günün içeriği iç
 Sunucu bu istekleri saklamaz, günlüğe yazmaz ve kimliğinizle ilişkilendirmez;
 hesap veya cihaz kimliği gönderilmez. Bağlantı HTTPS ile şifrelenir.
 
-Vakit tabloları ve günün içeriği **Diyanet İşleri Başkanlığı**'ndan alınır. Sunucudaki ilçe
+Vakit tabloları, günün içeriği ve hutbeler **Diyanet İşleri Başkanlığı**'ndan
+(hutbeler Diyanet Haber ve Din Hizmetleri yayınlarından) alınır; hutbe istekleri
+kişisel veri taşımaz. Sunucudaki ilçe
 koordinatları © OpenStreetMap katkıcıları. Üçüncü taraf bir vakit ya da adres
 servisine veri gönderilmez.
 

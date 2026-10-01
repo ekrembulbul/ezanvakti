@@ -175,7 +175,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get toolsPrivacyNote =>
-      'Qibla, calendar, tracking and dhikr counter work on your device. Mosque search opens in your maps app.';
+      'Qibla, calendar, tracking and dhikr counter work on your device. Sermons come from our server; mosque search opens in your maps app.';
 
   @override
   String get qiblaTitle => 'Qibla';
@@ -1799,4 +1799,53 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mapAppAsk => 'Ask each time';
+
+  @override
+  String get toolsReadingSection => 'Reading';
+
+  @override
+  String get toolsSermons => 'Sermons';
+
+  @override
+  String get toolsSermonsHint => 'Weekly sermon by Diyanet';
+
+  @override
+  String get sermonsTitle => 'Sermons';
+
+  @override
+  String get sermonKindFriday => 'Friday';
+
+  @override
+  String get sermonKindEid => 'Eid';
+
+  @override
+  String get sermonThisWeek => 'This week\'s sermon';
+
+  @override
+  String get sermonEid => 'Eid sermon';
+
+  @override
+  String get sermonRead => 'Read';
+
+  @override
+  String get sermonSource => 'Source: Diyanet Haber';
+
+  @override
+  String get sermonFootnotes => 'Notes';
+
+  @override
+  String get sermonTextSmaller => 'Smaller text';
+
+  @override
+  String get sermonTextLarger => 'Larger text';
+
+  @override
+  String get sermonOpenFailed => 'Couldn\'t open the page';
+
+  @override
+  String get sermonsEmpty => 'No sermons yet';
+
+  @override
+  String get sermonsLoadFailed =>
+      'Couldn\'t load sermons. Check your internet connection.';
 }

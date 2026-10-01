@@ -6,6 +6,7 @@ import '../../core/models/location.dart';
 import '../../core/models/prayer_time.dart';
 import '../../core/utils/prayer_utils.dart';
 import '../../features/daily_content/domain/daily_content.dart';
+import '../../features/sermons/domain/sermon.dart';
 import '../widgets/common/app_surface.dart';
 import '../widgets/common/state_widgets.dart';
 import '../../features/ramadan/domain/ramadan_countdown.dart';
@@ -13,6 +14,8 @@ import '../../features/prayer_times/domain/kerahat_times.dart';
 import '../../l10n/l10n_extensions.dart';
 import '../widgets/home/countdown_hero.dart';
 import '../widgets/home/daily_content_section.dart';
+import '../widgets/home/sermon_card.dart';
+import '../widgets/sermons/sermon_presentation.dart';
 import '../widgets/home/day_ruler.dart';
 import '../widgets/home/home_top_bar.dart';
 import '../widgets/home/kerahat_details_sheet.dart';
@@ -47,6 +50,11 @@ class HomeScreen extends StatefulWidget {
   /// Günün ayeti, hadisi ve duası; yalnız Türkçe arayüzde gösterilir.
   final DailyContent? dailyContent;
 
+  /// Hutbe günü ve bir gün öncesinde öne çıkan hutbe; kart arayüz dilinde
+  /// başlığı varsa çizilir.
+  final SermonSummary? featuredSermon;
+  final ValueChanged<SermonSummary>? onOpenSermon;
+
   const HomeScreen({
     this.ramadanActive = false,
     super.key,
@@ -64,6 +72,8 @@ class HomeScreen extends StatefulWidget {
     this.isRefreshing = false,
     this.errorMessage,
     this.dailyContent,
+    this.featuredSermon,
+    this.onOpenSermon,
   });
 
   @override
@@ -196,6 +206,22 @@ class _HomeScreenState extends State<HomeScreen> {
             currentPrayer: PrayerUtils.getCurrentPrayer(today),
           ),
           const SizedBox(height: 20),
+          if ((widget.featuredSermon, widget.onOpenSermon) case (
+            final sermon?,
+            final onOpen?,
+          ))
+            if (sermonTitleFor(
+                  sermon,
+                  Localizations.localeOf(context).languageCode,
+                )
+                case final title?) ...[
+              SermonCard(
+                sermon: sermon,
+                title: title,
+                onOpen: () => onOpen(sermon),
+              ),
+              const SizedBox(height: 20),
+            ],
           if (widget.dailyContent case final content?
               when Localizations.localeOf(context).languageCode == 'tr') ...[
             DailyContentSection(content: content),

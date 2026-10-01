@@ -23,7 +23,15 @@ class ToolsScreen extends StatelessWidget {
   /// Yakındaki camileri harita uygulamasında arar; null ise satır çizilmez.
   final VoidCallback? onFindMosques;
 
-  const ToolsScreen({super.key, this.onOpenCalendar, this.onFindMosques});
+  /// Hutbe listesini açar; null ise bölüm çizilmez.
+  final VoidCallback? onOpenSermons;
+
+  const ToolsScreen({
+    super.key,
+    this.onOpenCalendar,
+    this.onFindMosques,
+    this.onOpenSermons,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -49,6 +57,22 @@ class ToolsScreen extends StatelessWidget {
                     title: context.l10n.toolsCalendar,
                     subtitle: context.l10n.toolsCalendarHint,
                     onTap: onOpenCalendar,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 26),
+            ],
+            if (onOpenSermons != null) ...[
+              SectionLabel(context.l10n.toolsReadingSection),
+              const SizedBox(height: 10),
+              GroupedList(
+                children: [
+                  _row(
+                    context,
+                    icon: Icons.menu_book_rounded,
+                    title: context.l10n.toolsSermons,
+                    subtitle: context.l10n.toolsSermonsHint,
+                    onTap: onOpenSermons,
                   ),
                 ],
               ),

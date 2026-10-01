@@ -421,7 +421,7 @@ abstract class AppLocalizations {
   /// Alt bilgi
   ///
   /// In tr, this message translates to:
-  /// **'Kıble, takvim, takip ve zikirmatik cihazında çalışır. Cami araması harita uygulamanda açılır.'**
+  /// **'Kıble, takvim, takip ve zikirmatik cihazında çalışır. Hutbeler sunucumuzdan gelir; cami araması harita uygulamanda açılır.'**
   String get toolsPrivacyNote;
 
   /// Ekran başlığı
@@ -3219,6 +3219,102 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Her seferinde sor'**
   String get mapAppAsk;
+
+  /// Araçlar bölüm başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Okuma'**
+  String get toolsReadingSection;
+
+  /// Araç adı
+  ///
+  /// In tr, this message translates to:
+  /// **'Hutbe'**
+  String get toolsSermons;
+
+  /// Araç açıklaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Diyanet\'in haftalık hutbesi'**
+  String get toolsSermonsHint;
+
+  /// Hutbe listesi ekran başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Hutbeler'**
+  String get sermonsTitle;
+
+  /// Hutbe türü
+  ///
+  /// In tr, this message translates to:
+  /// **'Cuma'**
+  String get sermonKindFriday;
+
+  /// Hutbe türü
+  ///
+  /// In tr, this message translates to:
+  /// **'Bayram'**
+  String get sermonKindEid;
+
+  /// Ana sayfa kartı etiketi
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu haftanın hutbesi'**
+  String get sermonThisWeek;
+
+  /// Ana sayfa kartı etiketi
+  ///
+  /// In tr, this message translates to:
+  /// **'Bayram hutbesi'**
+  String get sermonEid;
+
+  /// Hutbeyi açan düğme
+  ///
+  /// In tr, this message translates to:
+  /// **'Oku'**
+  String get sermonRead;
+
+  /// Okuma ekranı kaynak bağlantısı
+  ///
+  /// In tr, this message translates to:
+  /// **'Kaynak: Diyanet Haber'**
+  String get sermonSource;
+
+  /// Okuma ekranı dipnot başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Dipnotlar'**
+  String get sermonFootnotes;
+
+  /// Okuma ekranı düğmesi
+  ///
+  /// In tr, this message translates to:
+  /// **'Yazıyı küçült'**
+  String get sermonTextSmaller;
+
+  /// Okuma ekranı düğmesi
+  ///
+  /// In tr, this message translates to:
+  /// **'Yazıyı büyüt'**
+  String get sermonTextLarger;
+
+  /// Hata mesajı
+  ///
+  /// In tr, this message translates to:
+  /// **'Sayfa açılamadı'**
+  String get sermonOpenFailed;
+
+  /// Boş liste
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz hutbe yok'**
+  String get sermonsEmpty;
+
+  /// Hata mesajı
+  ///
+  /// In tr, this message translates to:
+  /// **'Hutbeler yüklenemedi. İnternet bağlantınızı kontrol edin.'**
+  String get sermonsLoadFailed;
 }
 
 class _AppLocalizationsDelegate

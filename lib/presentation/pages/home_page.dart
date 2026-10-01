@@ -15,6 +15,12 @@ import '../screens/mission_launcher.dart';
 import '../../core/models/location.dart';
 import '../../core/interfaces/local_storage.dart';
 import '../../core/utils/app_logger.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+import '../../features/sermons/domain/sermon.dart';
+import '../../features/sermons/domain/sermon_repository.dart';
+import '../screens/sermon_list_screen.dart';
+import '../widgets/sermons/sermon_presentation.dart';
 import '../services/nearby_mosques_launcher.dart';
 import '../widgets/tools/nearby_mosques_flow.dart';
 import '../../features/daily_content/domain/daily_content.dart';
@@ -87,6 +93,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       _refreshRamadanMode();
       _loadPrayerData();
       unawaited(_loadDailyContent());
+      unawaited(_loadSermons());
       _startLocationMonitoring();
       _scheduleMidnightRefresh();
       // Soguk acilis `resumed` yasam dongusu olayi uretmiyor: uygulama
@@ -134,6 +141,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       if (!mounted) return;
       _loadPrayerData();
       unawaited(_loadDailyContent());
+      unawaited(_loadSermons());
       _scheduleMidnightRefresh();
       // Gün dönünce Ramazan'a girilmiş ya da çıkılmış olabilir.
       _refreshRamadanMode();
@@ -170,6 +178,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
       // bırakılıp sabah öne getirilirse veri dünde kalırdı.
       _scheduleMidnightRefresh();
       unawaited(_loadDailyContent());
+      unawaited(_loadSermons());
       final appState = context.read<AppState>();
       if (isPrayerDataStale(appState.todaysPrayerTime, DateTime.now())) {
         _loadPrayerData();
@@ -181,6 +190,46 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
   }
 
   DailyContent? _dailyContent;
+
+  SermonSummary? _featuredSermon;
+
+  /// Hutbe kartı için liste; hata vakit akışını etkilemez.
+  Future<void> _loadSermons() async {
+    if (!mounted || !ServiceLocator().isRegistered<SermonRepository>()) return;
+    try {
+      final index = await ServiceLocator().get<SermonRepository>().index();
+      if (!mounted) return;
+      setState(
+        () =>
+            _featuredSermon = SermonRepository.featured(index, DateTime.now()),
+      );
+    } catch (e, s) {
+      AppLogger().warning('Sermon index load failed', e, s);
+    }
+  }
+
+  Future<bool> _openUrl(Uri uri) =>
+      launchUrl(uri, mode: LaunchMode.inAppBrowserView);
+
+  void _openSermons() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => SermonListScreen(
+          repository: ServiceLocator().get<SermonRepository>(),
+          openUrl: _openUrl,
+        ),
+      ),
+    );
+  }
+
+  void _openFeaturedSermon(SermonSummary sermon) {
+    openSermon(
+      context,
+      sermon: sermon,
+      repository: ServiceLocator().get<SermonRepository>(),
+      openUrl: _openUrl,
+    );
+  }
 
   void _findMosques() {
     final location = context.read<AppState>().activeLocation;
@@ -689,6 +738,8 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
             return HomeScreen(
               ramadanActive: _ramadanActive,
               dailyContent: _dailyContent,
+              featuredSermon: _featuredSermon,
+              onOpenSermon: _openFeaturedSermon,
               location: appState.activeLocation!,
               todaysPrayerTime: appState.todaysPrayerTime,
               tomorrowsPrayerTime: appState.tomorrowsPrayerTime,
@@ -705,7 +756,11 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
           },
         ),
         const RemindersScreen(),
-        ToolsScreen(onOpenCalendar: _openCalendar, onFindMosques: _findMosques),
+        ToolsScreen(
+          onOpenCalendar: _openCalendar,
+          onFindMosques: _findMosques,
+          onOpenSermons: _openSermons,
+        ),
       ],
     );
   }

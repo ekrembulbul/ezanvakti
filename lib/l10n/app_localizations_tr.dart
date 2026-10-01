@@ -174,7 +174,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get toolsPrivacyNote =>
-      'Kıble, takvim, takip ve zikirmatik cihazında çalışır. Cami araması harita uygulamanda açılır.';
+      'Kıble, takvim, takip ve zikirmatik cihazında çalışır. Hutbeler sunucumuzdan gelir; cami araması harita uygulamanda açılır.';
 
   @override
   String get qiblaTitle => 'Kıble';
@@ -1792,4 +1792,53 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get mapAppAsk => 'Her seferinde sor';
+
+  @override
+  String get toolsReadingSection => 'Okuma';
+
+  @override
+  String get toolsSermons => 'Hutbe';
+
+  @override
+  String get toolsSermonsHint => 'Diyanet\'in haftalık hutbesi';
+
+  @override
+  String get sermonsTitle => 'Hutbeler';
+
+  @override
+  String get sermonKindFriday => 'Cuma';
+
+  @override
+  String get sermonKindEid => 'Bayram';
+
+  @override
+  String get sermonThisWeek => 'Bu haftanın hutbesi';
+
+  @override
+  String get sermonEid => 'Bayram hutbesi';
+
+  @override
+  String get sermonRead => 'Oku';
+
+  @override
+  String get sermonSource => 'Kaynak: Diyanet Haber';
+
+  @override
+  String get sermonFootnotes => 'Dipnotlar';
+
+  @override
+  String get sermonTextSmaller => 'Yazıyı küçült';
+
+  @override
+  String get sermonTextLarger => 'Yazıyı büyüt';
+
+  @override
+  String get sermonOpenFailed => 'Sayfa açılamadı';
+
+  @override
+  String get sermonsEmpty => 'Henüz hutbe yok';
+
+  @override
+  String get sermonsLoadFailed =>
+      'Hutbeler yüklenemedi. İnternet bağlantınızı kontrol edin.';
 }

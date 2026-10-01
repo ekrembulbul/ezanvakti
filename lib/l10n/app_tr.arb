@@ -191,7 +191,7 @@
   "@toolsDhikrHint": {
     "description": "Araç açıklaması"
   },
-  "toolsPrivacyNote": "Kıble, takvim, takip ve zikirmatik cihazında çalışır. Cami araması harita uygulamanda açılır.",
+  "toolsPrivacyNote": "Kıble, takvim, takip ve zikirmatik cihazında çalışır. Hutbeler sunucumuzdan gelir; cami araması harita uygulamanda açılır.",
   "@toolsPrivacyNote": {
     "description": "Alt bilgi"
   },
@@ -2278,5 +2278,37 @@
   "mapAppYandex": "Yandex Haritalar",
   "@mapAppYandex": {"description": "Harita uygulaması adı"},
   "mapAppAsk": "Her seferinde sor",
-  "@mapAppAsk": {"description": "Harita uygulaması seçilmemiş"}
+  "@mapAppAsk": {"description": "Harita uygulaması seçilmemiş"},
+  "toolsReadingSection": "Okuma",
+  "@toolsReadingSection": {"description": "Araçlar bölüm başlığı"},
+  "toolsSermons": "Hutbe",
+  "@toolsSermons": {"description": "Araç adı"},
+  "toolsSermonsHint": "Diyanet'in haftalık hutbesi",
+  "@toolsSermonsHint": {"description": "Araç açıklaması"},
+  "sermonsTitle": "Hutbeler",
+  "@sermonsTitle": {"description": "Hutbe listesi ekran başlığı"},
+  "sermonKindFriday": "Cuma",
+  "@sermonKindFriday": {"description": "Hutbe türü"},
+  "sermonKindEid": "Bayram",
+  "@sermonKindEid": {"description": "Hutbe türü"},
+  "sermonThisWeek": "Bu haftanın hutbesi",
+  "@sermonThisWeek": {"description": "Ana sayfa kartı etiketi"},
+  "sermonEid": "Bayram hutbesi",
+  "@sermonEid": {"description": "Ana sayfa kartı etiketi"},
+  "sermonRead": "Oku",
+  "@sermonRead": {"description": "Hutbeyi açan düğme"},
+  "sermonSource": "Kaynak: Diyanet Haber",
+  "@sermonSource": {"description": "Okuma ekranı kaynak bağlantısı"},
+  "sermonFootnotes": "Dipnotlar",
+  "@sermonFootnotes": {"description": "Okuma ekranı dipnot başlığı"},
+  "sermonTextSmaller": "Yazıyı küçült",
+  "@sermonTextSmaller": {"description": "Okuma ekranı düğmesi"},
+  "sermonTextLarger": "Yazıyı büyüt",
+  "@sermonTextLarger": {"description": "Okuma ekranı düğmesi"},
+  "sermonOpenFailed": "Sayfa açılamadı",
+  "@sermonOpenFailed": {"description": "Hata mesajı"},
+  "sermonsEmpty": "Henüz hutbe yok",
+  "@sermonsEmpty": {"description": "Boş liste"},
+  "sermonsLoadFailed": "Hutbeler yüklenemedi. İnternet bağlantınızı kontrol edin.",
+  "@sermonsLoadFailed": {"description": "Hata mesajı"}
 }

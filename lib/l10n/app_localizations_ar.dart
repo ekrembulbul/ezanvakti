@@ -174,7 +174,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get toolsPrivacyNote =>
-      'تعمل القبلة والتقويم والمتابعة والمسبحة على جهازك. يُفتح البحث عن المساجد في تطبيق الخرائط.';
+      'تعمل القبلة والتقويم والمتابعة والمسبحة على جهازك. تأتي الخطب من خادمنا، ويُفتح البحث عن المساجد في تطبيق الخرائط.';
 
   @override
   String get qiblaTitle => 'القبلة';
@@ -1782,4 +1782,53 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get mapAppAsk => 'اسأل في كل مرة';
+
+  @override
+  String get toolsReadingSection => 'القراءة';
+
+  @override
+  String get toolsSermons => 'الخطب';
+
+  @override
+  String get toolsSermonsHint => 'الخطبة الأسبوعية من رئاسة الشؤون الدينية';
+
+  @override
+  String get sermonsTitle => 'الخطب';
+
+  @override
+  String get sermonKindFriday => 'الجمعة';
+
+  @override
+  String get sermonKindEid => 'العيد';
+
+  @override
+  String get sermonThisWeek => 'خطبة هذا الأسبوع';
+
+  @override
+  String get sermonEid => 'خطبة العيد';
+
+  @override
+  String get sermonRead => 'اقرأ';
+
+  @override
+  String get sermonSource => 'المصدر: Diyanet Haber';
+
+  @override
+  String get sermonFootnotes => 'الحواشي';
+
+  @override
+  String get sermonTextSmaller => 'تصغير النص';
+
+  @override
+  String get sermonTextLarger => 'تكبير النص';
+
+  @override
+  String get sermonOpenFailed => 'تعذّر فتح الصفحة';
+
+  @override
+  String get sermonsEmpty => 'لا توجد خطب بعد';
+
+  @override
+  String get sermonsLoadFailed =>
+      'تعذّر تحميل الخطب. تحقق من اتصالك بالإنترنت.';
 }
