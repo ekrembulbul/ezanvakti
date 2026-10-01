@@ -37,15 +37,14 @@ struct RectangularView: View {
                     .widgetAccentable()
             }
 
-            HStack(spacing: 4) {
-                Text(
-                    isTomorrow
-                        ? "\(entry.labels?.tomorrow ?? "Yarın") \(next.name)"
-                        : next.name)
+            // Ad, widget'taki gibi büyük harf ve saatten küçük, aynı taban
+            // çizgisinde; saat 17 kalır (2026-10-01).
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(name(next: next, isTomorrow: isTomorrow))
+                    .font(.system(size: 12, weight: .semibold))
                 Text(TimeFormatting.clock(next.date, preference: entry.timeFormat))
-                    .monospacedDigit()
+                    .font(.system(size: 17, weight: .semibold).monospacedDigit())
             }
-            .font(.system(size: 17, weight: .semibold))
             .lineLimit(1)
             .minimumScaleFactor(0.8)
 
@@ -58,5 +57,10 @@ struct RectangularView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment.frame)
         .multilineTextAlignment(alignment.textAlignment)
+    }
+
+    private func name(next: PrayerSlot, isTomorrow: Bool) -> String {
+        (isTomorrow ? "\((entry.labels?.tomorrow ?? "Yarın").uppercased()) · " : "")
+            + next.name.uppercased(with: Locale(identifier: "tr_TR"))
     }
 }
