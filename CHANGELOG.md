@@ -4,7 +4,7 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
-## [Unreleased]
+## [0.29.0] - 2026-10-01
 
 ### Eklendi
 - **Günün ayeti, hadisi ve duası:** Ana sayfada vakit kutularının altında Diyanet'in günlük içeriği üç kart olarak; tam metin ve kaynak, her kartta paylaş, karta basılı tutunca kopyala. Yalnız Türkçe arayüzde görünür; içerik alınamazsa en son alınan (en çok 7 günlük) gösterilir.
