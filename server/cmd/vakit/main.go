@@ -14,7 +14,7 @@ const usage = `vakit — Diyanet vakit verisi sunucusu
 
 Kullanım:
   vakit serve                  HTTP sunucusunu başlatır (VAKIT_ADDR, VAKIT_DATA_DIR)
-  vakit sync <iş> [flags]      Diyanet'ten veri çeker: places | prayer-times | religious-days | daily-content | quota | verify
+  vakit sync <iş> [flags]      Diyanet'ten veri çeker: places | prayer-times | religious-days | daily-content | sermons | quota | verify
   vakit version                sürümü yazar
 `
 

@@ -1,8 +1,8 @@
 # vakit-api
 
 Diyanet Awqat Salah verisini (yer listeleri, ilçe bazlı yıllık vakitler + Hicri, dinî günler,
-günlük içerik) çekip doğrulayan ve `/v1` sözleşmesiyle sunan Go sunucusu.
-Tasarım: `docs/superpowers/specs/2026-09-15-vakit-api-sunucu-design.md`.
+günlük içerik) ve Diyanet'in cuma/bayram hutbelerini çekip doğrulayan ve `/v1` sözleşmesiyle sunan Go sunucusu.
+Tasarım: `docs/superpowers/specs/2026-09-15-vakit-api-sunucu-design.md`; hutbe: `docs/superpowers/specs/2026-10-01-hutbe-design.md`.
 
 ## Geliştirme
 
@@ -31,6 +31,8 @@ Tasarım: `docs/superpowers/specs/2026-09-15-vakit-api-sunucu-design.md`.
     GET /v1/prayer-times/{cityId}/{year}       yıllık vakitler + Hicri
     GET /v1/religious-days/{year}              dinî günler (API onayı sonrası)
     GET /v1/daily-content/{YYYY-MM-DD}         günün ayet/hadis/duası (Türkiye günü, son 7 gün)
+    GET /v1/sermons                            son 20 cuma/bayram hutbesi, tarih azalan; en/ar PDF bağlantıları (15 dk cache)
+    GET /v1/sermons/{id}                       Türkçe hutbe metni, id `2026-09-25-cuma` biçiminde (1 saat cache; bilinmeyen 404)
     GET /v1/health
 
 Gizlilik: arama metni ve koordinat loglanmaz; koordinat ~100 m'ye yuvarlanır, saklanmaz.
@@ -42,6 +44,7 @@ Gizlilik: arama metni ve koordinat loglanmaz; koordinat ~100 m'ye yuvarlanır, s
     vakit sync prayer-times [--year Y]... [--batch N]
     vakit sync religious-days [--year Y]...
     vakit sync daily-content
+    vakit sync sermons        # Diyanet Haber + Din Hizmetleri; VAKIT_SOURCE'tan bağımsız
     vakit sync quota          # yalnız awqat kaynağı
     vakit sync verify         # ağ yok; sorun varsa çıkış kodu 1
     vakit version
@@ -79,11 +82,22 @@ Senkron işleri dağıtımda çalışmaz, `deploy/crontab` zamanlar (UTC): vakit
 ucu kullanılır (hesabın `Developer` rolü tarihli uca yetkili değil, HTTP 403). Gelen `dayOfYear`
 Türkiye günüyle eşleşmezse yazılmaz, sonraki saatte yeniden denenir; o günün dosyası varsa
 istek atılmaz. 7 günden eski günler silinir.
+`sermons` her gün TR 22:00 (UTC 19:00), ek olarak perşembe 17:00 ve cuma 11:30 (UTC 14:00 / 08:30):
+Diyanet Haber hutbe RSS'i (`/rss/hutbeler`, son 20 kayıt) okunur; metni olan ve günü geçmiş hutbenin
+sayfası yeniden istenmez, hutbe günü ve öncesinde (cuma sabahı düzeltmeleri için) her çalışmada istenir.
+Türkçe metin sayfadaki JSON-LD `articleBody`'den alınır, değiştirilmez; 500 karakterden kısa ya da
+çözülemeyen sayfada eski metin korunur. İngilizce/Arapça PDF adresleri Din Hizmetleri ana sayfası ve hutbe
+sayfasından (`/Detay/…`) bulunur, PDF kopyalanmaz; eksikse hutbe tarihinden 7 gün geçene kadar yeniden aranır.
+RSS okunamazsa ya da hiç hutbe çözülemezse dosyalara dokunulmaz, iş çıkış kodu 1 ile biter. Listeden düşen
+hutbenin metni silinir. İstekler arası en az 1 sn, `User-Agent: vakit-api/1.0 (+https://ezanvakti.ekrembulbul.me)`;
+Din Hizmetleri'nin robots.txt ile kapattığı `/kategoriler/` hiç istenmez. Sağlık ucundaki `datasets.sermons`
+(`updatedAt`, `count`) dizin dosyasından okunur.
 
 Elle işlem (`ezanvakti` olarak, `~/vakit-api` içinde):
 
     docker compose run --rm -T vakit sync places              # ilk kurulumda cron'u beklemeden
     docker compose run --rm -T vakit sync prayer-times --batch 150
+    docker compose run --rm -T vakit sync sermons             # ilk hutbe yüklemesi (~40 istek, ~1 dk)
     docker compose run --rm -T vakit sync quota
     docker compose logs --tail 100 vakit
     tail -n 50 logs/sync.log
@@ -112,7 +126,8 @@ ilçe başına ayda 10. İlçe-yıl başına tek `DateRange` yeter, yani sınır
 
 ## Veri düzeni ve yedek
 
-`VAKIT_DATA_DIR` altında: yayın dosyaları (`places/`, `prayer-times/`, `religious-days/`, `daily-content/`)
+`VAKIT_DATA_DIR` altında: yayın dosyaları (`places/`, `prayer-times/`, `religious-days/`, `daily-content/`,
+`sermons/` — `index.json` + hutbe başına `{id}.json`)
 ve `state/vakit.db` (SQLite, WAL: yanında `-wal`/`-shm` olabilir) + `state/awqat_token.json`.
 Şema gömülü migration'larla sürümlenir; `serve` ve `sync` açılışta bekleyenleri uygular.
 Yedek: sync çalışmıyorken klasörü kopyalamak yeter (`docker compose run --rm vakit sync verify` çıkışını bekle).
@@ -121,3 +136,6 @@ Yedek: sync çalışmıyorken klasörü kopyalamak yeter (`docker compose run --
 
 İlçe koordinatları © OpenStreetMap contributors (ODbL), `assets/tr_cities_geo.json`.
 Vakit, dinî gün ve içerik verisi: T.C. Diyanet İşleri Başkanlığı.
+Hutbeler: Diyanet İşleri Başkanlığı yayınları — Türkçe metin Diyanet Haber'den (künye: "ajans kaynaklı haberler
+hariç diğer haberlerin AKTİF LİNK kaynak belirtilerek kullanılması serbesttir"; her hutbe `sourceUrl` ile kaynak
+sayfasına bağlanır), çeviri PDF'leri Din Hizmetleri Genel Müdürlüğü sitesindeki adresleriyle.

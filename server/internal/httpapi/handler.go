@@ -14,6 +14,7 @@ import (
 
 	"vakit/internal/model"
 	"vakit/internal/placeindex"
+	"vakit/internal/sermon"
 	"vakit/internal/store"
 )
 
@@ -22,6 +23,13 @@ const (
 	cacheWeekly = "public, max-age=604800, stale-while-revalidate=604800"
 	minYear     = 2000
 	maxYear     = 2100
+)
+
+// Hutbe dizini perşembe akşamı ve cuma düzeltmesinde değişir; metin cuma ~11:30'da
+// düzeltilebildiği için uzun tutulmaz (hutbe spec'i, Uçlar).
+const (
+	cacheSermonIndex = "public, max-age=900"
+	cacheSermonText  = "public, max-age=3600"
 )
 
 type Options struct {
@@ -93,6 +101,16 @@ func NewHandler(st *store.Store, states StateLoader, opts Options, logger *slog.
 			return "", errInvalidParam("date must be YYYY-MM-DD")
 		}
 		return store.DailyContentPath(t), nil
+	}))
+	mux.HandleFunc("/v1/sermons", h.file(cacheSermonIndex, func(*http.Request) (string, *apiError) {
+		return store.SermonIndexPath(), nil
+	}))
+	mux.HandleFunc("/v1/sermons/{id}", h.file(cacheSermonText, func(r *http.Request) (string, *apiError) {
+		id := r.PathValue("id")
+		if !sermon.ValidID(id) {
+			return "", errNotFound // biçimsiz kimlik dosya yoluna hiç girmez
+		}
+		return store.SermonTextPath(id), nil
 	}))
 	mux.HandleFunc("/v1/health", h.health)
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { writeError(w, errNotFound) })

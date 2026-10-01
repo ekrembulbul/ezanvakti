@@ -23,6 +23,7 @@ import (
 	"vakit/internal/geo"
 	"vakit/internal/httpapi"
 	"vakit/internal/jobs"
+	"vakit/internal/sermon"
 	"vakit/internal/source"
 	"vakit/internal/source/awqatsrc"
 	"vakit/internal/source/web"
@@ -36,6 +37,7 @@ const syncUsage = `vakit sync <iş> [flags]
   prayer-times [--year Y]... [--batch N]   ilçe bazlı yıllık vakitler (varsayılan: bu yıl ve gelecek yıl)
   religious-days [--year Y]...             dinî günler
   daily-content                            günün ayet/hadis/duası (Türkiye günü; son 7 gün tutulur)
+  sermons                                  cuma/bayram hutbeleri (Diyanet Haber + Din Hizmetleri PDF; son 20)
   quota                                    Diyanet kota durumunu yazdırır (yalnız awqat kaynağı)
   verify                                   yayınlanmış dosyaları yeniden doğrular (ağ yok)
 `
@@ -129,7 +131,11 @@ func runSync(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 	deps := jobs.Deps{Source: src, Store: st, State: state, Logger: logger, Now: time.Now, Geo: geoIndex}
-	logger.Info("sync start", "job", job, "source", src.Name(), "data_dir", cfg.DataDir)
+	sourceName := src.Name()
+	if job == "sermons" {
+		sourceName = "diyanethaber" // hutbe işi VAKIT_SOURCE'tan bağımsız
+	}
+	logger.Info("sync start", "job", job, "source", sourceName, "data_dir", cfg.DataDir)
 
 	var res jobs.Result
 	var jobErr error
@@ -173,6 +179,15 @@ func runSync(args []string, stdout, stderr io.Writer) int {
 			return 2
 		}
 		res, jobErr = jobs.DailyContent(ctx, deps)
+	case "sermons":
+		fs := flag.NewFlagSet("sermons", flag.ContinueOnError)
+		fs.SetOutput(stderr)
+		if err := fs.Parse(rest); err != nil {
+			return 2
+		}
+		// Kaynak Diyanet Haber + Din Hizmetleri; istekler arası en az 1 sn.
+		client := sermon.NewClient(sermon.WithInterval(maxDuration(cfg.SyncInterval, time.Second)))
+		res, jobErr = jobs.Sermons(ctx, deps, client)
 	default:
 		fmt.Fprintf(stderr, "bilinmeyen iş: %q\n\n%s", job, syncUsage)
 		return 2

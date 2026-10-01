@@ -2,12 +2,15 @@ package httpapi
 
 import (
 	"encoding/json"
+	"errors"
+	"io/fs"
 	"net/http"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
 
+	"vakit/internal/sermon"
 	"vakit/internal/store"
 )
 
@@ -15,6 +18,12 @@ type yearHealth struct {
 	Cities    int       `json:"cities"`
 	Complete  bool      `json:"complete"`
 	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+// sermonsHealth, yayımlanan hutbe dizininden türetilir (sync durumu tablosunda tutulmaz).
+type sermonsHealth struct {
+	UpdatedAt time.Time `json:"updatedAt"`
+	Count     int       `json:"count"`
 }
 
 type healthResponse struct {
@@ -29,6 +38,7 @@ type healthResponse struct {
 			UpdatedAt time.Time `json:"updatedAt"`
 		} `json:"religiousDays"`
 		DailyContent store.DailyContentState `json:"dailyContent"`
+		Sermons      sermonsHealth           `json:"sermons"`
 		Rejected     int                     `json:"rejected"`
 	} `json:"datasets"`
 }
@@ -89,5 +99,20 @@ func (h *handler) health(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodHead {
 		return
 	}
-	_ = json.NewEncoder(w).Encode(buildHealth(state, h.opts, time.Now()))
+	resp := buildHealth(state, h.opts, time.Now())
+	resp.Datasets.Sermons = h.sermonsHealth()
+	_ = json.NewEncoder(w).Encode(resp)
+}
+
+// sermonsHealth: son başarılı hutbe çekiminin zamanı ve yayımlanan hutbe sayısı; dizin henüz
+// yoksa sıfır değerler.
+func (h *handler) sermonsHealth() sermonsHealth {
+	var idx sermon.Index
+	if err := h.st.ReadJSON(store.SermonIndexPath(), &idx); err != nil {
+		if !errors.Is(err, fs.ErrNotExist) {
+			h.logger.Warn("health: sermon index unreadable", "err", err.Error())
+		}
+		return sermonsHealth{}
+	}
+	return sermonsHealth{UpdatedAt: idx.UpdatedAt, Count: len(idx.Sermons)}
 }

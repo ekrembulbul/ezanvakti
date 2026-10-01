@@ -73,6 +73,9 @@ func TestPaths(t *testing.T) {
 		ReligiousDaysPath(2026):     "religious-days/2026.json",
 		DailyContentPath(time.Date(2026, 9, 15, 0, 0, 0, 0, time.UTC)): "daily-content/2026/258.json",
 		DBPath(): "state/vakit.db",
+
+		SermonIndexPath():                 "sermons/index.json",
+		SermonTextPath("2026-09-25-cuma"): "sermons/2026-09-25-cuma.json",
 	}
 	for got, want := range cases {
 		if got != want {
