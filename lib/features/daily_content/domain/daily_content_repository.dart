@@ -29,27 +29,28 @@ class DailyContentRepository {
 
   /// Bugünün içeriği saklıysa onu döner; değilse (son denemeden 30 dk
   /// geçtiyse) sunucuya sorar. Sunucu yoksa ya da hata verirse saklananı döner;
-  /// hata fırlatmaz.
+  /// depo dahil hiçbir hatada fırlatmaz (loglar).
   Future<DailyContent?> load() async {
-    final stored = await _readStored();
-    final now = _now();
-    final today = DateTime(now.year, now.month, now.day);
-    if (stored != null && stored.day == today) return stored;
-
-    final lastAttempt = DateTime.tryParse(
-      await storage.getSetting(_attemptKey) ?? '',
-    );
-    if (lastAttempt != null && now.difference(lastAttempt) < retryAfter) {
-      return stored;
-    }
-    await storage.setSetting(_attemptKey, now.toIso8601String());
+    DailyContent? stored;
     try {
+      stored = await _readStored();
+      final now = _now();
+      final today = DateTime(now.year, now.month, now.day);
+      if (stored != null && stored.day == today) return stored;
+
+      final lastAttempt = DateTime.tryParse(
+        await storage.getSetting(_attemptKey) ?? '',
+      );
+      if (lastAttempt != null && now.difference(lastAttempt) < retryAfter) {
+        return stored;
+      }
+      await storage.setSetting(_attemptKey, now.toIso8601String());
       final fresh = await api.fetch(today);
       if (fresh == null) return stored;
       await storage.setSetting(_contentKey, jsonEncode(fresh.toJson()));
       return fresh;
     } catch (e, s) {
-      AppLogger().warning('Daily content fetch failed', e, s);
+      AppLogger().warning('Daily content load failed', e, s);
       return stored;
     }
   }

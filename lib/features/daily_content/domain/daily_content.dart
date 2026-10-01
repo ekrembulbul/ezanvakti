@@ -6,18 +6,18 @@ class DailyContent {
   /// Türkiye günü, `YYYY-MM-DD`.
   final String date;
   final String verse;
-  final String verseSource;
+  final String? verseSource;
   final String hadith;
-  final String hadithSource;
+  final String? hadithSource;
   final String prayer;
   final String? prayerSource;
 
   const DailyContent({
     required this.date,
     required this.verse,
-    required this.verseSource,
+    this.verseSource,
     required this.hadith,
-    required this.hadithSource,
+    this.hadithSource,
     required this.prayer,
     this.prayerSource,
   });
@@ -46,17 +46,21 @@ class DailyContent {
         context: 'DailyContent.fromJson',
       );
     }
-    final prayerSource = json['prayerSource'];
+    // Kaynaklar isteğe bağlı: sunucu yalnız metinleri zorunlu tutuyor; boş
+    // kaynak içeriği düşürmemeli.
+    String? optional(String key) {
+      final value = json[key];
+      return value is String && value.isNotEmpty ? value : null;
+    }
+
     return DailyContent(
       date: date,
       verse: required('verse'),
-      verseSource: required('verseSource'),
+      verseSource: optional('verseSource'),
       hadith: required('hadith'),
-      hadithSource: required('hadithSource'),
+      hadithSource: optional('hadithSource'),
       prayer: required('prayer'),
-      prayerSource: prayerSource is String && prayerSource.isNotEmpty
-          ? prayerSource
-          : null,
+      prayerSource: optional('prayerSource'),
     );
   }
 

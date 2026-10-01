@@ -13,13 +13,19 @@ import 'daily_content_api_test.dart' show contentJson, jsonResponse;
 
 class _SettingsStorage implements LocalStorage {
   final Map<String, String> values = {};
+  Object? failWith;
 
   @override
-  Future<String?> getSetting(String key) async => values[key];
+  Future<String?> getSetting(String key) async {
+    if (failWith case final e?) throw e;
+    return values[key];
+  }
 
   @override
-  Future<void> setSetting(String key, String value) async =>
-      values[key] = value;
+  Future<void> setSetting(String key, String value) async {
+    if (failWith case final e?) throw e;
+    values[key] = value;
+  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>
@@ -119,6 +125,11 @@ void main() {
     storage.values['daily_content'] = '{bozuk';
     final c = await repo().load();
     expect(c!.date, '2026-10-02');
+  });
+
+  test('depo hatasında fırlatmaz, null döner', () async {
+    storage.failWith = StateError('sqlite');
+    expect(await repo().load(), isNull);
   });
 
   test('visible: 7 günlük görünür, 8 günlük görünmez', () {

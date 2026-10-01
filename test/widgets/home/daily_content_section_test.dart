@@ -34,8 +34,8 @@ void main() {
     expect(find.text('Günün Hadisi'), findsOneWidget);
     expect(find.text('Günün Duası'), findsOneWidget);
     expect(find.text(_content.verse), findsOneWidget);
-    expect(find.text(_content.verseSource), findsOneWidget);
-    expect(find.text(_content.hadithSource), findsOneWidget);
+    expect(find.text(_content.verseSource!), findsOneWidget);
+    expect(find.text(_content.hadithSource!), findsOneWidget);
     expect(find.text(_content.prayerSource!), findsOneWidget);
     expect(find.byTooltip('Paylaş'), findsNWidgets(3));
   });
@@ -64,6 +64,38 @@ void main() {
     );
   });
 
+  testWidgets('ayet kaynağı yoksa kopyalanan metin yalnız ayettir', (
+    tester,
+  ) async {
+    String? copied;
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      (call) async {
+        if (call.method == 'Clipboard.setData') {
+          copied = (call.arguments as Map)['text'] as String;
+        }
+        return null;
+      },
+    );
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        null,
+      ),
+    );
+    const noVerseSource = DailyContent(
+      date: '2026-10-01',
+      verse: 'ayet',
+      hadith: 'h',
+      hadithSource: 'hs',
+      prayer: 'p',
+    );
+    await pump(tester, noVerseSource);
+    await tester.longPress(find.text('ayet'));
+    await tester.pump();
+    expect(copied, 'ayet');
+  });
+
   testWidgets('basılı tutunca metni kaynağıyla kopyalar ve haber verir', (
     tester,
   ) async {
@@ -86,7 +118,7 @@ void main() {
     await pump(tester, _content);
     await tester.longPress(find.text(_content.hadith));
     await tester.pump();
-    expect(copied, '${_content.hadith}\n${_content.hadithSource}');
+    expect(copied, '${_content.hadith}\n${_content.hadithSource!}');
     expect(find.text('Kopyalandı'), findsOneWidget);
   });
 }

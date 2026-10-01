@@ -50,6 +50,20 @@ void main() {
     expect((await api.fetch(DateTime(2026, 10, 1)))!.prayerSource, isNull);
   });
 
+  test('fetch: boş ayet/hadis kaynağı içeriği düşürmez', () async {
+    final api = apiWith(
+      (_) async => jsonResponse({
+        ...contentJson,
+        'verseSource': '',
+        'hadithSource': null,
+      }),
+    );
+    final content = await api.fetch(DateTime(2026, 10, 1));
+    expect(content!.verse, contentJson['verse']);
+    expect(content.verseSource, isNull);
+    expect(content.hadithSource, isNull);
+  });
+
   test('fetch: 404 henüz yok demektir', () async {
     final api = apiWith(
       (_) async => jsonResponse({
