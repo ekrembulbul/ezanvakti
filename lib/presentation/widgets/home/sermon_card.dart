@@ -34,7 +34,7 @@ class SermonCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         onTap: onOpen,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
+          padding: const EdgeInsetsDirectional.fromSTEB(16, 14, 8, 14),
           child: Row(
             children: [
               Icon(

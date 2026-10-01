@@ -90,6 +90,24 @@ void main() {
     expect(find.text('Our Responsibility to Convey Islam'), findsOneWidget);
   });
 
+  testWidgets('Arapçada ikon sağda, kenar boşluğu sağdan 16', (tester) async {
+    await initializeDateFormatting('ar', null);
+    await pump(
+      tester,
+      SermonSummary.fromJson(summaryJson()),
+      locale: const Locale('ar'),
+      onOpen: (_) {},
+    );
+    final card = tester.getRect(find.byType(SermonCard));
+    final icon = tester.getRect(
+      find.descendant(
+        of: find.byType(SermonCard),
+        matching: find.byIcon(Icons.menu_book_rounded),
+      ),
+    );
+    expect(card.right - icon.right, 16);
+  });
+
   testWidgets('İngilizcede PDF yoksa kart yok', (tester) async {
     await pump(
       tester,
