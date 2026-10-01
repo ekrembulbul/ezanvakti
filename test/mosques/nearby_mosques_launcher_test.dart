@@ -68,6 +68,15 @@ void main() {
     await launcher().saveApp(MapApp.apple);
     await launcher().saveApp(null);
     expect(await launcher().savedApp(), isNull);
+    expect(await launcher().asksEachTime(), isFalse);
+  });
+
+  test('her seferinde sor tercihi ayrı saklanır', () async {
+    await launcher().setAskEachTime();
+    expect(await launcher().asksEachTime(), isTrue);
+    expect(await launcher().savedApp(), isNull);
+    await launcher().saveApp(MapApp.apple);
+    expect(await launcher().asksEachTime(), isFalse);
   });
 
   test('launch iOS sürümüne göre Apple bağlantısı açar', () async {

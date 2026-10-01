@@ -132,6 +132,51 @@ void main() {
     );
   });
 
+  testWidgets('koordinatsız ve özel adlı konumda ilçe adıyla arar', (
+    tester,
+  ) async {
+    const custom = Location(
+      id: '3',
+      province: 'İstanbul',
+      district: 'Şile',
+      customName: 'Ev',
+    );
+    await start(tester, location: custom);
+    await tester.tap(find.text('Vakit konumuna göre (Ev)'));
+    await tester.pumpAndSettle();
+    expect(
+      Uri.decodeComponent(opened.single.toString()),
+      'geo:0,0?q=cami Şile, İstanbul',
+    );
+  });
+
+  testWidgets('konum beklenmeyen hatayla alınamazsa da vakit konumunu önerir', (
+    tester,
+  ) async {
+    gps.error = StateError('platform');
+    await start(tester);
+    await tester.tap(find.text('Bulunduğum yere göre'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Konumun alınamadı. Vakit konumuna göre aransın mı?'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('iOS: "her seferinde sor" seçiliyse sorar ama kaydetmez', (
+    tester,
+  ) async {
+    installed = {'comgooglemaps'};
+    storage.values['maps_app'] = 'ask';
+    await start(tester, isIOS: true);
+    await tester.tap(find.text('Vakit konumuna göre (Kadıköy, İstanbul)'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Google Haritalar'));
+    await tester.pumpAndSettle();
+    expect(opened.single.scheme, 'comgooglemaps');
+    expect(storage.values['maps_app'], 'ask');
+  });
+
   testWidgets('bulunduğum yere göre telefon koordinatıyla arar', (
     tester,
   ) async {

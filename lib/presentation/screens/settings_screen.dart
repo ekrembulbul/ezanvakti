@@ -56,7 +56,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
   List<MapApp> _mapApps = const [];
   MapApp? _mapApp;
 
-  static const String _askEachTime = 'ask';
+  static const String _askEachTimeOption = 'ask';
+
+  /// Satırdaki değer: seçilmiş uygulama; tek uygulama varsa (yalnız Apple)
+  /// o, akış hiç sormadığı için; aksi halde "Her seferinde sor".
+  String _mapAppValue(BuildContext context) {
+    final l10n = context.l10n;
+    if (_mapApp case final app?) return mapAppLabel(l10n, app);
+    if (_mapApps.length == 1) return mapAppLabel(l10n, _mapApps.single);
+    return l10n.mapAppAsk;
+  }
 
   @override
   void initState() {
@@ -84,16 +93,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final picked = await showOptionPicker<String>(
       context: context,
       title: l10n.mapAppPickerTitle,
-      selected: _mapApp?.name ?? _askEachTime,
+      selected: _mapApp?.name ?? _askEachTimeOption,
       items: [
-        OptionItem(value: _askEachTime, label: l10n.mapAppAsk),
+        OptionItem(value: _askEachTimeOption, label: l10n.mapAppAsk),
         for (final app in _mapApps)
           OptionItem(value: app.name, label: mapAppLabel(l10n, app)),
       ],
     );
     if (picked == null) return;
     final app = MapApp.values.asNameMap()[picked];
-    await launcher.saveApp(app);
+    if (app == null) {
+      await launcher.setAskEachTime();
+    } else {
+      await launcher.saveApp(app);
+    }
     if (mounted) setState(() => _mapApp = app);
   }
 
@@ -146,9 +159,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   _row(
                     icon: Icons.mosque_outlined,
                     title: context.l10n.settingsMapApp,
-                    value: _mapApp == null
-                        ? context.l10n.mapAppAsk
-                        : mapAppLabel(context.l10n, _mapApp!),
+                    value: _mapAppValue(context),
                     onTap: _pickMapApp,
                   ),
                 ],

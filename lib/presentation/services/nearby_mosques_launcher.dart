@@ -13,6 +13,7 @@ class NearbyMosquesLauncher {
   final Future<bool> Function(Uri) open;
 
   static const String _appKey = 'maps_app';
+  static const String _askValue = 'ask';
 
   NearbyMosquesLauncher({
     required this.storage,
@@ -40,9 +41,16 @@ class NearbyMosquesLauncher {
     return (await installedApps()).contains(app) ? app : null;
   }
 
-  /// `null` seçimi temizler ("her seferinde sor").
+  /// Uygulamayı hatırlar; `null` seçimi temizler (bir sonraki aramada sorulur
+  /// ve seçilen hatırlanır).
   Future<void> saveApp(MapApp? app) =>
       storage.setSetting(_appKey, app?.name ?? '');
+
+  /// Ayarlardaki "Her seferinde sor": her aramada sorulur, seçim hatırlanmaz.
+  Future<void> setAskEachTime() => storage.setSetting(_appKey, _askValue);
+
+  Future<bool> asksEachTime() async =>
+      await storage.getSetting(_appKey) == _askValue;
 
   /// [query]'yi [center] çevresinde açar; açılamazsa `false`.
   Future<bool> launch({

@@ -245,5 +245,34 @@ void main() {
       expect(await storage.getSetting('maps_app'), 'google');
       expect(find.text('Google Haritalar'), findsOneWidget);
     });
+
+    testWidgets('"Her seferinde sor" seçilince ask olarak saklanır', (
+      tester,
+    ) async {
+      await storage.setSetting('maps_app', 'google');
+      await pumpSettings(tester, mapsLauncher: launcher());
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Yakındaki camiler için harita'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Her seferinde sor').last);
+      await tester.pumpAndSettle();
+      expect(await storage.getSetting('maps_app'), 'ask');
+    });
+
+    testWidgets('yalnız Apple Haritalar varsa satır Apple yazar', (
+      tester,
+    ) async {
+      final appleOnly = NearbyMosquesLauncher(
+        storage: storage,
+        isIOS: true,
+        osVersion: '26.0',
+        canOpen: (_) async => false,
+        open: (_) async => true,
+      );
+      await pumpSettings(tester, mapsLauncher: appleOnly);
+      await tester.pumpAndSettle();
+      expect(find.text('Apple Haritalar'), findsOneWidget);
+      expect(find.text('Her seferinde sor'), findsNothing);
+    });
   });
 }

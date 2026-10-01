@@ -53,8 +53,10 @@ Future<void> showNearbyMosquesFlow(
           action: l10n.locationPermissionAllow,
         ),
       );
-    } on GpsLocationException catch (e) {
-      AppLogger().warning('Nearby mosques: location unavailable (${e.key})');
+    } catch (e, s) {
+      // İzin/servis hataları ve platformun beklenmeyen hataları aynı yoldan:
+      // kullanıcıya vakit konumuyla aramayı öner.
+      AppLogger().warning('Nearby mosques: location unavailable', e, s);
       if (!context.mounted) return;
       final fallback = await _confirm(
         context,
@@ -73,7 +75,8 @@ Future<void> showNearbyMosquesFlow(
     if (lat != null && lon != null) {
       center = (lat: lat, lon: lon);
     } else {
-      query = '$query ${location.displayName}';
+      // Özel ad ("Ev") harita uygulamasında yer olarak çözülmez; ilçe adı kullanılır.
+      query = '$query ${location.copyWith(customName: '').displayName}';
     }
   }
 
@@ -110,7 +113,9 @@ Future<MapApp?> _pickApp(
         OptionItem(value: app, label: mapAppLabel(l10n, app)),
     ],
   );
-  if (picked != null) await launcher.saveApp(picked);
+  if (picked != null && !await launcher.asksEachTime()) {
+    await launcher.saveApp(picked);
+  }
   return picked;
 }
 
