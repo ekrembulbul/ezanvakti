@@ -59,7 +59,8 @@ hesap veya cihaz kimliği gönderilmez. Bağlantı HTTPS ile şifrelenir.
 
 Vakit tabloları, günün içeriği ve hutbeler **Diyanet İşleri Başkanlığı**'ndan
 (hutbeler Diyanet Haber ve Din Hizmetleri yayınlarından) alınır; hutbe istekleri
-kişisel veri taşımaz. Sunucudaki ilçe
+kişisel veri taşımaz. Hutbenin İngilizce/Arapça PDF'ini ya da "Kaynak" bağlantısını
+açtığınızda sayfa doğrudan Diyanet'in sitesinden, uygulama içi tarayıcıda yüklenir. Sunucudaki ilçe
 koordinatları © OpenStreetMap katkıcıları. Üçüncü taraf bir vakit ya da adres
 servisine veri gönderilmez.
 
