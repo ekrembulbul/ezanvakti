@@ -1,16 +1,19 @@
 # vakit-api senkron işleri. server-deploy workflow'u her dağıtımda ezanvakti kullanıcısının
 # crontab'ı olarak kurar; elle yapılan değişiklik bir sonraki dağıtımda gider.
 # Saatler sunucu saatine göre (UTC). Çıktı ~/vakit-api/logs/sync.log'a eklenir.
+# Tüm işler aynı kilitle sıraya girer (flock, util-linux): durum (state/vakit.db) iş başında
+# okunup sonda bütünüyle yazıldığı için çakışan iki iş birbirinin ilerlemesini silebilir.
+# Kilit 1 saatte açılmazsa iş atlanır; saat başı işler bir sonraki denemede çalışır.
 MAILTO=""
-0 3 * * *   cd "$HOME/vakit-api" && docker compose run --rm -T vakit sync prayer-times >> logs/sync.log 2>&1
-0 4 * * 1   cd "$HOME/vakit-api" && docker compose run --rm -T vakit sync places >> logs/sync.log 2>&1
-0 4 1 * *   cd "$HOME/vakit-api" && docker compose run --rm -T vakit sync religious-days >> logs/sync.log 2>&1
-30 5 * * 0  cd "$HOME/vakit-api" && docker compose run --rm -T vakit sync verify >> logs/sync.log 2>&1
+0 3 * * *   cd "$HOME/vakit-api" && flock -w 3600 sync.lock docker compose run --rm -T vakit sync prayer-times >> logs/sync.log 2>&1
+0 4 * * 1   cd "$HOME/vakit-api" && flock -w 3600 sync.lock docker compose run --rm -T vakit sync places >> logs/sync.log 2>&1
+0 4 1 * *   cd "$HOME/vakit-api" && flock -w 3600 sync.lock docker compose run --rm -T vakit sync religious-days >> logs/sync.log 2>&1
+30 5 * * 0  cd "$HOME/vakit-api" && flock -w 3600 sync.lock docker compose run --rm -T vakit sync verify >> logs/sync.log 2>&1
 # daily-content: TR 00:05–06:05 saat başı (UTC 21:05–03:05); o günün dosyası varsa istek atmaz.
-5 21-23 * * * cd "$HOME/vakit-api" && docker compose run --rm -T vakit sync daily-content >> logs/sync.log 2>&1
-5 0-3 * * *   cd "$HOME/vakit-api" && docker compose run --rm -T vakit sync daily-content >> logs/sync.log 2>&1
+5 21-23 * * * cd "$HOME/vakit-api" && flock -w 3600 sync.lock docker compose run --rm -T vakit sync daily-content >> logs/sync.log 2>&1
+5 0-3 * * *   cd "$HOME/vakit-api" && flock -w 3600 sync.lock docker compose run --rm -T vakit sync daily-content >> logs/sync.log 2>&1
 # sermons: her gün TR 22:00, ek olarak perşembe 17:00 ve cuma 11:30 (UTC 19:00, prş 14:00, cuma 08:30).
 # Günü geçmiş ve metni olan hutbenin sayfası istenmez; RSS isteği hafif.
-0 19 * * *  cd "$HOME/vakit-api" && docker compose run --rm -T vakit sync sermons >> logs/sync.log 2>&1
-0 14 * * 4  cd "$HOME/vakit-api" && docker compose run --rm -T vakit sync sermons >> logs/sync.log 2>&1
-30 8 * * 5  cd "$HOME/vakit-api" && docker compose run --rm -T vakit sync sermons >> logs/sync.log 2>&1
+0 19 * * *  cd "$HOME/vakit-api" && flock -w 3600 sync.lock docker compose run --rm -T vakit sync sermons >> logs/sync.log 2>&1
+0 14 * * 4  cd "$HOME/vakit-api" && flock -w 3600 sync.lock docker compose run --rm -T vakit sync sermons >> logs/sync.log 2>&1
+30 8 * * 5  cd "$HOME/vakit-api" && flock -w 3600 sync.lock docker compose run --rm -T vakit sync sermons >> logs/sync.log 2>&1

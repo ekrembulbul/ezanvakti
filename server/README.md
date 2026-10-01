@@ -76,7 +76,8 @@ Sunucuda (`ezanvakti` kullanıcısı, docker grubunda, sudo yok) her dağıtım 
     ~/vakit-api/data/         kalıcı veri (dağıtım dokunmaz)
     ~/vakit-api/logs/sync.log cron çıktısı
 
-Senkron işleri dağıtımda çalışmaz, `deploy/crontab` zamanlar (UTC): vakitler her gün 03:00
+Senkron işleri dağıtımda çalışmaz, `deploy/crontab` zamanlar (UTC; işler `flock` ile aynı
+`sync.lock` kilidinde sıraya girer, çakışan iki iş durumu birbirinin üzerine yazmasın): vakitler her gün 03:00
 (`VAKIT_SYNC_BATCH` kadar ilçe-yıl), yer listesi pazartesi, dinî günler ayın 1'i, `verify` pazar.
 `daily-content` Türkiye saatiyle 00:05–06:05 arası saat başı: tarihsiz `GET /api/DailyContent`
 ucu kullanılır (hesabın `Developer` rolü tarihli uca yetkili değil, HTTP 403). Gelen `dayOfYear`
