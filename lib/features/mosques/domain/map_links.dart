@@ -11,9 +11,11 @@
 /// - Yandex: resmî belgeyle doğrulanamadı; cihazda denenecek.
 library;
 
-enum MapApp { apple, google, yandex }
+import '../../../core/models/lat_lon.dart';
 
-typedef LatLon = ({double lat, double lon});
+export '../../../core/models/lat_lon.dart';
+
+enum MapApp { apple, google, yandex }
 
 /// Aramanın açılacağı yakınlık: yaklaşık 2–3 km'lik alan.
 const int _zoom = 14;

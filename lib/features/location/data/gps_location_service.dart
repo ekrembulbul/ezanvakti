@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:geolocator/geolocator.dart';
 
 import '../../../core/models/location.dart';
+import '../../../core/models/lat_lon.dart';
 import 'places_api.dart';
 
 /// GPS akışındaki kararlı hata anahtarı; metni sunum katmanı seçer.
@@ -33,6 +36,7 @@ class GpsLocationService {
   static const String permissionRequiredKey = 'location_permission_required';
   static const String permissionDeniedForeverKey =
       'location_permission_denied_forever';
+  static const String timeoutKey = 'location_timeout';
 
   GpsLocationService({required this.api});
 
@@ -41,6 +45,21 @@ class GpsLocationService {
   /// Sunucu hataları ([NoCoverageException], ağ) olduğu gibi çıkar.
   Future<GpsResolution> locate({
     Future<bool> Function()? requestPermission,
+  }) async {
+    final position = await currentPosition(
+      requestPermission: requestPermission,
+      accuracy: LocationAccuracy.high,
+      timeout: null,
+    );
+    return resolve(position.lat, position.lon);
+  }
+
+  /// Telefonun o anki koordinatı; sunucuya gönderilmez, ilçeye çözülmez.
+  /// İzin akışı [locate] ile aynı. [timeout] dolarsa [timeoutKey].
+  Future<LatLon> currentPosition({
+    Future<bool> Function()? requestPermission,
+    LocationAccuracy accuracy = LocationAccuracy.medium,
+    Duration? timeout = const Duration(seconds: 10),
   }) async {
     if (!await Geolocator.isLocationServiceEnabled()) {
       throw const GpsLocationException(servicesOffKey);
@@ -60,10 +79,17 @@ class GpsLocationService {
       throw const GpsLocationException(permissionDeniedForeverKey);
     }
 
-    final position = await Geolocator.getCurrentPosition(
-      locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
-    );
-    return resolve(position.latitude, position.longitude);
+    try {
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: LocationSettings(
+          accuracy: accuracy,
+          timeLimit: timeout,
+        ),
+      );
+      return (lat: position.latitude, lon: position.longitude);
+    } on TimeoutException {
+      throw const GpsLocationException(timeoutKey);
+    }
   }
 
   /// Koordinatı sunucuda ilçeye çözer; izleyici ve [locate] aynı yolu kullanır.
