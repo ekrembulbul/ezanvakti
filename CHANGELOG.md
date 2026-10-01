@@ -4,6 +4,17 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [Unreleased]
+
+### Eklendi
+- **Günün ayeti, hadisi ve duası:** Ana sayfada vakit kutularının altında Diyanet'in günlük içeriği üç kart olarak; tam metin ve kaynak, her kartta paylaş, karta basılı tutunca kopyala. Yalnız Türkçe arayüzde görünür; içerik alınamazsa en son alınan (en çok 7 günlük) gösterilir.
+- **Hutbe:** Araçlar'da Diyanet'in son 20 cuma ve bayram hutbesi. Türkçe hutbe uygulama içinde okunur (dipnotlar, yazı boyutu, kaynak bağlantısı, paylaş); İngilizce ve Arapça arayüzde Diyanet'in o dildeki PDF'i açılır. Hutbe günü ve bir gün öncesinde ana sayfada hutbe kartı.
+- **Yakındaki camiler:** Araçlar'da; vakit konumunun ya da bulunduğun yerin çevresinde harita uygulamasında "cami" araması açar. iOS'ta harita uygulaması seçimi hatırlanır ve Ayarlar'dan değiştirilir. Koordinat yalnız harita uygulamasına gider.
+
+### Sunucu
+- Günlük içerik Diyanet'in tarihsiz ucundan Türkiye gününe göre alınıyor (00:05–06:05 arası saat başı, son 7 gün tutulur).
+- Hutbeler Diyanet Haber ve Din Hizmetleri'nden alınıp `/v1/sermons` uçlarıyla yayımlanıyor (her gün 22:00, perşembe 17:00, cuma 11:30).
+
 ## [0.28.1] - 2026-10-01
 
 ### Değişti
