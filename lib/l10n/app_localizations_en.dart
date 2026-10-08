@@ -1907,4 +1907,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get qiblaCompassUnavailable =>
       'This phone has no compass. Use the angle above, measured from north.';
+
+  @override
+  String get prefsNextPrayerNotification =>
+      'Next prayer in the notification bar';
+
+  @override
+  String get prefsNextPrayerNotificationHint =>
+      'The next prayer and countdown stay visible, also on the lock screen.';
 }

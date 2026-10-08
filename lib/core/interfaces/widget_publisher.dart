@@ -3,7 +3,7 @@ import '../models/appearance_settings.dart';
 
 /// Widget'a snapshot yayınlamanın soyutlaması.
 ///
-/// Testlerde fake ile değiştirilir; iOS dışı platformlarda [NoopWidgetPublisher]
+/// Testlerde fake ile değiştirilir; iOS ve Android dışında [NoopWidgetPublisher]
 /// kullanılır.
 abstract class WidgetPublisher {
   /// Kullanıcının 12/24 saat tercihini widget'a taşır. Snapshot'tan ayrı
@@ -17,4 +17,8 @@ abstract class WidgetPublisher {
   Future<void> publishAppearance(AppearanceSettings settings);
 
   Future<void> publish(WidgetSnapshot snapshot);
+
+  /// Bildirim çubuğundaki sabit "sıradaki vakit" satırının açık olup
+  /// olmadığını taşır (yalnız Android okur).
+  Future<void> publishNextPrayerNotification(bool enabled);
 }

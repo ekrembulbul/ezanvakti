@@ -8,7 +8,11 @@ import '../../../core/utils/app_logger.dart';
 import '../domain/widget_appearance.dart';
 import '../domain/widget_snapshot.dart';
 
-/// Snapshot'ı App Group'a yazıp WidgetKit'e reload tetikleyen ince kabuk.
+/// Snapshot'ı widget deposuna yazıp yeniden çizim tetikleyen ince kabuk.
+///
+/// iOS'ta App Group + WidgetKit reload; Android'de `home_widget`'ın
+/// SharedPreferences deposu + sağlayıcıya güncelleme yayını. Android sağlayıcısı
+/// yayını aldığında widget'ları **ve** sabit "sıradaki vakit" satırını tazeler.
 ///
 /// Payload **tek key altında tek JSON string** olarak yazılır: çok sayıda düz
 /// key, kısmi yazımda widget'a tutarsız veri gösterirdi.
@@ -29,6 +33,14 @@ class HomeWidgetPublisher implements WidgetPublisher {
   /// sessizce hiçbir widget'a ulaşmaz.
   static const String widgetKind = 'EzanVaktiWidget';
 
+  /// Android sağlayıcısının tam sınıf adı (`EzanWidgetProvider.kt`).
+  static const String androidProvider =
+      'com.ekrembulbul.ezanvakti.widget.EzanWidgetProvider';
+
+  /// Kotlin `WidgetStore` ile birebir aynı.
+  static const String nextPrayerNotificationKey =
+      'ezanvakti_next_prayer_notification';
+
   final AppLogger _logger;
 
   HomeWidgetPublisher({required AppLogger logger}) : _logger = logger;
@@ -40,7 +52,7 @@ class HomeWidgetPublisher implements WidgetPublisher {
       snapshotKey,
       jsonEncode(snapshot.toJson()),
     );
-    await HomeWidget.updateWidget(iOSName: widgetKind);
+    await _reload();
 
     _logger.debug('Widget snapshot published: ${snapshot.days.length} days');
   }
@@ -49,7 +61,7 @@ class HomeWidgetPublisher implements WidgetPublisher {
   Future<void> publishTimeFormat(String storageValue) async {
     await HomeWidget.setAppGroupId(appGroupId);
     await HomeWidget.saveWidgetData<String>(timeFormatKey, storageValue);
-    await HomeWidget.updateWidget(iOSName: widgetKind);
+    await _reload();
     _logger.debug('Widget time format published: $storageValue');
   }
 
@@ -60,13 +72,31 @@ class HomeWidgetPublisher implements WidgetPublisher {
       appearanceKey,
       jsonEncode(widgetAppearanceJson(settings)),
     );
-    await HomeWidget.updateWidget(iOSName: widgetKind);
+    await _reload();
     _logger.debug('Widget appearance published: $settings');
   }
+
+  @override
+  Future<void> publishNextPrayerNotification(bool enabled) async {
+    await HomeWidget.setAppGroupId(appGroupId);
+    await HomeWidget.saveWidgetData<String>(
+      nextPrayerNotificationKey,
+      enabled.toString(),
+    );
+    await _reload();
+    _logger.debug('Next prayer notification published: $enabled');
+  }
+
+  /// İki platformun yeniden çizimi tek çağrıda; paket her platformda yalnız
+  /// kendi adını kullanır.
+  Future<void> _reload() => HomeWidget.updateWidget(
+    iOSName: widgetKind,
+    qualifiedAndroidName: androidProvider,
+  );
 }
 
-/// iOS dışı platformlarda kullanılır. Widget yalnızca iOS'ta var; diğer
-/// platformlarda yayınlama sessizce atlanır.
+/// iOS ve Android dışındaki platformlarda (masaüstü, test) kullanılır;
+/// yayınlama sessizce atlanır.
 class NoopWidgetPublisher implements WidgetPublisher {
   const NoopWidgetPublisher();
 
@@ -78,4 +108,7 @@ class NoopWidgetPublisher implements WidgetPublisher {
 
   @override
   Future<void> publishAppearance(AppearanceSettings settings) async {}
+
+  @override
+  Future<void> publishNextPrayerNotification(bool enabled) async {}
 }

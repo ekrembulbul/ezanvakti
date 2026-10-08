@@ -1899,4 +1899,11 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get qiblaCompassUnavailable =>
       'Bu telefonda pusula yok. Yukarıdaki açıyı kuzeye göre kullan.';
+
+  @override
+  String get prefsNextPrayerNotification => 'Bildirim çubuğunda sıradaki vakit';
+
+  @override
+  String get prefsNextPrayerNotificationHint =>
+      'Sıradaki vakit ve geri sayım sürekli görünür; kilit ekranında da.';
 }

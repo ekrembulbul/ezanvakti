@@ -2344,5 +2344,9 @@
   "actionDontShowAgain": "Bir daha gösterme",
   "@actionDontShowAgain": {"description": "Düğme"},
   "qiblaCompassUnavailable": "Bu telefonda pusula yok. Yukarıdaki açıyı kuzeye göre kullan.",
-  "@qiblaCompassUnavailable": {"description": "Kıble ekranı bilgisi"}
+  "@qiblaCompassUnavailable": {"description": "Kıble ekranı bilgisi"},
+  "prefsNextPrayerNotification": "Bildirim çubuğunda sıradaki vakit",
+  "@prefsNextPrayerNotification": {"description": "Ayar satırı"},
+  "prefsNextPrayerNotificationHint": "Sıradaki vakit ve geri sayım sürekli görünür; kilit ekranında da.",
+  "@prefsNextPrayerNotificationHint": {"description": "Ayar ipucu"}
 }

@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/notification_sounds.dart';
 import '../../../core/di/service_locator.dart';
 import '../../../core/interfaces/local_storage.dart';
+import '../../../core/interfaces/widget_publisher.dart';
 import '../../../core/models/general_settings.dart';
 import '../../../core/providers/app_state.dart';
 import '../../../core/theme/app_typography.dart';
@@ -27,10 +28,15 @@ class NotificationPrefsSection extends StatelessWidget {
   /// `null` = platforma göre; testler açıkça verir.
   final bool? showAlarmRingLimit;
 
+  /// Bildirim çubuğundaki sabit "sıradaki vakit" satırı anahtarı; yalnız
+  /// Android. Testler açıkça geçer.
+  final bool? showNextPrayerNotification;
+
   const NotificationPrefsSection({
     super.key,
     this.onChanged,
     this.showAlarmRingLimit,
+    this.showNextPrayerNotification,
   });
 
   Future<void> _update(BuildContext context, GeneralSettings next) async {
@@ -86,6 +92,7 @@ class NotificationPrefsSection extends StatelessWidget {
     final tokens = context.tokens;
     final settings = context.watch<AppState>().generalSettings;
     final showRingLimit = showAlarmRingLimit ?? Platform.isAndroid;
+    final showNextPrayer = showNextPrayerNotification ?? Platform.isAndroid;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -162,6 +169,26 @@ class NotificationPrefsSection extends StatelessWidget {
                 ),
               ),
             ),
+          ],
+          if (showNextPrayer) ...[
+            Divider(height: 1, thickness: 1, color: tokens.divider),
+            const SizedBox(height: 8),
+            _switchRow(
+              context,
+              title: context.l10n.prefsNextPrayerNotification,
+              description: context.l10n.prefsNextPrayerNotificationHint,
+              value: settings.nextPrayerNotification,
+              onChanged: (value) async {
+                await _update(
+                  context,
+                  settings.copyWith(nextPrayerNotification: value),
+                );
+                await ServiceLocator()
+                    .get<WidgetPublisher>()
+                    .publishNextPrayerNotification(value);
+              },
+            ),
+            const SizedBox(height: 8),
           ],
           Divider(height: 1, thickness: 1, color: tokens.divider),
           const SizedBox(height: 8),

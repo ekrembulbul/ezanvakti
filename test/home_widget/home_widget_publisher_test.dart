@@ -49,6 +49,27 @@ void main() {
     expect(save.arguments['data'], contains('"schemaVersion":4'));
   });
 
+  test('guncelleme Android saglayicisini da tetikler', () async {
+    await HomeWidgetPublisher(logger: AppLogger()).publish(snapshot);
+
+    final update = calls.firstWhere((call) => call.method == 'updateWidget');
+    expect(
+      update.arguments['qualifiedAndroidName'],
+      HomeWidgetPublisher.androidProvider,
+    );
+  });
+
+  test('sabit satir ayari anahtara yazilir ve yuzeyler tazelenir', () async {
+    await HomeWidgetPublisher(
+      logger: AppLogger(),
+    ).publishNextPrayerNotification(false);
+
+    final save = calls.firstWhere((call) => call.method == 'saveWidgetData');
+    expect(save.arguments['id'], HomeWidgetPublisher.nextPrayerNotificationKey);
+    expect(save.arguments['data'], 'false');
+    expect(calls.any((call) => call.method == 'updateWidget'), isTrue);
+  });
+
   test('publish widget kind ile guncelleme tetikler', () async {
     await HomeWidgetPublisher(logger: AppLogger()).publish(snapshot);
 

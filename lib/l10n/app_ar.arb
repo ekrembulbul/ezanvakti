@@ -552,5 +552,7 @@
   "fullScreenAlarmOff": "إذن المنبه بملء الشاشة متوقف. لن يظهر المنبه على شاشة القفل، بل كتنبيه فقط.",
   "batteryOptimizationWarning": "قد يُنيم هذا الهاتف التطبيق ويؤخر المنبه. استثنِ Ezan Vakti من تحسين البطارية.",
   "actionDontShowAgain": "لا تعرض مجددًا",
-  "qiblaCompassUnavailable": "لا توجد بوصلة في هذا الهاتف. استخدم الزاوية أعلاه مقيسة من الشمال."
+  "qiblaCompassUnavailable": "لا توجد بوصلة في هذا الهاتف. استخدم الزاوية أعلاه مقيسة من الشمال.",
+  "prefsNextPrayerNotification": "الصلاة القادمة في شريط الإشعارات",
+  "prefsNextPrayerNotificationHint": "تبقى الصلاة القادمة والعد التنازلي ظاهرين، وعلى شاشة القفل أيضًا."
 }

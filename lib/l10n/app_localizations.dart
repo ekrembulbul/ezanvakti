@@ -3417,6 +3417,18 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Bu telefonda pusula yok. Yukarıdaki açıyı kuzeye göre kullan.'**
   String get qiblaCompassUnavailable;
+
+  /// Ayar satırı
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirim çubuğunda sıradaki vakit'**
+  String get prefsNextPrayerNotification;
+
+  /// Ayar ipucu
+  ///
+  /// In tr, this message translates to:
+  /// **'Sıradaki vakit ve geri sayım sürekli görünür; kilit ekranında da.'**
+  String get prefsNextPrayerNotificationHint;
 }
 
 class _AppLocalizationsDelegate

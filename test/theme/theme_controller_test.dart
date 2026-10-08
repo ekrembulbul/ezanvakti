@@ -123,6 +123,9 @@ class _InMemoryStorage implements LocalStorage {
 }
 
 class _RecordingPublisher implements WidgetPublisher {
+  @override
+  Future<void> publishNextPrayerNotification(bool enabled) async {}
+
   final List<AppearanceSettings> published = [];
 
   @override
@@ -138,6 +141,9 @@ class _RecordingPublisher implements WidgetPublisher {
 }
 
 class _ThrowingPublisher implements WidgetPublisher {
+  @override
+  Future<void> publishNextPrayerNotification(bool enabled) async {}
+
   @override
   Future<void> publishAppearance(AppearanceSettings settings) async {
     throw StateError('App Group yazilamadi');

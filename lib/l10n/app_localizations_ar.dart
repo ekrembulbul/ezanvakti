@@ -1890,4 +1890,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get qiblaCompassUnavailable =>
       'لا توجد بوصلة في هذا الهاتف. استخدم الزاوية أعلاه مقيسة من الشمال.';
+
+  @override
+  String get prefsNextPrayerNotification => 'الصلاة القادمة في شريط الإشعارات';
+
+  @override
+  String get prefsNextPrayerNotificationHint =>
+      'تبقى الصلاة القادمة والعد التنازلي ظاهرين، وعلى شاشة القفل أيضًا.';
 }

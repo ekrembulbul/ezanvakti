@@ -665,7 +665,7 @@ class SqliteStorage implements LocalStorage {
     final db = await database;
     final rows = await db.query(
       'settings',
-      where: 'key IN (?, ?, ?, ?, ?, ?, ?, ?)',
+      where: 'key IN (?, ?, ?, ?, ?, ?, ?, ?, ?)',
       whereArgs: [
         GeneralSettings.timeFormatKey,
         GeneralSettings.autoLocationKey,
@@ -675,6 +675,7 @@ class SqliteStorage implements LocalStorage {
         GeneralSettings.religiousDayEveKey,
         GeneralSettings.ramadanModeKey,
         GeneralSettings.alarmRingLimitKey,
+        GeneralSettings.nextPrayerNotificationKey,
       ],
     );
     return GeneralSettings.fromMap({

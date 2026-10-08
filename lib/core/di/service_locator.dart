@@ -172,9 +172,9 @@ class ServiceLocator {
     // Gorunum tercihleri acilista okunur; ilk frame dogru palette cizilsin.
     // AlarmScheduler'dan once kuruluyor: calar ekranin paleti bu tercihlere
     // uyuyor.
-    // Widget yalnızca iOS'ta var; diğer platformlarda yayınlama no-op.
+    // Widget iOS ve Android'de var; diğer platformlarda yayınlama no-op.
     // ThemeController'dan önce kuruluyor: görünüm tercihi widget'a da gidiyor.
-    final WidgetPublisher widgetPublisher = Platform.isIOS
+    final WidgetPublisher widgetPublisher = Platform.isIOS || Platform.isAndroid
         ? HomeWidgetPublisher(logger: logger)
         : const NoopWidgetPublisher();
     register<WidgetPublisher>(widgetPublisher);

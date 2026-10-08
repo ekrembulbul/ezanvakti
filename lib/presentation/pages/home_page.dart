@@ -538,6 +538,17 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
         labels: mounted ? widgetLabelsFrom(context.l10n) : null,
         l10n: mounted ? context.l10n : null,
       );
+      // Sabit "sıradaki vakit" satırının tercihi (Android): ayar ekranı hiç
+      // açılmasa da native taraf güncel değeri görsün.
+      try {
+        await ServiceLocator()
+            .get<WidgetPublisher>()
+            .publishNextPrayerNotification(
+              appState.generalSettings.nextPrayerNotification,
+            );
+      } catch (e) {
+        logger.warning('Next prayer notification publish failed', e);
+      }
     } catch (e) {
       logger.error('Failed to load prayer data', e);
       appState.setError(mounted ? context.l10n.errorDataLoad(e) : e.toString());

@@ -9,6 +9,9 @@ import 'package:ezanvakti/features/home_widget/domain/widget_snapshot_publish.da
 
 class _ThrowingPublisher implements WidgetPublisher {
   @override
+  Future<void> publishNextPrayerNotification(bool enabled) async {}
+
+  @override
   Future<void> publish(WidgetSnapshot snapshot) async {
     throw StateError('App Group yazilamadi');
   }
@@ -21,6 +24,9 @@ class _ThrowingPublisher implements WidgetPublisher {
 }
 
 class _RecordingPublisher implements WidgetPublisher {
+  @override
+  Future<void> publishNextPrayerNotification(bool enabled) async {}
+
   WidgetSnapshot? published;
 
   @override
