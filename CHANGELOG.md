@@ -4,6 +4,18 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.30.0] - 2026-10-08
+
+### Değişti
+- **Widget yeni tasarım:** Küçük ve orta ana ekran widget'ı yeni düzende. Küçükte alttaki kerahat şeridi kalktı; alt satırda gün adı ve hicri tarih, kerahat yaklaşırken ve kerahatte aynı yerde kerahat kartı (kelime, saat aralığı, geri sayım). Ortada kerahat penceresinde sağ üstte tarih yerine kerahat çipi; gün cetveli uygulamadaki renklerle, şimdiki an noktası 15 dakikada bir ilerler. Kerahatte zemin bordoya kaymaz; vakit adı ve sayaç bordo tona döner.
+
+### Düzeltildi
+- Arapça arayüzde kayan seçicilerde (saat biçimi, tema, sekmeler) seçim işareti ters taraftaki seçeneğin üstünde duruyordu.
+
+### Android (henüz yayında değil)
+- Ana ekran widget'ı (küçük ve orta, sola/ortaya/sağa hizalama) ve bildirim çubuğunda sabit "sıradaki vakit" satırı (kerahat çipi, açılınca cetvel ve vakitler; Ayarlar'dan kapatılabilir).
+- Alarm ses seviyesi ve çalma süresi sınırı, sessiz aralıkta Rahatsız Etme, ses başına bildirim kanalı, kıble pusulası, alarm izinleri ve uyarıları; saat, saat dilimi ya da kesin alarm izni değişince alarmlar yeniden kurulur.
+
 ## [0.29.0] - 2026-10-01
 
 ### Eklendi
