@@ -42,10 +42,20 @@ iOS alert'inde yalnızca sistemin stop kontrolü vardır; ikincil düğme yoktur
 | Ses çalan taraf | Uygulama (`MediaPlayer`) | Sistem (`AlarmKit`) |
 | Ses akışı kontrolü | Uygulamada | Yok |
 | Sesin kademeli yükselmesi | Var (alarm başına ayar) | Yok |
+| Alarm başına ses seviyesi | Var (%10–100 ya da telefonun seviyesi; çalarken sabit, ses tuşları yok sayılır) | Yok (sistem zil seviyesi) |
+| Çalma süresi sınırı | Var (genel ayar, varsayılan 10 dk) | Yok |
+| Saat dilimi değişiminde sabit alarm | Native olarak duvar saatine kaydırılır | Sistem |
 | Sessiz pencere | Var | Yok (commit `2cfc4b8`) |
 | Asgari sürüm kısıtı (alarm) | Android 7.0 / API 24 (uygulama tabanı) | `iOS 26.1` (`guard #available`); uygulama tabanı iOS 17.0 |
 | Alarm desteği olmayan cihazda | — | Alarm bölümü kapalı: yalnız bilgi kartı, planlayıcı köprüye gitmez, kayıtlar korunur |
 | Tam ekran sunum | `AlarmRingActivity` | Sistem alert'i |
+
+### Android ses seviyesi, çalma süresi ve yeniden kurma (8 Ekim, Android turu 1)
+
+- **Ses seviyesi:** `Alarm.volume` (null = telefonun alarm seviyesi) plan girdisinde `volume` olarak gider. `AlarmRingService` çalmadan önce alarm akışını hedef seviyeye çeker, 500 ms'lik bir koruyucuyla ses tuşlarının değişikliğini geri alır ve bitince kullanıcının önceki seviyesini geri yükler; çalar ekranı ses tuşlarını tüketir. Kademeli yükselme bu seviyenin içinde çalışır.
+- **Çalma süresi:** `GeneralSettings.alarmRingLimitMinutes` (0 = sınırsız) planda `ringLimitMinutes` olur. Süre dolunca servis yeni bir durum açmaz: önce mevcut erteleme geçişini (`AlarmMissions.snooze`) dener, olmazsa kaydırarak durdurmayla aynı yolu izler. Görevli alarmda nöbetçi zinciri ([0001](0001-alarm-watchdog-chain.md)) aynen sürer; "Kaçırılan alarm" bildirimi yalnız alarm bir daha çalmayacaksa (görevsiz ya da zincir bitti) çıkar. Çalar ekranı da kapanır.
+- **Yeniden kurma:** `AlarmBootReceiver` saat dilimi, saat ve kesin alarm izni yayınlarını da dinler. İzin yeniden verilince açılıştaki gibi kurulur (izin kapatılınca Android bütün kesin alarmları siler); saat elle değişince yalnız sıradaki anlar tazelenir, nöbetçi kurtarma yapılmaz; dilim değişince sabit saatli kayıtlar (`AlarmTimeShift`) yeni dilimde aynı duvar saatine taşınır, vakte bağlı ve nöbetçi kayıtlar dokunulmaz. Son görülen dilim uzlaştırmada saklanır.
+- **Android 16 geri hareketi:** API 36 hedefte `onBackPressed` çağrılmadığı için çalar ekranı `OnBackInvokedCallback` ile geri hareketini yutar.
 
 ### Eski iOS'ta alarm kapalı (9 Eylül)
 

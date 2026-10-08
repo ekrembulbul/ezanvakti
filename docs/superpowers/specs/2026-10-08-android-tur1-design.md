@@ -112,7 +112,7 @@ Manifest: `ACCESS_NOTIFICATION_POLICY` izni, `QuietModeReceiver`, boot alıcıs�
 - DND erişimi yokken `setAutomaticZenRuleState` / `addAutomaticZenRule` `SecurityException` atar; yakalanır, son uygulanan durum değişmez.
 - Ses seviyesi yazılamazsa (`SecurityException`) alarm mevcut seviyede çalar; olay `AlarmJournal`'a yazılır.
 - Süre dolunca erteleme zamanlayıcısı kurulamazsa oturum geri yüklenir ve durdurma yoluna düşülür.
-- Pusula sensörü yoksa akış `heading_unavailable` hatası verir; ekran mevcut "pusula kullanılamıyor" durumunu gösterir.
+- Pusula sensörü yoksa akış `heading_unavailable` hatası verir; kıble ekranı "bekleniyor"da kalmak yerine yeni "bu telefonda pusula yok" metnini gösterir.
 
 ## Test
 - Dart birim: kanal seçimi; `QuietWindow` JSON (eski kayıtta `silencePhone` false); `QuietPhonePlanner` (Cuma, vakit tetiği, birleştirme, geçmişin atılması, `silencePhone`/`isActive` kapalı); `Alarm.volume` map; migration v15→v16 (`schema_migration_test`); `GeneralSettings` ring limit varsayılan/bozuk değer; `AlarmPlanEntry.toMap`; `AlarmScheduler` girdisi; `BatteryAdvice`; `ReminderRescheduler` üçüncü iş; `HeadingService.headingsAt` argümanı.

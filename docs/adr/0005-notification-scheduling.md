@@ -26,6 +26,10 @@ Ayrıca üstteki bir kırılganlık vardı: bildirim planlamasında oluşan bir 
 
 **Bildirim planlaması alarm planlamasından yalıtılır.** Bildirim tarafındaki bir hata alarm kurulumunu engellemez; hata loglanır ve akış devam eder.
 
+**8 Ekim eki — Android'de ses başına kanal ve telefonu susturma (Android turu 1).** Android'de bildirim sesi kanala bağlıdır ve kanal oluşturulduktan sonra değişmez; tek kanal yüzünden "Kısa ton" ve "Sessiz" seçimleri, sessiz pencerenin "sessiz göster" kipi dahil, Android'de hiçbir şey yapmıyordu. Artık üç kanal var: `ezan_vakti_channel` (sistem sesi; eski kimlik korunur, kullanıcının sistem ayarları onda), `ezan_vakti_beep` (`res/raw/beep`), `ezan_vakti_silent`. Seçim `NotificationSounds.androidChannelFor` saf fonksiyonunda.
+
+Sessiz pencereye "Telefonu da sustur" (`QuietWindow.silencePhone`, Android 10+) eklendi; ADR'nin "uygulama telefonu sessize alamaz" gerekçesi iOS için geçerli kalır. API 35+ hedefleyen uygulama genel Rahatsız Etme'yi değiştiremediği için uygulama kendi `AutomaticZenRule`'unu (`INTERRUPTION_FILTER_PRIORITY`, kullanıcının varsayılan politikası) açıp kapatır; sistem kuralları birleştirdiğinden "eski haline dön" ve "kullanıcının kendi modlarına dokunma" sistemden gelir. Aralıkları Dart'taki saf `QuietPhonePlanner` hesaplar (birleştirilmiş, bitmişler atılmış), `QuietPhoneScheduler` native'e yollar; native (`QuietModeController`) yalnız sıradaki sınıra tek alarm kurar ve son uyguladığı durumu saklayıp yalnız istenen durum değişince yazar — kullanıcı pencere içinde modu elle kapattıysa uygulama açılınca yeniden açılmaz. Telefon susturma planı bildirim ve alarm planlamasından yalıtılmış üçüncü iştir: hatası loglanır, diğerlerini durdurmaz; vakit verisi yoksa plan gönderilmez (mevcut plan korunur).
+
 ## Sonuçlar
 
 ### Olumlu
@@ -39,6 +43,8 @@ Ayrıca üstteki bir kırılganlık vardı: bildirim planlamasında oluşan bir 
 - Sessiz pencere iki platformda farklı davranır; kullanıcı iOS'ta ayarı hiç görmez. Bu bir ürün tutarsızlığıdır, bilinçli kabul edilmiştir.
 - Kota nedeniyle uzaktaki bazı bildirimler kurulmaz; uygulama düzenli açılmazsa 7 günün tamamı kapsanmayabilir.
 - Atlama kimliği vakit verisinden türediği için, vakit verisi değişirse (konum değişikliği, düzeltme ayarı) mevcut atlama kayıtları eşleşmeyi kaybedebilir.
+
+- Telefon susturma ufku yüklenmiş vakit penceresiyle (bugün + 10 gün) sınırlıdır: uygulama ~10 gün açılmazsa susturma durur. Rahatsız Etme erişimi kullanıcı tarafından sistem ayarından verilir ve sessizce geri alınabilir; ekran bunu anahtarın altında yazar.
 
 ## Değerlendirilen alternatifler
 
