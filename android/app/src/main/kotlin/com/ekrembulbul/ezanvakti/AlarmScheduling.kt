@@ -5,6 +5,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import java.util.TimeZone
 import java.util.UUID
 
 /** AlarmManager ile tek seferlik alarm planlama/iptal. Planlanan id'ler, toplu
@@ -12,6 +13,7 @@ import java.util.UUID
 object AlarmScheduling {
     private const val PREFS = "ezanvakti_alarms"
     private const val KEY_IDS = "scheduled_ids"
+    private const val KEY_ZONE = "last_zone_id"
     const val ACTION_FIRE = "com.ekrembulbul.ezanvakti.ALARM_FIRE"
 
     fun schedule(context: Context, args: AlarmArgs) {
@@ -137,8 +139,18 @@ object AlarmScheduling {
             }
         }
         AlarmJournal(context).record("reconcile", result = if (failures.isEmpty()) "ok" else "partial")
+        // Kayıtlar bu dilimde hesaplandı; dilim değişirse kaydırma buradan başlar.
+        rememberZone(context)
         return failures
     }
+
+    /** Saat dilimi değişince eski dilimi bilmek için son görülen dilim. */
+    fun rememberZone(context: Context, zone: TimeZone = TimeZone.getDefault()) {
+        prefs(context).edit().putString(KEY_ZONE, zone.id).apply()
+    }
+
+    fun rememberedZone(context: Context): TimeZone? =
+        prefs(context).getString(KEY_ZONE, null)?.let { TimeZone.getTimeZone(it) }
 
     fun intentData(id: String, kind: String = "fire"): Uri = Uri.Builder()
         .scheme("ezanvakti-alarm").authority(kind).appendPath(id).build()
