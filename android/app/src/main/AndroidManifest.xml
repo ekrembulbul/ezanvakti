@@ -82,6 +82,32 @@
             android:foregroundServiceType="mediaPlayback" />
         <!-- Sessiz pencere sınırlarında Rahatsız Etme kuralını açar/kapatır -->
         <receiver android:name=".QuietModeReceiver" android:exported="false" />
+        <!-- Ana ekran widget'ı: sıradaki vakit ve geri sayım -->
+        <receiver
+            android:name=".widget.EzanWidgetProvider"
+            android:exported="false"
+            android:label="@string/app_name">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/ezan_widget_info"/>
+        </receiver>
+        <!-- Widget hizalama ayarı (Android 12+ "Widget ayarları") -->
+        <activity
+            android:name=".widget.WidgetConfigActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:theme="@android:style/Theme.DeviceDefault.Dialog.NoActionBar">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
+            </intent-filter>
+        </activity>
+        <!-- Widget ve sabit satır: çizelge sınırında ve 15 dk'da bir tazeleme -->
+        <receiver android:name=".widget.SurfaceRefreshReceiver" android:exported="false" />
+        <!-- Sabit satır kaydırılınca yeniden gösterir -->
+        <receiver android:name=".widget.NextPrayerDismissReceiver" android:exported="false" />
         <activity
             android:name=".AlarmRingActivity"
             android:exported="false"

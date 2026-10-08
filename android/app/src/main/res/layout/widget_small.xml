@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Küçük ana ekran widget'ı (spec K6). Renkler, zemin bitmap'i, metinler ve
+     hizalama (sola / ortaya / sağa) WidgetRenderer'da atanır; burada yalnız
+     yerleşim ve ölçüler var. Varsayılanlar ortalı düzen; önizleme ve ilk
+     çizim (initialLayout) bu haliyle görünür.
+
+     RemoteViews yalnız izinli view'ları çizer: boşluk için Space/View yerine
+     FrameLayout, zemin tonu için renk filtreli ImageView kullanılır. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/background"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/widget_bg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="fitXY"
+        android:src="@drawable/widget_preview_bg" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="14dp">
+
+        <!-- Üst satır: "konum · tarih" -->
+        <LinearLayout
+            android:id="@+id/widget_top_row"
+            android:layout_width="match_parent"
+            android:layout_height="16dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/widget_top"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:includeFontPadding="false"
+                android:maxLines="1"
+                android:textColor="#FFA5BDD2"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Orta blok: vakit adı + saati, altında büyük sayaç -->
+        <LinearLayout
+            android:id="@+id/widget_mid"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:baselineAligned="true"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/widget_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:includeFontPadding="false"
+                    android:letterSpacing="0.07"
+                    android:maxLines="1"
+                    android:textColor="#FF93C4E8"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/widget_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:fontFeatureSettings="tnum"
+                    android:includeFontPadding="false"
+                    android:maxLines="1"
+                    android:textColor="#FFE8F0F8"
+                    android:textSize="16sp" />
+            </LinearLayout>
+
+            <Chronometer
+                android:id="@+id/widget_countdown"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:countDown="true"
+                android:fontFamily="sans-serif-light"
+                android:fontFeatureSettings="tnum"
+                android:includeFontPadding="false"
+                android:maxLines="1"
+                android:textColor="#FFE8F0F8"
+                android:textSize="34sp" />
+        </LinearLayout>
+
+        <!-- Alt yuva (34 dp): gün adı + hicri tarih ya da kerahat kartı -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="34dp">
+
+            <LinearLayout
+                android:id="@+id/widget_info"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_horizontal|bottom"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/widget_line1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:includeFontPadding="false"
+                    android:maxLines="1"
+                    android:textColor="#FFA5BDD2"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/widget_line2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:ellipsize="end"
+                    android:includeFontPadding="false"
+                    android:maxLines="1"
+                    android:textColor="#FFA5BDD2"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <FrameLayout
+                android:id="@+id/widget_card"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/widget_card_bg"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:importantForAccessibility="no"
+                    android:scaleType="fitXY"
+                    android:src="@drawable/widget_card_bg" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/widget_card_word"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:ellipsize="end"
+                            android:includeFontPadding="false"
+                            android:maxLines="1"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/widget_card_range"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="1dp"
+                            android:ellipsize="end"
+                            android:fontFeatureSettings="tnum"
+                            android:includeFontPadding="false"
+                            android:maxLines="1"
+                            android:textSize="10sp" />
+                    </LinearLayout>
+
+                    <Chronometer
+                        android:id="@+id/widget_card_countdown"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:countDown="true"
+                        android:fontFamily="sans-serif-medium"
+                        android:fontFeatureSettings="tnum"
+                        android:includeFontPadding="false"
+                        android:maxLines="1"
+                        android:textSize="16sp" />
+                </LinearLayout>
+            </FrameLayout>
+        </FrameLayout>
+    </LinearLayout>
+</FrameLayout>

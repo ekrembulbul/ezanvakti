@@ -12,4 +12,12 @@
     <string name="alarm_missed_channel_name">Kaçırılan alarmlar</string>
     <string name="alarm_missed_text">Kaçırılan alarm · %1$s</string>
     <string name="quiet_rule_name">Ezan Vakti – sessiz pencere</string>
+    <string name="next_prayer_channel_name">Sıradaki vakit</string>
+    <string name="widget_config_title">Hizalama</string>
+    <string name="widget_align_start">Sola yaslı</string>
+    <string name="widget_align_center">Ortalı</string>
+    <string name="widget_align_end">Sağa yaslı</string>
+    <string name="widget_config_save">Kaydet</string>
+    <string name="widget_description">Sıradaki vakit ve geri sayım</string>
+    <string name="widget_open_app">Vakitler için uygulamayı aç</string>
 </resources>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sabit satırın açık halindeki kerahat kartının zemini. Beyaz şekil; renk
+     kodda ImageView setColorFilter ile verilir (yaklaşırken turuncu, kerahatte
+     bordo yüzey). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#FFFFFFFF" />
+    <corners android:radius="14dp" />
+</shape>

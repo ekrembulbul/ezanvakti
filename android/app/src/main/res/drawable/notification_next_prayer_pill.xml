@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sabit satırda sıradaki vakit sütununun zemini. Beyaz şekil; renk ve
+     saydamlık kodda ImageView setColorFilter / setImageAlpha ile verilir
+     (RemoteViews'ta API 24'ten beri uzaktan çağrılabilir). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#FFFFFFFF" />
+    <corners android:radius="10dp" />
+</shape>

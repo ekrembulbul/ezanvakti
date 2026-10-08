@@ -34,6 +34,13 @@ class AlarmBootReceiver : BroadcastReceiver() {
             else -> return
         }
         QuietModeController.reapply(context)
+        // Widget ve sabit satır: saat, dilim ya da açılış değişince yeniden
+        // çizilir ve sonraki sınır yeniden kurulur.
+        try {
+            com.ekrembulbul.ezanvakti.widget.SurfaceRefresher.refreshAll(context)
+        } catch (error: Exception) {
+            android.util.Log.e("EzanWidget", "event=surface_refresh_failed type=" + error.javaClass.simpleName)
+        }
     }
 
     private fun shiftForTimeZone(context: Context, intent: Intent) {

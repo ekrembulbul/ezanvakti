@@ -12,4 +12,12 @@
     <string name="alarm_missed_channel_name">المنبهات الفائتة</string>
     <string name="alarm_missed_text">منبه فائت · %1$s</string>
     <string name="quiet_rule_name">أوقات الصلاة – فترة الهدوء</string>
+    <string name="next_prayer_channel_name">الصلاة القادمة</string>
+    <string name="widget_config_title">المحاذاة</string>
+    <string name="widget_align_start">يسار</string>
+    <string name="widget_align_center">وسط</string>
+    <string name="widget_align_end">يمين</string>
+    <string name="widget_config_save">حفظ</string>
+    <string name="widget_description">الصلاة القادمة والعد التنازلي</string>
+    <string name="widget_open_app">افتح التطبيق لعرض المواقيت</string>
 </resources>

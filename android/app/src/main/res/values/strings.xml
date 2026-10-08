@@ -14,4 +14,12 @@
     <string name="alarm_missed_channel_name">Missed alarms</string>
     <string name="alarm_missed_text">Missed alarm · %1$s</string>
     <string name="quiet_rule_name">Prayer Times – quiet window</string>
+    <string name="next_prayer_channel_name">Next prayer</string>
+    <string name="widget_config_title">Alignment</string>
+    <string name="widget_align_start">Left</string>
+    <string name="widget_align_center">Centered</string>
+    <string name="widget_align_end">Right</string>
+    <string name="widget_config_save">Save</string>
+    <string name="widget_description">Next prayer and countdown</string>
+    <string name="widget_open_app">Open the app for prayer times</string>
 </resources>

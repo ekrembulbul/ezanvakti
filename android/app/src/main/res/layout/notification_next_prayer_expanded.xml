@@ -1,0 +1,431 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sabit "sıradaki vakit" satırı, açık hal: kapalı satırın aynısı + kerahat
+     kartı (yalnız kerahat penceresinde, simgesiz) + cetvel (saat etiketi nokta
+     üstünde) + altı vakit. Bloklar arası dikey ritim 12 dp (taslak
+     sabit-satir-son-v2). Renkler kodda: zeminler beyaz şekil + setColorFilter,
+     vurgu palet accent'i, metinler sistem bildirim stilleri. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <!-- Kapalı halle aynı satır (RemoteViews'ta <include> yerine kopya). -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:minHeight="40dp"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:baselineAligned="true"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/next_prayer_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:includeFontPadding="false"
+                android:letterSpacing="0.07"
+                android:maxLines="1"
+                android:textAppearance="@android:style/TextAppearance.Material.Notification.Title"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/next_prayer_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:fontFeatureSettings="tnum"
+                android:includeFontPadding="false"
+                android:maxLines="1"
+                android:textAppearance="@android:style/TextAppearance.Material.Notification.Title"
+                android:textSize="19sp" />
+        </LinearLayout>
+
+        <Chronometer
+            android:id="@+id/next_prayer_countdown"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:countDown="true"
+            android:fontFamily="sans-serif-light"
+            android:fontFeatureSettings="tnum"
+            android:includeFontPadding="false"
+            android:maxLines="1"
+            android:textAppearance="@android:style/TextAppearance.Material.Notification.Title"
+            android:textSize="30sp" />
+    </LinearLayout>
+
+    <!-- Kerahat kartı: solda kelime + aralık, sağda sayaç. -->
+    <FrameLayout
+        android:id="@+id/next_prayer_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/next_prayer_card_bg"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:importantForAccessibility="no"
+            android:scaleType="fitXY"
+            android:src="@drawable/notification_next_prayer_card" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="14dp"
+            android:paddingTop="10dp"
+            android:paddingEnd="14dp"
+            android:paddingBottom="10dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/next_prayer_card_word"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif-medium"
+                    android:maxLines="1"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/next_prayer_card_range"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:fontFeatureSettings="tnum"
+                    android:maxLines="1"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <Chronometer
+                android:id="@+id/next_prayer_card_countdown"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:countDown="true"
+                android:fontFamily="sans-serif-medium"
+                android:fontFeatureSettings="tnum"
+                android:maxLines="1"
+                android:textSize="20sp" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- Cetvel: üstte canlı saat etiketi (sol boşluğu kodda nokta merkezine
+         göre), altında bitmap. Bitmap soldan sağa çizildiği için blok RTL'de
+         de soldan sağa. -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:layoutDirection="ltr"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:id="@+id/next_prayer_clock_box"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextClock
+                android:id="@+id/next_prayer_clock"
+                android:layout_width="72dp"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif"
+                android:fontFeatureSettings="tnum"
+                android:gravity="center"
+                android:includeFontPadding="false"
+                android:maxLines="1"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </FrameLayout>
+
+        <ImageView
+            android:id="@+id/next_prayer_ruler"
+            android:layout_width="match_parent"
+            android:layout_height="22dp"
+            android:layout_marginTop="2dp"
+            android:importantForAccessibility="no"
+            android:scaleType="fitXY" />
+    </LinearLayout>
+
+    <!-- Altı vakit: sıradaki vurgulu zeminli, geçenler soluk. -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:baselineAligned="false"
+        android:orientation="horizontal">
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+            <ImageView
+                android:id="@+id/next_prayer_col_bg_0"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:importantForAccessibility="no"
+                android:scaleType="fitXY"
+                android:src="@drawable/notification_next_prayer_pill"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp">
+
+                <TextView
+                    android:id="@+id/next_prayer_col_name_0"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textAppearance="@android:style/TextAppearance.Material.Notification.Info"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/next_prayer_col_time_0"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:fontFeatureSettings="tnum"
+                    android:maxLines="1"
+                    android:textAppearance="@android:style/TextAppearance.Material.Notification.Title"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </FrameLayout>
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+            <ImageView
+                android:id="@+id/next_prayer_col_bg_1"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:importantForAccessibility="no"
+                android:scaleType="fitXY"
+                android:src="@drawable/notification_next_prayer_pill"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp">
+
+                <TextView
+                    android:id="@+id/next_prayer_col_name_1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textAppearance="@android:style/TextAppearance.Material.Notification.Info"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/next_prayer_col_time_1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:fontFeatureSettings="tnum"
+                    android:maxLines="1"
+                    android:textAppearance="@android:style/TextAppearance.Material.Notification.Title"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </FrameLayout>
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+            <ImageView
+                android:id="@+id/next_prayer_col_bg_2"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:importantForAccessibility="no"
+                android:scaleType="fitXY"
+                android:src="@drawable/notification_next_prayer_pill"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp">
+
+                <TextView
+                    android:id="@+id/next_prayer_col_name_2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textAppearance="@android:style/TextAppearance.Material.Notification.Info"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/next_prayer_col_time_2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:fontFeatureSettings="tnum"
+                    android:maxLines="1"
+                    android:textAppearance="@android:style/TextAppearance.Material.Notification.Title"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </FrameLayout>
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+            <ImageView
+                android:id="@+id/next_prayer_col_bg_3"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:importantForAccessibility="no"
+                android:scaleType="fitXY"
+                android:src="@drawable/notification_next_prayer_pill"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp">
+
+                <TextView
+                    android:id="@+id/next_prayer_col_name_3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textAppearance="@android:style/TextAppearance.Material.Notification.Info"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/next_prayer_col_time_3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:fontFeatureSettings="tnum"
+                    android:maxLines="1"
+                    android:textAppearance="@android:style/TextAppearance.Material.Notification.Title"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </FrameLayout>
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+            <ImageView
+                android:id="@+id/next_prayer_col_bg_4"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:importantForAccessibility="no"
+                android:scaleType="fitXY"
+                android:src="@drawable/notification_next_prayer_pill"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp">
+
+                <TextView
+                    android:id="@+id/next_prayer_col_name_4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textAppearance="@android:style/TextAppearance.Material.Notification.Info"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/next_prayer_col_time_4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:fontFeatureSettings="tnum"
+                    android:maxLines="1"
+                    android:textAppearance="@android:style/TextAppearance.Material.Notification.Title"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </FrameLayout>
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
+
+            <ImageView
+                android:id="@+id/next_prayer_col_bg_5"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:importantForAccessibility="no"
+                android:scaleType="fitXY"
+                android:src="@drawable/notification_next_prayer_pill"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp">
+
+                <TextView
+                    android:id="@+id/next_prayer_col_name_5"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textAppearance="@android:style/TextAppearance.Material.Notification.Info"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/next_prayer_col_time_5"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:fontFeatureSettings="tnum"
+                    android:maxLines="1"
+                    android:textAppearance="@android:style/TextAppearance.Material.Notification.Title"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </FrameLayout>
+    </LinearLayout>
+</LinearLayout>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Veri yokken (uygulama hiç açılmadı, eski ya da bozuk payload) widget'ın
+     tek mesajı (spec D15). Zemin ve metin rengi WidgetRenderer'da varsayılan
+     dilimin paletinden atanır. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/background"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/widget_bg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="fitXY"
+        android:src="@drawable/widget_preview_bg" />
+
+    <TextView
+        android:id="@+id/widget_message"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:maxLines="4"
+        android:padding="14dp"
+        android:text="@string/widget_open_app"
+        android:textColor="#FFE8F0F8"
+        android:textSize="13sp" />
+</FrameLayout>
