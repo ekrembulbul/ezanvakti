@@ -13,7 +13,7 @@
     android:resizeMode="horizontal|vertical"
     android:updatePeriodMillis="0"
     android:initialLayout="@layout/widget_small"
-    android:previewLayout="@layout/widget_small"
+    android:previewLayout="@layout/widget_preview"
     android:description="@string/widget_description"
     android:configure="com.ekrembulbul.ezanvakti.widget.WidgetConfigActivity"
     android:widgetFeatures="reconfigurable|configuration_optional"

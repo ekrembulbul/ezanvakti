@@ -22,4 +22,11 @@
     <string name="widget_config_save">Save</string>
     <string name="widget_description">Next prayer and countdown</string>
     <string name="widget_open_app">Open the app for prayer times</string>
+    <!-- Widget seçicideki önizleme (layout/widget_preview): sabit örnek içerik. -->
+    <string name="widget_preview_top">Istanbul · 8 October</string>
+    <string name="widget_preview_prayer">DHUHR</string>
+    <string name="widget_preview_time" translatable="false">12:57</string>
+    <string name="widget_preview_countdown" translatable="false">1:14:09</string>
+    <string name="widget_preview_day">Thursday</string>
+    <string name="widget_preview_hijri">27 Rabi al-Thani 1448</string>
 </resources>

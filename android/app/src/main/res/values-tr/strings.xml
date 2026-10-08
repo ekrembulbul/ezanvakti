@@ -20,4 +20,8 @@
     <string name="widget_config_save">Kaydet</string>
     <string name="widget_description">Sıradaki vakit ve geri sayım</string>
     <string name="widget_open_app">Vakitler için uygulamayı aç</string>
+    <string name="widget_preview_top">İstanbul · 8 Ekim</string>
+    <string name="widget_preview_prayer">ÖĞLE</string>
+    <string name="widget_preview_day">Perşembe</string>
+    <string name="widget_preview_hijri">27 Rebiülahir 1448</string>
 </resources>

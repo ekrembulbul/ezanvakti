@@ -20,4 +20,8 @@
     <string name="widget_config_save">حفظ</string>
     <string name="widget_description">الصلاة القادمة والعد التنازلي</string>
     <string name="widget_open_app">افتح التطبيق لعرض المواقيت</string>
+    <string name="widget_preview_top">إسطنبول · 8 أكتوبر</string>
+    <string name="widget_preview_prayer">الظهر</string>
+    <string name="widget_preview_day">الخميس</string>
+    <string name="widget_preview_hijri">27 ربيع الآخر 1448</string>
 </resources>
