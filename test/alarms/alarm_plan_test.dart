@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/core/models/alarm_mission.dart';
 import 'package:ezanvakti/core/models/alarm_plan.dart';
+import 'package:ezanvakti/core/models/alarm_theme.dart';
+import 'package:ezanvakti/core/models/general_settings.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/features/alarms/domain/alarm_scheduler.dart';
@@ -202,6 +204,61 @@ void main() {
     );
 
     expect(service.plans.single.records.single.toMap()['fadeIn'], isFalse);
+  });
+
+  test('plan girdisi ses seviyesini ve calma suresini tasir', () {
+    final entry = AlarmPlanEntry(
+      id: 'a',
+      alarm: const Alarm(id: 'a', kind: AlarmKind.fixed, volume: 60),
+      scheduledTime: DateTime(2026, 10, 9, 6),
+      theme: AlarmTheme.forPalette(
+        AlarmAppearance.fallback.fixedPalette,
+        AlarmAppearance.fallback.brightness,
+      ),
+      chainConfig: const {},
+      ringLimitMinutes: 10,
+    );
+    expect(entry.toMap()['volume'], 60);
+    expect(entry.toMap()['ringLimitMinutes'], 10);
+  });
+
+  test('ses seviyesi verilmemis alarmda plana null gider', () async {
+    await storage.saveAlarm(
+      const Alarm(id: 'sahur', kind: AlarmKind.fixed, hour: 5, minute: 0),
+    );
+    final now = DateTime.now();
+    await scheduler.scheduleAlarms(
+      prayerTimes: [_day(DateTime(now.year, now.month, now.day + 1))],
+    );
+
+    final map = service.plans.single.records.single.toMap();
+    expect(map.containsKey('volume'), isTrue);
+    expect(map['volume'], isNull);
+    // Genel ayar varsayilani 10 dk.
+    expect(map['ringLimitMinutes'], 10);
+  });
+
+  test('genel calma suresi ayari plana gider', () async {
+    await storage.saveGeneralSettings(
+      const GeneralSettings(alarmRingLimitMinutes: 30),
+    );
+    await storage.saveAlarm(
+      const Alarm(
+        id: 'sahur',
+        kind: AlarmKind.fixed,
+        hour: 5,
+        minute: 0,
+        volume: 40,
+      ),
+    );
+    final now = DateTime.now();
+    await scheduler.scheduleAlarms(
+      prayerTimes: [_day(DateTime(now.year, now.month, now.day + 1))],
+    );
+
+    final map = service.plans.single.records.single.toMap();
+    expect(map['volume'], 40);
+    expect(map['ringLimitMinutes'], 30);
   });
 
   test(

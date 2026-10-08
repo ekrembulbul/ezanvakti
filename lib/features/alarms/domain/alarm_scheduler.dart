@@ -3,6 +3,7 @@ import '../../../core/interfaces/alarm_service.dart';
 import '../../../core/interfaces/local_storage.dart';
 import '../../../core/models/alarm.dart';
 import '../../../core/models/alarm_plan.dart';
+import '../../../core/models/general_settings.dart';
 import '../../../core/models/alarm_mission.dart';
 import '../../../core/models/alarm_theme.dart';
 import '../../../core/models/notification_setting.dart' show PrayerType;
@@ -119,6 +120,21 @@ class AlarmScheduler {
       return;
     }
     final alarms = await storage.getAlarms();
+    // Ayar okunamazsa alarmlar varsayılan çalma süresiyle yine kurulur:
+    // bir tercih hatası alarm planlamasını durdurmamalı.
+    var general = const GeneralSettings();
+    try {
+      general = await storage.getGeneralSettings();
+    } catch (error) {
+      _logger.warning(
+        'General settings unavailable for alarms',
+        error.runtimeType,
+      );
+    }
+    // 0 = sınırsız; native'e "yok" olarak gider.
+    final ringLimit = general.alarmRingLimitMinutes > 0
+        ? general.alarmRingLimitMinutes
+        : null;
     final byDate = {for (final pt in prayerTimes) _dateKey(pt.date): pt};
     final now = _clock();
     final currentAppearance = appearance();
@@ -157,6 +173,7 @@ class AlarmScheduler {
             repeatWeekdays: repeatDays,
             isFirstOccurrence: index == 0,
             chainConfig: _chainConfig(alarm, fire, includeLadder: index == 0),
+            ringLimitMinutes: ringLimit,
           ),
         );
       }

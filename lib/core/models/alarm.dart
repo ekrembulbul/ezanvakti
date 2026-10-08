@@ -54,6 +54,11 @@ class Alarm {
   /// `null` bırakılamaz; kaydederken en büyük sonlu seçeneğe düşürülür.
   final int? maxSnoozes;
 
+  /// Alarm çalarken telefonun alarm ses seviyesi (%10–100). `null` = telefonun
+  /// o anki alarm seviyesi. **Yalnızca Android'de** etkili; iOS'ta AlarmKit
+  /// seviye API'si vermiyor.
+  final int? volume;
+
   const Alarm({
     required this.id,
     required this.kind,
@@ -73,6 +78,7 @@ class Alarm {
     this.missionLevel = 1,
     this.qrPayload,
     this.maxSnoozes,
+    this.volume,
   });
 
   bool get repeats => weekdays.isNotEmpty;
@@ -100,6 +106,7 @@ class Alarm {
       'mission_level': missionLevel,
       'qr_payload': qrPayload,
       'max_snoozes': maxSnoozes,
+      'volume': volume,
     };
   }
 
@@ -137,6 +144,7 @@ class Alarm {
       missionLevel: map['mission_level'] as int? ?? 1,
       qrPayload: map['qr_payload'] as String?,
       maxSnoozes: map['max_snoozes'] as int?,
+      volume: _normalizeVolume(map['volume']),
     );
   }
 
@@ -159,6 +167,7 @@ class Alarm {
     int? missionLevel,
     String? qrPayload,
     int? maxSnoozes,
+    int? volume,
   }) {
     return Alarm(
       id: id ?? this.id,
@@ -179,6 +188,7 @@ class Alarm {
       missionLevel: missionLevel ?? this.missionLevel,
       qrPayload: qrPayload ?? this.qrPayload,
       maxSnoozes: maxSnoozes ?? this.maxSnoozes,
+      volume: volume ?? this.volume,
     );
   }
 
@@ -204,7 +214,8 @@ class Alarm {
           mission == other.mission &&
           missionLevel == other.missionLevel &&
           qrPayload == other.qrPayload &&
-          maxSnoozes == other.maxSnoozes;
+          maxSnoozes == other.maxSnoozes &&
+          volume == other.volume;
 
   @override
   int get hashCode => Object.hash(
@@ -226,6 +237,7 @@ class Alarm {
     missionLevel,
     qrPayload,
     maxSnoozes,
+    volume,
   );
 
   static bool _setEquals(Set<int> a, Set<int> b) =>
@@ -241,3 +253,7 @@ String _migrateSoundId(String? stored) {
   if (stored == 'adhan' || stored == 'alarm') return 'default';
   return stored;
 }
+
+/// Bozuk ya da aralık dışı değer telefonun seviyesine düşer.
+int? _normalizeVolume(Object? value) =>
+    value is int && value >= 10 && value <= 100 ? value : null;

@@ -6,6 +6,7 @@ import 'package:ezanvakti/core/models/quiet_window.dart';
 import 'package:ezanvakti/core/models/mission_stop_event.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:ezanvakti/core/models/alarm.dart';
+import 'package:ezanvakti/core/models/general_settings.dart';
 import 'package:ezanvakti/core/models/alarm_theme.dart';
 import 'package:ezanvakti/core/models/skipped_occurrence.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart'
@@ -308,6 +309,25 @@ void main() {
       expect(base.copyWith(fadeIn: true), isNot(base));
     });
   });
+
+  group('Alarm.volume', () {
+    test('map ile gidip gelir; yok, bozuk ya da aralik disi null olur', () {
+      const alarm = Alarm(id: 'a', kind: AlarmKind.fixed, volume: 70);
+      expect(alarm.toMap()['volume'], 70);
+      expect(Alarm.fromMap(alarm.toMap()).volume, 70);
+      final legacy = Map<String, dynamic>.of(alarm.toMap())..remove('volume');
+      expect(Alarm.fromMap(legacy).volume, isNull);
+      expect(Alarm.fromMap({...alarm.toMap(), 'volume': 5}).volume, isNull);
+      expect(Alarm.fromMap({...alarm.toMap(), 'volume': 101}).volume, isNull);
+      expect(Alarm.fromMap({...alarm.toMap(), 'volume': '70'}).volume, isNull);
+    });
+
+    test('esitlik ses seviyesini kapsar', () {
+      const a = Alarm(id: 'a', kind: AlarmKind.fixed, volume: 70);
+      expect(a == a.copyWith(volume: 80), isFalse);
+      expect(a == a.copyWith(), isTrue);
+    });
+  });
 }
 
 class _FakeStorage implements LocalStorage {
@@ -397,6 +417,9 @@ class _FakeStorage implements LocalStorage {
 
   @override
   Future<List<Alarm>> getAlarms() async => alarms;
+
+  @override
+  Future<GeneralSettings> getGeneralSettings() async => const GeneralSettings();
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

@@ -109,7 +109,7 @@ void main() {
       'sound_id': 'adhan',
       'created_at': DateTime(2026).toIso8601String(),
     });
-    await storage.onUpgrade(db, oldVersion, 15);
+    await storage.onUpgrade(db, oldVersion, 16);
     return db;
   }
 
@@ -168,6 +168,21 @@ void main() {
     final rows = await db.query('alarms');
     expect(rows, hasLength(1));
     expect(rows.single['fade_in'], 0);
+  });
+
+  test('v16 yukseltmesi alarms tablosuna volume ekler, alarmi korur', () async {
+    final db = await upgradeFrom(8);
+    addTearDown(db.close);
+
+    final columns = await db.rawQuery("PRAGMA table_info('alarms')");
+    expect(columns.where((c) => c['name'] == 'volume'), hasLength(1));
+    final row = (await db.query('alarms')).single;
+    expect(row['id'], 'a1');
+    expect(
+      row['volume'],
+      isNull,
+      reason: 'mevcut alarm telefonun seviyesiyle calmaya devam etmeli',
+    );
   });
 
   test('yukseltme bloklari artan sirada duruyor', () {

@@ -41,12 +41,23 @@ class AlarmEditScreen extends StatefulWidget {
   /// Parametre testlerin platformu sabitlemesi için.
   final bool fadeInSupported;
 
+  /// Alarm başına ses seviyesi yalnızca Android'de uygulanabiliyor; iOS'ta
+  /// AlarmKit seviye API'si vermiyor (bkz. docs/adr/0003). Parametre testlerin
+  /// platformu sabitlemesi için.
+  final bool volumeSupported;
+
   /// Verilirse formun en altında "Alarmı sil" çizilir; yalnız kayıtlı
   /// alarmda verilir (yeni alarm ve kopya için `null`).
   final VoidCallback? onDelete;
 
-  AlarmEditScreen({super.key, this.alarm, this.onDelete, bool? fadeInSupported})
-    : fadeInSupported = fadeInSupported ?? Platform.isAndroid;
+  AlarmEditScreen({
+    super.key,
+    this.alarm,
+    this.onDelete,
+    bool? fadeInSupported,
+    bool? volumeSupported,
+  }) : fadeInSupported = fadeInSupported ?? Platform.isAndroid,
+       volumeSupported = volumeSupported ?? Platform.isAndroid;
 
   @override
   State<AlarmEditScreen> createState() => _AlarmEditScreenState();
@@ -62,6 +73,9 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   late String _soundId;
   late bool _vibrate;
   late bool _fadeIn;
+
+  /// `null` = telefonun alarm ses seviyesi.
+  int? _volume;
   late bool _snoozeEnabled;
   late int _snoozeMinutes;
   late AlarmMission _mission;
@@ -95,6 +109,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
     _soundId = a?.soundId ?? 'default';
     _vibrate = a?.vibrate ?? true;
     _fadeIn = a?.fadeIn ?? false;
+    _volume = a?.volume;
     _snoozeEnabled = a?.snoozeEnabled ?? true;
     _snoozeMinutes = a?.snoozeMinutes ?? 5;
     _mission = a?.mission ?? AlarmMission.none;
@@ -145,6 +160,8 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
       soundId: _soundId,
       vibrate: _vibrate,
       fadeIn: _fadeIn,
+      // Desteklenmeyen platformda kayıtlı değer korunur.
+      volume: widget.volumeSupported ? _volume : widget.alarm?.volume,
       snoozeEnabled: _snoozeEnabled,
       snoozeMinutes: _snoozeMinutes,
       mission: _mission,
@@ -219,16 +236,36 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
             _section(context.l10n.alarmLabel, _labelField()),
             const SizedBox(height: 16),
             _soundSelector(),
-            Padding(
-              padding: const EdgeInsets.only(top: 4, bottom: 4),
-              child: Text(
-                // AlarmKit seviye API'si vermiyor; ses her zaman sistemin
-                // "Zil Sesi ve Uyarılar" kaydırıcısıyla çalıyor.
-                context.l10n.alarmSoundVolumeNote,
-                style: AppTypography.hint.copyWith(color: tokens.textTertiary),
+            if (!widget.volumeSupported)
+              Padding(
+                padding: const EdgeInsets.only(top: 4, bottom: 4),
+                child: Text(
+                  // AlarmKit seviye API'si vermiyor; ses her zaman sistemin
+                  // "Zil Sesi ve Uyarılar" kaydırıcısıyla çalıyor.
+                  context.l10n.alarmSoundVolumeNote,
+                  style: AppTypography.hint.copyWith(
+                    color: tokens.textTertiary,
+                  ),
+                ),
               ),
-            ),
             const SizedBox(height: 4),
+            if (widget.volumeSupported) ...[
+              _switchTile(
+                context.l10n.alarmUsePhoneVolume,
+                _volume == null,
+                (usePhone) => setState(() => _volume = usePhone ? null : 80),
+              ),
+              if (_volume != null) _dependentGroup([_volumeSlider()]),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(
+                  context.l10n.alarmVolumeHint,
+                  style: AppTypography.hint.copyWith(
+                    color: tokens.textTertiary,
+                  ),
+                ),
+              ),
+            ],
             _switchTile(
               context.l10n.alarmVibrate,
               _vibrate,
@@ -285,6 +322,37 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _volumeSlider() {
+    final volume = _volume!;
+    return Row(
+      children: [
+        Text(
+          context.l10n.alarmVolume,
+          style: TextStyle(color: tokens.textPrimary),
+        ),
+        Expanded(
+          child: Slider(
+            value: volume.toDouble(),
+            min: 10,
+            max: 100,
+            divisions: 9,
+            label: context.l10n.alarmVolumeValue(volume),
+            activeColor: tokens.accent,
+            onChanged: (value) => setState(() => _volume = value.round()),
+          ),
+        ),
+        SizedBox(
+          width: 48,
+          child: Text(
+            context.l10n.alarmVolumeValue(volume),
+            textAlign: TextAlign.end,
+            style: TextStyle(color: tokens.textSecondary),
+          ),
+        ),
+      ],
     );
   }
 

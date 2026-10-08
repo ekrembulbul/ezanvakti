@@ -11,6 +11,10 @@ class GeneralSettings {
   static const String religiousDaysKey = 'general_religious_days';
   static const String religiousDayEveKey = 'general_religious_day_eve';
   static const String ramadanModeKey = 'general_ramadan_mode';
+  static const String alarmRingLimitKey = 'general_alarm_ring_limit';
+
+  /// Seçenekler (dakika); 0 = sınırsız.
+  static const List<int> alarmRingLimitOptions = [5, 10, 15, 30, 0];
 
   /// Saatlerin 12/24 gösterimi.
   final TimeFormatPreference timeFormat;
@@ -34,6 +38,10 @@ class GeneralSettings {
   /// Ramazan'da arayüz iftar/sahur odaklı hale gelsin mi.
   final bool ramadanMode;
 
+  /// Kapatılmayan alarm bu kadar dakika sonra ertelenir ya da susar
+  /// (yalnız Android). 0 = sınırsız.
+  final int alarmRingLimitMinutes;
+
   const GeneralSettings({
     this.timeFormat = TimeFormatPreference.system,
     this.autoLocation = true,
@@ -42,6 +50,7 @@ class GeneralSettings {
     this.religiousDayNotifications = false,
     this.religiousDayEve = true,
     this.ramadanMode = true,
+    this.alarmRingLimitMinutes = 10,
   });
 
   GeneralSettings copyWith({
@@ -52,6 +61,7 @@ class GeneralSettings {
     bool? religiousDayNotifications,
     bool? religiousDayEve,
     bool? ramadanMode,
+    int? alarmRingLimitMinutes,
   }) {
     return GeneralSettings(
       timeFormat: timeFormat ?? this.timeFormat,
@@ -62,6 +72,8 @@ class GeneralSettings {
           religiousDayNotifications ?? this.religiousDayNotifications,
       religiousDayEve: religiousDayEve ?? this.religiousDayEve,
       ramadanMode: ramadanMode ?? this.ramadanMode,
+      alarmRingLimitMinutes:
+          alarmRingLimitMinutes ?? this.alarmRingLimitMinutes,
     );
   }
 
@@ -73,6 +85,7 @@ class GeneralSettings {
     religiousDaysKey: religiousDayNotifications.toString(),
     religiousDayEveKey: religiousDayEve.toString(),
     ramadanModeKey: ramadanMode.toString(),
+    alarmRingLimitKey: alarmRingLimitMinutes.toString(),
   };
 
   /// Eksik ya da bozuk kayıtlar varsayılana düşer.
@@ -108,6 +121,12 @@ class GeneralSettings {
         'false' => false,
         _ => defaults.ramadanMode,
       },
+      alarmRingLimitMinutes: switch (int.tryParse(
+        map[alarmRingLimitKey] ?? '',
+      )) {
+        final value? when alarmRingLimitOptions.contains(value) => value,
+        _ => defaults.alarmRingLimitMinutes,
+      },
     );
   }
 
@@ -122,7 +141,8 @@ class GeneralSettings {
           defaultSound == other.defaultSound &&
           religiousDayNotifications == other.religiousDayNotifications &&
           religiousDayEve == other.religiousDayEve &&
-          ramadanMode == other.ramadanMode;
+          ramadanMode == other.ramadanMode &&
+          alarmRingLimitMinutes == other.alarmRingLimitMinutes;
 
   @override
   int get hashCode => Object.hash(
@@ -133,5 +153,6 @@ class GeneralSettings {
     religiousDayNotifications,
     religiousDayEve,
     ramadanMode,
+    alarmRingLimitMinutes,
   );
 }

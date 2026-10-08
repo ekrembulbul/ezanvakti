@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import '../../../l10n/l10n_extensions.dart';
 import 'package:provider/provider.dart';
@@ -9,17 +11,27 @@ import '../../../core/models/general_settings.dart';
 import '../../../core/providers/app_state.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
+import '../../../core/utils/duration_formatter.dart';
 import '../common/option_picker.dart';
 
-/// Ayarlar → Bildirim ve ses: yeni bildirimlerin varsayılan sesi ve Odak
-/// modu davranışı.
+/// Ayarlar → Bildirim ve ses: yeni bildirimlerin varsayılan sesi, alarmın
+/// çalma süresi sınırı (yalnız Android) ve Odak modu davranışı.
 ///
 /// Değişiklik hem [AppState]'e hem depoya yazılır; planlama [onChanged] ile
 /// çağıran tarafta tazelenir.
 class NotificationPrefsSection extends StatelessWidget {
   final Future<void> Function()? onChanged;
 
-  const NotificationPrefsSection({super.key, this.onChanged});
+  /// "Alarm şu kadar sonra sussun" satırı. Süre sınırını yalnız Android'in
+  /// alarm servisi uygular; iOS'ta AlarmKit'in elinde (bkz. docs/adr/0003).
+  /// `null` = platforma göre; testler açıkça verir.
+  final bool? showAlarmRingLimit;
+
+  const NotificationPrefsSection({
+    super.key,
+    this.onChanged,
+    this.showAlarmRingLimit,
+  });
 
   Future<void> _update(BuildContext context, GeneralSettings next) async {
     context.read<AppState>().setGeneralSettings(next);
@@ -73,6 +85,7 @@ class NotificationPrefsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     final settings = context.watch<AppState>().generalSettings;
+    final showRingLimit = showAlarmRingLimit ?? Platform.isAndroid;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -115,6 +128,41 @@ class NotificationPrefsSection extends StatelessWidget {
             onChanged: (value) =>
                 _update(context, settings.copyWith(defaultSound: value)),
           ),
+          if (showRingLimit) ...[
+            Divider(height: 1, thickness: 1, color: tokens.divider),
+            OptionRow<int>(
+              label: context.l10n.prefsAlarmRingLimit,
+              selected: settings.alarmRingLimitMinutes,
+              valueLabel: (minutes) => minutes == 0
+                  ? context.l10n.ringLimitUnlimited
+                  : formatCompactMinutes(minutes, context.l10n),
+              items: [
+                for (final minutes in GeneralSettings.alarmRingLimitOptions)
+                  OptionItem(
+                    value: minutes,
+                    label: minutes == 0
+                        ? context.l10n.ringLimitUnlimited
+                        : formatCompactMinutes(minutes, context.l10n),
+                  ),
+              ],
+              // _update depoya yazar ve onChanged ile alarmları yeniden
+              // uzlaştırır; yeni süre plan girdisiyle native'e gider.
+              onChanged: (value) => _update(
+                context,
+                settings.copyWith(alarmRingLimitMinutes: value),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Text(
+                context.l10n.prefsAlarmRingLimitHint,
+                style: AppTypography.hint.copyWith(
+                  color: tokens.textTertiary,
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ],
           Divider(height: 1, thickness: 1, color: tokens.divider),
           const SizedBox(height: 8),
           _switchRow(

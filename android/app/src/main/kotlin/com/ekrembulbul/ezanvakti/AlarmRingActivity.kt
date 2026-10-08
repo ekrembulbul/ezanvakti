@@ -1,5 +1,6 @@
 package com.ekrembulbul.ezanvakti
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Color
@@ -7,11 +8,14 @@ import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.View
 import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.TextView
+import android.window.OnBackInvokedDispatcher
+import java.lang.ref.WeakReference
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -22,16 +26,32 @@ import java.util.Locale
  *  seçimi ve sabit palet tercihi korunur, "vakte göre renk" açıkken palet
  *  alarmın çalacağı anın dilimine göre seçilir. */
 class AlarmRingActivity : Activity() {
-    private companion object {
+    companion object {
         /** Flutter varlıkları APK içinde bu önek altında paketlenir. */
-        const val MANROPE_ASSET = "flutter_assets/assets/fonts/Manrope-Variable.ttf"
+        private const val MANROPE_ASSET = "flutter_assets/assets/fonts/Manrope-Variable.ttf"
 
         /** Açık zeminde koyu durum çubuğu simgeleri gerekir. */
-        const val LIGHT_BACKGROUND_LUMINANCE = 0.5
+        private const val LIGHT_BACKGROUND_LUMINANCE = 0.5
+
+        private var showing: WeakReference<AlarmRingActivity>? = null
+
+        /** Servis alarmı kendisi bitirdiğinde (çalma süresi doldu) açık ekran
+         *  kapanır. Ana iş parçacığında çağrılır. */
+        fun finishShowing() {
+            showing?.get()?.takeUnless { it.isFinishing }?.finish()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        showing = WeakReference(this)
+        // Android 16 + API 36 hedefte onBackPressed çağrılmıyor; geri hareketi
+        // çalar ekranını kapatmasın, kaydırarak kapatma kullanılsın.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            onBackInvokedDispatcher.registerOnBackInvokedCallback(
+                OnBackInvokedDispatcher.PRIORITY_DEFAULT,
+            ) { /* yok say */ }
+        }
         showOverLockscreen()
         setContentView(R.layout.activity_alarm_ring)
 
@@ -162,8 +182,26 @@ class AlarmRingActivity : Activity() {
     }
 
     // Geri tuşuyla alarm kapatılmasın; ertele/kaydır kontrolleri kullanılsın.
+    // Android 13 öncesi ve geri çağrısı kapalı cihazlar için; yenileri
+    // onCreate'teki OnBackInvokedCallback'e düşer.
+    @SuppressLint("GestureBackNavigation")
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         // yok say
+    }
+
+    /** Ses tuşları alarm sesini değiştirmez; servis seviyeyi ayrıca korur. */
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean =
+        if (isVolumeKey(keyCode)) true else super.onKeyDown(keyCode, event)
+
+    override fun onKeyUp(keyCode: Int, event: KeyEvent?): Boolean =
+        if (isVolumeKey(keyCode)) true else super.onKeyUp(keyCode, event)
+
+    private fun isVolumeKey(keyCode: Int) = keyCode == KeyEvent.KEYCODE_VOLUME_UP ||
+        keyCode == KeyEvent.KEYCODE_VOLUME_DOWN || keyCode == KeyEvent.KEYCODE_VOLUME_MUTE
+
+    override fun onDestroy() {
+        if (showing?.get() === this) showing = null
+        super.onDestroy()
     }
 }

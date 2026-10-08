@@ -36,7 +36,7 @@ class SqliteStorage implements LocalStorage {
 
     return await openDatabase(
       path,
-      version: 15,
+      version: 16,
       onCreate: _onCreate,
       onUpgrade: onUpgrade,
     );
@@ -184,7 +184,8 @@ class SqliteStorage implements LocalStorage {
         mission TEXT NOT NULL DEFAULT 'none',
         mission_level INTEGER NOT NULL DEFAULT 1,
         qr_payload TEXT,
-        max_snoozes INTEGER
+        max_snoozes INTEGER,
+        volume INTEGER
       )
     ''');
   }
@@ -343,6 +344,11 @@ class SqliteStorage implements LocalStorage {
       await db.execute(
         'ALTER TABLE prayer_times ADD COLUMN hijri_year INTEGER',
       );
+    }
+    if (oldVersion < 16) {
+      // Alarm başına ses seviyesi (Android). Mevcut alarmlar NULL: telefonun
+      // seviyesiyle çalmaya devam eder, davranış değişmez.
+      await db.execute('ALTER TABLE alarms ADD COLUMN volume INTEGER');
     }
   }
 
@@ -659,7 +665,7 @@ class SqliteStorage implements LocalStorage {
     final db = await database;
     final rows = await db.query(
       'settings',
-      where: 'key IN (?, ?, ?, ?, ?, ?, ?)',
+      where: 'key IN (?, ?, ?, ?, ?, ?, ?, ?)',
       whereArgs: [
         GeneralSettings.timeFormatKey,
         GeneralSettings.autoLocationKey,
@@ -668,6 +674,7 @@ class SqliteStorage implements LocalStorage {
         GeneralSettings.religiousDaysKey,
         GeneralSettings.religiousDayEveKey,
         GeneralSettings.ramadanModeKey,
+        GeneralSettings.alarmRingLimitKey,
       ],
     );
     return GeneralSettings.fromMap({

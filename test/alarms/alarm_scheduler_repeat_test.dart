@@ -6,6 +6,7 @@ import 'package:ezanvakti/core/interfaces/local_storage.dart';
 import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/core/models/alarm_mission.dart';
 import 'package:ezanvakti/core/models/alarm_theme.dart';
+import 'package:ezanvakti/core/models/general_settings.dart';
 import 'package:ezanvakti/core/models/mission_stop_event.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart'
     show PrayerType;
@@ -149,11 +150,18 @@ class _StorageWithAlarms implements LocalStorage {
   Future<void> saveQuietWindows(List<QuietWindow> windows) async =>
       _quietWindows = windows;
   final List<Alarm> alarms;
+  final GeneralSettings generalSettings;
 
-  _StorageWithAlarms(this.alarms);
+  _StorageWithAlarms(
+    this.alarms, {
+    this.generalSettings = const GeneralSettings(),
+  });
 
   @override
   Future<List<Alarm>> getAlarms() async => alarms;
+
+  @override
+  Future<GeneralSettings> getGeneralSettings() async => generalSettings;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -162,10 +170,11 @@ class _StorageWithAlarms implements LocalStorage {
 void main() {
   AlarmScheduler schedulerWith(
     _RecordingAlarmService service,
-    List<Alarm> alarms,
-  ) => AlarmScheduler(
+    List<Alarm> alarms, {
+    GeneralSettings general = const GeneralSettings(),
+  }) => AlarmScheduler(
     alarmService: service,
-    storage: _StorageWithAlarms(alarms),
+    storage: _StorageWithAlarms(alarms, generalSettings: general),
   );
 
   PrayerTime prayerTimeFor(DateTime day) {
@@ -313,5 +322,53 @@ void main() {
     await schedulerWith(service, [alarm]).scheduleAlarms(prayerTimes: week);
     expect(service.calls, isNotEmpty);
     expect(service.calls.every((c) => c.repeatWeekdays.isEmpty), isTrue);
+  });
+
+  test('sinirsiz calma suresi plana null olarak gider', () async {
+    final service = _RecordingAlarmService();
+    const alarms = [
+      Alarm(id: 'a1', kind: AlarmKind.fixed, hour: 6, minute: 30),
+      Alarm(
+        id: 'a2',
+        kind: AlarmKind.anchored,
+        anchor: PrayerType.fajr,
+        offsetMinutes: -30,
+      ),
+    ];
+    await schedulerWith(
+      service,
+      alarms,
+      general: const GeneralSettings(alarmRingLimitMinutes: 0),
+    ).scheduleAlarms(prayerTimes: week);
+    final records = service.plans.single.records;
+    expect(records, isNotEmpty);
+    expect(
+      records.every((record) => record.toMap()['ringLimitMinutes'] == null),
+      isTrue,
+    );
+  });
+
+  test('calma suresi ayari butun kayitlara aynen gider', () async {
+    final service = _RecordingAlarmService();
+    const alarms = [
+      Alarm(id: 'a1', kind: AlarmKind.fixed, hour: 6, minute: 30),
+      Alarm(
+        id: 'a2',
+        kind: AlarmKind.anchored,
+        anchor: PrayerType.fajr,
+        offsetMinutes: -30,
+      ),
+    ];
+    await schedulerWith(
+      service,
+      alarms,
+      general: const GeneralSettings(alarmRingLimitMinutes: 15),
+    ).scheduleAlarms(prayerTimes: week);
+    final records = service.plans.single.records;
+    expect(records, isNotEmpty);
+    expect(
+      records.every((record) => record.toMap()['ringLimitMinutes'] == 15),
+      isTrue,
+    );
   });
 }

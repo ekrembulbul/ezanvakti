@@ -8,6 +8,7 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.media.AudioAttributes
+import android.media.AudioManager
 import android.media.MediaPlayer
 import android.media.RingtoneManager
 import android.net.Uri
@@ -20,10 +21,12 @@ import android.os.Vibrator
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import java.io.File
+import java.util.Date
 
 /** Alarm çalarken ön planda çalışan servis: sesi (alarm akışında, döngüde) çalar,
  *  titreşir ve tam ekran çalar ekranını açan bir bildirim gösterir. Kapat/ertele
- *  eylemlerini yönetir. */
+ *  eylemlerini yönetir. Çalarken alarm akışının seviyesini sabit tutar ve
+ *  çalma süresi sınırı dolunca alarmı erteler ya da durdurur. */
 class AlarmRingService : Service() {
     companion object {
         const val ACTION_START = "com.ekrembulbul.ezanvakti.RING_START"
@@ -37,6 +40,13 @@ class AlarmRingService : Service() {
         const val FADE_IN_STEP_MILLIS = 100L
         /** Sıfırdan değil: sessiz başlayan alarm ilk saniyelerde hiç duyulmayabilir. */
         const val FADE_IN_START_VOLUME = 0.2f
+
+        /** Ses tuşuyla değişen seviye bu aralıkla geri alınır. */
+        const val VOLUME_GUARD_MILLIS = 500L
+
+        /** Süre dolup bir daha çalmayacak alarmın bilgi bildirimi. */
+        const val MISSED_CHANNEL_ID = "ezan_vakti_alarm_missed"
+        const val MISSED_NOTIF_BASE = 9_920_000
         @Volatile private var ringingAlarmId: String? = null
 
         fun cancelForAlarm(context: Context, alarmId: String, firedAtMillis: Long? = null) {
@@ -54,6 +64,10 @@ class AlarmRingService : Service() {
     private var fadeStartedAt = 0L
     private var vibrator: Vibrator? = null
     private var current: AlarmArgs? = null
+
+    /** Çalma başlamadan önceki alarm seviyesi; bitince geri yüklenir. */
+    private var restoreVolumeIndex: Int? = null
+    private var lockedVolumeIndex: Int? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -141,6 +155,8 @@ class AlarmRingService : Service() {
     }
 
     private fun startRinging(args: AlarmArgs) {
+        // Ses başlamadan seviye ayarlanır: ilk saniye yanlış seviyede çalmasın.
+        lockVolume(args)
         val uri = soundUriFor(args.soundId)
         if (uri != null) try {
             val playback = MediaPlayer()
@@ -165,6 +181,7 @@ class AlarmRingService : Service() {
             Log.e("EzanAlarm", "event=audio_failed id=" + args.id + " type=" + error.javaClass.simpleName)
         }
         if (args.vibrate) startVibrate()
+        startRingTimeout(args)
     }
 
     /** soundId res/raw altında bir kaynağa (ör. raw/adhan) karşılık geliyorsa onu,
@@ -227,7 +244,9 @@ class AlarmRingService : Service() {
 
     private fun stopRinging() {
         fadeStartedAt = 0L
+        // Ses yükselişi, seviye koruyucusu ve süre zamanlayıcısı birlikte biter.
         fadeHandler.removeCallbacksAndMessages(null)
+        unlockVolume()
         player?.let {
             try {
                 if (it.isPlaying) it.stop()
@@ -243,6 +262,150 @@ class AlarmRingService : Service() {
         } else {
             @Suppress("DEPRECATION")
             stopForeground(true)
+        }
+    }
+
+    /**
+     * Alarm çalarken alarm akışı hedef seviyede sabit kalır: çalar ekranı önde
+     * değilken basılan ses tuşları da geri alınır. Bitince kullanıcının önceki
+     * seviyesi geri yüklenir. Yüzde verilmemişse hedef, o anki seviyedir.
+     */
+    private fun lockVolume(args: AlarmArgs) {
+        val audio = getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return
+        val stream = AudioManager.STREAM_ALARM
+        val current = audio.getStreamVolume(stream)
+        val min = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) audio.getStreamMinVolume(stream) else 0
+        val target = AlarmVolume.targetIndex(args.volumePercent, current, min, audio.getStreamMaxVolume(stream))
+        try {
+            if (target != current) audio.setStreamVolume(stream, target, 0)
+        } catch (error: SecurityException) {
+            // Örn. tam sessiz Rahatsız Etme: alarm mevcut seviyede çalar.
+            AlarmJournal(this).record("volume_lock", args, result = "failed", error = error)
+            return
+        }
+        restoreVolumeIndex = current
+        lockedVolumeIndex = target
+        val guard = object : Runnable {
+            override fun run() {
+                val locked = lockedVolumeIndex ?: return
+                try {
+                    if (audio.getStreamVolume(stream) != locked) audio.setStreamVolume(stream, locked, 0)
+                } catch (_: SecurityException) {
+                    return
+                }
+                fadeHandler.postDelayed(this, VOLUME_GUARD_MILLIS)
+            }
+        }
+        fadeHandler.postDelayed(guard, VOLUME_GUARD_MILLIS)
+    }
+
+    private fun unlockVolume() {
+        val restore = restoreVolumeIndex
+        lockedVolumeIndex = null
+        restoreVolumeIndex = null
+        if (restore == null) return
+        val audio = getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return
+        try {
+            if (audio.getStreamVolume(AudioManager.STREAM_ALARM) != restore) {
+                audio.setStreamVolume(AudioManager.STREAM_ALARM, restore, 0)
+            }
+        } catch (_: SecurityException) {
+        }
+    }
+
+    private fun startRingTimeout(args: AlarmArgs) {
+        val delay = RingTimeout.delayMillis(args.ringLimitMinutes) ?: return
+        fadeHandler.postDelayed({
+            val active = current
+            if (active != null && active.id == args.id && active.timeMillis == args.timeMillis) {
+                onRingTimeout(active)
+            }
+        }, delay)
+    }
+
+    /** Süre doldu: erteleme hakkı varsa mevcut erteleme geçişi, yoksa
+     *  kaydırarak durdurmayla aynı yol (görevli alarmda nöbetçi zinciri sürer). */
+    private fun onRingTimeout(args: AlarmArgs) {
+        val missions = AndroidMissionStore.missions(this)
+        val previous = missions.session(args.alarmId)
+        val snoozed = if (args.snoozeEnabled) {
+            missions.snooze(args.alarmId, args.snoozeMinutes, System.currentTimeMillis())
+        } else null
+        if (snoozed != null) {
+            try {
+                AlarmScheduling.rearm(this, snoozed, requireNotNull(snoozed.snoozedUntilMillis))
+                AlarmJournal(this).record("ring_timeout_snooze", args)
+                finishRinging()
+                return
+            } catch (error: Exception) {
+                if (previous != null && missions.session(args.alarmId)?.timerScheduleId == previous.timerScheduleId) {
+                    missions.restore(previous)
+                }
+                AlarmJournal(this).record("ring_timeout_snooze", args, result = "failed", error = error)
+            }
+        }
+        if (!recordStop(args)) {
+            // Durdurma reddedildi (görev zinciri kurulamadı): ses görev
+            // bitene dek sürer; zamanlayıcı yeniden kurulmaz.
+            AlarmJournal(this).record("ring_timeout_stop", args, result = "failed")
+            return
+        }
+        val chainContinues = missions.session(args.alarmId)?.deadlineMillis != null
+        AlarmJournal(this).record("ring_timeout_stop", args)
+        if (RingTimeout.missedNotice(args.missionEnabled, chainContinues)) postMissed(args)
+        finishRinging()
+    }
+
+    /** Servis alarmı kendisi bitirdi: ekran da kapanır, aksi halde kilit
+     *  ekranında susmuş bir "Alarm çalıyor" ekranı kalırdı. */
+    private fun finishRinging() {
+        stopRinging()
+        current = null
+        ringingAlarmId = null
+        AlarmRingActivity.finishShowing()
+        stopSelf()
+    }
+
+    private fun postMissed(args: AlarmArgs) {
+        val manager = getSystemService(NotificationManager::class.java) ?: return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+            manager.getNotificationChannel(MISSED_CHANNEL_ID) == null
+        ) {
+            manager.createNotificationChannel(
+                NotificationChannel(
+                    MISSED_CHANNEL_ID,
+                    getString(R.string.alarm_missed_channel_name),
+                    NotificationManager.IMPORTANCE_DEFAULT,
+                ).apply {
+                    setSound(null, null)
+                    enableVibration(false)
+                },
+            )
+        }
+        val open = PendingIntent.getActivity(
+            this,
+            ("missed" + args.alarmId).hashCode(),
+            Intent(this, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                    Intent.FLAG_ACTIVITY_SINGLE_TOP
+            },
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val firedAt = args.originalFireAtMillis ?: args.timeMillis
+        val time = android.text.format.DateFormat.getTimeFormat(this).format(Date(firedAt))
+        val notification = NotificationCompat.Builder(this, MISSED_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_stat_notification)
+            .setContentTitle(args.label.ifBlank { getString(R.string.alarm_default_label) })
+            .setContentText(getString(R.string.alarm_missed_text, time))
+            .setCategory(NotificationCompat.CATEGORY_REMINDER)
+            .setAutoCancel(true)
+            .setContentIntent(open)
+            .build()
+        try {
+            // Aynı alarmın yeni kaçırılışı eskisinin yerine geçer.
+            manager.notify(MISSED_NOTIF_BASE + (args.alarmId.hashCode() and 0xFFFF), notification)
+        } catch (_: SecurityException) {
+            // Bildirim izni yok: bilgi notu gösterilemez, alarm akışı etkilenmez.
         }
     }
 

@@ -33,6 +33,10 @@ data class AlarmArgs(
     val repeatHour: Int? = null,
     val repeatMinute: Int? = null,
     val templateWeekdays: List<Int>? = null,
+    /** Alarm akışının seviyesi (%10–100); `null` = telefonun o anki seviyesi. */
+    val volumePercent: Int? = null,
+    /** Kapatılmazsa bu kadar dakika sonra ertelenir ya da susar; `null` = sınırsız. */
+    val ringLimitMinutes: Int? = null,
 ) {
     val opensApp get() = missionEnabled || snoozeEnabled
     val isWatchdog get() = originalFireAtMillis != null
@@ -44,7 +48,9 @@ data class AlarmArgs(
         (originalFireAtMillis == null || originalFireAtMillis in 1..timeMillis) &&
         (!missionEnabled || missionTimeoutSeconds in 1..3600) && repeatWeekdays.all { it in 1..7 } &&
         (templateWeekdays?.all { it in 1..7 } ?: true) &&
-        (repeatHour == null || repeatHour in 0..23) && (repeatMinute == null || repeatMinute in 0..59)
+        (repeatHour == null || repeatHour in 0..23) && (repeatMinute == null || repeatMinute in 0..59) &&
+        (volumePercent == null || volumePercent in 10..100) &&
+        (ringLimitMinutes == null || ringLimitMinutes in 1..120)
 
     fun writeTo(intent: Intent) {
         intent.putExtra(PAYLOAD, toJson())
@@ -74,6 +80,8 @@ data class AlarmArgs(
         put("repeatHour", repeatHour ?: JSONObject.NULL)
         put("repeatMinute", repeatMinute ?: JSONObject.NULL)
         put("templateWeekdays", templateWeekdays?.let { JSONArray(it) } ?: JSONObject.NULL)
+        put("volumePercent", volumePercent ?: JSONObject.NULL)
+        put("ringLimitMinutes", ringLimitMinutes ?: JSONObject.NULL)
     }.toString()
 
     companion object {
@@ -105,6 +113,8 @@ data class AlarmArgs(
                 repeatHour = (chain["repeatHour"] as? Number)?.toInt(),
                 repeatMinute = (chain["repeatMinute"] as? Number)?.toInt(),
                 templateWeekdays = (chain["templateWeekdays"] as? List<*>)?.map { (it as Number).toInt() },
+                volumePercent = (values["volume"] as? Number)?.toInt(),
+                ringLimitMinutes = (values["ringLimitMinutes"] as? Number)?.toInt(),
             ).also { require(it.isValid) { "Invalid alarm arguments" } }
         }
 
@@ -154,6 +164,9 @@ data class AlarmArgs(
                 templateWeekdays = o.optJSONArray("templateWeekdays")?.let { array ->
                     (0 until array.length()).map { array.getInt(it) }
                 },
+                // Eski kayıtlarda anahtar yok: isNull o durumda da true döner.
+                volumePercent = if (o.isNull("volumePercent")) null else o.getInt("volumePercent"),
+                ringLimitMinutes = if (o.isNull("ringLimitMinutes")) null else o.getInt("ringLimitMinutes"),
             )
         } catch (error: Exception) {
             Logger.getLogger("EzanAlarm").warning("event=args_decode_failed type=" + error.javaClass.simpleName)

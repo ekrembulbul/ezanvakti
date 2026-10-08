@@ -30,6 +30,10 @@ class AlarmPlanEntry {
   final Map<String, dynamic> chainConfig;
   final bool isFirstOccurrence;
 
+  /// Kapatılmayan alarmın kaç dakika sonra ertelenip susacağı; `null` =
+  /// sınırsız. Genel ayardan gelir, yalnız Android okur.
+  final int? ringLimitMinutes;
+
   AlarmPlanEntry({
     required this.id,
     required this.alarm,
@@ -38,6 +42,7 @@ class AlarmPlanEntry {
     required Map<String, dynamic> chainConfig,
     List<int> repeatWeekdays = const [],
     this.isFirstOccurrence = true,
+    this.ringLimitMinutes,
   }) : repeatWeekdays = List.unmodifiable(repeatWeekdays),
        chainConfig = Map.unmodifiable(chainConfig);
 
@@ -50,6 +55,9 @@ class AlarmPlanEntry {
     // Yalnızca Android okur; iOS'ta alarm AlarmKit'in elinde ve ses
     // seviyesine erişim yok (bkz. docs/adr/0003).
     'fadeIn': alarm.fadeIn,
+    // Yalnızca Android okur (iOS'ta AlarmKit; bkz. docs/adr/0003).
+    'volume': alarm.volume,
+    'ringLimitMinutes': ringLimitMinutes,
     'snoozeEnabled': alarm.snoozeEnabled,
     'snoozeMinutes': alarm.snoozeMinutes,
     'theme': theme.toMap(),
