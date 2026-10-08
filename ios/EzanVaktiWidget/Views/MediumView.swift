@@ -1,7 +1,16 @@
 import SwiftUI
 
+/// Orta widget (2026-10-08, spec K8): her kenarda 14, düzen sabit (hizalama
+/// ayarı yalnız küçük boyda). Üstte solda konum, sağda "gün, tarih · hicri"
+/// — kerahat penceresinde onun yerine `KerahatChip`; vakit adı ile saati ve
+/// sağda sayaç; gün cetveli (`RulerView`); altı vakit yan yana, sıradaki
+/// vurgulu, geçenler soluk. Eski payload'da cetvel yok: o alan çizilmez,
+/// boşluklar kalan yüksekliği paylaşır.
 struct MediumView: View {
     @Environment(\.colorScheme) private var colorScheme
+
+    static let countdownFontSize: CGFloat = 28
+    static let countdownInk = InkInsets.system(size: countdownFontSize, weight: .light)
 
     let entry: PrayerEntry
     let alignment: WidgetAlignment
@@ -28,72 +37,108 @@ struct MediumView: View {
     ) -> some View {
         let palette = Palette.resolve(entry.appearance, phase: phase, colorScheme: colorScheme)
         // Liste sıradaki vaktin gününü gösterir; `day` bu yüzden timeline'da
-        // sıradaki vakte göre seçiliyor.
-        let slots = NextPrayer.slots(days: [day], calendar: .current)
-        let kerahat = entry.kerahat
-        // İçeriğin alt payı yok (sol sütun görünen alt kenara ya da şeride
-        // göre ölçülür); sağ sütun ile ayraç kendi 12'sini her durumda korur.
-        let listBottom = WidgetInsets.vertical
+        // sıradaki vakte göre seçiliyor. Adlar etiketlerden: `next` de öyle
+        // kuruluyor, sıradaki vaktin eşleşmesi buna bağlı.
+        let slots = NextPrayer.slots(days: [day], calendar: .current, labels: entry.labels)
 
         return VStack(spacing: 0) {
-            HStack(spacing: 0) {
-                // Sol sütun küçük widget'ın aynısı; genişliği sabit ki liste
-                // cihazdan cihaza değişen artığı alsın.
-                VStack(alignment: alignment.horizontal, spacing: 0) {
-                    WidgetHeader(
-                        entry: entry, day: day, palette: palette, alignment: alignment,
-                        locationLabel: locationLabel, isStale: isStale)
-                    WidgetDivider(color: palette.divider)
-                    NextPrayerBlock(
-                        entry: entry, next: next, palette: palette,
-                        alignment: alignment, isTomorrow: isTomorrow)
-                }
-                .frame(width: 158)
-
-                Rectangle()
-                    .fill(palette.textSecondary.opacity(0.2))
-                    .frame(width: 1)
-                    .padding(.leading, 14)
-                    .padding(.trailing, 16)
-                    .padding(.bottom, listBottom)
-
-                // Altı satır dikeyde yayılıp yüksekliğin tamamını kaplar; sütun
-                // artan genişliği alır.
-                VStack(spacing: 0) {
-                    ForEach(Array(slots.enumerated()), id: \.element.name) { index, slot in
-                        if index > 0 { Spacer(minLength: 0) }
-                        row(slot: slot, next: next, palette: palette)
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding(.bottom, listBottom)
+            header(day: day, palette: palette, locationLabel: locationLabel, isStale: isStale)
+            Spacer(minLength: 4)
+            prayerRow(next: next, palette: palette, isTomorrow: isTomorrow)
+            if let ruler = day.ruler {
+                Spacer(minLength: 2)
+                RulerView(
+                    ruler: ruler,
+                    palette: palette,
+                    nowFraction: RulerGeometry.dayFraction(
+                        now: entry.date, day: day.date, calendar: .current))
             }
-            .modifier(HomeContentInsets(bottom: 0))
-            if let status = kerahat {
-                KerahatRibbon(entry: entry, status: status, palette: palette)
+            Spacer(minLength: 4)
+            HStack(spacing: 0) {
+                ForEach(Array(slots.enumerated()), id: \.offset) { _, slot in
+                    column(slot: slot, next: next, palette: palette)
+                }
             }
         }
+        .padding(WidgetInsets.content)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .opacity(isStale ? 0.55 : 1)
     }
 
-    /// Geçmiş vakitler soluk, sıradaki accent ile vurgulu.
-    private func row(slot: PrayerSlot, next: PrayerSlot, palette: Palette) -> some View {
+    /// 22 pt yükseklikte sabit: çip gelince satır zıplamaz.
+    private func header(
+        day: SnapshotDay, palette: Palette, locationLabel: String, isStale: Bool
+    ) -> some View {
+        HStack(spacing: 8) {
+            Text(verbatim: WidgetText.place(locationLabel: locationLabel, isStale: isStale, labels: entry.labels))
+                .font(.system(size: 12))
+                .foregroundStyle(palette.textSecondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+            Spacer(minLength: 0)
+            if let status = entry.kerahat {
+                KerahatChip(entry: entry, status: status, palette: palette)
+            } else if let date = DayLabel.header(day) {
+                Text(verbatim: date)
+                    .font(.system(size: 12))
+                    .foregroundStyle(palette.textSecondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                    .layoutPriority(1)
+            }
+        }
+        .frame(height: KerahatChip.height)
+    }
+
+    /// Solda vakit adı ile saati (aynı taban çizgisinde), sağda sayaç. Sayacın
+    /// kutusu mürekkebe indirilir: 28'lik satır kutusu cetvele yer bırakmıyordu.
+    private func prayerRow(next: PrayerSlot, palette: Palette, isTomorrow: Bool) -> some View {
+        HStack(alignment: .center, spacing: 8) {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(verbatim: WidgetText.prayerName(next: next, isTomorrow: isTomorrow, labels: entry.labels))
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(palette.accent)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                Text(TimeFormatting.clock(next.date, preference: entry.timeFormat))
+                    .font(.system(size: 18, weight: .semibold).monospacedDigit())
+                    .foregroundStyle(palette.textPrimary)
+                    .lineLimit(1)
+            }
+            .layoutPriority(1)
+            CountdownLabel(
+                entry: entry, target: next.date, size: Self.countdownFontSize,
+                color: palette.textPrimary, weight: .light)
+                .multilineTextAlignment(.trailing)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+                .inkBounds(Self.countdownInk)
+        }
+    }
+
+    /// Ad 10 ve saat 12; sıradaki vurgu zeminli, geçenler soluk.
+    private func column(slot: PrayerSlot, next: PrayerSlot, palette: Palette) -> some View {
         let isNext = slot == next
         let isPast = slot.date < entry.date
-        let weight: Font.Weight = isNext ? .semibold : .regular
 
-        return HStack(spacing: 0) {
-            Text(slot.name)
-                .font(.system(size: 12, weight: weight))
-            Spacer(minLength: 12)
+        return VStack(spacing: 1) {
+            Text(verbatim: slot.name)
+                .font(.system(size: 10))
+                .foregroundStyle(isNext ? palette.accent : palette.textSecondary)
             Text(TimeFormatting.clock(slot.date, preference: entry.timeFormat))
-                .font(.system(size: 12, weight: weight).monospacedDigit())
+                .font(.system(size: 12, weight: isNext ? .bold : .medium).monospacedDigit())
+                .foregroundStyle(isNext ? palette.accent : palette.textPrimary)
         }
         .lineLimit(1)
-        .foregroundStyle(
-            isNext
-                ? palette.accent
-                : (isPast ? palette.textSecondary.opacity(0.5) : palette.textPrimary)
-        )
+        .minimumScaleFactor(0.7)
+        .padding(.vertical, 3)
+        .padding(.horizontal, 2)
+        .frame(maxWidth: .infinity)
+        .background {
+            if isNext {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(palette.accent.opacity(0.16))
+            }
+        }
+        .opacity(isPast && !isNext ? 0.5 : 1)
     }
 }

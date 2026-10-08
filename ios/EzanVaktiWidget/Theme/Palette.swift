@@ -27,18 +27,6 @@ struct Palette {
     /// Üst blok ile alt bloğu ayıran çizgi; açık zeminde daha soluk yeter.
     var divider: Color { textSecondary.opacity(isDark ? 0.4 : 0.3) }
 
-    /// Kerahat sürerken zemin bordo tona kayar; tasarımdan örneklenen sabit
-    /// duraklar, kerahat renkleri gibi palet bağımsız.
-    private var kerahatBackgroundStops: [Color] {
-        isDark
-            ? [Color(hex: 0x4B1E30), Color(hex: 0x2A1421), Color(hex: 0x150C11)]
-            : [Color(hex: 0xE9B9C6), Color(hex: 0xF3D8DF), Color(hex: 0xFAEEF0)]
-    }
-
-    func kerahatBackgroundGradient(in size: CGSize) -> RadialGradient {
-        Self.gradient(stops: kerahatBackgroundStops, in: size)
-    }
-
     /// Zemin gradyanı. Geometri her palette aynı, yalnızca renkler değişir.
     ///
     /// Flutter karşılığı: `RadialGradient(center: Alignment(0.40, -1.08),

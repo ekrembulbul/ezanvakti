@@ -66,9 +66,9 @@ struct EzanVaktiWidgetEntryView: View {
             .containerBackground(for: .widget) {
                 switch family {
                 case .systemSmall, .systemMedium:
-                    PhaseBackground(
-                        phase: phase, appearance: entry.appearance,
-                        kerahatActive: entry.isKerahatActive)
+                    // Kerahatte zemin değişmez; vakit adı, sayaç ve kart/çip
+                    // bordo tona döner (2026-10-08 tasarımı).
+                    PhaseBackground(phase: phase, appearance: entry.appearance)
                 default:
                     AccessoryWidgetBackground()
                 }
@@ -76,8 +76,8 @@ struct EzanVaktiWidgetEntryView: View {
     }
 
     /// Sistem kenar payı kapalı (`contentMarginsDisabled`): ana ekran aileleri
-    /// kendi payını `HomeContentInsets` ile verir (kerahat şeridi payın
-    /// dışında); kilit ekranı sistemin değerini aynen uygular.
+    /// kendi payını verir (küçük ve orta 14 pt); kilit ekranı sistemin
+    /// değerini aynen uygular.
     @ViewBuilder
     private var content: some View {
         switch family {
@@ -111,7 +111,7 @@ struct EzanVaktiWidget: Widget {
             .systemSmall, .systemMedium, .accessoryRectangular,
         ])
         // Kenar payı görünümlerde (`HomeContentInsets`, kilit ekranında
-        // `widgetContentMargins`); kerahat şeridi widget'ın alt kenarına dayanır.
+        // `widgetContentMargins`).
         .contentMarginsDisabled()
     }
 }

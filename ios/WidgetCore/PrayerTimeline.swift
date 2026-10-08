@@ -72,7 +72,8 @@ struct PrayerEntry: TimelineEntry {
     /// Uygulamanın dilindeki etiketler; v3 öncesi payload'da nil.
     var labels: SnapshotLabels?
 
-    /// Zemin bordo tona yalnız kerahat sürerken kayar; yaklaşırken değil.
+    /// Kerahat sürüyor mu: küçük widget'ta vakit adı ve sayaç bordo tona döner
+    /// (zemin değişmez); yaklaşırken değil.
     var isKerahatActive: Bool {
         if case .active = kerahat { return true }
         return false
@@ -86,8 +87,12 @@ enum PrayerTimeline {
     static let horizonHours = 48
 
     /// 48 saatte 12 vakit sınırı + günde 3 kerahat × 3 an (yaklaşma,
-    /// başlangıç, bitiş) sığsın; bitişlerin çoğu bir vakit sınırıyla çakışır.
-    static let maxEntries = 24
+    /// başlangıç, bitiş) + 15 dk'lık cetvel kareleri (192) sığsın.
+    static let maxEntries = 240
+
+    /// Orta boy cetvelindeki "şu an" noktası kare anında çizilir; 15 dk'da bir
+    /// kare noktayı ilerletir. Kareler reload bütçesi harcamaz.
+    static let rulerTick: TimeInterval = 15 * 60
 
     static func entries(
         for result: Result<WidgetSnapshot, SnapshotLoadError>?,
@@ -132,7 +137,10 @@ enum PrayerTimeline {
         let kerahatMoments = KerahatStatus.intervals(days: snapshot.days, calendar: calendar)
             .flatMap { [$0.start.addingTimeInterval(-KerahatStatus.lead), $0.start, $0.end] }
             .filter { $0 > now && $0 <= horizon }
-        let moments = Array(Set([now] + boundaries + kerahatMoments)).sorted().prefix(maxEntries)
+        let ticks = stride(
+            from: now.addingTimeInterval(rulerTick), to: horizon, by: rulerTick
+        ).map { $0 }
+        let moments = Array(Set([now] + boundaries + kerahatMoments + ticks)).sorted().prefix(maxEntries)
 
         return moments.map { moment in
             PrayerEntry(

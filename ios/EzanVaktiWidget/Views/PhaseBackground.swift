@@ -3,22 +3,17 @@ import SwiftUI
 /// Ana ekran ailelerinin ortak zemini.
 ///
 /// Gradyan `GeometryReader` içinde çizilir çünkü yarıçap kısa kenara bağlıdır
-/// (`Palette.backgroundGradient(in:)`). Kerahat sürerken zemin bordo tona
-/// kayar (`Palette.kerahatBackgroundGradient(in:)`).
+/// (`Palette.backgroundGradient(in:)`). Kerahatte zemin değişmez
+/// (2026-10-08): kerahat kart/çip ve bordo metinle anlatılır.
 struct PhaseBackground: View {
     @Environment(\.colorScheme) private var colorScheme
     let phase: DayPhase
     let appearance: WidgetAppearance
-    var kerahatActive = false
 
     var body: some View {
         GeometryReader { geometry in
-            let palette = Palette.resolve(appearance, phase: phase, colorScheme: colorScheme)
-            if kerahatActive {
-                palette.kerahatBackgroundGradient(in: geometry.size)
-            } else {
-                palette.backgroundGradient(in: geometry.size)
-            }
+            Palette.resolve(appearance, phase: phase, colorScheme: colorScheme)
+                .backgroundGradient(in: geometry.size)
         }
     }
 }

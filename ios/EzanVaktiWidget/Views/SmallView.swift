@@ -1,5 +1,12 @@
 import SwiftUI
 
+/// Küçük widget (2026-10-08, spec K6): her kenarda 14. Üstte "konum · tarih";
+/// ortada vakit adı ile saati ve büyük sayaç; altta sabit yuva — kerahat yokken
+/// gün adı ve hicri tarih, kerahat penceresinde `KerahatCard`. Kerahat
+/// sürerken vakit adı ve sayaç bordo tona döner; zemin değişmez.
+///
+/// Hizalama ayarı (sola / ortaya / sağa) yalnız bu boyda geçerli; kart her
+/// durumda tam genişlik.
 struct SmallView: View {
     @Environment(\.colorScheme) private var colorScheme
 
@@ -27,24 +34,65 @@ struct SmallView: View {
         locationLabel: String, isStale: Bool, isTomorrow: Bool
     ) -> some View {
         let palette = Palette.resolve(entry.appearance, phase: phase, colorScheme: colorScheme)
-        let kerahat = entry.kerahat
+        let place = WidgetText.place(locationLabel: locationLabel, isStale: isStale, labels: entry.labels)
+        let top = [place, DayLabel.short(day)].compactMap { $0 }.joined(separator: " · ")
+        // Yalnız kerahat sürerken; yaklaşırken kart yeter, vakit bloğu olağan.
+        let inKerahat = entry.isKerahatActive
 
-        return VStack(spacing: 0) {
-            VStack(alignment: alignment.horizontal, spacing: 0) {
-                WidgetHeader(
-                    entry: entry, day: day, palette: palette, alignment: alignment,
-                    locationLabel: locationLabel, isStale: isStale)
-                WidgetDivider(color: palette.divider)
-                NextPrayerBlock(
-                    entry: entry, next: next, palette: palette,
-                    alignment: alignment, isTomorrow: isTomorrow)
+        // Üst satır ile yuva arasındaki iki eşit boşluk vakit bloğunu ortalar.
+        return VStack(alignment: alignment.horizontal, spacing: 0) {
+            Text(verbatim: top)
+                .font(.system(size: 12))
+                .foregroundStyle(palette.textSecondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+            Spacer(minLength: 0)
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Text(verbatim: WidgetText.prayerName(next: next, isTomorrow: isTomorrow, labels: entry.labels))
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(inKerahat ? palette.kerahat : palette.accent)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.7)
+                Text(TimeFormatting.clock(next.date, preference: entry.timeFormat))
+                    .font(.system(size: 16, weight: .semibold).monospacedDigit())
+                    .foregroundStyle(palette.textPrimary)
+                    .lineLimit(1)
             }
-            .modifier(HomeContentInsets(bottom: 0))
-            if let status = kerahat {
-                KerahatRibbon(entry: entry, status: status, palette: palette)
-            }
+            CountdownLabel(
+                entry: entry, target: next.date, size: 34,
+                color: inKerahat ? palette.kerahat : palette.textPrimary, weight: .light)
+                .padding(.top, 2)
+            Spacer(minLength: 0)
+            bottomSlot(day: day, palette: palette)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .padding(WidgetInsets.content)
+        // `Text(timerInterval:)` sunulan genişliği doldurur; metnin kutu içi
+        // hizası ayrıca verilmezse sola yaslı kalıyor (2026-09-15 cihaz gözlemi).
+        .multilineTextAlignment(alignment.textAlignment)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: alignment.frame)
         .opacity(isStale ? 0.55 : 1)
+    }
+
+    /// 34 pt sabit yuva: kerahat yokken gün adı ve hicri tarih, varsa kart.
+    @ViewBuilder
+    private func bottomSlot(day: SnapshotDay, palette: Palette) -> some View {
+        if let status = entry.kerahat {
+            KerahatCard(entry: entry, status: status, day: day, palette: palette)
+        } else {
+            VStack(alignment: alignment.horizontal, spacing: 0) {
+                if let weekday = DayLabel.weekday(day) {
+                    Text(verbatim: weekday)
+                }
+                if let hijri = day.hijri {
+                    Text(verbatim: hijri)
+                }
+            }
+            .font(.system(size: 11))
+            .foregroundStyle(palette.textSecondary)
+            .lineLimit(1)
+            .minimumScaleFactor(0.8)
+            .frame(maxWidth: .infinity, alignment: Alignment(horizontal: alignment.horizontal, vertical: .bottom))
+            .frame(height: KerahatCard.height, alignment: .bottom)
+        }
     }
 }

@@ -1,9 +1,10 @@
 import Foundation
 
-/// Widget'taki kerahat şeridinin içeriği: tek kelime ve sistem sayacının hedefi.
+/// Widget'taki kerahat kartının (küçük) ve çipinin (orta) içeriği: tek kelime
+/// ve sistem sayacının hedefi. Ad tarihî: eskiden alttaki şeritti.
 ///
-/// Saf tutuluyor ki XCTest'te sınansın; görünüm (`KerahatRibbon`) etiketi
-/// yazar, sonuna sistem sayacını ekler. Saat ya da bitiş yazılmaz: sayaç zaten
+/// Saf tutuluyor ki XCTest'te sınansın; görünüm (`KerahatCard`, `KerahatChip`)
+/// etiketi yazar, yanına sistem sayacını ekler. Saat ya da bitiş yazılmaz: sayaç zaten
 /// yaklaşırken başlangıca, kerahatte bitişe sayar (2026-09-19 tasarımı).
 enum KerahatRibbonLabel {
     /// Her iki durumda da tek kelime; etiket snapshot'la gelir, yoksa Türkçe.

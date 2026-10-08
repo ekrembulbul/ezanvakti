@@ -59,14 +59,20 @@ final class PrayerTimelineTests: XCTestCase {
         )
     }
 
-    /// Geri sayimi sistem cizdigi icin kare yalnizca icerik degisince gerekir:
-    /// her vakit gecisinde. Dakikalik kare uretimi 0.5.4'te olculup kaldirildi.
-    func testEntriesLandOnPrayerBoundariesOnly() {
-        let result = entries(days: ["2026-08-25", "2026-08-26"], now: at(25, 14, 0))
-        XCTAssertEqual(result[1].date, at(25, 16, 58))  // İkindi
-        XCTAssertEqual(result[2].date, at(25, 20, 26))  // Akşam
-        XCTAssertEqual(result[3].date, at(25, 21, 58))  // Yatsı
-        XCTAssertEqual(result[4].date, at(26, 4, 12))   // ertesi İmsak
+    /// Geri sayimi sistem cizdigi icin kare icerik degisince gerekir: her vakit
+    /// gecisinde (bir de cetvel noktasi icin 15 dk'da bir). Dakikalik kare
+    /// uretimi 0.5.4'te olculup kaldirildi.
+    func testEntriesLandOnPrayerBoundaries() {
+        let dates = entries(days: ["2026-08-25", "2026-08-26"], now: at(25, 14, 0))
+            .map(\.date)
+        // 15 dk'lık cetvel kareleri araya girer; vakit sınırları yerinde kalır.
+        let expected = [
+            at(25, 16, 58),  // İkindi
+            at(25, 20, 26),  // Akşam
+            at(25, 21, 58),  // Yatsı
+            at(26, 4, 12),   // ertesi İmsak
+        ]
+        XCTAssertEqual(dates.filter(expected.contains), expected)
     }
 
     func testHorizonIsCapped() {
@@ -84,7 +90,8 @@ final class PrayerTimelineTests: XCTestCase {
     func testEntryAtBoundaryAdvancesToTheNextPrayer() {
         let result = entries(days: ["2026-08-25", "2026-08-26"], now: at(25, 14, 0))
         guard case let .ready(first, _, _, _, _, _) = result[0].content,
-              case let .ready(second, _, _, _, _, _) = result[1].content else {
+              let boundary = result.first(where: { $0.date == at(25, 16, 58) }),
+              case let .ready(second, _, _, _, _, _) = boundary.content else {
             return XCTFail("ready bekleniyordu")
         }
         XCTAssertEqual(first.name, "İkindi")
@@ -162,17 +169,26 @@ final class PrayerTimelineTests: XCTestCase {
     /// ve bitis birer kare gerektirir; vakit sinirlari da yerinde kalir.
     func testEntriesIncludeKerahatMomentsBetweenPrayerBoundaries() {
         let dates = kerahatEntries(now: at(25, 14, 0)).map(\.date)
-        XCTAssertEqual(Array(dates.prefix(6)), [
+        // 15 dk'lık cetvel kareleri araya girer; içerik anları sırasıyla yerinde.
+        let expected = [
             at(25, 14, 0),   // simdi
             at(25, 16, 58),  // İkindi
             at(25, 19, 11),  // kerahat - 30 dk
             at(25, 19, 41),  // kerahat baslangici
             at(25, 20, 26),  // Akşam = kerahat bitisi
             at(25, 21, 58),  // Yatsı
-        ])
+        ]
+        XCTAssertEqual(dates.filter(expected.contains), expected)
         XCTAssertEqual(dates, dates.sorted())
         XCTAssertEqual(Set(dates).count, dates.count)
         XCTAssertLessThanOrEqual(dates.count, PrayerTimeline.maxEntries)
+    }
+
+    /// Orta boy cetvelindeki nokta 15 dk'da bir ilerlesin.
+    func testEntriesIncludeQuarterHourRulerTicks() {
+        let dates = kerahatEntries(now: at(25, 14, 0)).map(\.date)
+        XCTAssertTrue(dates.contains(at(25, 14, 15)))
+        XCTAssertTrue(dates.contains(at(25, 14, 30)))
     }
 
     func testKerahatMomentsDoNotStarveNextDayPrayers() {
