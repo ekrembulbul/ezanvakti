@@ -9,4 +9,7 @@
     <string name="alarm_ringing">Alarm çalıyor</string>
     <string name="alarm_channel_name">Ezan Vakti Alarmları</string>
     <string name="alarm_channel_description">Sesli alarmlar</string>
+    <string name="alarm_missed_channel_name">Kaçırılan alarmlar</string>
+    <string name="alarm_missed_text">Kaçırılan alarm · %1$s</string>
+    <string name="quiet_rule_name">Ezan Vakti – sessiz pencere</string>
 </resources>

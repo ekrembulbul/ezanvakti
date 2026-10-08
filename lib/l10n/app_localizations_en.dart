@@ -390,7 +390,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get quietIntro =>
-      'During these windows Ezan Vakti notifications are shown silently or not at all. The setting affects only this app\'s notifications; it does not touch your ringer profile or alarms.';
+      'During these windows Ezan Vakti notifications are shown silently or not at all. With \"Silence the phone too\" on, the phone switches to Do Not Disturb for the window and returns to normal when it ends. Alarms always ring.';
 
   @override
   String get quietFridaySection => 'Friday prayer';
@@ -1848,4 +1848,63 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get sermonsLoadFailed =>
       'Couldn\'t load sermons. Check your internet connection.';
+
+  @override
+  String get androidChannelBeepName => 'Ezan Vakti notifications (short tone)';
+
+  @override
+  String get androidChannelSilentName => 'Ezan Vakti notifications (silent)';
+
+  @override
+  String get quietSilencePhone => 'Silence the phone too';
+
+  @override
+  String get quietSilencePhoneHint => 'Do Not Disturb turns on for the window';
+
+  @override
+  String get quietSilencePhoneNoAccess =>
+      'Do Not Disturb access is off. Tap to allow.';
+
+  @override
+  String get quietSilencePhoneSuffix => 'Phone silenced';
+
+  @override
+  String get alarmUsePhoneVolume => 'Phone\'s alarm volume';
+
+  @override
+  String get alarmVolume => 'Volume';
+
+  @override
+  String alarmVolumeValue(int percent) {
+    return '$percent%';
+  }
+
+  @override
+  String get alarmVolumeHint =>
+      'Volume buttons don\'t change the volume while the alarm rings.';
+
+  @override
+  String get prefsAlarmRingLimit => 'Silence alarm after';
+
+  @override
+  String get prefsAlarmRingLimitHint =>
+      'An alarm that isn\'t dismissed snoozes after this time; with no snoozes left it stops.';
+
+  @override
+  String get ringLimitUnlimited => 'Never';
+
+  @override
+  String get fullScreenAlarmOff =>
+      'Full-screen alarm permission is off. Alarms won\'t open on the lock screen, only as a notification.';
+
+  @override
+  String get batteryOptimizationWarning =>
+      'This phone may put the app to sleep and delay alarms. Exclude Ezan Vakti from battery optimization.';
+
+  @override
+  String get actionDontShowAgain => 'Don\'t show again';
+
+  @override
+  String get qiblaCompassUnavailable =>
+      'This phone has no compass. Use the angle above, measured from north.';
 }

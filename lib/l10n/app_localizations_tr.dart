@@ -388,7 +388,7 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get quietIntro =>
-      'Bu aralıklarda Ezan Vakti bildirimleri sessiz gösterilir ya da hiç gösterilmez. Ayar yalnızca uygulamanın kendi bildirimlerini etkiler; telefonun zil profiline ve alarmlara dokunmaz.';
+      'Bu aralıklarda Ezan Vakti bildirimleri sessiz gösterilir ya da hiç gösterilmez. \"Telefonu da sustur\" açıksa telefon aralık boyunca Rahatsız Etme moduna geçer, bitince eski haline döner. Alarmlar her durumda çalar.';
 
   @override
   String get quietFridaySection => 'Cuma namazı';
@@ -1841,4 +1841,62 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get sermonsLoadFailed =>
       'Hutbeler yüklenemedi. İnternet bağlantınızı kontrol edin.';
+
+  @override
+  String get androidChannelBeepName => 'Ezan Vakti Bildirimleri (kısa ton)';
+
+  @override
+  String get androidChannelSilentName => 'Ezan Vakti Bildirimleri (sessiz)';
+
+  @override
+  String get quietSilencePhone => 'Telefonu da sustur';
+
+  @override
+  String get quietSilencePhoneHint => 'Aralık boyunca Rahatsız Etme açılır';
+
+  @override
+  String get quietSilencePhoneNoAccess =>
+      'Rahatsız Etme erişimi kapalı. Açmak için dokun.';
+
+  @override
+  String get quietSilencePhoneSuffix => 'Telefon susar';
+
+  @override
+  String get alarmUsePhoneVolume => 'Telefonun alarm ses seviyesi';
+
+  @override
+  String get alarmVolume => 'Ses seviyesi';
+
+  @override
+  String alarmVolumeValue(int percent) {
+    return '%$percent';
+  }
+
+  @override
+  String get alarmVolumeHint => 'Alarm çalarken ses tuşları sesi değiştirmez.';
+
+  @override
+  String get prefsAlarmRingLimit => 'Alarm şu kadar sonra sussun';
+
+  @override
+  String get prefsAlarmRingLimitHint =>
+      'Kapatılmayan alarm bu süre sonra ertelenir; erteleme hakkı yoksa susar.';
+
+  @override
+  String get ringLimitUnlimited => 'Sınırsız';
+
+  @override
+  String get fullScreenAlarmOff =>
+      'Tam ekran alarm izni kapalı. Alarm kilit ekranında açılmaz, yalnız bildirim olarak gelir.';
+
+  @override
+  String get batteryOptimizationWarning =>
+      'Bu telefon uygulamayı arka planda uyutup alarmı geciktirebilir. Ezan Vakti\'yi pil optimizasyonundan çıkar.';
+
+  @override
+  String get actionDontShowAgain => 'Bir daha gösterme';
+
+  @override
+  String get qiblaCompassUnavailable =>
+      'Bu telefonda pusula yok. Yukarıdaki açıyı kuzeye göre kullan.';
 }

@@ -388,7 +388,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get quietIntro =>
-      'خلال هذه الفترات تظهر تنبيهات التطبيق بصمت أو لا تظهر. يؤثر الإعداد على تنبيهات التطبيق فقط ولا يمسّ وضع الرنين أو المنبهات.';
+      'خلال هذه الفترات تظهر تنبيهات التطبيق بصمت أو لا تظهر. عند تفعيل «إسكات الهاتف أيضًا» ينتقل الهاتف إلى وضع عدم الإزعاج طوال الفترة ويعود إلى حاله عند انتهائها. المنبهات ترن دائمًا.';
 
   @override
   String get quietFridaySection => 'صلاة الجمعة';
@@ -1831,4 +1831,63 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get sermonsLoadFailed =>
       'تعذّر تحميل الخطب. تحقق من اتصالك بالإنترنت.';
+
+  @override
+  String get androidChannelBeepName => 'تنبيهات Ezan Vakti (نغمة قصيرة)';
+
+  @override
+  String get androidChannelSilentName => 'تنبيهات Ezan Vakti (صامتة)';
+
+  @override
+  String get quietSilencePhone => 'إسكات الهاتف أيضًا';
+
+  @override
+  String get quietSilencePhoneHint => 'يُفعَّل وضع عدم الإزعاج طوال الفترة';
+
+  @override
+  String get quietSilencePhoneNoAccess =>
+      'الوصول إلى وضع عدم الإزعاج متوقف. اضغط للسماح.';
+
+  @override
+  String get quietSilencePhoneSuffix => 'يُسكَت الهاتف';
+
+  @override
+  String get alarmUsePhoneVolume => 'مستوى صوت المنبه في الهاتف';
+
+  @override
+  String get alarmVolume => 'مستوى الصوت';
+
+  @override
+  String alarmVolumeValue(int percent) {
+    return '$percent٪';
+  }
+
+  @override
+  String get alarmVolumeHint =>
+      'لا تغيّر أزرار الصوت مستوى الصوت أثناء رنين المنبه.';
+
+  @override
+  String get prefsAlarmRingLimit => 'إسكات المنبه بعد';
+
+  @override
+  String get prefsAlarmRingLimitHint =>
+      'يُؤجَّل المنبه غير المُطفأ بعد هذه المدة، وإن لم يتبقَّ تأجيل يتوقف.';
+
+  @override
+  String get ringLimitUnlimited => 'أبدًا';
+
+  @override
+  String get fullScreenAlarmOff =>
+      'إذن المنبه بملء الشاشة متوقف. لن يظهر المنبه على شاشة القفل، بل كتنبيه فقط.';
+
+  @override
+  String get batteryOptimizationWarning =>
+      'قد يُنيم هذا الهاتف التطبيق ويؤخر المنبه. استثنِ Ezan Vakti من تحسين البطارية.';
+
+  @override
+  String get actionDontShowAgain => 'لا تعرض مجددًا';
+
+  @override
+  String get qiblaCompassUnavailable =>
+      'لا توجد بوصلة في هذا الهاتف. استخدم الزاوية أعلاه مقيسة من الشمال.';
 }

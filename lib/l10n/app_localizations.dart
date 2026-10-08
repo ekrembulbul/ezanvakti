@@ -775,7 +775,7 @@ abstract class AppLocalizations {
   /// Açıklama
   ///
   /// In tr, this message translates to:
-  /// **'Bu aralıklarda Ezan Vakti bildirimleri sessiz gösterilir ya da hiç gösterilmez. Ayar yalnızca uygulamanın kendi bildirimlerini etkiler; telefonun zil profiline ve alarmlara dokunmaz.'**
+  /// **'Bu aralıklarda Ezan Vakti bildirimleri sessiz gösterilir ya da hiç gösterilmez. \"Telefonu da sustur\" açıksa telefon aralık boyunca Rahatsız Etme moduna geçer, bitince eski haline döner. Alarmlar her durumda çalar.'**
   String get quietIntro;
 
   /// Bölüm başlığı
@@ -3315,6 +3315,108 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Hutbeler yüklenemedi. İnternet bağlantınızı kontrol edin.'**
   String get sermonsLoadFailed;
+
+  /// Android bildirim kanalı adı
+  ///
+  /// In tr, this message translates to:
+  /// **'Ezan Vakti Bildirimleri (kısa ton)'**
+  String get androidChannelBeepName;
+
+  /// Android bildirim kanalı adı
+  ///
+  /// In tr, this message translates to:
+  /// **'Ezan Vakti Bildirimleri (sessiz)'**
+  String get androidChannelSilentName;
+
+  /// Sessiz pencere anahtarı
+  ///
+  /// In tr, this message translates to:
+  /// **'Telefonu da sustur'**
+  String get quietSilencePhone;
+
+  /// Anahtar açıklaması
+  ///
+  /// In tr, this message translates to:
+  /// **'Aralık boyunca Rahatsız Etme açılır'**
+  String get quietSilencePhoneHint;
+
+  /// İzin uyarısı
+  ///
+  /// In tr, this message translates to:
+  /// **'Rahatsız Etme erişimi kapalı. Açmak için dokun.'**
+  String get quietSilencePhoneNoAccess;
+
+  /// Satır alt yazısı eki
+  ///
+  /// In tr, this message translates to:
+  /// **'Telefon susar'**
+  String get quietSilencePhoneSuffix;
+
+  /// Alarm düzenleme anahtarı
+  ///
+  /// In tr, this message translates to:
+  /// **'Telefonun alarm ses seviyesi'**
+  String get alarmUsePhoneVolume;
+
+  /// Alarm düzenleme etiketi
+  ///
+  /// In tr, this message translates to:
+  /// **'Ses seviyesi'**
+  String get alarmVolume;
+
+  /// Ses seviyesi yüzdesi
+  ///
+  /// In tr, this message translates to:
+  /// **'%{percent}'**
+  String alarmVolumeValue(int percent);
+
+  /// Alarm düzenleme ipucu
+  ///
+  /// In tr, this message translates to:
+  /// **'Alarm çalarken ses tuşları sesi değiştirmez.'**
+  String get alarmVolumeHint;
+
+  /// Ayar satırı
+  ///
+  /// In tr, this message translates to:
+  /// **'Alarm şu kadar sonra sussun'**
+  String get prefsAlarmRingLimit;
+
+  /// Ayar ipucu
+  ///
+  /// In tr, this message translates to:
+  /// **'Kapatılmayan alarm bu süre sonra ertelenir; erteleme hakkı yoksa susar.'**
+  String get prefsAlarmRingLimitHint;
+
+  /// Çalma süresi seçeneği
+  ///
+  /// In tr, this message translates to:
+  /// **'Sınırsız'**
+  String get ringLimitUnlimited;
+
+  /// Uyarı
+  ///
+  /// In tr, this message translates to:
+  /// **'Tam ekran alarm izni kapalı. Alarm kilit ekranında açılmaz, yalnız bildirim olarak gelir.'**
+  String get fullScreenAlarmOff;
+
+  /// Uyarı
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu telefon uygulamayı arka planda uyutup alarmı geciktirebilir. Ezan Vakti\'yi pil optimizasyonundan çıkar.'**
+  String get batteryOptimizationWarning;
+
+  /// Düğme
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir daha gösterme'**
+  String get actionDontShowAgain;
+
+  /// Kıble ekranı bilgisi
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu telefonda pusula yok. Yukarıdaki açıyı kuzeye göre kullan.'**
+  String get qiblaCompassUnavailable;
 }
 
 class _AppLocalizationsDelegate

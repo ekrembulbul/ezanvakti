@@ -9,4 +9,7 @@
     <string name="alarm_ringing">المنبه يرن</string>
     <string name="alarm_channel_name">منبهات أوقات الصلاة</string>
     <string name="alarm_channel_description">منبهات صوتية</string>
+    <string name="alarm_missed_channel_name">المنبهات الفائتة</string>
+    <string name="alarm_missed_text">منبه فائت · %1$s</string>
+    <string name="quiet_rule_name">أوقات الصلاة – فترة الهدوء</string>
 </resources>

@@ -11,4 +11,7 @@
     <string name="alarm_ringing">Alarm is ringing</string>
     <string name="alarm_channel_name">Prayer Times alarms</string>
     <string name="alarm_channel_description">Audible alarms</string>
+    <string name="alarm_missed_channel_name">Missed alarms</string>
+    <string name="alarm_missed_text">Missed alarm · %1$s</string>
+    <string name="quiet_rule_name">Prayer Times – quiet window</string>
 </resources>
