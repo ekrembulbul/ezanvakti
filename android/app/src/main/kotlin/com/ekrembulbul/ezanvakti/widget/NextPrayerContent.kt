@@ -35,7 +35,8 @@ data class NextPrayerContent(
     val columns: List<Column>,
     val ruler: Ruler,
 ) {
-    /** Açık haldeki kerahat kartı (yalnız kerahat penceresinde). */
+    /** Kerahat penceresinin sunumu: açık haldeki kart ve Android 12+'da
+     *  kapalı satırdaki çip aynı kelime, sayaç ve renkleri kullanır. */
     data class Card(
         val word: String,
         /** "12:47 – 12:57". */

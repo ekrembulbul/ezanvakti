@@ -26,8 +26,9 @@ import kotlin.math.roundToInt
 
 /** Bildirim çubuğundaki sabit "sıradaki vakit" satırı (spec K2–K5, D13).
  *
- *  Kapalıyken tek satır (vakit adı + saati, canlı geri sayım); açılınca kerahat
- *  kartı (yalnız kerahat penceresinde), cetvel ve altı vakit. Kerahat
+ *  Kapalıyken tek satır (vakit adı + saati, canlı geri sayım; Android 12+'da
+ *  kerahat penceresinde altında kerahat çipi); açılınca kerahat kartı (yalnız
+ *  kerahat penceresinde), cetvel ve altı vakit. Kerahat
  *  penceresinde başlıkta kelime ve kerahat sayacı, simge rengi turuncu/bordo.
  *  Zemin sistemin bildirim zeminidir; palet koyu/açıklığı her zaman cihazın
  *  gece modunu izler (uygulamanın tema ayarını değil). İçerik
@@ -42,6 +43,11 @@ object NextPrayerNotification {
     /** Kapalı gövde bazı sürümlerde 48 dp: satırdaki yazılar bu ölçeğin
      *  üstünde büyümez (30sp sayaç × 1.3 ≈ 39 dp, satır 48 dp'ye sığar). */
     private const val MAX_FONT_SCALE = 1.3f
+
+    /** Kerahat çipi kapalı satıra ikinci satır olarak girince vakit satırı
+     *  ve çip yazısı bu ölçeğin üstünde büyümez: 19 × 1.1 ≈ 24 dp satır +
+     *  3 dp boşluk + 18 dp çip, 48 dp'ye sığar. */
+    private const val MAX_FONT_SCALE_WITH_CHIP = 1.1f
 
     /** Cetvel bitmap'inin dış halkası için bildirim zeminine yakın renk. */
     private const val SURFACE_DARK = 0xFF2B2930.toInt()
@@ -167,10 +173,16 @@ object NextPrayerNotification {
         )
     }
 
-    private fun collapsedViews(context: Context, content: NextPrayerContent, now: Long): RemoteViews =
-        RemoteViews(context.packageName, R.layout.notification_next_prayer).also {
-            bindRow(context, it, content, now)
-        }
+    private fun collapsedViews(context: Context, content: NextPrayerContent, now: Long): RemoteViews {
+        val views = RemoteViews(context.packageName, R.layout.notification_next_prayer)
+        // Android 12+ kapalı bildirimde başlık satırını çizmez; kerahat orada
+        // görünmeyeceği için vakit satırının altına çip olarak gelir. Daha
+        // eski sürümlerde başlık (kelime + sayaç) zaten görünür.
+        val chip = content.card.takeIf { Build.VERSION.SDK_INT >= Build.VERSION_CODES.S }
+        bindRow(context, views, content, now, compact = chip != null)
+        bindChip(context, views, chip, now)
+        return views
+    }
 
     private fun expandedViews(
         context: Context,
@@ -181,7 +193,7 @@ object NextPrayerNotification {
         now: Long,
     ): RemoteViews {
         val views = RemoteViews(context.packageName, R.layout.notification_next_prayer_expanded)
-        bindRow(context, views, content, now)
+        bindRow(context, views, content, now, compact = false)
         bindCard(views, content.card, now)
         bindRuler(context, views, content, palette, systemDark, clockPattern)
         bindColumns(context, views, content, systemDark)
@@ -190,17 +202,43 @@ object NextPrayerNotification {
 
     /** Kapalı ve açık halde ortak satır: vakit adı (vurgu; kerahatte bordo),
      *  saati, geri sayım (kerahatte bordo). */
-    private fun bindRow(context: Context, views: RemoteViews, content: NextPrayerContent, now: Long) {
+    private fun bindRow(
+        context: Context,
+        views: RemoteViews,
+        content: NextPrayerContent,
+        now: Long,
+        compact: Boolean,
+    ) {
         views.setTextViewText(R.id.next_prayer_name, content.nameText)
         views.setTextColor(R.id.next_prayer_name, content.nameColor)
         views.setTextViewText(R.id.next_prayer_time, content.timeText)
         setCountdown(views, R.id.next_prayer_countdown, content.countdownTarget, now)
         content.countdownColor?.let { views.setTextColor(R.id.next_prayer_countdown, it) }
 
-        val scale = context.resources.configuration.fontScale.coerceAtMost(MAX_FONT_SCALE)
-        views.setTextViewTextSize(R.id.next_prayer_name, TypedValue.COMPLEX_UNIT_DIP, 13f * scale)
-        views.setTextViewTextSize(R.id.next_prayer_time, TypedValue.COMPLEX_UNIT_DIP, 19f * scale)
+        val fontScale = context.resources.configuration.fontScale
+        val scale = fontScale.coerceAtMost(MAX_FONT_SCALE)
+        val lineScale = if (compact) fontScale.coerceAtMost(MAX_FONT_SCALE_WITH_CHIP) else scale
+        views.setTextViewTextSize(R.id.next_prayer_name, TypedValue.COMPLEX_UNIT_DIP, 13f * lineScale)
+        views.setTextViewTextSize(R.id.next_prayer_time, TypedValue.COMPLEX_UNIT_DIP, 19f * lineScale)
         views.setTextViewTextSize(R.id.next_prayer_countdown, TypedValue.COMPLEX_UNIT_DIP, 30f * scale)
+    }
+
+    /** Kapalı satırdaki kerahat çipi: açık haldeki kartın kelimesi, sayacı ve
+     *  renkleri (orta widget'taki çiple aynı). `null` ise gizlenir. */
+    private fun bindChip(context: Context, views: RemoteViews, card: NextPrayerContent.Card?, now: Long) {
+        if (card == null) {
+            views.setViewVisibility(R.id.next_prayer_chip, View.GONE)
+            return
+        }
+        views.setViewVisibility(R.id.next_prayer_chip, View.VISIBLE)
+        views.setInt(R.id.next_prayer_chip_bg, "setColorFilter", card.surfaceColor)
+        views.setTextViewText(R.id.next_prayer_chip_word, card.word)
+        views.setTextColor(R.id.next_prayer_chip_word, card.textColor)
+        views.setTextColor(R.id.next_prayer_chip_countdown, card.textColor)
+        setCountdown(views, R.id.next_prayer_chip_countdown, card.targetMillis, now)
+        val size = 11f * context.resources.configuration.fontScale.coerceAtMost(MAX_FONT_SCALE_WITH_CHIP)
+        views.setTextViewTextSize(R.id.next_prayer_chip_word, TypedValue.COMPLEX_UNIT_DIP, size)
+        views.setTextViewTextSize(R.id.next_prayer_chip_countdown, TypedValue.COMPLEX_UNIT_DIP, size)
     }
 
     private fun bindCard(views: RemoteViews, card: NextPrayerContent.Card?, now: Long) {
