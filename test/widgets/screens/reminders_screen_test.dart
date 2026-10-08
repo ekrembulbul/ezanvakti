@@ -12,6 +12,7 @@ import 'package:ezanvakti/core/models/skipped_occurrence.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/core/providers/app_state.dart';
+import 'package:ezanvakti/core/services/device_settings_service.dart';
 import 'package:ezanvakti/core/services/exact_alarm_service.dart';
 import 'package:ezanvakti/features/alarms/domain/alarm_scheduler.dart';
 import 'package:ezanvakti/features/alarms/domain/alarms_manager.dart';
@@ -177,6 +178,9 @@ void main() {
     locator.register<LocalStorage>(storage);
     locator.register<NotificationService>(notificationService);
     locator.register<ExactAlarmService>(ExactAlarmService());
+    locator.register<DeviceSettingsService>(
+      DeviceSettingsService(isAndroid: false),
+    );
     locator.register<AlarmService>(alarmService);
     locator.register<AlarmsManager>(AlarmsManager(scheduler: alarmScheduler));
     locator.register<SkipManager>(SkipManager(storage: storage));

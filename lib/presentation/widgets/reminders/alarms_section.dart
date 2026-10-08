@@ -65,6 +65,16 @@ class AlarmsSection extends StatelessWidget {
   final bool isReordering;
   final ReorderCallback? onReorder;
 
+  /// Android 14+ tam ekran alarm izni; kapalıyken alarm kilit ekranında
+  /// açılmaz. Diğer platformlarda hep `true` gelir.
+  final bool fullScreenAllowed;
+  final VoidCallback? onOpenFullScreenSettings;
+
+  /// Pil optimizasyonu uyarısı; karar `BatteryAdvice.shouldWarn`'da.
+  final bool showBatteryWarning;
+  final VoidCallback? onOpenBatterySettings;
+  final VoidCallback? onDismissBatteryWarning;
+
   const AlarmsSection({
     super.key,
     required this.alarms,
@@ -84,6 +94,11 @@ class AlarmsSection extends StatelessWidget {
     this.now,
     this.isReordering = false,
     this.onReorder,
+    this.fullScreenAllowed = true,
+    this.onOpenFullScreenSettings,
+    this.showBatteryWarning = false,
+    this.onOpenBatterySettings,
+    this.onDismissBatteryWarning,
   });
 
   @override
@@ -93,6 +108,8 @@ class AlarmsSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         ?_permissionBanner(context),
+        ?_fullScreenBanner(context),
+        ?_batteryBanner(context),
         Expanded(child: alarms.isEmpty ? _empty(context) : _list(context)),
         _footer(context),
       ],
@@ -356,5 +373,57 @@ class AlarmsSection extends StatelessWidget {
       );
     }
     return null;
+  }
+
+  /// Android 14+: izin kapalıyken alarm kilit ekranında açılmaz.
+  Widget? _fullScreenBanner(BuildContext context) {
+    if (fullScreenAllowed || !alarms.any((alarm) => alarm.isActive)) {
+      return null;
+    }
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: InfoBanner(
+        icon: Icons.fullscreen_exit_rounded,
+        text: context.l10n.fullScreenAlarmOff,
+        action: TextButton(
+          onPressed: onOpenFullScreenSettings,
+          child: Text(context.l10n.actionOpen),
+        ),
+      ),
+    );
+  }
+
+  Widget? _batteryBanner(BuildContext context) {
+    if (!showBatteryWarning) return null;
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: InfoBanner(
+        icon: Icons.battery_alert_rounded,
+        text: context.l10n.batteryOptimizationWarning,
+        // Dar ekranda iki düğme metni sıkıştırmasın: alt alta. Büyük metin
+        // ölçeğinde düğme sütunu en çok 160 pt genişler, düğme metni kırılır;
+        // satır yatayda taşmaz.
+        action: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 160),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: onOpenBatterySettings,
+                child: Text(context.l10n.actionOpen),
+              ),
+              TextButton(
+                onPressed: onDismissBatteryWarning,
+                child: Text(
+                  context.l10n.actionDontShowAgain,
+                  textAlign: TextAlign.end,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import '../../l10n/l10n_extensions.dart';
 
 import '../services/upcoming_resolver.dart';
@@ -19,10 +20,12 @@ import '../../core/models/mission_session.dart';
 import 'mission_launcher.dart';
 import '../../core/models/notification_setting.dart';
 import '../../core/providers/app_state.dart';
+import '../../core/services/device_settings_service.dart';
 import '../../core/services/exact_alarm_service.dart';
 import '../../core/utils/app_logger.dart';
 import '../../core/theme/tokens_context.dart';
 import '../../features/alarms/domain/alarms_manager.dart';
+import '../../features/alarms/domain/battery_advice.dart';
 import '../../features/notifications/domain/notification_settings_manager.dart';
 import '../services/reminder_rescheduler.dart';
 import '../services/reminder_list_preferences.dart';
@@ -76,6 +79,17 @@ class _RemindersScreenState extends State<RemindersScreen>
   bool _exactAlarmAllowed = true;
   bool _alarmSupported = true;
   bool _alarmGranted = true;
+
+  /// Android 14+ tam ekran alarm izni ve pil optimizasyonu uyarısı; ekran
+  /// öne dönünce [_refreshPermissions] yeniden okur.
+  bool _fullScreenAllowed = true;
+  BatteryStatus _batteryStatus = BatteryStatus.unknown;
+  bool _batteryDismissed = false;
+
+  DeviceSettingsService get _device =>
+      ServiceLocator().get<DeviceSettingsService>();
+
+  LocalStorage get _storage => ServiceLocator().get<LocalStorage>();
 
   @override
   void initState() {
@@ -264,6 +278,24 @@ class _RemindersScreenState extends State<RemindersScreen>
     );
   }
 
+  /// Alarm izni. Android'de alarmın kapatılabilir çalması için bildirim izni
+  /// de gerekir (izin yoksa çalar ekranı açılamaz); önce o istenir, kesin
+  /// alarm izni kapalıysa sistem ayarı açılır. iOS'ta AlarmKit izni istenir.
+  Future<void> _requestAlarmPermissions(AppState appState) async {
+    if (Platform.isAndroid) {
+      if (!await _notificationService.isPermissionGranted()) {
+        final granted = await _notificationService.requestPermission();
+        appState.setNotificationPermission(granted);
+      }
+      if (!await _exactAlarmService.isExactAlarmAllowed()) {
+        await _notificationService.openExactAlarmSettings();
+      }
+    } else {
+      await _alarmService.requestPermission();
+    }
+    await _refreshPermissions();
+  }
+
   Future<void> _refreshPermissions() async {
     final hasPermission = await _notificationService.isPermissionGranted();
     final exactAllowed = await _exactAlarmService.isExactAlarmAllowed();
@@ -271,6 +303,10 @@ class _RemindersScreenState extends State<RemindersScreen>
     final granted = supported
         ? await _alarmService.isPermissionGranted()
         : false;
+    final fullScreen = await _device.canUseFullScreenIntent();
+    final battery = await _device.batteryStatus();
+    final dismissed =
+        await _storage.getSetting(BatteryAdvice.dismissedKey) == 'true';
 
     if (!mounted) return;
     context.read<AppState>().setAlarmsSupported(supported);
@@ -279,6 +315,9 @@ class _RemindersScreenState extends State<RemindersScreen>
       _exactAlarmAllowed = exactAllowed;
       _alarmSupported = supported;
       _alarmGranted = granted;
+      _fullScreenAllowed = fullScreen;
+      _batteryStatus = battery;
+      _batteryDismissed = dismissed;
     });
   }
 
@@ -994,9 +1033,18 @@ class _RemindersScreenState extends State<RemindersScreen>
               alarms: alarms,
               isSupported: _alarmSupported,
               isPermissionGranted: _alarmGranted,
-              onRequestPermission: () async {
-                await _alarmService.requestPermission();
-                await _refreshPermissions();
+              onRequestPermission: () => _requestAlarmPermissions(appState),
+              fullScreenAllowed: _fullScreenAllowed,
+              onOpenFullScreenSettings: _device.openFullScreenIntentSettings,
+              showBatteryWarning: BatteryAdvice.shouldWarn(
+                status: _batteryStatus,
+                dismissed: _batteryDismissed,
+                hasActiveAlarm: alarms.any((alarm) => alarm.isActive),
+              ),
+              onOpenBatterySettings: _device.openBatteryOptimizationSettings,
+              onDismissBatteryWarning: () async {
+                setState(() => _batteryDismissed = true);
+                await _storage.setSetting(BatteryAdvice.dismissedKey, 'true');
               },
               onToggle: _toggleAlarm,
               onEdit: _addOrEditAlarm,

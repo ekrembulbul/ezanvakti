@@ -6,6 +6,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import androidx.core.app.NotificationManagerCompat
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import java.io.File
@@ -32,8 +33,8 @@ class AlarmChannel(private val context: Context) {
             try {
                 when (call.method) {
                     "isSupported" -> result.success(true)
-                    "isPermissionGranted" -> result.success(canScheduleExact())
-                    "requestPermission" -> result.success(canScheduleExact())
+                    "isPermissionGranted" -> result.success(canRingVisibly())
+                    "requestPermission" -> result.success(canRingVisibly())
                     "scheduleAlarm" -> {
                         val args = AlarmArgs.fromMap(call.arguments as Map<*, *>)
                         AndroidMissionStore.missions(context).enableAlarm(args.alarmId,
@@ -161,6 +162,13 @@ class AlarmChannel(private val context: Context) {
             null
         }
     }
+
+    /** Alarmın zamanında ve kapatılabilir çalması için iki izin gerekir:
+     *  kesin alarm ve bildirim. Bildirim izni yoksa (Android 13+) ön plan
+     *  servisinin bildirimi ve tam ekran çalar ekranı gösterilemez; ses çalar
+     *  ama kullanıcı alarmı kapatacak ekranı göremez. */
+    private fun canRingVisibly(): Boolean =
+        canScheduleExact() && NotificationManagerCompat.from(context).areNotificationsEnabled()
 
     private fun canScheduleExact(): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return true
