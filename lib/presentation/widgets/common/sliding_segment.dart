@@ -79,10 +79,12 @@ class SlidingSegment<T> extends StatelessWidget {
             // küçülüp üste yapışıyor, pill'in merkezinden yukarıda kalıyordu.
             fit: StackFit.expand,
             children: [
-              AnimatedPositioned(
+              // Yön duyarlı: sağdan sola dilde bölme satırı aynalanır, pill
+              // de seçili bölmeyle birlikte sağdan başlar.
+              AnimatedPositionedDirectional(
                 duration: _kSegmentAnimation,
                 curve: Curves.easeOutCubic,
-                left: index < 0 ? 0 : slotWidth * index,
+                start: index < 0 ? 0 : slotWidth * index,
                 width: slotWidth,
                 // Dikeyde yatağın iç kutusunu birebir doldurur. Yükseklik
                 // hesaplamak yerine top/bottom kullanılıyor ki kenarlık ya da

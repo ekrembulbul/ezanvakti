@@ -149,6 +149,28 @@ void main() {
     expect(track.bottom - pill.bottom, 5, reason: 'ust ve alt bosluk esit');
   });
 
+  testWidgets('Sagdan sola dilde pill secili bolmenin ustunde durur', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      wrapWithTheme(
+        SlidingSegment<_Tab>(
+          items: items,
+          selected: _Tab.times,
+          onChanged: (_) {},
+        ),
+        locale: const Locale('ar'),
+      ),
+    );
+
+    // Arapcada satir aynalanir: ilk bolme sagda. Pill de onunla gitmeli.
+    final pill = tester.getRect(find.byKey(kSegmentPillKey));
+    final selected = tester.getRect(find.text('Vakitler'));
+    final other = tester.getRect(find.text('Alarmlar'));
+    expect(selected.center.dx, greaterThan(other.center.dx));
+    expect(pill.contains(selected.center), isTrue);
+  });
+
   testWidgets('Ikon ve etiket pill ile ayni merkezde', (tester) async {
     await tester.pumpWidget(
       wrapWithTheme(
