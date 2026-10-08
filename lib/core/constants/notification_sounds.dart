@@ -22,4 +22,20 @@ class NotificationSounds {
 
   static bool isSilent(String? soundId) => soundId == silent;
 
+  /// Android bildirim kanalları. Kanal sesi oluşturulduktan sonra
+  /// değişmediği için ses başına ayrı kanal var. Sistem kanalı eski tek
+  /// kanalın kimliğini korur: kullanıcının sistem ayarlarında yaptığı
+  /// değişiklikler o kanalda.
+  static const String androidSystemChannel = 'ezan_vakti_channel';
+  static const String androidBeepChannel = 'ezan_vakti_beep';
+  static const String androidSilentChannel = 'ezan_vakti_silent';
+
+  /// `res/raw/beep.wav`.
+  static const String androidBeepResource = 'beep';
+
+  static String androidChannelFor(String? soundId, {required bool silent}) {
+    if (silent || isSilent(soundId)) return androidSilentChannel;
+    if (soundId == beep) return androidBeepChannel;
+    return androidSystemChannel;
+  }
 }

@@ -10,9 +10,6 @@ import '../../../core/models/notification_setting.dart';
 import '../../../core/utils/app_logger.dart';
 import '../../../l10n/device_localizations.dart';
 
-/// Tek Android bildirim kanali; ses basina kanal Android turunda gelecek.
-const String _androidChannelId = 'ezan_vakti_channel';
-
 class FlutterLocalNotificationService implements NotificationService {
   final FlutterLocalNotificationsPlugin _plugin =
       FlutterLocalNotificationsPlugin();
@@ -48,17 +45,37 @@ class FlutterLocalNotificationService implements NotificationService {
       // Kanal adi sistem ayarlarinda gorunur. `createNotificationChannel`
       // ayni id ile cagrilinca adi gunceller; cihaz dili degisince her
       // acilista duzelir.
+      // Ses başına ayrı kanal: kanal sesi oluşturulduktan sonra değişmez.
       final l10n = await deviceLocalizations();
-      final androidChannel = AndroidNotificationChannel(
-        _androidChannelId,
-        l10n.androidChannelName,
-        description: l10n.androidChannelDescription,
-        importance: Importance.high,
-      );
-      await androidPlugin.createNotificationChannel(androidChannel);
-      _logger.debug(
-        'Android notification channel ensured (ezan_vakti_channel)',
-      );
+      final channels = [
+        AndroidNotificationChannel(
+          NotificationSounds.androidSystemChannel,
+          l10n.androidChannelName,
+          description: l10n.androidChannelDescription,
+          importance: Importance.high,
+        ),
+        AndroidNotificationChannel(
+          NotificationSounds.androidBeepChannel,
+          l10n.androidChannelBeepName,
+          description: l10n.androidChannelDescription,
+          importance: Importance.high,
+          sound: const RawResourceAndroidNotificationSound(
+            NotificationSounds.androidBeepResource,
+          ),
+        ),
+        AndroidNotificationChannel(
+          NotificationSounds.androidSilentChannel,
+          l10n.androidChannelSilentName,
+          description: l10n.androidChannelDescription,
+          importance: Importance.high,
+          playSound: false,
+          enableVibration: false,
+        ),
+      ];
+      for (final channel in channels) {
+        await androidPlugin.createNotificationChannel(channel);
+      }
+      _logger.debug('Android notification channels ensured');
     }
   }
 
@@ -129,19 +146,39 @@ class FlutterLocalNotificationService implements NotificationService {
     bool silent = false,
     bool timeSensitive = true,
   }) async {
-    // Android'de ses kanala bağlı ve kanal sesi sonradan değişmiyor; ses
-    // başına kanal Android turunda gelecek. Şimdilik sessizlik kanal
-    // seviyesinden değil, iOS tarafından uygulanıyor.
-    // Kanal `init` icinde olusturuluyor; buradaki ad/aciklama yalnizca kanal
-    // hic yoksa kullanilir.
+    // Android'de ses kanala bağlı ve kanal sesi sonradan değişmiyor; kanal
+    // sese göre seçilir (sistem, kısa ton, sessiz). Sessiz pencere de sessiz
+    // kanala gider.
+    // Kanallar `init` icinde olusturuluyor; buradaki ad/aciklama yalnizca
+    // kanal hic yoksa kullanilir.
     final channelL10n = await deviceLocalizations();
+    final channelId = NotificationSounds.androidChannelFor(
+      soundId,
+      silent: silent,
+    );
+    final isSilentChannel =
+        channelId == NotificationSounds.androidSilentChannel;
     final androidDetails = AndroidNotificationDetails(
-      _androidChannelId,
-      channelL10n.androidChannelName,
+      channelId,
+      switch (channelId) {
+        NotificationSounds.androidBeepChannel =>
+          channelL10n.androidChannelBeepName,
+        NotificationSounds.androidSilentChannel =>
+          channelL10n.androidChannelSilentName,
+        _ => channelL10n.androidChannelName,
+      },
       channelDescription: channelL10n.androidChannelDescription,
       importance: Importance.high,
       priority: Priority.high,
       icon: 'ic_stat_notification',
+      // Android 8 öncesinde kanal yok; ses bildirimin kendisinden okunur.
+      playSound: !isSilentChannel,
+      enableVibration: !isSilentChannel,
+      sound: channelId == NotificationSounds.androidBeepChannel
+          ? const RawResourceAndroidNotificationSound(
+              NotificationSounds.androidBeepResource,
+            )
+          : null,
     );
 
     final iosDetails = DarwinNotificationDetails(
