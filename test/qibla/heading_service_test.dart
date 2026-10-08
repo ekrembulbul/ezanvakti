@@ -12,10 +12,7 @@ void main() {
   tearDown(() => debugDefaultTargetPlatformOverride = null);
 
   test('okuma map ten cevrilir', () {
-    final reading = HeadingReading.fromMap({
-      'degrees': 123.5,
-      'accuracy': 4.0,
-    });
+    final reading = HeadingReading.fromMap({'degrees': 123.5, 'accuracy': 4.0});
     expect(reading, isNotNull);
     expect(reading!.degrees, 123.5);
     expect(reading.accuracy, 4.0);
@@ -69,5 +66,49 @@ void main() {
 
     final readings = await HeadingService().headings.toList();
     expect(readings.map((r) => r.degrees), [45.0, 90.0]);
+  });
+
+  test('koordinat dinleme argumani olarak native e gider', () async {
+    const channel = EventChannel(channelName);
+    Object? received;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockStreamHandler(
+          channel,
+          MockStreamHandler.inline(
+            onListen: (arguments, sink) {
+              received = arguments;
+              sink.endOfStream();
+            },
+          ),
+        );
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockStreamHandler(channel, null),
+    );
+
+    await HeadingService().headingsAt(latitude: 41.0, longitude: 29.0).toList();
+    expect(received, {'latitude': 41.0, 'longitude': 29.0});
+  });
+
+  test('koordinatsiz dinlemede arguman gitmez', () async {
+    const channel = EventChannel(channelName);
+    Object? received = 'unset';
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockStreamHandler(
+          channel,
+          MockStreamHandler.inline(
+            onListen: (arguments, sink) {
+              received = arguments;
+              sink.endOfStream();
+            },
+          ),
+        );
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockStreamHandler(channel, null),
+    );
+
+    await HeadingService().headings.toList();
+    expect(received, isNull);
   });
 }

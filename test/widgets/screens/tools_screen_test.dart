@@ -7,6 +7,7 @@ import 'package:ezanvakti/presentation/screens/qibla_screen.dart';
 import 'package:ezanvakti/presentation/screens/tools_screen.dart';
 import 'package:ezanvakti/presentation/widgets/qibla/qibla_compass.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../theme_harness.dart';
@@ -98,6 +99,26 @@ void main() {
     testWidgets('konum varken aci gosterilir', (tester) async {
       await pumpQibla(tester, location: istanbul);
       // Istanbul kiblesi 151.62 derece; ekranda yuvarlanmis hali.
+      expect(find.text('152°'), findsOneWidget);
+    });
+
+    testWidgets('pusula akisi hata verirse pusula yok yazar', (tester) async {
+      await pumpQibla(
+        tester,
+        location: istanbul,
+        headings: Stream<HeadingReading>.error(
+          PlatformException(code: 'heading_unavailable'),
+        ),
+      );
+      await tester.pump();
+      expect(
+        find.text(
+          'Bu telefonda pusula yok. Yukarıdaki açıyı kuzeye göre kullan.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Pusula bekleniyor…'), findsNothing);
+      // Aci yine gosterilir; kullanici kuzeye gore kullanabilsin.
       expect(find.text('152°'), findsOneWidget);
     });
 

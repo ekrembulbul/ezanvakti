@@ -17,8 +17,7 @@ class HeadingReading {
   /// çizerek kalibre etmesi istenir.
   static const double calibrationThreshold = 25;
 
-  bool get needsCalibration =>
-      accuracy < 0 || accuracy > calibrationThreshold;
+  bool get needsCalibration => accuracy < 0 || accuracy > calibrationThreshold;
 
   /// Native olayını okumaya çevirir; alanlar eksik ya da bozuksa `null`.
   static HeadingReading? fromMap(Object? event) {
@@ -50,14 +49,24 @@ class HeadingService {
       defaultTargetPlatform == TargetPlatform.iOS ||
       defaultTargetPlatform == TargetPlatform.android;
 
-  /// Yön akışı. Desteklenmeyen platformda boş akış döner — çağıran ekran
-  /// "pusula kullanılamıyor" durumunu gösterir.
+  /// Yön akışı; koordinatsız (manyetik kuzey, iOS'ta cihaz konumu).
+  Stream<HeadingReading> get headings => headingsAt();
+
+  /// [latitude]/[longitude] verilirse Android manyetik sapmayı ekleyip gerçek
+  /// kuzeyi döner. iOS cihazın kendi konumunu kullanır, argümanı yok sayar.
+  ///
+  /// Desteklenmeyen platformda boş akış döner — çağıran ekran "pusula
+  /// kullanılamıyor" durumunu gösterir. Pusula sensörü yoksa native akış
+  /// `heading_unavailable` hatası verir.
   ///
   /// Bozuk olaylar sessizce atlanır: tek bir geçersiz kare akışı kapatmamalı.
-  Stream<HeadingReading> get headings {
+  Stream<HeadingReading> headingsAt({double? latitude, double? longitude}) {
     if (!_hasNative) return const Stream<HeadingReading>.empty();
+    final arguments = latitude != null && longitude != null
+        ? {'latitude': latitude, 'longitude': longitude}
+        : null;
     return _channel
-        .receiveBroadcastStream()
+        .receiveBroadcastStream(arguments)
         .map(HeadingReading.fromMap)
         .where((reading) => reading != null)
         .cast<HeadingReading>();

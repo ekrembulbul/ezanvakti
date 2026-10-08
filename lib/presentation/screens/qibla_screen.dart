@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 
 import '../../core/models/location.dart';
 import '../../core/theme/app_typography.dart';
+import '../../core/utils/app_logger.dart';
 import '../../core/theme/tokens_context.dart';
 import '../../features/qibla/data/heading_service.dart';
 import '../../features/qibla/domain/qibla_alignment.dart';
@@ -41,6 +42,9 @@ class _QiblaScreenState extends State<QiblaScreen> {
   StreamSubscription<HeadingReading>? _subscription;
   HeadingReading? _reading;
 
+  /// Native akış hata verdi (ör. pusula sensörü yok).
+  bool _compassUnavailable = false;
+
   /// Haptik yalnızca hizaya **girerken** verilir; hizada kalırken sürekli
   /// titretmek rahatsız edici olurdu.
   bool _aligned = false;
@@ -53,14 +57,28 @@ class _QiblaScreenState extends State<QiblaScreen> {
   @override
   void initState() {
     super.initState();
-    final stream = widget.headings ?? const HeadingService().headings;
-    _subscription = stream.listen((reading) {
-      if (!mounted) return;
-      setState(() {
-        _reading = reading;
-        _track(_delta);
-      });
-    });
+    final location = widget.location;
+    final stream =
+        widget.headings ??
+        const HeadingService().headingsAt(
+          latitude: location?.latitude,
+          longitude: location?.longitude,
+        );
+    _subscription = stream.listen(
+      (reading) {
+        if (!mounted) return;
+        setState(() {
+          _reading = reading;
+          _track(_delta);
+        });
+      },
+      // Pusula sensörü yoksa native akış hata verir; ekran "bekleniyor"da
+      // asılı kalmasın.
+      onError: (Object error) {
+        AppLogger().warning('Heading stream failed', error.runtimeType);
+        if (mounted) setState(() => _compassUnavailable = true);
+      },
+    );
   }
 
   @override
@@ -141,7 +159,15 @@ class _QiblaScreenState extends State<QiblaScreen> {
           const SizedBox(height: 32),
           QiblaCompass(turns: delta == null ? null : _turns, aligned: _aligned),
           const SizedBox(height: 32),
-          if (reading == null)
+          if (_compassUnavailable && reading == null)
+            Text(
+              context.l10n.qiblaCompassUnavailable,
+              textAlign: TextAlign.center,
+              style: AppTypography.rowSubtitle.copyWith(
+                color: tokens.textSecondary,
+              ),
+            )
+          else if (reading == null)
             Text(
               context.l10n.qiblaWaiting,
               style: AppTypography.rowSubtitle.copyWith(
