@@ -28,6 +28,8 @@ Vakit hesabı **saf domain fonksiyonlarında** tek kez yazılır; ekran, planlay
 
 **Widget bir anlık görüntü (snapshot) alır, hesap yapmaz.** `WidgetSnapshotBuilder` vakit listesini platform bağımsız bir yapıya çevirir ve 7 günlük bir pencere yazar. Native widget kodu hesap yapmaz, yalnızca payload'u okur. 7 gün bedavadır çünkü önbellek zaten 30 gün ileriyi tutar (`prayer_times_repository.dart:35`, `cacheDaysForward`); uygulama bir hafta açılmasa bile widget doğru kalır (`widget_snapshot_builder.dart:13-16`).
 
+**8 Ekim eki — Android widget'ı ve sabit satır zaman çizelgesiyle.** Snapshot (şema 4, eklemeli) artık 7 günün bütün değişim anlarını taşır: her an için sıradaki vakit (gün ve vakit indeksi), "yarın" bayrağı, kerahat durumu (`KerahatWarning.resolve` — yaklaşırken/kerahatte, başlangıç ve bitiş) ve gün dilimi (`resolveDayPhase`); ayrıca günlere epoch'lar, uygulamanın dilinde tarih metinleri ve ana ekran cetvelinin parçaları (`buildRulerSegments`, sunum katmanından `day_ruler_math.dart`'a taşındı) eklenir. Android ana ekran widget'ı ve bildirim çubuğundaki sabit satır hiçbir kuralı yeniden yazmaz; yalnız o anki girişi seçip çizer (`WidgetTimelineBuilder`, Kotlin `WidgetTimeline`). iOS widget'ı sıradaki vakti ve kerahat durumunu hâlâ kendi Swift hesabıyla bulur (bu kaydın istisnası; aynı kural, ayrı uygulama), cetveli ve tarih metinlerini ise artık payload'dan okur.
+
 ## Sonuçlar
 
 ### Olumlu
