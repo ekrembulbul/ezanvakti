@@ -188,4 +188,11 @@ void main() {
     expect(restored.mode, window.mode);
     expect(restored.isActive, window.isActive);
   });
+
+  test('silencePhone JSON ile gidip gelir, eski kayitta false', () {
+    final w = QuietWindow.fridayDefault().copyWith(silencePhone: true);
+    expect(QuietWindow.fromJson(w.toJson()).silencePhone, isTrue);
+    final legacy = Map<String, dynamic>.of(w.toJson())..remove('silencePhone');
+    expect(QuietWindow.fromJson(legacy).silencePhone, isFalse);
+  });
 }

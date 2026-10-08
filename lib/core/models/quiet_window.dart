@@ -54,7 +54,8 @@ List<QuietWindow> decodeQuietWindows(
 /// bildirimlerimizi susturuyordu ve kullanıcının beklediği işi yapmıyordu.
 ///
 /// Alarmlara (AlarmKit / AlarmRingService) hiçbir platformda dokunmaz —
-/// kullanıcı alarmı bilerek kurmuştur.
+/// kullanıcı alarmı bilerek kurmuştur. [silencePhone] açıksa Android'de
+/// telefon pencere boyunca Rahatsız Etme'ye alınır (bkz. `QuietPhonePlanner`).
 class QuietWindow {
   final String id;
   final QuietTrigger trigger;
@@ -69,6 +70,10 @@ class QuietWindow {
   final QuietMode mode;
   final bool isActive;
 
+  /// Pencere boyunca telefon Rahatsız Etme'ye alınsın mı (Android 10+).
+  /// Varsayılan kapalı: özel izin ister, kullanıcı kendisi açar.
+  final bool silencePhone;
+
   const QuietWindow({
     required this.id,
     required this.trigger,
@@ -77,6 +82,7 @@ class QuietWindow {
     required this.minutesAfter,
     this.mode = QuietMode.silent,
     this.isActive = true,
+    this.silencePhone = false,
   }) : assert(minutesBefore >= 0),
        assert(minutesAfter >= 0);
 
@@ -111,6 +117,7 @@ class QuietWindow {
     int? minutesAfter,
     QuietMode? mode,
     bool? isActive,
+    bool? silencePhone,
   }) {
     return QuietWindow(
       id: id,
@@ -120,6 +127,7 @@ class QuietWindow {
       minutesAfter: minutesAfter ?? this.minutesAfter,
       mode: mode ?? this.mode,
       isActive: isActive ?? this.isActive,
+      silencePhone: silencePhone ?? this.silencePhone,
     );
   }
 
@@ -131,6 +139,7 @@ class QuietWindow {
     'minutesAfter': minutesAfter,
     'mode': mode.name,
     'isActive': isActive,
+    'silencePhone': silencePhone,
   };
 
   /// Bozuk alanlar güvenli varsayılana düşer; tek kötü kayıt tüm listeyi
@@ -151,6 +160,7 @@ class QuietWindow {
       orElse: () => QuietMode.silent,
     ),
     isActive: json['isActive'] as bool? ?? true,
+    silencePhone: json['silencePhone'] as bool? ?? false,
   );
 }
 

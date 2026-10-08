@@ -5,6 +5,7 @@ import 'package:ezanvakti/core/interfaces/local_storage.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart'
     show PrayerType;
 import 'package:ezanvakti/core/models/quiet_window.dart';
+import 'package:ezanvakti/core/services/device_settings_service.dart';
 import 'package:ezanvakti/presentation/screens/quiet_windows_screen.dart';
 import 'package:ezanvakti/presentation/widgets/common/delete_action_button.dart';
 import 'package:ezanvakti/presentation/widgets/common/grouped_list.dart';
@@ -38,6 +39,10 @@ void main() {
     await storage.init();
     changes = 0;
     ServiceLocator().register<LocalStorage>(storage);
+    // Telefonu susturma satırı Android dışında yok; ekran servisi yine sorar.
+    ServiceLocator().register<DeviceSettingsService>(
+      DeviceSettingsService(isAndroid: false),
+    );
   });
 
   Future<void> pumpScreen(

@@ -5,6 +5,7 @@ import '../../core/di/service_locator.dart';
 import '../../core/interfaces/local_storage.dart';
 import '../../core/models/notification_setting.dart' show PrayerType;
 import '../../core/models/quiet_window.dart';
+import '../../core/services/device_settings_service.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/tokens_context.dart';
 import '../widgets/common/app_bar_widgets.dart';
@@ -32,16 +33,74 @@ class QuietWindowsScreen extends StatefulWidget {
   State<QuietWindowsScreen> createState() => _QuietWindowsScreenState();
 }
 
-class _QuietWindowsScreenState extends State<QuietWindowsScreen> {
+class _QuietWindowsScreenState extends State<QuietWindowsScreen>
+    with WidgetsBindingObserver {
   List<QuietWindow> _windows = [];
   bool _loading = true;
 
+  /// Telefonu susturma (Android 10+) destekleniyor mu, Rahatsız Etme erişimi
+  /// verilmiş mi. Ekran açılınca ve uygulamaya dönünce yeniden okunur.
+  bool _quietSupported = false;
+  bool _quietAccess = false;
+
+  /// İzin ekranına gidilen pencere; dönünce erişim verildiyse anahtar açılır.
+  String? _pendingSilenceId;
+
   LocalStorage get _storage => ServiceLocator().get<LocalStorage>();
+
+  DeviceSettingsService get _device =>
+      ServiceLocator().get<DeviceSettingsService>();
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _load();
+    _refreshQuietAccess();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _refreshQuietAccess();
+  }
+
+  Future<void> _refreshQuietAccess() async {
+    final supported = await _device.isQuietModeSupported();
+    final access = supported && await _device.hasQuietModeAccess();
+    if (!mounted) return;
+    setState(() {
+      _quietSupported = supported;
+      _quietAccess = access;
+    });
+    final pending = _pendingSilenceId;
+    if (pending == null) return;
+    _pendingSilenceId = null;
+    final window = _windows.where((w) => w.id == pending).firstOrNull;
+    if (access && window != null) {
+      await _updateWindow(window, window.copyWith(silencePhone: true));
+    }
+  }
+
+  /// Erişim yokken açmak kaydı değiştirmez: önce izin ekranı açılır, dönünce
+  /// erişim verildiyse [_refreshQuietAccess] anahtarı açar.
+  Future<void> _setSilencePhone(
+    QuietWindow window,
+    bool value, {
+    VoidCallback? onChanged,
+  }) async {
+    if (value && !_quietAccess) {
+      _pendingSilenceId = window.id;
+      await _device.openQuietModeAccessSettings();
+      return;
+    }
+    await _updateWindow(window, window.copyWith(silencePhone: value));
+    onChanged?.call();
   }
 
   Future<void> _load() async {
@@ -267,6 +326,7 @@ class _QuietWindowsScreenState extends State<QuietWindowsScreen> {
             const SizedBox(height: 8),
             _rangeRow(friday),
             _modeRow(friday),
+            _silenceRow(friday),
           ],
         ],
       ),
@@ -288,7 +348,8 @@ class _QuietWindowsScreenState extends State<QuietWindowsScreen> {
       title: Text(name),
       subtitle: Text(
         '$duration · '
-        '${window.mode == QuietMode.skip ? context.l10n.quietModeSkip : context.l10n.quietModeSilent}',
+        '${window.mode == QuietMode.skip ? context.l10n.quietModeSkip : context.l10n.quietModeSilent}'
+        '${_quietSupported && window.silencePhone ? ' · ${context.l10n.quietSilencePhoneSuffix}' : ''}',
       ),
       dimmed: !window.isActive,
       onTap: () => _editCustom(window),
@@ -347,6 +408,7 @@ class _QuietWindowsScreenState extends State<QuietWindowsScreen> {
                   ),
                   _rangeRow(current, onChanged: () => setSheetState(() {})),
                   _modeRow(current, onChanged: () => setSheetState(() {})),
+                  _silenceRow(current, onChanged: () => setSheetState(() {})),
                   const SizedBox(height: 20),
                   DeleteActionButton(context.l10n.quietWindowDeleteAction, () {
                     // Önce panel kapanır, sonra silinir: "Geri al" çubuğu
@@ -461,6 +523,60 @@ class _QuietWindowsScreenState extends State<QuietWindowsScreen> {
         await _updateWindow(window, window.copyWith(mode: value));
         onChanged?.call();
       },
+    );
+  }
+
+  /// Android 9 ve öncesinde satır yok. Erişim kapalıyken anahtar açık
+  /// kalabilir (izin sistemden geri alınabilir); alt yazı uyarıya döner ve
+  /// dokununca izin ekranı açılır.
+  Widget _silenceRow(QuietWindow window, {VoidCallback? onChanged}) {
+    if (!_quietSupported) return const SizedBox.shrink();
+    final tokens = context.tokens;
+    final missingAccess = window.silencePhone && !_quietAccess;
+    // Kartın kendi zemini olduğu için ListTile yerine satır: ListTile
+    // dokunma efektini en yakın Material'a çizer, renkli kart onu örterdi.
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.l10n.quietSilencePhone,
+                  style: AppTypography.rowTitle.copyWith(
+                    color: tokens.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                GestureDetector(
+                  onTap: missingAccess
+                      ? _device.openQuietModeAccessSettings
+                      : null,
+                  child: Text(
+                    missingAccess
+                        ? context.l10n.quietSilencePhoneNoAccess
+                        : context.l10n.quietSilencePhoneHint,
+                    style: AppTypography.hint.copyWith(
+                      color: missingAccess
+                          ? tokens.accent
+                          : tokens.textTertiary,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Switch(
+            value: window.silencePhone,
+            activeThumbColor: tokens.accent,
+            onChanged: (value) =>
+                _setSilencePhone(window, value, onChanged: onChanged),
+          ),
+        ],
+      ),
     );
   }
 }

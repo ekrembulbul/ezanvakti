@@ -6,10 +6,13 @@ import 'package:ezanvakti/core/models/mission_stop_event.dart';
 import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/models/notification_setting.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
+import 'package:ezanvakti/core/models/quiet_interval.dart';
+import 'package:ezanvakti/core/models/quiet_window.dart';
 import 'package:ezanvakti/core/models/skipped_occurrence.dart';
 import 'package:ezanvakti/features/alarms/data/native_alarm_service.dart';
 import 'package:ezanvakti/features/alarms/domain/alarm_scheduler.dart';
 import 'package:ezanvakti/features/notifications/domain/notification_scheduler.dart';
+import 'package:ezanvakti/features/notifications/domain/quiet_phone_scheduler.dart';
 import 'package:ezanvakti/presentation/services/reminder_rescheduler.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -202,6 +205,68 @@ void main() {
     expect(
       notifications.scheduled.map((n) => n.id),
       isNot(contains(skip.reference)),
+    );
+  });
+
+  test(
+    'susturma plani vakit verisiyle gonderilir, veri yoksa dokunulmaz',
+    () async {
+      final sent = <List<QuietInterval>>[];
+      final storage = FakeStorage();
+      await storage.init();
+      await storage.saveQuietWindows([
+        QuietWindow.fridayDefault().copyWith(silencePhone: true),
+      ]);
+      final scheduler = QuietPhoneScheduler(
+        storage: storage,
+        enabled: true,
+        send: (intervals) async => sent.add(intervals),
+        clock: () => DateTime(2026, 10, 9),
+      );
+      final rescheduler = ReminderRescheduler(
+        notificationScheduler: NotificationScheduler(
+          notificationService: FakeNotificationService(),
+          storage: storage,
+          quietWindowsEnabled: true,
+        ),
+        alarmScheduler: AlarmScheduler(
+          alarmService: _MockAlarmService(),
+          storage: storage,
+        ),
+        quietPhoneScheduler: scheduler,
+      );
+
+      await rescheduler.reschedule(
+        location: null,
+        prayerTimes: const [],
+        skips: const {},
+      );
+      expect(sent, isEmpty);
+
+      await rescheduler.reschedule(
+        location: null,
+        prayerTimes: [prayerTimeFor(DateTime(2026, 10, 9))],
+        skips: const {},
+      );
+      expect(sent.single, isNotEmpty);
+    },
+  );
+
+  test('susturma plani hatasi diger planlamayi bozmaz', () async {
+    final storage = FakeStorage();
+    await storage.init();
+    await storage.saveQuietWindows([
+      QuietWindow.fridayDefault().copyWith(silencePhone: true),
+    ]);
+    final scheduler = QuietPhoneScheduler(
+      storage: storage,
+      enabled: true,
+      send: (_) async => throw PlatformException(code: 'x'),
+      clock: () => DateTime(2026, 10, 9),
+    );
+    await expectLater(
+      scheduler.schedule(prayerTimes: [prayerTimeFor(DateTime(2026, 10, 9))]),
+      completes,
     );
   });
 

@@ -4,6 +4,7 @@ import '../../core/models/skipped_occurrence.dart';
 import '../../core/utils/app_logger.dart';
 import '../../features/alarms/domain/alarm_scheduler.dart';
 import '../../features/notifications/domain/notification_scheduler.dart';
+import '../../features/notifications/domain/quiet_phone_scheduler.dart';
 
 /// Bildirim ve alarm planlamasının tek giriş noktası.
 ///
@@ -11,13 +12,17 @@ import '../../features/notifications/domain/notification_scheduler.dart';
 /// kullanıcının "yalnızca bu sefer" atladığı örnek, ilgisiz bir değişiklikten
 /// sonra sessizce geri planlanır ve çalar; bunu derleme zamanında imkânsız
 /// kılmak için isteğe bağlı değil.
+///
+/// Telefon susturma planı üçüncü bağımsız iştir; kendi hatasını loglar.
 class ReminderRescheduler {
   final NotificationScheduler notificationScheduler;
   final AlarmScheduler alarmScheduler;
+  final QuietPhoneScheduler? quietPhoneScheduler;
 
   const ReminderRescheduler({
     required this.notificationScheduler,
     required this.alarmScheduler,
+    this.quietPhoneScheduler,
   });
 
   /// Alarmlar her çağrıda uzlaştırılır. Konum veya vakit verisi yoksa bildirim
@@ -50,6 +55,11 @@ class ReminderRescheduler {
           skips: skips,
         ),
       ),
+      if (quietPhoneScheduler != null)
+        _runSchedule(
+          'quiet_phone',
+          () => quietPhoneScheduler!.schedule(prayerTimes: prayerTimes),
+        ),
     ], eagerError: false);
     return canScheduleNotifications;
   }

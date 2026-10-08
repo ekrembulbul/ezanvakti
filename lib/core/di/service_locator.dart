@@ -31,11 +31,13 @@ import '../interfaces/local_storage.dart';
 import '../interfaces/notification_service.dart';
 import '../interfaces/widget_publisher.dart';
 import '../services/timezone_service.dart';
+import '../services/device_settings_service.dart';
 import '../services/exact_alarm_service.dart';
 import '../theme/theme_controller.dart';
 import '../utils/app_logger.dart';
 import '../../presentation/services/nearby_mosques_launcher.dart';
 import '../../presentation/services/reminder_rescheduler.dart';
+import '../../features/notifications/domain/quiet_phone_scheduler.dart';
 
 class ServiceLocator {
   static final ServiceLocator _instance = ServiceLocator._internal();
@@ -199,10 +201,20 @@ class ServiceLocator {
       MissionCoordinator(alarmService: alarmService, storage: localStorage),
     );
 
+    final deviceSettings = DeviceSettingsService();
+    register<DeviceSettingsService>(deviceSettings);
+    // Sessiz pencerelerde telefonu Rahatsız Etme'ye alma planı (Android).
+    final quietPhoneScheduler = QuietPhoneScheduler(
+      storage: localStorage,
+      send: deviceSettings.setQuietSchedule,
+    );
+    register<QuietPhoneScheduler>(quietPhoneScheduler);
+
     register<ReminderRescheduler>(
       ReminderRescheduler(
         notificationScheduler: notificationScheduler,
         alarmScheduler: alarmScheduler,
+        quietPhoneScheduler: quietPhoneScheduler,
       ),
     );
 

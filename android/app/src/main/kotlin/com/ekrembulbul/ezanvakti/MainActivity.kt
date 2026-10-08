@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Build
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
@@ -16,6 +17,12 @@ class MainActivity : FlutterActivity() {
 
         // Sesli/kalıcı alarm köprüsü.
         alarmChannel = AlarmChannel(this).also { it.register(flutterEngine) }
+
+        // Kıble pusulası: cihaz yönü (gerçek kuzey).
+        EventChannel(flutterEngine.dartExecutor.binaryMessenger, HeadingStreamHandler.CHANNEL)
+            .setStreamHandler(HeadingStreamHandler(this))
+        // Cihaz ayarları: tam ekran izni, pil, Rahatsız Etme.
+        DeviceChannel(this).register(flutterEngine)
 
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, channelName)
             .setMethodCallHandler { call, result ->
