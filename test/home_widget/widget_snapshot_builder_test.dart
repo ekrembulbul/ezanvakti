@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:ezanvakti/core/models/location.dart';
 import 'package:ezanvakti/core/models/prayer_time.dart';
 import 'package:ezanvakti/core/models/hijri_date.dart';
@@ -27,6 +28,39 @@ void main() {
   final today = DateTime(2026, 8, 25);
 
   group('WidgetSnapshotBuilder.build', () {
+    setUpAll(() => initializeDateFormatting('tr', null));
+
+    test(
+      'gunlere tarih metinleri, epochlar ve cetvel; koke cizelge yazilir',
+      () {
+        final snapshot = WidgetSnapshotBuilder.build(
+          location: _location,
+          prayerTimes: _range(today, 2),
+          now: DateTime(2026, 8, 25, 14, 0),
+        );
+        final day = snapshot.days.first.toJson();
+
+        expect(day['weekday'], 'Salı'); // 25 Ağustos 2026
+        expect(day['dateLabel'], '25 Ağustos');
+        expect(
+          (day['epochs'] as Map)['dhuhr'],
+          DateTime(2026, 8, 25, 13, 15).millisecondsSinceEpoch,
+        );
+        final ruler = day['ruler'] as Map;
+        expect((ruler['marks'] as List), hasLength(6));
+        expect((ruler['segments'] as List).first['kind'], 'night');
+        expect(
+          (ruler['segments'] as List).any(
+            (segment) => segment['kind'] == 'kerahat',
+          ),
+          isTrue,
+        );
+        final timeline = snapshot.toJson()['timeline'] as List;
+        expect(timeline, isNotEmpty);
+        expect((timeline.first as Map)['slot'], 3); // 14:00 → İkindi
+      },
+    );
+
     test('bugunden onceki gunler elenir, bugun dahil edilir', () {
       final snapshot = WidgetSnapshotBuilder.build(
         location: _location,

@@ -21,6 +21,13 @@ class HijriFormatter {
     return '${hijri.day} $month ${hijri.year}';
   }
 
+  /// Yılsız kısa biçim ("27 Rebiülahir"): widget'ın dar satırları için.
+  static String formatHijriShort(HijriDate hijri, [AppLocalizations? l10n]) {
+    final month =
+        _monthName(hijri.month, l10n ?? _sourceLanguage) ?? '${hijri.month}';
+    return '${hijri.day} $month';
+  }
+
   /// Hicri ay numarası (1–12) → çeviri.
   static String? _monthName(int month, AppLocalizations l10n) =>
       switch (month) {

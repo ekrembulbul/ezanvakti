@@ -7,6 +7,17 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   const hijri = HijriDate(day: 4, month: 4, year: 1448);
 
+  test('kısa biçim yılsız', () {
+    expect(HijriFormatter.formatHijriShort(hijri), '4 Rebiülahir');
+    expect(
+      HijriFormatter.formatHijriShort(
+        hijri,
+        lookupAppLocalizations(const Locale('en')),
+      ),
+      '4 Rabi al-Thani',
+    );
+  });
+
   test('ay adı verilen çeviriden gelir', () {
     expect(
       HijriFormatter.formatHijri(
