@@ -2,9 +2,9 @@ import SwiftUI
 import WidgetKit
 
 // Küçük ve orta widget'ın ortak parçaları (2026-10-08 tasarımı, spec K6/K8):
-// iç boşluk, vakit adı, kerahat renkleri ve kerahat sayacı. Kerahat artık alt
-// kenardaki şeritte değil; küçükte alt yuvadaki kartta (`KerahatCard`), ortada
-// sağ üstteki çipte (`KerahatChip`).
+// iç boşluk, vakit adı, kerahat renkleri ve kerahat sayacı. Kerahat küçükte
+// alt yuvadaki kartta (`KerahatCard`), ortada üst kenardan kenara bantta
+// (`KerahatBand`, 2026-10-09).
 
 /// Ana ekran ailelerinin kendi kenar payı; sistemin payı kapalı
 /// (`contentMarginsDisabled`). Hazır içerik her kenarda `WidgetInsets.content`
@@ -42,21 +42,32 @@ enum WidgetText {
     }
 }
 
-/// Kerahat kartı ve çipinin renkleri: yaklaşırken turuncu, kerahatte bordo.
-/// İkisi aynı rengi kullanır ki küçük ve orta boy aynı dili konuşsun.
+/// Kerahat kartı ve bandının renkleri (2026-10-09). Kerahat sürerken dolgu
+/// bordo çizgi rengi, yazılar beyaz; yaklaşırken turuncu dolgu, turuncu kenar
+/// (kartta 1.5 pt iç kenarlık, bantta altta 1.5 pt çizgi) ve turuncu yazı.
+/// İkisi aynı tonu kullanır ki küçük ve orta boy aynı dili konuşsun.
 struct KerahatTone {
-    let surface: Color
+    static let borderWidth: CGFloat = 1.5
+
+    let fill: Color
     let text: Color
+    /// Yalnız yaklaşırken; kerahat sürerken kenar yok.
+    let border: Color?
+    /// Saat aralığının yazı rengine göre opaklığı.
+    let rangeOpacity: Double
 
     init(status: KerahatStatus, palette: Palette) {
         switch status {
         case .approaching:
-            surface = palette.kerahatSoonSurface
+            fill = palette.kerahatSoonFill
             text = palette.kerahatSoonText
+            border = palette.kerahatSoonLine
         case .active:
-            surface = palette.kerahatSurface
-            text = palette.kerahat
+            fill = palette.kerahatLine
+            text = .white
+            border = nil
         }
+        rangeOpacity = 0.85
     }
 }
 

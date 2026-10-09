@@ -1,9 +1,11 @@
 import SwiftUI
 
-/// Küçük widget (2026-10-08, spec K6): her kenarda 14. Üstte "konum · tarih";
-/// ortada vakit adı ile saati ve büyük sayaç; altta sabit yuva — kerahat yokken
-/// gün adı ve hicri tarih, kerahat penceresinde `KerahatCard`. Kerahat
-/// sürerken vakit adı ve sayaç bordo tona döner; zemin değişmez.
+/// Küçük widget (2026-10-08, spec K6): her kenarda 14. Üstte konum; ortada
+/// vakit adı ile saati ve büyük sayaç; altta sabit yuva — kerahat yokken
+/// "gün, tarih" ve hicri tarih, kerahat penceresinde `KerahatCard`. Kart alt
+/// yuvayı aldığında tarih üst satıra konumun yanına geçer ("konum · tarih");
+/// tarih iki yerde birden görünmez (2026-10-09). Kerahat sürerken vakit adı
+/// ve sayaç bordo tona döner, zemin bordoya kayar.
 ///
 /// Hizalama ayarı (sola / ortaya / sağa) yalnız bu boyda geçerli; kart her
 /// durumda tam genişlik.
@@ -33,9 +35,14 @@ struct SmallView: View {
         next: PrayerSlot, day: SnapshotDay, phase: DayPhase,
         locationLabel: String, isStale: Bool, isTomorrow: Bool
     ) -> some View {
+        // Kerahat sürerken zemin bordoya kayar; zemini okuyan her parça aynı palet.
         let palette = Palette.resolve(entry.appearance, phase: phase, colorScheme: colorScheme)
+            .duringKerahat(active: entry.isKerahatActive)
         let place = WidgetText.place(locationLabel: locationLabel, isStale: isStale, labels: entry.labels)
-        let top = [place, DayLabel.short(day)].compactMap { $0 }.joined(separator: " · ")
+        // Tarih kerahat yokken alt yuvada; kart yuvayı alınca üst satıra geçer.
+        let top = entry.kerahat == nil
+            ? place
+            : [place, DayLabel.short(day)].compactMap { $0 }.joined(separator: " · ")
         // Yalnız kerahat sürerken; yaklaşırken kart yeter, vakit bloğu olağan.
         let inKerahat = entry.isKerahatActive
 
@@ -73,15 +80,16 @@ struct SmallView: View {
         .opacity(isStale ? 0.55 : 1)
     }
 
-    /// 34 pt sabit yuva: kerahat yokken gün adı ve hicri tarih, varsa kart.
+    /// 34 pt sabit yuva: kerahat yokken "gün, tarih" (`"Cuma, 9 Ekim"`) ve
+    /// hicri tarih, varsa kart.
     @ViewBuilder
     private func bottomSlot(day: SnapshotDay, palette: Palette) -> some View {
         if let status = entry.kerahat {
             KerahatCard(entry: entry, status: status, day: day, palette: palette)
         } else {
             VStack(alignment: alignment.horizontal, spacing: 0) {
-                if let weekday = DayLabel.weekday(day) {
-                    Text(verbatim: weekday)
+                if let date = DayLabel.gregorian(day) {
+                    Text(verbatim: date)
                 }
                 if let hijri = day.hijri {
                     Text(verbatim: hijri)

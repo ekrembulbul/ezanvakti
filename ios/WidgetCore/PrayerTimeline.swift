@@ -72,8 +72,8 @@ struct PrayerEntry: TimelineEntry {
     /// Uygulamanın dilindeki etiketler; v3 öncesi payload'da nil.
     var labels: SnapshotLabels?
 
-    /// Kerahat sürüyor mu: küçük widget'ta vakit adı ve sayaç bordo tona döner
-    /// (zemin değişmez); yaklaşırken değil.
+    /// Kerahat sürüyor mu: vakit adı, sayaç ve widget zemini bordo tona döner
+    /// (2026-10-09); yaklaşırken değil.
     var isKerahatActive: Bool {
         if case .active = kerahat { return true }
         return false

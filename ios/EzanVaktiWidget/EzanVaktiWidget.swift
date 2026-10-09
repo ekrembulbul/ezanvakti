@@ -66,9 +66,11 @@ struct EzanVaktiWidgetEntryView: View {
             .containerBackground(for: .widget) {
                 switch family {
                 case .systemSmall, .systemMedium:
-                    // Kerahatte zemin değişmez; vakit adı, sayaç ve kart/çip
-                    // bordo tona döner (2026-10-08 tasarımı).
-                    PhaseBackground(phase: phase, appearance: entry.appearance)
+                    // Kerahat sürerken zemin bordoya kayar; yaklaşırken
+                    // değişmez (2026-10-09 tasarımı).
+                    PhaseBackground(
+                        phase: phase, appearance: entry.appearance,
+                        isKerahatActive: entry.isKerahatActive)
                 default:
                     AccessoryWidgetBackground()
                 }
