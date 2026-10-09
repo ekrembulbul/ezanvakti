@@ -4,6 +4,15 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.31.0] - 2026-10-09
+
+### Değişti
+- **Widget'ta kerahat bir bakışta anlaşılır:** Kerahat sürerken widget'ın zemini bordoya kayar (açık temada da belirgin); küçükte kart dolu bordo, beyaz yazılı. Kerahat yaklaşırken zemin değişmez, kart turuncu dolgu ve kenarlıkla öne çıkar. Ortada sağ üstteki çip yerine üstte kenardan kenara bir bant gelir (kelime, saat aralığı, geri sayım).
+- Küçük widget'ta tarih tek yerde: kerahat yokken altta gün adı ve tarih, kerahat kartı alt yuvayı alınca üst satırda konumla birlikte.
+
+### Android (henüz yayında değil)
+- Alarm düzeltmeleri: atlanan ya da kapalı alarm çalma servisini başlatmaz; işletim sisteminde kurulu olmayan alarm uzlaştırmada yeniden kurulur; yedek ve cihaz aktarımı yerel alarm durumunu taşımaz.
+
 ## [0.30.0] - 2026-10-08
 
 ### Değişti
