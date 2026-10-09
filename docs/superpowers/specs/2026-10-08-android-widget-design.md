@@ -4,6 +4,16 @@ Tarih: 2026-10-08 · Baz: `dev` (Android turu 1 sonrası, `9e601f3`) · Platform
 
 Görsel taslaklar: `.superpowers/brainstorm/8967-1791456924/content/` (`sabit-satir-son-v2.html`, `widget-kucuk-son.html`, `widget-v1.html` orta boy B, `widget-orta-kerahat.html` A). Klasör yerel, repoya girmez.
 
+## Revizyon — 2026-10-09
+
+Kerahatin widget'ta bir bakışta anlaşılması için küçük ve orta widget'ın kerahat görünümü değişti (Android ve iOS birlikte); kural, snapshot şeması ve timeline anları aynı. Tasarım penceresindeki mockup'larla onaylandı. Çelişen yerlerde bu bölüm geçerlidir (K6, K8, K11 ve D16'daki çip/"zemin kaymaz" ifadeleri):
+
+- **Tarih tek yerde (küçük):** kerahat yokken üstte yalnız konum, altta "gün, tarih" ("Cuma, 9 Ekim") ve hicri. Kart alt yuvayı alınca tarih üst satıra çıkar ("konum · tarih"); iki yerde birden görünmez.
+- **Kerahat sürerken (yalnız aktif) zemin bordoya kayar:** zemin duraklarının her biri bordo durağa %88 karışır (koyu `#6A2238 / #35151F / #150B10`, açık `#E8B3C0 / #F3D7DE / #FBEFF2`); geometri aynı. Cetvelin nokta halkası da aynı zeminden okur. Yaklaşırken zemin değişmez. K11'deki "kerahatte zemin bordoya kaymaz" kararı kalktı: kart/çip tek başına, özellikle açık temada, kerahati yeterince anlatmıyordu.
+- **Kart/bant renkleri:** aktifte dolu `kerahatLine` + beyaz yazı (saat aralığı %85); yaklaşırken `soonFill` dolgu (koyu `#4A2D14`, açık `#FADFC2`) + `soonLine` 1,5 pt kenarlık (kart) / alt çizgi (bant) + `soonText` yazı. Vakit adı ve büyük sayaç aktifte bordo (küçük ve orta aynı), yaklaşırken olağan.
+- **Orta widget, çip yerine üst bant:** kerahat penceresinde konum/tarih satırı kalkar; yerine üst kenardan kenara 30 pt bant gelir (solda kelime + aralığın saatleri, sağda sayaç). Orta boyda hizalama ayarı yine yok.
+- Kapalı sabit satırdaki çip (K3) ve bildirim kartı değişmedi.
+
 ## Amaç
 
 Android'de uygulamayı açmadan sıradaki vakti ve kalan süreyi göstermek: bildirim çubuğunda (kilit ekranında da görünen) sabit bir satır ve ana ekran widget'ı. iOS widget'ları da aynı yeni tasarıma geçer. Android yol haritasının 3. parçasıdır.
