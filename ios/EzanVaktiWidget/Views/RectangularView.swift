@@ -29,7 +29,7 @@ struct RectangularView: View {
 
     private func ready(next: PrayerSlot, isStale: Bool, isTomorrow: Bool) -> some View {
         // Vakit satırı 17 ve sayaçla arası 4: 15/1 sıkışık ve küçük duruyordu
-        // (2026-09-21).
+        // (2026-09-21). Sayaç 20'den 24'e çıktı (2026-10-09).
         VStack(alignment: alignment.horizontal, spacing: 4) {
             if isStale {
                 Text((entry.labels?.stale ?? "Güncel değil").uppercased())
@@ -50,7 +50,7 @@ struct RectangularView: View {
 
             // `hidden` yerleşimi korur; `if` başlığı dikeyde kaydırırdı.
             Text(timerInterval: min(entry.date, next.date)...next.date, countsDown: true)
-                .font(.system(size: 20, weight: .regular).monospacedDigit())
+                .font(.system(size: 24, weight: .regular).monospacedDigit())
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
                 .opacity(isLuminanceReduced ? 0 : 1)
