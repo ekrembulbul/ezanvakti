@@ -58,7 +58,8 @@ Run workflow): Go testleri → `ghcr.io/ekrembulbul/vakit-api:sha-<commit>` imaj
 kullanıcısına dağıtım → `127.0.0.1:3060` ve `https://ezanvakti.ekrembulbul.me` sağlık kontrolü. `dev` ve PR'larda
 yalnız `server-ci` (test + imaj derleme) koşar.
 
-Repository secret'ları (Settings → Secrets and variables → Actions); repo public olduğundan sunucu adresi de secret:
+`production` ortamının secret'ları (Settings → Environments → production; dağıtım dalı yalnız `main`). Başka daldan
+başlatılan ya da değiştirilmiş bir iş akışı bunlara ulaşamaz. Repo public olduğundan sunucu adresi de secret:
 
 | Secret | İçerik |
 |---|---|
