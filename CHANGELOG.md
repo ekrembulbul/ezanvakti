@@ -4,6 +4,11 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.31.1] - 2026-10-10
+
+### Değişti
+- iOS kilit ekranı widget'ında geri sayım büyüdü; süre bir bakışta daha kolay okunur.
+
 ## [0.31.0] - 2026-10-09
 
 ### Değişti
