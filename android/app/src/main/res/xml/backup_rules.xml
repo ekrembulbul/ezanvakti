@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 11 ve öncesi otomatik yedek. Gerekçe ve liste için
+     data_extraction_rules.xml; ikisi aynı tutulmalı. -->
+<full-backup-content>
+    <exclude domain="sharedpref" path="ezanvakti_alarms.xml" />
+    <exclude domain="sharedpref" path="ezanvakti_missions_v2.xml" />
+    <exclude domain="sharedpref" path="ezanvakti_alarm_journal_v1.xml" />
+    <exclude domain="sharedpref" path="ezanvakti_quiet.xml" />
+    <exclude domain="sharedpref" path="ezanvakti_widget_alignment.xml" />
+    <exclude domain="sharedpref" path="HomeWidgetPreferences.xml" />
+    <exclude domain="sharedpref" path="scheduled_notifications.xml" />
+    <exclude domain="file" path="alarm_sounds/" />
+</full-backup-content>
