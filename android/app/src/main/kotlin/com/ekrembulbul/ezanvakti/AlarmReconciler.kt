@@ -27,6 +27,9 @@ data class AlarmSuppression(val alarmId: String, val fireAtMillis: Long) {
 interface AlarmSchedulePlatform {
     fun records(): Map<String, AlarmArgs>
     fun ids(): Set<String>
+    /** Kaydın OS'ta hâlâ kurulu bir alarmı var mı. Yedekten geri yükleme ve zorla
+     *  durdurma kaydı bırakır ama alarmı siler; aynı görünen kayıt yine kurulur. */
+    fun isArmed(id: String): Boolean
     fun schedule(args: AlarmArgs)
     fun cancel(id: String)
 }
@@ -60,7 +63,9 @@ class AlarmReconciler(
             try {
                 val old = platform.records()[record.id]
                 val ringing = missions.pendingSessions().any { it.ringingScheduleId == record.id }
-                if (!ringing && (old == null || !sameSchedule(old, record))) platform.schedule(record)
+                if (!ringing && (old == null || !sameSchedule(old, record) || !platform.isArmed(record.id))) {
+                    platform.schedule(record)
+                }
             } catch (error: Exception) {
                 failures[record.alarmId] = error.javaClass.simpleName
             }

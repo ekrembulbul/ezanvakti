@@ -127,6 +127,7 @@ object AlarmScheduling {
         val platform = object : AlarmSchedulePlatform {
             override fun records() = allArgs(context).associateBy { it.id }
             override fun ids() = AlarmScheduling.ids(context)
+            override fun isArmed(id: String) = firePendingIntentForId(context, id, legacy = false) != null
             override fun schedule(args: AlarmArgs) = AlarmScheduling.schedule(context, args)
             override fun cancel(id: String) = AlarmScheduling.cancel(context, id)
         }

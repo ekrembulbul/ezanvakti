@@ -13,12 +13,15 @@ class AlarmReconcilerTest {
         val accepted = linkedMapOf<String, AlarmArgs>()
         val operations = mutableListOf<String>()
         val failures = mutableSetOf<String>()
+        val unarmed = mutableSetOf<String>()
         override fun records() = accepted.toMap()
         override fun ids() = accepted.keys.toSet()
+        override fun isArmed(id: String) = id !in unarmed
         override fun schedule(args: AlarmArgs) {
             operations.add("schedule:" + args.id)
             if (args.id in failures) throw IllegalStateException("injected")
             accepted[args.id] = args
+            unarmed.remove(args.id)
         }
         override fun cancel(id: String) {
             operations.add("cancel:" + id)
@@ -40,6 +43,20 @@ class AlarmReconcilerTest {
         platform.operations.clear()
         reconciler.reconcile(listOf(a), setOf("a"), emptySet(), now)
         assertTrue(platform.operations.isEmpty())
+    }
+
+    @Test fun recordWithoutOsAlarmIsScheduledAgain() {
+        // Yedekten geri yükleme ya da zorla durdurma kaydı bırakır, OS alarmını siler.
+        val platform = Platform()
+        val reconciler = AlarmReconciler(platform, AlarmMissions(Memory()))
+        val a = alarm("a", now + 60_000)
+        val b = alarm("b", now + 90_000)
+        reconciler.reconcile(listOf(a, b), setOf("a", "b"), emptySet(), now)
+        platform.operations.clear()
+        platform.unarmed.add(a.id)
+        reconciler.reconcile(listOf(a, b), setOf("a", "b"), emptySet(), now)
+        assertEquals(listOf("schedule:" + a.id), platform.operations)
+        assertTrue(platform.isArmed(a.id))
     }
 
     @Test fun failedReplacementKeepsPreviousRecordAndOtherAlarm() {
