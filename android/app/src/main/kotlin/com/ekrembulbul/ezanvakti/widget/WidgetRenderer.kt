@@ -29,18 +29,20 @@ import kotlin.math.roundToInt
 
 /** Bir an için widget'ta yazacak her şey; renkler paletten çözülmüş halde. */
 data class WidgetViewModel(
-    /** Küçükte üst satır: "konum · tarih"; çizelge bittiyse "Güncel değil". */
+    /** Küçükte üst satır: yalnız konum; kerahat penceresinde "konum · tarih"
+     *  (alt yuvayı kart aldığı için tarih buraya çıkar). Çizelge bittiyse
+     *  "Güncel değil". */
     val smallTop: String,
     /** Ortada üst satırın solu: konum; çizelge bittiyse "Güncel değil". */
     val mediumLocation: String,
     /** Ortada üst satırın sağı: "gün, tarih · hicri gün ay". Kerahat
-     *  penceresinde (çip gösterilir) ya da hiçbir parça yoksa `null`. */
+     *  penceresinde (üstte bant gösterilir) ya da hiçbir parça yoksa `null`. */
     val mediumDate: String?,
     /** Büyük harf vakit adı; ertesi günün vakti ise "YARIN · İMSAK". */
     val nameText: String,
     val timeText: String,
     val countdownTargetMillis: Long,
-    /** Küçükte alt yuvanın iki satırı (gün adı, hicri); eksik olan atlanır. */
+    /** Küçükte alt yuvanın iki satırı ("gün, tarih" ve hicri); eksik olan atlanır. */
     val bottomLines: List<String>,
     val kerahat: WidgetViewModel.Kerahat?,
     val columns: List<WidgetViewModel.Column>,
@@ -58,7 +60,7 @@ data class WidgetViewModel(
 
     data class Column(val name: String, val time: String, val state: ColumnState)
 
-    /** Kerahat penceresi: küçükte alt yuvadaki kart, ortada sağ üstteki çip.
+    /** Kerahat penceresi: küçükte alt yuvadaki kart, ortada üstteki bant.
      *  Yaklaşırken sayaç başlangıca, kerahatte bitişe sayar. */
     data class Kerahat(
         val word: String,
@@ -66,8 +68,12 @@ data class WidgetViewModel(
         val rangeText: String,
         val targetMillis: Long,
         val active: Boolean,
+        /** Kart/bant dolgusu: kerahatte dolu bordo, yaklaşırken turuncu zemin. */
         val surface: Int,
+        /** Kart/bant yazısı: kerahatte beyaz, yaklaşırken turuncu. */
         val text: Int,
+        /** Yaklaşırken kartın kenarlığı / bandın alt çizgisi; kerahatte `null`. */
+        val ring: Int?,
     )
 
     companion object {
@@ -88,22 +94,27 @@ data class WidgetViewModel(
             val name = state.next.name.uppercase(locale)
             val nameText = if (state.entry.tomorrow) "${labels.tomorrow.uppercase(locale)} · $name" else name
 
-            // Çizelge bittiyse pencerenin sayacı geçmişe sayardı: kart/çip gösterilmez.
+            // Çizelge bittiyse pencerenin sayacı geçmişe sayardı: kart/bant gösterilmez.
             val kerahat = state.entry.kerahat?.takeUnless { state.stale }?.let { window ->
                 Kerahat(
                     word = if (window.active) labels.kerahat else labels.kerahatSoon,
                     rangeText = "${time(window.startMillis)} – ${time(window.endMillis)}",
                     targetMillis = window.targetMillis,
                     active = window.active,
-                    surface = if (window.active) palette.kerahatSurface else palette.soonSurface,
-                    text = if (window.active) palette.kerahatText else palette.soonText,
+                    surface = if (window.active) palette.kerahatLine else palette.soonFill,
+                    text = if (window.active) palette.onKerahatLine else palette.soonText,
+                    ring = if (window.active) null else palette.soonLine,
                 )
             }
             val inKerahat = kerahat?.active == true
             val location = snapshot.locationLabel.trim()
 
             return WidgetViewModel(
-                smallTop = if (state.stale) labels.stale else join(" · ", location, day.dateLabel),
+                smallTop = when {
+                    state.stale -> labels.stale
+                    kerahat != null -> join(" · ", location, day.dateLabel)
+                    else -> location
+                },
                 mediumLocation = if (state.stale) labels.stale else location,
                 mediumDate = if (kerahat != null) {
                     null
@@ -113,7 +124,10 @@ data class WidgetViewModel(
                 nameText = nameText,
                 timeText = time(state.next.epochMillis),
                 countdownTargetMillis = state.next.epochMillis,
-                bottomLines = listOfNotNull(day.weekday, day.hijri ?: day.hijriShort),
+                bottomLines = listOfNotNull(
+                    join(", ", day.weekday, day.dateLabel).ifEmpty { null },
+                    day.hijri ?: day.hijriShort,
+                ),
                 kerahat = kerahat,
                 columns = day.slots.mapIndexed { index, slot ->
                     val columnState = when {
@@ -167,11 +181,17 @@ object WidgetRenderer {
      *  gizler (taşan içerik altta kesilmesin). */
     private const val MEDIUM_COLUMNS_MIN_HEIGHT_DP = 158f
     private const val MEDIUM_RULER_MIN_HEIGHT_DP = 122f
+    /** Kerahat bandı (30 dp) 22 dp'lik üst satırın yerini alır ve gövdenin
+     *  üst payı 12 → 8 dp iner: içerik 4 dp daha yer ister. */
+    private const val MEDIUM_BAND_EXTRA_DP = 4f
+    private const val MEDIUM_BODY_TOP_WITH_BAND_DP = 8f
+    private const val MEDIUM_BODY_TOP_DP = 12f
+    private const val MEDIUM_BODY_BOTTOM_DP = 10f
 
     private const val STALE_ALPHA = 0.55f
     private const val PAST_ALPHA = 0.5f
     private const val NEXT_SURFACE_ALPHA = 0.16f
-    private const val RANGE_TEXT_ALPHA = 0.75f
+    private const val RANGE_TEXT_ALPHA = 0.85f
 
     private val COLUMN_BG = intArrayOf(
         R.id.widget_col_bg0, R.id.widget_col_bg1, R.id.widget_col_bg2,
@@ -243,10 +263,13 @@ object WidgetRenderer {
         val model = WidgetViewModel.from(
             state, snapshot, palette, inputs.timePref, inputs.system24, inputs.locale, now, inputs.zone,
         )
+        // Kerahat sürerken zemin bordoya kayar (yaklaşırken değişmez); cetvelin
+        // nokta halkası da zeminle aynı durağı kullansın diye paletin kendisi döner.
+        val drawn = if (model.kerahat?.active == true) palette.withKerahatTint() else palette
         return if (sizeDp.width >= MEDIUM_MIN_WIDTH_DP) {
-            medium(context, sizeDp, model, palette, now, inputs)
+            medium(context, sizeDp, model, drawn, now, inputs)
         } else {
-            small(context, sizeDp, model, palette, now, inputs, WidgetStore.alignment(context, widgetId))
+            small(context, sizeDp, model, drawn, now, inputs, WidgetStore.alignment(context, widgetId))
         }
     }
 
@@ -295,6 +318,13 @@ object WidgetRenderer {
             views.setViewVisibility(R.id.widget_info, View.GONE)
             views.setViewVisibility(R.id.widget_card, View.VISIBLE)
             surface(views, R.id.widget_card_bg, kerahat.surface, fade)
+            val ring = kerahat.ring
+            if (ring == null) {
+                views.setViewVisibility(R.id.widget_card_ring, View.GONE)
+            } else {
+                views.setViewVisibility(R.id.widget_card_ring, View.VISIBLE)
+                surface(views, R.id.widget_card_ring, ring, fade)
+            }
             text(views, R.id.widget_card_word, kerahat.word, faded(kerahat.text, fade))
             text(views, R.id.widget_card_range, kerahat.rangeText, faded(kerahat.text, RANGE_TEXT_ALPHA * fade))
             countdown(views, R.id.widget_card_countdown, kerahat.targetMillis, now, running = true)
@@ -315,29 +345,47 @@ object WidgetRenderer {
         val fade = if (model.stale) STALE_ALPHA else 1f
         background(views, context, size, palette, fade, inputs)
 
-        text(views, R.id.widget_location, model.mediumLocation, faded(palette.textSecondary, fade))
-        optionalText(views, R.id.widget_date, model.mediumDate, faded(palette.textSecondary, fade))
         val kerahat = model.kerahat
         if (kerahat == null) {
-            views.setViewVisibility(R.id.widget_chip, View.GONE)
+            views.setViewVisibility(R.id.widget_band, View.GONE)
+            views.setViewVisibility(R.id.widget_top_row, View.VISIBLE)
+            text(views, R.id.widget_location, model.mediumLocation, faded(palette.textSecondary, fade))
+            optionalText(views, R.id.widget_date, model.mediumDate, faded(palette.textSecondary, fade))
         } else {
-            views.setViewVisibility(R.id.widget_chip, View.VISIBLE)
-            surface(views, R.id.widget_chip_bg, kerahat.surface, fade)
-            text(views, R.id.widget_chip_word, kerahat.word, faded(kerahat.text, fade))
-            countdown(views, R.id.widget_chip_countdown, kerahat.targetMillis, now, running = true)
-            views.setTextColor(R.id.widget_chip_countdown, faded(kerahat.text, fade))
+            // Bant konum/tarih satırının yerini alır.
+            views.setViewVisibility(R.id.widget_top_row, View.GONE)
+            views.setViewVisibility(R.id.widget_band, View.VISIBLE)
+            surface(views, R.id.widget_band_bg, kerahat.surface, fade)
+            val ring = kerahat.ring
+            if (ring == null) {
+                views.setViewVisibility(R.id.widget_band_line, View.GONE)
+            } else {
+                views.setViewVisibility(R.id.widget_band_line, View.VISIBLE)
+                surface(views, R.id.widget_band_line, ring, fade)
+            }
+            text(views, R.id.widget_band_word, kerahat.word, faded(kerahat.text, fade))
+            text(views, R.id.widget_band_range, kerahat.rangeText, faded(kerahat.text, RANGE_TEXT_ALPHA * fade))
+            countdown(views, R.id.widget_band_countdown, kerahat.targetMillis, now, running = true)
+            views.setTextColor(R.id.widget_band_countdown, faded(kerahat.text, fade))
         }
+        val density = inputs.density
+        val bodyTop = if (kerahat == null) MEDIUM_BODY_TOP_DP else MEDIUM_BODY_TOP_WITH_BAND_DP
+        views.setViewPadding(
+            R.id.widget_body, px(CONTENT_PADDING_DP, density), px(bodyTop, density),
+            px(CONTENT_PADDING_DP, density), px(MEDIUM_BODY_BOTTOM_DP, density),
+        )
+        val usableHeight = size.height - if (kerahat == null) 0f else MEDIUM_BAND_EXTRA_DP
 
         text(views, R.id.widget_name, model.nameText, faded(model.nameColor, fade))
         text(views, R.id.widget_time, model.timeText, faded(palette.textPrimary, fade))
         countdown(views, R.id.widget_countdown, model.countdownTargetMillis, now, running = !model.stale)
         views.setTextColor(R.id.widget_countdown, faded(model.countdownColor, fade))
 
-        val showRuler = model.ruler.isNotEmpty() && size.height >= MEDIUM_RULER_MIN_HEIGHT_DP
+        val showRuler = model.ruler.isNotEmpty() && usableHeight >= MEDIUM_RULER_MIN_HEIGHT_DP
         if (showRuler) ruler(views, size, model, palette, fade, inputs)
         else views.setViewVisibility(R.id.widget_ruler_block, View.GONE)
 
-        if (size.height >= MEDIUM_COLUMNS_MIN_HEIGHT_DP) columns(views, model, palette, fade)
+        if (usableHeight >= MEDIUM_COLUMNS_MIN_HEIGHT_DP) columns(views, model, palette, fade)
         else views.setViewVisibility(R.id.widget_columns, View.GONE)
         return views
     }

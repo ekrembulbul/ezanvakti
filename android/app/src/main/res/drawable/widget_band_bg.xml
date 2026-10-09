@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Orta widget'ın üstündeki kerahat bandı. Beyaz çizilir; renk ve saydamlık
+     WidgetRenderer'da ImageView renk filtresiyle verilir (RemoteViews'te
+     zemin tonu API 31'den önce değiştirilemiyor). Üst köşeler Android 12
+     öncesi widget köşesiyle (16 dp) aynı; 12+'da sistem kendi yarıçapıyla kırpar. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#FFFFFFFF" />
+    <corners
+        android:topLeftRadius="16dp"
+        android:topRightRadius="16dp" />
+</shape>

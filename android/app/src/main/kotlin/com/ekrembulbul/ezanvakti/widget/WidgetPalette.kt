@@ -54,6 +54,17 @@ data class Palette(
     val soonLine: Int get() = if (isDark) 0xFFE0832E.toInt() else 0xFFC9681C.toInt()
     val soonSurface: Int get() = if (isDark) 0xFF3B2412.toInt() else 0xFFFDEFE1.toInt()
     val soonText: Int get() = if (isDark) 0xFFFFB45C.toInt() else 0xFFA9540E.toInt()
+    /** Yaklaşırken kart/bant dolgusu (kenarlık/çizgi `soonLine`, yazı `soonText`). */
+    val soonFill: Int get() = if (isDark) 0xFF4A2D14.toInt() else 0xFFFADFC2.toInt()
+    /** Kerahat sürerken dolu kart/bant (`kerahatLine`) üstündeki yazı. */
+    val onKerahatLine: Int get() = 0xFFFFFFFF.toInt()
+    /** Kerahat sürerken zeminin varacağı bordo duraklar (palet bağımsız). */
+    private val wineStops: IntArray
+        get() = if (isDark) {
+            intArrayOf(0xFF6A2238.toInt(), 0xFF35151F.toInt(), 0xFF150B10.toInt())
+        } else {
+            intArrayOf(0xFFE8B3C0.toInt(), 0xFFF3D7DE.toInt(), 0xFFFBEFF2.toInt())
+        }
     val divider: Int get() = withAlpha(textSecondary, if (isDark) 0.4f else 0.3f)
     /** Cetvelin gece uçları ve çentikleri (ana ekrandaki gibi soluk). */
     val night: Int get() = withAlpha(textSecondary, 0.4f)
@@ -66,9 +77,28 @@ data class Palette(
     override fun hashCode(): Int = listOf(accent, textPrimary, textSecondary, kerahatText, isDark).hashCode() * 31 +
         stops.contentHashCode()
 
+    /** Kerahat sürerken zemin: her durak bordo durağına [KERAHAT_TINT] oranında
+     *  karışır, geometri aynı kalır. Yaklaşırken zemin değişmez (çağıran seçer). */
+    fun withKerahatTint(): Palette {
+        val wine = wineStops
+        return copy(stops = IntArray(stops.size) { i -> mix(stops[i], wine[i.coerceAtMost(wine.lastIndex)], KERAHAT_TINT) })
+    }
+
     companion object {
+        const val KERAHAT_TINT = 0.88f
+
         fun withAlpha(color: Int, alpha: Float): Int =
             ((alpha.coerceIn(0f, 1f) * 255).toInt() shl 24) or (color and 0x00FFFFFF)
+
+        /** [from] → [to] doğrusal karışım, kanal kanal (sRGB), alfa tam. */
+        fun mix(from: Int, to: Int, amount: Float): Int {
+            fun channel(shift: Int): Int {
+                val a = (from shr shift) and 0xFF
+                val b = (to shr shift) and 0xFF
+                return Math.round(a + (b - a) * amount).coerceIn(0, 255)
+            }
+            return (0xFF shl 24) or (channel(16) shl 16) or (channel(8) shl 8) or channel(0)
+        }
     }
 }
 

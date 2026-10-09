@@ -34,6 +34,28 @@ class WidgetPaletteTest {
         val light = WidgetPalette.resolve(WidgetAppearance("light", true, Phase.EVENING), Phase.EVENING, true)
         assertEquals(0xFFA14158.toInt(), dark.kerahatLine)
         assertEquals(0xFFFDEFE1.toInt(), light.soonSurface)
+        assertEquals(0xFF4A2D14.toInt(), dark.soonFill)
+        assertEquals(0xFFFADFC2.toInt(), light.soonFill)
+    }
+
+    @Test fun kerahatTintPullsEveryStopTowardWine() {
+        val dark = WidgetPalette.resolve(WidgetAppearance("dark", true, Phase.EVENING), Phase.EVENING, true)
+        val light = WidgetPalette.resolve(WidgetAppearance("light", true, Phase.EVENING), Phase.EVENING, true)
+        // 0x4A2144 → 0x6A2238 %88: (102, 34, 57)
+        assertEquals(0xFF662239.toInt(), dark.withKerahatTint().stops[0])
+        // 0xEFCBD6 → 0xE8B3C0 %88: (233, 182, 195)
+        assertEquals(0xFFE9B6C3.toInt(), light.withKerahatTint().stops[0])
+        assertEquals(3, dark.withKerahatTint().stops.size)
+        // Renkler ve koyuluk aynı kalır; yalnız zemin döner, asıl palet değişmez.
+        assertEquals(dark.accent, dark.withKerahatTint().accent)
+        assertEquals(dark.isDark, dark.withKerahatTint().isDark)
+        assertEquals(0xFF4A2144.toInt(), dark.stops[0])
+    }
+
+    @Test fun mixIsPerChannelAndOpaque() {
+        assertEquals(0xFF000000.toInt(), Palette.mix(0xFF000000.toInt(), 0xFFFFFFFF.toInt(), 0f))
+        assertEquals(0xFFFFFFFF.toInt(), Palette.mix(0xFF000000.toInt(), 0xFFFFFFFF.toInt(), 1f))
+        assertEquals(0xFF808080.toInt(), Palette.mix(0xFF000000.toInt(), 0xFFFFFFFF.toInt(), 0.5f))
     }
 }
 

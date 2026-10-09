@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Kerahat bandının yaklaşırken görünen alt çizgisi. Beyaz çizilir; renk
+     WidgetRenderer'da renk filtresiyle verilir. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#FFFFFFFF" />
+</shape>

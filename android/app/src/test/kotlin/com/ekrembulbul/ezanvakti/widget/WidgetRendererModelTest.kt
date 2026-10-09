@@ -32,10 +32,11 @@ class WidgetRendererModelTest {
         assertEquals("ÖĞLE", m.nameText)
         assertEquals("12:57", m.timeText)
         assertEquals(dhuhr, m.countdownTargetMillis)
-        assertEquals("İstanbul (Merkez) · 8 Ekim", m.smallTop)
+        // Tarih tek yerde: kerahat yokken yalnız altta, üst satırda konum.
+        assertEquals("İstanbul (Merkez)", m.smallTop)
         assertEquals("İstanbul (Merkez)", m.mediumLocation)
         assertEquals("Perşembe, 8 Ekim · 27 Rebiülahir", m.mediumDate)
-        assertEquals(listOf("Perşembe", "27 Rebiülahir 1448"), m.bottomLines)
+        assertEquals(listOf("Perşembe, 8 Ekim", "27 Rebiülahir 1448"), m.bottomLines)
         assertNull(m.kerahat)
         assertEquals(palette.accent, m.nameColor)
         assertEquals(palette.textPrimary, m.countdownColor)
@@ -64,9 +65,12 @@ class WidgetRendererModelTest {
         assertEquals("12:47 – 12:57", k.rangeText)
         assertEquals(kerahatStart, k.targetMillis)
         assertFalse(k.active)
-        assertEquals(palette.soonSurface, k.surface)
+        assertEquals(palette.soonFill, k.surface)
         assertEquals(palette.soonText, k.text)
-        // Yaklaşırken vakit adı ve sayaç normal renkte; orta boyda tarih yerine çip.
+        assertEquals(palette.soonLine, k.ring)
+        // Kart alt yuvayı aldı: tarih üst satıra çıkar.
+        assertEquals("İstanbul (Merkez) · 8 Ekim", m.smallTop)
+        // Yaklaşırken vakit adı ve sayaç normal renkte; orta boyda tarih yerine üstte bant.
         assertEquals(palette.accent, m.nameColor)
         assertEquals(palette.textPrimary, m.countdownColor)
         assertNull(m.mediumDate)
@@ -79,8 +83,10 @@ class WidgetRendererModelTest {
         assertEquals("Kerahat", k.word)
         assertEquals(dhuhr, k.targetMillis)
         assertTrue(k.active)
-        assertEquals(palette.kerahatSurface, k.surface)
-        assertEquals(palette.kerahatText, k.text)
+        assertEquals(palette.kerahatLine, k.surface)
+        assertEquals(palette.onKerahatLine, k.text)
+        assertNull(k.ring)
+        assertEquals("İstanbul (Merkez) · 8 Ekim", m.smallTop)
         assertEquals(palette.kerahatText, m.nameColor)
         assertEquals(palette.kerahatText, m.countdownColor)
         assertNull(m.mediumDate)
@@ -91,7 +97,7 @@ class WidgetRendererModelTest {
         val now = dhuhr - 3_600_000
         val m = model(snapshot("[${entry(now)}]", day), now)
         assertEquals("8 Ekim · 27 Rebiülahir", m.mediumDate)
-        assertEquals(listOf("27 Rebiülahir 1448"), m.bottomLines)
+        assertEquals(listOf("8 Ekim", "27 Rebiülahir 1448"), m.bottomLines)
     }
 
     @Test fun columnsMarkPastNextFuture() {
@@ -123,6 +129,6 @@ class WidgetRendererModelTest {
         assertEquals("Güncel değil", m.smallTop)
         assertEquals("Güncel değil", m.mediumLocation)
         assertNull(m.kerahat)
-        assertEquals(listOf("Perşembe", "27 Rebiülahir 1448"), m.bottomLines)
+        assertEquals(listOf("Perşembe, 8 Ekim", "27 Rebiülahir 1448"), m.bottomLines)
     }
 }
