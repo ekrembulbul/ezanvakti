@@ -35,6 +35,23 @@ class AlarmMissionsTest {
         assertEquals(listOf("yedek"), missions.consume().map { it.alarmId })
     }
 
+    @Test fun skippedOccurrenceIsSuppressedWithoutChangingState() {
+        val a = args("is")
+        assertFalse(missions.suppressed(a))
+        missions.setSkippedOccurrences(listOf(AlarmSuppression("is", fire)), fire - 60_000)
+        val before = memory.state.toJson()
+        assertTrue(missions.suppressed(a))
+        assertEquals(before, memory.state.toJson())
+        assertFalse(missions.fired(a, fire))
+        assertFalse(missions.suppressed(args("is", fire + 86_400_000)))
+    }
+
+    @Test fun disabledAlarmIsSuppressed() {
+        missions.setEnabledAlarmIds(setOf("yedek"))
+        assertTrue(missions.suppressed(args("is")))
+        assertFalse(missions.suppressed(args("yedek")))
+    }
+
     @Test fun completedOldWatchdogCannotRestartMission() {
         val a = args("is")
         missions.fired(a, fire)

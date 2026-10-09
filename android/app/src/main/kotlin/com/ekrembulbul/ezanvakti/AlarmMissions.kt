@@ -194,11 +194,20 @@ class AlarmMissions(private val storage: MissionStateStorage) {
         }
     }
 
+    /** Teslim çalma servisi başlatılmadan elenebilir mi: alarm kapalı ya da bu an
+     *  tek seferlik atlanmış. Durumu değiştirmez; son karar yine [fired]'dadır. */
+    fun suppressed(args: AlarmArgs): Boolean = synchronized(lock) { suppressedIn(storage.read(), args) }
+
+    private fun suppressedIn(state: MissionState, args: AlarmArgs): Boolean {
+        val fire = args.originalFireAtMillis ?: args.timeMillis
+        return state.enabledAlarmIds?.contains(args.alarmId) == false ||
+            args.alarmId + "#at" + fire in state.skippedOccurrences
+    }
+
     fun fired(args: AlarmArgs, receivedAt: Long): Boolean = mutate { state ->
         if (!args.isValid || args.timeMillis > receivedAt) return@mutate false
-        if (state.enabledAlarmIds?.contains(args.alarmId) == false) return@mutate false
+        if (suppressedIn(state, args)) return@mutate false
         val fire = args.originalFireAtMillis ?: args.timeMillis
-        if (args.alarmId + "#at" + fire in state.skippedOccurrences) return@mutate false
         val current = state.sessions[args.alarmId]
         if (current != null && current.firedAtMillis > fire) return@mutate false
         if (current?.firedAtMillis == fire && current.lastStopScheduleId == args.id &&

@@ -32,6 +32,8 @@ class AlarmRingService : Service() {
         const val ACTION_START = "com.ekrembulbul.ezanvakti.RING_START"
         const val ACTION_STOP = "com.ekrembulbul.ezanvakti.RING_STOP"
         const val ACTION_CANCEL = "com.ekrembulbul.ezanvakti.RING_CANCEL"
+        /** Alıcı servisi startForegroundService ile başlattı: servis ön plana geçmeli. */
+        const val EXTRA_FOREGROUND_START = "foregroundStart"
         const val CHANNEL_ID = "ezan_vakti_alarm_channel"
         const val NOTIF_ID = 9911
 
@@ -113,7 +115,10 @@ class AlarmRingService : Service() {
                 val args = if (intent == null) missions.ringing() else AlarmArgs.readFrom(intent)
                 val receivedAt = intent?.getLongExtra("receivedAtMillis", System.currentTimeMillis()) ?: System.currentTimeMillis()
                 if (args == null || !missions.fired(args, receivedAt)) {
-                    if (current == null) stopSelf()
+                    if (current == null) {
+                        if (intent?.getBooleanExtra(EXTRA_FOREGROUND_START, false) == true) settleForegroundStart()
+                        stopSelf()
+                    }
                     return if (current == null) START_NOT_STICKY else START_STICKY
                 }
                 current?.takeIf { it.id != args.id }?.let { recordStop(it) }
@@ -257,11 +262,33 @@ class AlarmRingService : Service() {
         player = null
         vibrator?.cancel()
         vibrator = null
+        removeForeground()
+    }
+
+    private fun removeForeground() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             stopForeground(STOP_FOREGROUND_REMOVE)
         } else {
             @Suppress("DEPRECATION")
             stopForeground(true)
+        }
+    }
+
+    /** Ön plan başlatması reddedilen bir teslimle bitti (alıcıdaki elemeyle yarışan
+     *  atlama ya da yinelenen teslim): Android, ön plana geçmeden kapanan servisin
+     *  sürecini öldürür. Sessiz bir bildirimle ön plana geçilip hemen çıkılır. */
+    private fun settleForegroundStart() {
+        try {
+            createChannel()
+            startForeground(NOTIF_ID, NotificationCompat.Builder(this, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_stat_notification)
+                .setContentTitle(getString(R.string.alarm_default_label))
+                .setCategory(NotificationCompat.CATEGORY_ALARM)
+                .setSilent(true)
+                .build())
+            removeForeground()
+        } catch (error: Exception) {
+            Log.e("EzanAlarm", "event=foreground_settle_failed type=" + error.javaClass.simpleName)
         }
     }
 

@@ -30,6 +30,16 @@ class AlarmReceiver : BroadcastReceiver() {
         } catch (error: Exception) {
             Log.e("EzanAlarm", "event=repeat_failed id=" + args.alarmId + " type=" + error.javaClass.simpleName)
         }
+        // Kapalı alarm ve tek seferlik atlanan an servisi hiç başlatmaz: ön plan
+        // servisi olarak başlatılıp ön plana geçmeden kapanan servis süreci
+        // çökertir. Durum okunamazsa karar servise kalır.
+        val suppressed = try { AndroidMissionStore.missions(context).suppressed(args) }
+        catch (_: Exception) { false }
+        if (suppressed) {
+            Log.i("EzanAlarm", "event=delivery_suppressed id=" + args.id)
+            AlarmJournal(context).record("suppressed", args)
+            return
+        }
 
         val serviceIntent = Intent(context, AlarmRingService::class.java).apply {
             action = AlarmRingService.ACTION_START
@@ -37,6 +47,7 @@ class AlarmReceiver : BroadcastReceiver() {
             putExtra("receivedAtMillis", receivedAt)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            serviceIntent.putExtra(AlarmRingService.EXTRA_FOREGROUND_START, true)
             context.startForegroundService(serviceIntent)
         } else {
             context.startService(serviceIntent)
