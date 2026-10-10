@@ -72,8 +72,8 @@ Testler `test/` altında kaynak yapısını yansıtır (`prayer_times/`, `notifi
 
 ## Bilinen yapılandırma notları
 
-- **Uygulama kimliği tutarsızlığı:** Android `applicationId` `com.example.ezanvakti` (varsayılan), iOS bundle id `com.ekrembulbul.ezanvakti`. Yayın öncesi Android tarafı gerçek bir kimlikle hizalanmalı.
-- **Sürüm:** `pubspec.yaml` → `version: 0.0.1+1`.
+- **Uygulama kimliği:** Android `applicationId` ve iOS bundle id aynı: `com.ekrembulbul.ezanvakti`.
+- **Sürüm:** `pubspec.yaml` içindeki `version`; `scripts/release_tag.sh` sürüm çıkarırken artırır.
 
 ## Faydalı komutlar
 
