@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Release'te kaynak küçültme yalnız koddan R.* ile başvurulanları tutar. Bildirim
+     ikonu ve sesleri Dart'tan ya da getIdentifier ile adla istenir; korunmazsa
+     silinir ve bildirim/alarm sesi sistem varsayılanına düşer. -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/ic_stat_notification,@raw/*" />
