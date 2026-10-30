@@ -11,7 +11,9 @@ platform :android do
       skip_upload_metadata: true,
       skip_upload_images: true,
       skip_upload_screenshots: true,
-      release_status: "draft",
+      # Uygulamanin internal testing'de yayinda bir surumu var; yuklenen surum
+      # testcilere dogrudan acilir (taslak yalniz hic yayinlanmamis uygulamada sartti).
+      release_status: "completed",
     )
   end
 end
