@@ -4,6 +4,16 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.32.0] - 2026-11-01
+
+### Eklendi
+- **Tek seferlik alarm:** Alarmın tekrar bölümünde "Bir kez" seçeneği. Alarm yalnız sıradaki uygun güne kurulur, ne zaman çalacağı düzenleme ekranında yazar; çalıp bittikten sonra kendiliğinden kapanır. Yeniden açılırsa ya da düzenlenip kaydedilirse sıradaki uygun güne kurulur. Listede "Bir kez" olarak görünür; kapatırken "Yalnızca bu sefer" seçeneği çıkmaz.
+
+### Android
+- **Bildirime dokununca kaybolmuyor:** Sıradaki vakit bildirimine dokunup uygulamayı açınca bildirim siliniyor, ancak dakikalar sonra geri geliyordu.
+- **Bildirim ve widget görünümü:** Bildirimde geri sayım küçüldü ve vakit saati artık kesilmiyor; açık görünümde vakitler büyüdü, altta boşluk kalmıyor. Ana ekran widget'larında boşluklar dengelendi; içerik tek blok halinde ortalanıyor, büyük widget'ta vakit saati büyüdü.
+- **Sessiz vakitler:** "Sessiz pencereler" ekranı sadeleşti. Cuma sessizliği en üstte tek anahtar; her satır bugünün gerçek saat aralığını gösterir; yeni sessiz vakit önce düzenleme panelinde ayarlanıp eklenir.
+
 ## [0.31.1] - 2026-10-10
 
 ### Değişti
