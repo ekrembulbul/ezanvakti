@@ -11,8 +11,14 @@ import '../../../core/utils/app_logger.dart';
 import '../../../l10n/device_localizations.dart';
 
 class FlutterLocalNotificationService implements NotificationService {
-  final FlutterLocalNotificationsPlugin _plugin =
-      FlutterLocalNotificationsPlugin();
+  FlutterLocalNotificationService({
+    FlutterLocalNotificationsPlugin? plugin,
+    bool? isAndroid,
+  }) : _plugin = plugin ?? FlutterLocalNotificationsPlugin(),
+       _isAndroid = isAndroid ?? Platform.isAndroid;
+
+  final FlutterLocalNotificationsPlugin _plugin;
+  final bool _isAndroid;
   final AppLogger _logger = AppLogger();
 
   @override
@@ -246,8 +252,19 @@ class FlutterLocalNotificationService implements NotificationService {
 
   @override
   Future<void> cancelAllNotifications() async {
-    await _plugin.cancelAll();
-    _logger.debug('Cancelled all notifications');
+    if (!_isAndroid) {
+      await _plugin.cancelAll();
+      _logger.debug('Cancelled all notifications');
+      return;
+    }
+    // Android'de `cancelAll` çekmecedeki her bildirimi de siler; native
+    // "sıradaki vakit" kalıcı bildirimi bununla kaybolup ancak 15 dk sonraki
+    // tazelemede geri geliyordu. Yalnız eklentinin planladıklarını iptal et.
+    final pending = await _plugin.pendingNotificationRequests();
+    for (final request in pending) {
+      await _plugin.cancel(request.id);
+    }
+    _logger.debug('Cancelled ${pending.length} scheduled notifications');
   }
 
   @override

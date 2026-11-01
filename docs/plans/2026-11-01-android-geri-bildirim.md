@@ -33,7 +33,7 @@ gerekir. Testler cihazda zamanında çalmayı ve Samsung'daki gerçek görünüm
 
 ## Görevler
 
-- [ ] **Görev 1 — Kalıcı bildirim yeniden planlamada silinmez** · dosyalar:
+- [x] **Görev 1 — Kalıcı bildirim yeniden planlamada silinmez** · dosyalar:
   `lib/features/notifications/data/flutter_local_notification_service.dart`, ilgili test · doğrulama:
   `flutter test test/notifications`
 - [ ] **Görev 2 — Bildirim ve widget yerleşimi** · dosyalar: `android/app/src/main/res/layout/notification_next_prayer*.xml`,
