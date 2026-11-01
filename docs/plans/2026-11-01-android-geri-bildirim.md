@@ -39,7 +39,7 @@ gerekir. Testler cihazda zamanında çalmayı ve Samsung'daki gerçek görünüm
 - [x] **Görev 2 — Bildirim ve widget yerleşimi** · dosyalar: `android/app/src/main/res/layout/notification_next_prayer*.xml`,
   `widget_medium.xml`, `widget_small.xml`, `widget_preview.xml`, `widget/NextPrayerNotification.kt`,
   `widget/WidgetRenderer.kt` · doğrulama: `./gradlew :app:testDebugUnitTest`, `flutter build apk --debug`
-- [ ] **Görev 3 — Sessiz vakitler ekranı** · dosyalar: `lib/presentation/screens/quiet_windows_screen.dart`,
+- [x] **Görev 3 — Sessiz vakitler ekranı** · dosyalar: `lib/presentation/screens/quiet_windows_screen.dart`,
   `lib/l10n/app_{tr,en,ar}.arb`, ekran testleri · doğrulama: `flutter test test/widgets/screens/quiet_windows*`
 - [ ] **Görev 4 — Tek seferlik alarm** · dosyalar: alarm modeli, SQLite şeması (v17), alarm planlayıcı,
   alarm düzenleme ekranı, etiketler, alarm listesi ve hatırlatmalar ekranı, ARB, ADR 0004, testler ·

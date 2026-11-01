@@ -118,7 +118,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTimeFormat => 'Time format';
 
   @override
-  String get settingsQuietWindows => 'Quiet windows';
+  String get settingsQuietWindows => 'Quiet times';
 
   @override
   String get timeFormatSystem => 'System';
@@ -386,11 +386,11 @@ class AppLocalizationsEn extends AppLocalizations {
       'Could not be scheduled — edit and save to retry';
 
   @override
-  String get quietTitle => 'Quiet windows';
+  String get quietTitle => 'Quiet times';
 
   @override
   String get quietIntro =>
-      'During these windows Ezan Vakti notifications are shown silently or not at all. With \"Silence the phone too\" on, the phone switches to Do Not Disturb for the window and returns to normal when it ends. Alarms always ring.';
+      'Around the prayer time you choose, adhan notifications arrive silently or not at all. Your alarms are not affected.';
 
   @override
   String get quietFridaySection => 'Friday prayer';
@@ -403,31 +403,31 @@ class AppLocalizationsEn extends AppLocalizations {
       'Notifications go quiet around Friday noon. You can change the durations or turn it off.';
 
   @override
-  String get quietCustomSection => 'Custom windows';
+  String get quietCustomSection => 'Other prayer times';
 
   @override
-  String get quietNoCustom => 'No custom windows yet.';
+  String get quietNoCustom => 'No other quiet times yet.';
 
   @override
-  String get quietAddWindow => 'Add window';
+  String get quietAddWindow => 'Add quiet time';
 
   @override
-  String get quietMinutesBefore => 'Minutes before';
+  String get quietMinutesBefore => 'Before prayer time';
 
   @override
-  String get quietMinutesAfter => 'Minutes after';
+  String get quietMinutesAfter => 'After prayer time';
 
   @override
-  String get quietModeLabel => 'During this window';
+  String get quietModeLabel => 'Notifications';
 
   @override
-  String get quietModeSilent => 'Show silently';
+  String get quietModeSilent => 'Silently';
 
   @override
   String get quietModeSilentHint => 'Notification appears without sound';
 
   @override
-  String get quietModeSkip => 'Do not show';
+  String get quietModeSkip => 'Not at all';
 
   @override
   String get quietModeSkipHint => 'The notification is not scheduled at all';
@@ -1619,10 +1619,10 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get quietWindowDeleteAction => 'Delete window';
+  String get quietWindowDeleteAction => 'Delete quiet time';
 
   @override
-  String get quietWindowDeleted => 'Quiet window deleted';
+  String get quietWindowDeleted => 'Quiet time deleted';
 
   @override
   String durationAgo(String duration) {
@@ -1859,7 +1859,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get quietSilencePhone => 'Silence the phone too';
 
   @override
-  String get quietSilencePhoneHint => 'Do Not Disturb turns on for the window';
+  String get quietSilencePhoneHint =>
+      'Do Not Disturb turns on and goes off when the quiet time ends';
 
   @override
   String get quietSilencePhoneNoAccess =>
@@ -1867,6 +1868,52 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get quietSilencePhoneSuffix => 'Phone silenced';
+
+  @override
+  String get quietOff => 'Off';
+
+  @override
+  String quietTimeRange(String start, String end) {
+    return '$start – $end';
+  }
+
+  @override
+  String quietFridayRange(String range) {
+    return 'Friday $range';
+  }
+
+  @override
+  String get quietFridayModeSilent => 'Notifications arrive silently';
+
+  @override
+  String get quietFridayModeSkip => 'No notifications';
+
+  @override
+  String quietEveryDayTitle(String prayer) {
+    return '$prayer · every day';
+  }
+
+  @override
+  String get quietRowModeSilent => 'Notification arrives silently';
+
+  @override
+  String get quietRowModeSkip => 'No notification';
+
+  @override
+  String quietPanelTitle(String prayer) {
+    return 'Around $prayer';
+  }
+
+  @override
+  String get quietFridayPanelTitle => 'Around Friday noon prayer';
+
+  @override
+  String quietTimelinePrayer(String prayer, String time) {
+    return '$prayer $time';
+  }
+
+  @override
+  String get quietAddConfirm => 'Add';
 
   @override
   String get alarmUsePhoneVolume => 'Phone\'s alarm volume';

@@ -119,7 +119,7 @@
   "@settingsTimeFormat": {
     "description": "Ayar satırı"
   },
-  "settingsQuietWindows": "Sessiz pencereler",
+  "settingsQuietWindows": "Sessiz vakitler",
   "@settingsQuietWindows": {
     "description": "Ayar satırı"
   },
@@ -512,11 +512,11 @@
   "@reminderScheduleFailed": {
     "description": "Hata durumu"
   },
-  "quietTitle": "Sessiz pencereler",
+  "quietTitle": "Sessiz vakitler",
   "@quietTitle": {
     "description": "Ekran başlığı"
   },
-  "quietIntro": "Bu aralıklarda Ezan Vakti bildirimleri sessiz gösterilir ya da hiç gösterilmez. \"Telefonu da sustur\" açıksa telefon aralık boyunca Rahatsız Etme moduna geçer, bitince eski haline döner. Alarmlar her durumda çalar.",
+  "quietIntro": "Seçtiğin vaktin çevresinde ezan bildirimleri sessiz gelir ya da hiç gelmez. Alarmların bundan etkilenmez.",
   "@quietIntro": {
     "description": "Açıklama"
   },
@@ -524,7 +524,7 @@
   "@quietFridaySection": {
     "description": "Bölüm başlığı"
   },
-  "quietFridayTitle": "Cuma vaktinde sessiz",
+  "quietFridayTitle": "Cuma namazında sessiz",
   "@quietFridayTitle": {
     "description": "Ayar"
   },
@@ -532,31 +532,31 @@
   "@quietFridayHint": {
     "description": "Ayar açıklaması"
   },
-  "quietCustomSection": "Özel pencereler",
+  "quietCustomSection": "Diğer vakitler",
   "@quietCustomSection": {
     "description": "Bölüm başlığı"
   },
-  "quietNoCustom": "Henüz özel pencere yok.",
+  "quietNoCustom": "Henüz başka sessiz vakit yok.",
   "@quietNoCustom": {
     "description": "Boş durum"
   },
-  "quietAddWindow": "Pencere ekle",
+  "quietAddWindow": "Sessiz vakit ekle",
   "@quietAddWindow": {
     "description": "Düğme"
   },
-  "quietMinutesBefore": "Kaç dakika önce",
+  "quietMinutesBefore": "Vakitten önce",
   "@quietMinutesBefore": {
     "description": "Ayar"
   },
-  "quietMinutesAfter": "Kaç dakika sonra",
+  "quietMinutesAfter": "Vakitten sonra",
   "@quietMinutesAfter": {
     "description": "Ayar"
   },
-  "quietModeLabel": "Bu aralıkta",
+  "quietModeLabel": "Bildirimler",
   "@quietModeLabel": {
-    "description": "Ayar"
+    "description": "Düzenleme panelinde bildirim seçiminin bölüm etiketi"
   },
-  "quietModeSilent": "Sessiz göster",
+  "quietModeSilent": "Sessiz gelsin",
   "@quietModeSilent": {
     "description": "Seçenek"
   },
@@ -564,7 +564,7 @@
   "@quietModeSilentHint": {
     "description": "Seçenek açıklaması"
   },
-  "quietModeSkip": "Hiç gösterme",
+  "quietModeSkip": "Hiç gelmesin",
   "@quietModeSkip": {
     "description": "Seçenek"
   },
@@ -2161,11 +2161,11 @@
       "after": {"type": "String"}
     }
   },
-  "quietWindowDeleteAction": "Aralığı sil",
+  "quietWindowDeleteAction": "Sessiz vakti sil",
   "@quietWindowDeleteAction": {
     "description": "Sessiz aralık düzenleme panelinin en altındaki silme düğmesi."
   },
-  "quietWindowDeleted": "Sessiz aralık silindi",
+  "quietWindowDeleted": "Sessiz vakit silindi",
   "@quietWindowDeleted": {
     "description": "Sessiz aralık silinince çıkan çubuk; yanında \"Geri al\" durur."
   },
@@ -2315,14 +2315,38 @@
   "@androidChannelBeepName": {"description": "Android bildirim kanalı adı"},
   "androidChannelSilentName": "Ezan Vakti Bildirimleri (sessiz)",
   "@androidChannelSilentName": {"description": "Android bildirim kanalı adı"},
-  "quietSilencePhone": "Telefonu da sustur",
+  "quietSilencePhone": "Telefonu da sessize al",
   "@quietSilencePhone": {"description": "Sessiz pencere anahtarı"},
-  "quietSilencePhoneHint": "Aralık boyunca Rahatsız Etme açılır",
+  "quietSilencePhoneHint": "Rahatsız Etme açılır, sessiz vakit bitince kapanır",
   "@quietSilencePhoneHint": {"description": "Anahtar açıklaması"},
   "quietSilencePhoneNoAccess": "Rahatsız Etme erişimi kapalı. Açmak için dokun.",
   "@quietSilencePhoneNoAccess": {"description": "İzin uyarısı"},
-  "quietSilencePhoneSuffix": "Telefon susar",
+  "quietSilencePhoneSuffix": "Telefon sessize alınır",
   "@quietSilencePhoneSuffix": {"description": "Satır alt yazısı eki"},
+  "quietOff": "Kapalı",
+  "@quietOff": {"description": "Cuma satırının alt yazısı, anahtar kapalıyken"},
+  "quietTimeRange": "{start} – {end}",
+  "@quietTimeRange": {"description": "Sessiz vaktin bugünkü başlangıç ve bitiş saati", "placeholders": {"start": {"type": "String"}, "end": {"type": "String"}}},
+  "quietFridayRange": "Cuma {range}",
+  "@quietFridayRange": {"description": "Cuma satırında bu cumanın saat aralığı ya da göreli süreler", "placeholders": {"range": {"type": "String"}}},
+  "quietFridayModeSilent": "Bildirimler sessiz gelir",
+  "@quietFridayModeSilent": {"description": "Cuma satırı mod özeti: sessiz"},
+  "quietFridayModeSkip": "Bildirimler gelmez",
+  "@quietFridayModeSkip": {"description": "Cuma satırı mod özeti: hiç gelmez"},
+  "quietEveryDayTitle": "{prayer} · her gün",
+  "@quietEveryDayTitle": {"description": "Diğer vakitler satırının başlığı", "placeholders": {"prayer": {"type": "String"}}},
+  "quietRowModeSilent": "Bildirim sessiz gelir",
+  "@quietRowModeSilent": {"description": "Satır mod özeti: sessiz"},
+  "quietRowModeSkip": "Bildirim gelmez",
+  "@quietRowModeSkip": {"description": "Satır mod özeti: hiç gelmez"},
+  "quietPanelTitle": "{prayer} vakti çevresinde",
+  "@quietPanelTitle": {"description": "Sessiz vakit düzenleme panelinin başlığı", "placeholders": {"prayer": {"type": "String"}}},
+  "quietFridayPanelTitle": "Cuma öğle vakti çevresinde",
+  "@quietFridayPanelTitle": {"description": "Cuma düzenleme panelinin başlığı"},
+  "quietTimelinePrayer": "{prayer} {time}",
+  "@quietTimelinePrayer": {"description": "Zaman çizgisinin ortasındaki vakit adı ve saati", "placeholders": {"prayer": {"type": "String"}, "time": {"type": "String"}}},
+  "quietAddConfirm": "Ekle",
+  "@quietAddConfirm": {"description": "Yeni sessiz vakit panelinin altındaki ekleme düğmesi"},
   "alarmUsePhoneVolume": "Telefonun alarm ses seviyesi",
   "@alarmUsePhoneVolume": {"description": "Alarm düzenleme anahtarı"},
   "alarmVolume": "Ses seviyesi",

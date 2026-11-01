@@ -118,7 +118,7 @@ class AppLocalizationsTr extends AppLocalizations {
   String get settingsTimeFormat => 'Saat biçimi';
 
   @override
-  String get settingsQuietWindows => 'Sessiz pencereler';
+  String get settingsQuietWindows => 'Sessiz vakitler';
 
   @override
   String get timeFormatSystem => 'Sistem';
@@ -384,48 +384,48 @@ class AppLocalizationsTr extends AppLocalizations {
       'Kurulamadı — düzenleyip kaydederek yeniden dene';
 
   @override
-  String get quietTitle => 'Sessiz pencereler';
+  String get quietTitle => 'Sessiz vakitler';
 
   @override
   String get quietIntro =>
-      'Bu aralıklarda Ezan Vakti bildirimleri sessiz gösterilir ya da hiç gösterilmez. \"Telefonu da sustur\" açıksa telefon aralık boyunca Rahatsız Etme moduna geçer, bitince eski haline döner. Alarmlar her durumda çalar.';
+      'Seçtiğin vaktin çevresinde ezan bildirimleri sessiz gelir ya da hiç gelmez. Alarmların bundan etkilenmez.';
 
   @override
   String get quietFridaySection => 'Cuma namazı';
 
   @override
-  String get quietFridayTitle => 'Cuma vaktinde sessiz';
+  String get quietFridayTitle => 'Cuma namazında sessiz';
 
   @override
   String get quietFridayHint =>
       'Cuma öğle vaktinin çevresinde bildirimler susar. Süreleri değiştirebilir ya da tamamen kapatabilirsin.';
 
   @override
-  String get quietCustomSection => 'Özel pencereler';
+  String get quietCustomSection => 'Diğer vakitler';
 
   @override
-  String get quietNoCustom => 'Henüz özel pencere yok.';
+  String get quietNoCustom => 'Henüz başka sessiz vakit yok.';
 
   @override
-  String get quietAddWindow => 'Pencere ekle';
+  String get quietAddWindow => 'Sessiz vakit ekle';
 
   @override
-  String get quietMinutesBefore => 'Kaç dakika önce';
+  String get quietMinutesBefore => 'Vakitten önce';
 
   @override
-  String get quietMinutesAfter => 'Kaç dakika sonra';
+  String get quietMinutesAfter => 'Vakitten sonra';
 
   @override
-  String get quietModeLabel => 'Bu aralıkta';
+  String get quietModeLabel => 'Bildirimler';
 
   @override
-  String get quietModeSilent => 'Sessiz göster';
+  String get quietModeSilent => 'Sessiz gelsin';
 
   @override
   String get quietModeSilentHint => 'Bildirim görünür, ses çalmaz';
 
   @override
-  String get quietModeSkip => 'Hiç gösterme';
+  String get quietModeSkip => 'Hiç gelmesin';
 
   @override
   String get quietModeSkipHint => 'Bildirim hiç planlanmaz';
@@ -1615,10 +1615,10 @@ class AppLocalizationsTr extends AppLocalizations {
   }
 
   @override
-  String get quietWindowDeleteAction => 'Aralığı sil';
+  String get quietWindowDeleteAction => 'Sessiz vakti sil';
 
   @override
-  String get quietWindowDeleted => 'Sessiz aralık silindi';
+  String get quietWindowDeleted => 'Sessiz vakit silindi';
 
   @override
   String durationAgo(String duration) {
@@ -1849,17 +1849,64 @@ class AppLocalizationsTr extends AppLocalizations {
   String get androidChannelSilentName => 'Ezan Vakti Bildirimleri (sessiz)';
 
   @override
-  String get quietSilencePhone => 'Telefonu da sustur';
+  String get quietSilencePhone => 'Telefonu da sessize al';
 
   @override
-  String get quietSilencePhoneHint => 'Aralık boyunca Rahatsız Etme açılır';
+  String get quietSilencePhoneHint =>
+      'Rahatsız Etme açılır, sessiz vakit bitince kapanır';
 
   @override
   String get quietSilencePhoneNoAccess =>
       'Rahatsız Etme erişimi kapalı. Açmak için dokun.';
 
   @override
-  String get quietSilencePhoneSuffix => 'Telefon susar';
+  String get quietSilencePhoneSuffix => 'Telefon sessize alınır';
+
+  @override
+  String get quietOff => 'Kapalı';
+
+  @override
+  String quietTimeRange(String start, String end) {
+    return '$start – $end';
+  }
+
+  @override
+  String quietFridayRange(String range) {
+    return 'Cuma $range';
+  }
+
+  @override
+  String get quietFridayModeSilent => 'Bildirimler sessiz gelir';
+
+  @override
+  String get quietFridayModeSkip => 'Bildirimler gelmez';
+
+  @override
+  String quietEveryDayTitle(String prayer) {
+    return '$prayer · her gün';
+  }
+
+  @override
+  String get quietRowModeSilent => 'Bildirim sessiz gelir';
+
+  @override
+  String get quietRowModeSkip => 'Bildirim gelmez';
+
+  @override
+  String quietPanelTitle(String prayer) {
+    return '$prayer vakti çevresinde';
+  }
+
+  @override
+  String get quietFridayPanelTitle => 'Cuma öğle vakti çevresinde';
+
+  @override
+  String quietTimelinePrayer(String prayer, String time) {
+    return '$prayer $time';
+  }
+
+  @override
+  String get quietAddConfirm => 'Ekle';
 
   @override
   String get alarmUsePhoneVolume => 'Telefonun alarm ses seviyesi';

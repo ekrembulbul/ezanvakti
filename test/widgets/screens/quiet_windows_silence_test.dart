@@ -63,7 +63,14 @@ void main() {
       .firstWhere((w) => w.id == 'friday')
       .silencePhone;
 
-  testWidgets('Desteklenmeyen surumde "Telefonu da sustur" satiri yok', (
+  /// Cuma satırına dokunup ayrıntı panelini açar.
+  Future<void> openFridayPanel(WidgetTester tester) async {
+    await tester.tap(find.text('Cuma namazında sessiz'));
+    await tester.pumpAndSettle();
+    expect(find.byType(BottomSheet), findsOneWidget);
+  }
+
+  testWidgets('Desteklenmeyen surumde "Telefonu da sessize al" satiri yok', (
     tester,
   ) async {
     await pumpScreen(
@@ -73,15 +80,16 @@ void main() {
       access: false,
     );
 
-    expect(find.text('Cuma vaktinde sessiz'), findsOneWidget);
-    expect(find.text('Telefonu da sustur'), findsNothing);
+    expect(find.text('Cuma namazında sessiz'), findsOneWidget);
+    await openFridayPanel(tester);
+    expect(find.text('Telefonu da sessize al'), findsNothing);
   });
 
-  /// "Telefonu da sustur" satırındaki anahtar (en yakın satırın içinde).
+  /// "Telefonu da sessize al" satırındaki anahtar (en yakın satırın içinde).
   Finder silenceSwitch() => find.descendant(
     of: find
         .ancestor(
-          of: find.text('Telefonu da sustur'),
+          of: find.text('Telefonu da sessize al'),
           matching: find.byType(Row),
         )
         .first,
@@ -98,6 +106,7 @@ void main() {
         access: false,
       );
 
+      await openFridayPanel(tester);
       final tile = silenceSwitch();
       await tester.ensureVisible(tile);
       await tester.tap(tile);
@@ -117,6 +126,52 @@ void main() {
 
       expect(await savedFridaySilence(), isTrue);
       expect(changes, 1);
+      expect(
+        tester.widget<Switch>(silenceSwitch()).value,
+        isTrue,
+        reason: 'açık panel yeni durumu gösterir',
+      );
+    },
+  );
+
+  testWidgets(
+    'Taslakta izin donusu anahtari acar ama kaydetmez; Ekle ile kaydedilir',
+    (tester) async {
+      final device = await pumpScreen(
+        tester,
+        [QuietWindow.fridayDefault()],
+        supported: true,
+        access: false,
+      );
+
+      await tester.tap(find.text('Sessiz vakit ekle'));
+      await tester.pumpAndSettle();
+      final tile = silenceSwitch();
+      await tester.ensureVisible(tile);
+      await tester.tap(tile);
+      await tester.pumpAndSettle();
+      expect(device.openAccessCalls, 1);
+
+      device.access = true;
+      final state = tester.state(find.byType(QuietWindowsScreen));
+      (state as WidgetsBindingObserver).didChangeAppLifecycleState(
+        AppLifecycleState.resumed,
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.widget<Switch>(silenceSwitch()).value, isTrue);
+      expect(await storage.getQuietWindows(), hasLength(1));
+      expect(changes, 0);
+
+      final add = find.text('Ekle');
+      await tester.ensureVisible(add);
+      await tester.tap(add);
+      await tester.pumpAndSettle();
+
+      final windows = await storage.getQuietWindows();
+      expect(windows, hasLength(2));
+      expect(windows.last.silencePhone, isTrue);
+      expect(changes, 1);
     },
   );
 
@@ -128,6 +183,7 @@ void main() {
       access: false,
     );
 
+    await openFridayPanel(tester);
     final tile = silenceSwitch();
     await tester.ensureVisible(tile);
     await tester.tap(tile);
@@ -161,14 +217,16 @@ void main() {
       );
 
       expect(
-        find.text('Rahatsız Etme erişimi kapalı. Açmak için dokun.'),
+        find.descendant(
+          of: find.widgetWithText(GroupedRow, 'Öğle · her gün'),
+          matching: find.text('Bildirim sessiz gelir · Telefon sessize alınır'),
+        ),
         findsOneWidget,
       );
+
+      await openFridayPanel(tester);
       expect(
-        find.descendant(
-          of: find.widgetWithText(GroupedRow, 'Öğle'),
-          matching: find.textContaining('Telefon susar'),
-        ),
+        find.text('Rahatsız Etme erişimi kapalı. Açmak için dokun.'),
         findsOneWidget,
       );
     },
