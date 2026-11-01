@@ -32,6 +32,10 @@ Vakit hesabı **saf domain fonksiyonlarında** tek kez yazılır; ekran, planlay
 
 **8 Ekim eki — Android widget'ı ve sabit satır zaman çizelgesiyle.** Snapshot (şema 4, eklemeli) artık 7 günün bütün değişim anlarını taşır: her an için sıradaki vakit (gün ve vakit indeksi), "yarın" bayrağı, kerahat durumu (`KerahatWarning.resolve` — yaklaşırken/kerahatte, başlangıç ve bitiş) ve gün dilimi (`resolveDayPhase`); ayrıca günlere epoch'lar, uygulamanın dilinde tarih metinleri ve ana ekran cetvelinin parçaları (`buildRulerSegments`, sunum katmanından `day_ruler_math.dart`'a taşındı) eklenir. Android ana ekran widget'ı ve bildirim çubuğundaki sabit satır hiçbir kuralı yeniden yazmaz; yalnız o anki girişi seçip çizer (`WidgetTimelineBuilder`, Kotlin `WidgetTimeline`). iOS widget'ı sıradaki vakti ve kerahat durumunu hâlâ kendi Swift hesabıyla bulur (bu kaydın istisnası; aynı kural, ayrı uygulama), cetveli ve tarih metinlerini ise artık payload'dan okur.
 
+**1 Kasım eki — durum çubuğu dakikası.** Android'de sabit satırın durum çubuğu ikonu vakte son bir saatte, uygulama ikonundaki çapraz hilalin içinde (cami yerine) kalan dakikayı gösterir; sayı yukarı yuvarlanır, 60'tan 1'e iner. Hedef an satırdaki geri sayımla aynıdır: zaman çizelgesinden seçilen sıradaki vaktin epoch'u. Kotlin (`StatusIconCountdown`) yalnız kalan süreyi dakikaya çevirir ve sayının değişeceği anı bulur, vakit hesabı yapmaz.
+
+**1 Kasım eki — durum çubuğu dakikası.** Android'de sabit satırın durum çubuğu ikonu vakte son bir saatte hilalin içinde kalan dakikayı gösterir (yukarı yuvarlanır, 60'tan 1'e). Hedef an, satırdaki geri sayımla aynı: zaman çizelgesinden seçilen sıradaki vaktin epoch'u; Kotlin (`StatusIconCountdown`) yalnız kalan süreyi dakikaya çevirir ve sayının değişeceği anı bulur, vakit hesabı yapmaz.
+
 ## Sonuçlar
 
 ### Olumlu
