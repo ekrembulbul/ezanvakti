@@ -36,7 +36,7 @@ gerekir. Testler cihazda zamanında çalmayı ve Samsung'daki gerçek görünüm
 - [x] **Görev 1 — Kalıcı bildirim yeniden planlamada silinmez** · dosyalar:
   `lib/features/notifications/data/flutter_local_notification_service.dart`, ilgili test · doğrulama:
   `flutter test test/notifications`
-- [ ] **Görev 2 — Bildirim ve widget yerleşimi** · dosyalar: `android/app/src/main/res/layout/notification_next_prayer*.xml`,
+- [x] **Görev 2 — Bildirim ve widget yerleşimi** · dosyalar: `android/app/src/main/res/layout/notification_next_prayer*.xml`,
   `widget_medium.xml`, `widget_small.xml`, `widget_preview.xml`, `widget/NextPrayerNotification.kt`,
   `widget/WidgetRenderer.kt` · doğrulama: `./gradlew :app:testDebugUnitTest`, `flutter build apk --debug`
 - [ ] **Görev 3 — Sessiz vakitler ekranı** · dosyalar: `lib/presentation/screens/quiet_windows_screen.dart`,

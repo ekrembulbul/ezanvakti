@@ -41,13 +41,22 @@ object NextPrayerNotification {
     private const val DELETE_REQUEST = 9930002
 
     /** Kapalı gövde bazı sürümlerde 48 dp: satırdaki yazılar bu ölçeğin
-     *  üstünde büyümez (30sp sayaç × 1.3 ≈ 39 dp, satır 48 dp'ye sığar). */
+     *  üstünde büyümez (22sp sayaç × 1.3 ≈ 29 dp, satır 48 dp'ye sığar). */
     private const val MAX_FONT_SCALE = 1.3f
 
     /** Kerahat çipi kapalı satıra ikinci satır olarak girince vakit satırı
-     *  ve çip yazısı bu ölçeğin üstünde büyümez: 19 × 1.1 ≈ 24 dp satır +
+     *  ve çip yazısı bu ölçeğin üstünde büyümez: 16 × 1.1 ≈ 18 dp satır +
      *  3 dp boşluk + 18 dp çip, 48 dp'ye sığar. */
     private const val MAX_FONT_SCALE_WITH_CHIP = 1.1f
+
+    /** Üst satırın yazı boyutları (sp; kodda yazı ölçeğiyle çarpılıp dp
+     *  yazılır, layout'taki değerlerle aynı tutulmalı). Kapalı: etiket 12,
+     *  saat 16, geri sayım 22; açık: etiket 12, saat 18, geri sayım 26. */
+    private const val NAME_SP = 12f
+    private const val TIME_SP_COLLAPSED = 16f
+    private const val TIME_SP_EXPANDED = 18f
+    private const val COUNTDOWN_SP_COLLAPSED = 22f
+    private const val COUNTDOWN_SP_EXPANDED = 26f
 
     /** Cetvel bitmap'inin dış halkası için bildirim zeminine yakın renk. */
     private const val SURFACE_DARK = 0xFF2B2930.toInt()
@@ -179,7 +188,7 @@ object NextPrayerNotification {
         // görünmeyeceği için vakit satırının altına çip olarak gelir. Daha
         // eski sürümlerde başlık (kelime + sayaç) zaten görünür.
         val chip = content.card.takeIf { Build.VERSION.SDK_INT >= Build.VERSION_CODES.S }
-        bindRow(context, views, content, now, compact = chip != null)
+        bindRow(context, views, content, now, compact = chip != null, expanded = false)
         bindChip(context, views, chip, now)
         return views
     }
@@ -193,7 +202,7 @@ object NextPrayerNotification {
         now: Long,
     ): RemoteViews {
         val views = RemoteViews(context.packageName, R.layout.notification_next_prayer_expanded)
-        bindRow(context, views, content, now, compact = false)
+        bindRow(context, views, content, now, compact = false, expanded = true)
         bindCard(views, content.card, now)
         bindRuler(context, views, content, palette, systemDark, clockPattern)
         bindColumns(context, views, content, systemDark)
@@ -201,13 +210,15 @@ object NextPrayerNotification {
     }
 
     /** Kapalı ve açık halde ortak satır: vakit adı (vurgu; kerahatte bordo),
-     *  saati, geri sayım (kerahatte bordo). */
+     *  saati, geri sayım (kerahatte bordo). Açık halde saat ve geri sayım
+     *  daha büyük. */
     private fun bindRow(
         context: Context,
         views: RemoteViews,
         content: NextPrayerContent,
         now: Long,
         compact: Boolean,
+        expanded: Boolean,
     ) {
         views.setTextViewText(R.id.next_prayer_name, content.nameText)
         views.setTextColor(R.id.next_prayer_name, content.nameColor)
@@ -218,9 +229,11 @@ object NextPrayerNotification {
         val fontScale = context.resources.configuration.fontScale
         val scale = fontScale.coerceAtMost(MAX_FONT_SCALE)
         val lineScale = if (compact) fontScale.coerceAtMost(MAX_FONT_SCALE_WITH_CHIP) else scale
-        views.setTextViewTextSize(R.id.next_prayer_name, TypedValue.COMPLEX_UNIT_DIP, 13f * lineScale)
-        views.setTextViewTextSize(R.id.next_prayer_time, TypedValue.COMPLEX_UNIT_DIP, 19f * lineScale)
-        views.setTextViewTextSize(R.id.next_prayer_countdown, TypedValue.COMPLEX_UNIT_DIP, 30f * scale)
+        val timeSp = if (expanded) TIME_SP_EXPANDED else TIME_SP_COLLAPSED
+        val countdownSp = if (expanded) COUNTDOWN_SP_EXPANDED else COUNTDOWN_SP_COLLAPSED
+        views.setTextViewTextSize(R.id.next_prayer_name, TypedValue.COMPLEX_UNIT_DIP, NAME_SP * lineScale)
+        views.setTextViewTextSize(R.id.next_prayer_time, TypedValue.COMPLEX_UNIT_DIP, timeSp * lineScale)
+        views.setTextViewTextSize(R.id.next_prayer_countdown, TypedValue.COMPLEX_UNIT_DIP, countdownSp * scale)
     }
 
     /** Kapalı satırdaki kerahat çipi: açık haldeki kartın kelimesi, sayacı ve
