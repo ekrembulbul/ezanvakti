@@ -4,6 +4,12 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.32.1] - 2026-11-01
+
+### Android
+- **Durum çubuğunda kalan dakika:** Vakte son bir saat kala ekranın üstündeki küçük ikonda, uygulama ikonundaki hilalin içinde kalan dakika yazar ve her dakika azalır; vakit girince normal ikona döner.
+- Kaydırılarak atılan sıradaki vakit bildirimi hemen değil, bir dakika sonra geri gelir (Android 14 ve sonrası; öncesinde bildirim atılamaz).
+
 ## [0.32.0] - 2026-11-01
 
 ### Eklendi
