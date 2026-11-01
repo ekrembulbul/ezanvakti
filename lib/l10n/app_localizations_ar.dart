@@ -118,7 +118,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settingsTimeFormat => 'صيغة الوقت';
 
   @override
-  String get settingsQuietWindows => 'فترات الصمت';
+  String get settingsQuietWindows => 'أوقات الصمت';
 
   @override
   String get timeFormatSystem => 'النظام';
@@ -384,48 +384,48 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذّر الجدولة — عدّل واحفظ لإعادة المحاولة';
 
   @override
-  String get quietTitle => 'فترات الصمت';
+  String get quietTitle => 'أوقات الصمت';
 
   @override
   String get quietIntro =>
-      'خلال هذه الفترات تظهر تنبيهات التطبيق بصمت أو لا تظهر. عند تفعيل «إسكات الهاتف أيضًا» ينتقل الهاتف إلى وضع عدم الإزعاج طوال الفترة ويعود إلى حاله عند انتهائها. المنبهات ترن دائمًا.';
+      'حول الوقت الذي تختاره تصل تنبيهات الأذان بصمت أو لا تصل إطلاقًا. لا تتأثر منبهاتك بذلك.';
 
   @override
   String get quietFridaySection => 'صلاة الجمعة';
 
   @override
-  String get quietFridayTitle => 'صامت في وقت الجمعة';
+  String get quietFridayTitle => 'صامت في صلاة الجمعة';
 
   @override
   String get quietFridayHint =>
       'تصمت التنبيهات حول ظهر الجمعة. يمكنك تغيير المدد أو إيقافها.';
 
   @override
-  String get quietCustomSection => 'فترات مخصصة';
+  String get quietCustomSection => 'أوقات أخرى';
 
   @override
-  String get quietNoCustom => 'لا توجد فترات مخصصة بعد.';
+  String get quietNoCustom => 'لا توجد أوقات صمت أخرى بعد.';
 
   @override
-  String get quietAddWindow => 'أضف فترة';
+  String get quietAddWindow => 'أضف وقت صمت';
 
   @override
-  String get quietMinutesBefore => 'كم دقيقة قبل';
+  String get quietMinutesBefore => 'قبل الوقت';
 
   @override
-  String get quietMinutesAfter => 'كم دقيقة بعد';
+  String get quietMinutesAfter => 'بعد الوقت';
 
   @override
-  String get quietModeLabel => 'خلال هذه الفترة';
+  String get quietModeLabel => 'التنبيهات';
 
   @override
-  String get quietModeSilent => 'إظهار صامت';
+  String get quietModeSilent => 'تصل بصمت';
 
   @override
   String get quietModeSilentHint => 'يظهر التنبيه دون صوت';
 
   @override
-  String get quietModeSkip => 'عدم الإظهار';
+  String get quietModeSkip => 'لا تصل';
 
   @override
   String get quietModeSkipHint => 'لا تتم جدولة التنبيه إطلاقًا';
@@ -610,6 +610,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get alarmWeekend => 'عطلة نهاية الأسبوع';
+
+  @override
+  String get alarmRepeatOnce => 'مرة واحدة';
+
+  @override
+  String alarmRepeatOnceHint(String day, String time) {
+    return 'يرنّ مرة واحدة $day الساعة $time، ثم يتوقف تلقائيًا.';
+  }
 
   @override
   String alarmCopySuffix(String label) {
@@ -1605,10 +1613,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get quietWindowDeleteAction => 'حذف الفترة';
+  String get quietWindowDeleteAction => 'حذف وقت الصمت';
 
   @override
-  String get quietWindowDeleted => 'تم حذف فترة الصمت';
+  String get quietWindowDeleted => 'تم حذف وقت الصمت';
 
   @override
   String durationAgo(String duration) {
@@ -1842,7 +1850,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get quietSilencePhone => 'إسكات الهاتف أيضًا';
 
   @override
-  String get quietSilencePhoneHint => 'يُفعَّل وضع عدم الإزعاج طوال الفترة';
+  String get quietSilencePhoneHint =>
+      'يُفعَّل وضع عدم الإزعاج ويتوقف عند انتهاء وقت الصمت';
 
   @override
   String get quietSilencePhoneNoAccess =>
@@ -1850,6 +1859,52 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get quietSilencePhoneSuffix => 'يُسكَت الهاتف';
+
+  @override
+  String get quietOff => 'متوقف';
+
+  @override
+  String quietTimeRange(String start, String end) {
+    return '$start – $end';
+  }
+
+  @override
+  String quietFridayRange(String range) {
+    return 'الجمعة $range';
+  }
+
+  @override
+  String get quietFridayModeSilent => 'تصل التنبيهات بصمت';
+
+  @override
+  String get quietFridayModeSkip => 'لا تصل التنبيهات';
+
+  @override
+  String quietEveryDayTitle(String prayer) {
+    return '$prayer · كل يوم';
+  }
+
+  @override
+  String get quietRowModeSilent => 'يصل التنبيه بصمت';
+
+  @override
+  String get quietRowModeSkip => 'لا يصل التنبيه';
+
+  @override
+  String quietPanelTitle(String prayer) {
+    return 'حول وقت $prayer';
+  }
+
+  @override
+  String get quietFridayPanelTitle => 'حول وقت ظهر الجمعة';
+
+  @override
+  String quietTimelinePrayer(String prayer, String time) {
+    return '$prayer $time';
+  }
+
+  @override
+  String get quietAddConfirm => 'إضافة';
 
   @override
   String get alarmUsePhoneVolume => 'مستوى صوت المنبه في الهاتف';

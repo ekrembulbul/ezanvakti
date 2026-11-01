@@ -328,6 +328,84 @@ void main() {
       expect(a == a.copyWith(), isTrue);
     });
   });
+
+  group('Alarm.isOnce / onceDate', () {
+    const repeating = Alarm(id: 'a', kind: AlarmKind.fixed, hour: 7);
+    final once = Alarm(
+      id: 'a',
+      kind: AlarmKind.fixed,
+      hour: 7,
+      weekdays: const {1},
+      isOnce: true,
+      onceDate: DateTime(2026, 11, 3),
+    );
+
+    test('varsayilan tekrarli: mevcut alarmlarin davranisi degismez', () {
+      expect(repeating.isOnce, isFalse);
+      expect(repeating.onceDate, isNull);
+      expect(repeating.toMap()['once'], 0);
+      expect(repeating.toMap()['once_date'], isNull);
+    });
+
+    test('map ile gidip gelir; tarih yyyy-MM-dd saklanir', () {
+      final map = once.toMap();
+      expect(map['once'], 1);
+      expect(map['once_date'], '2026-11-03');
+      final restored = Alarm.fromMap(map);
+      expect(restored, once);
+      expect(restored.onceDate, DateTime(2026, 11, 3));
+    });
+
+    test('kolonlari olmayan eski kayit tekrarli okunur', () {
+      final legacy = Map<String, dynamic>.of(once.toMap())
+        ..remove('once')
+        ..remove('once_date');
+      final restored = Alarm.fromMap(legacy);
+      expect(restored.isOnce, isFalse);
+      expect(restored.onceDate, isNull);
+    });
+
+    test('bozuk tarih null okunur', () {
+      expect(
+        Alarm.fromMap({...once.toMap(), 'once_date': '03.11.2026'}).onceDate,
+        isNull,
+      );
+      expect(
+        Alarm.fromMap({...once.toMap(), 'once_date': '2026-13-40'}).onceDate,
+        isNull,
+      );
+    });
+
+    test('esitlik ve hash iki alani kapsar', () {
+      expect(once == once.copyWith(isOnce: false), isFalse);
+      expect(once == once.copyWith(onceDate: DateTime(2026, 11, 4)), isFalse);
+      expect(once == once.copyWith(), isTrue);
+      expect(once.hashCode, once.copyWith().hashCode);
+    });
+
+    test('copyWith alanlari tasir, clearOnceDate tarihi siler', () {
+      expect(once.copyWith(label: 'x').isOnce, isTrue);
+      expect(once.copyWith(label: 'x').onceDate, DateTime(2026, 11, 3));
+      expect(once.copyWith(clearOnceDate: true).onceDate, isNull);
+      expect(once.copyWith(clearOnceDate: true).isOnce, isTrue);
+    });
+
+    test('tek seferlikte gun kumesi yok sayilir, yalniz hedef gun calar', () {
+      // 2 Kasim 2026 Pazartesi: tekrarli olsaydi {1} ile calardi.
+      expect(once.firesOnDay(DateTime(2026, 11, 2)), isFalse);
+      expect(once.firesOnDay(DateTime(2026, 11, 3)), isTrue);
+      expect(once.firesOnDay(DateTime(2026, 11, 10)), isFalse);
+      expect(
+        once.copyWith(clearOnceDate: true).firesOnDay(DateTime(2026, 11, 3)),
+        isFalse,
+      );
+      expect(repeating.firesOnDay(DateTime(2026, 11, 2)), isTrue);
+      expect(
+        repeating.copyWith(weekdays: {3}).firesOnDay(DateTime(2026, 11, 2)),
+        isFalse,
+      );
+    });
+  });
 }
 
 class _FakeStorage implements LocalStorage {

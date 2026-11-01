@@ -35,9 +35,14 @@ String alarmTimeLabel(
 String alarmSubtitle(Alarm alarm, AppLocalizations l10n) {
   final parts = <String>[];
   if (alarm.label.isNotEmpty) parts.add(alarm.label);
-  parts.add(weekdaysLabel(alarm.weekdays, l10n));
+  parts.add(alarmRepeatLabel(alarm, l10n));
   return parts.join(' · ');
 }
+
+/// Alarmın tekrar özeti: tek seferlikte "Bir kez", tekrarlıda gün etiketi.
+/// [weekdaysLabel] bildirimlerle paylaşıldığı için dal burada, onun dışında.
+String alarmRepeatLabel(Alarm alarm, AppLocalizations l10n) =>
+    alarm.isOnce ? l10n.alarmRepeatOnce : weekdaysLabel(alarm.weekdays, l10n);
 
 /// "Her gün" / "Hafta içi" / "Pzt, Cum" gibi.
 String weekdaysLabel(Set<int> weekdays, AppLocalizations l10n) {

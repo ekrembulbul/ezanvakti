@@ -14,6 +14,7 @@ Bir kayıt neyin yapıldığını değil, **neden o yolun seçildiğini ve hangi
 | [0004](0004-single-source-prayer-time.md) | Vakit hesabında tek kaynak | Ekran, planlayıcı ve widget'ın aynı hesabı kullanma zorunluluğu |
 | [0005](0005-notification-scheduling.md) | Bildirim planlaması | Atlama kimliği, sessiz pencere, sistem kotası, alarmdan yalıtım |
 | [0006](0006-diyanet-single-source.md) | Tek vakit kaynağı Diyanet (`vakit-api`) | Neden hesap yerine tablo, konum neden ilçe kimliği, arama/GPS neden sunucuda, hesap yöntemi seçimi neden kalktı |
+| [0007](0007-one-shot-alarm.md) | Tek seferlik ("Bir kez") alarm | Neden boş gün kümesi değil ayrı bayrak, alarm ne zaman kendiliğinden kapanır, native neden değişmedi |
 
 ## Ne zaman yeni ADR yazılır?
 

@@ -97,7 +97,7 @@ class AlarmStopScreen extends StatelessWidget {
         ? l10n.stopJustNow
         : l10n.durationAgo(formatCompactDuration(elapsed, l10n));
     final first = alarm.kind == AlarmKind.fixed
-        ? weekdaysLabel(alarm.weekdays, l10n)
+        ? alarmRepeatLabel(alarm, l10n)
         : alarmTimeLabel(alarm, l10n: l10n);
     return '$first · $agoText';
   }
@@ -232,7 +232,7 @@ class AlarmStopScreen extends StatelessWidget {
   /// Ertelenmiş kipte küçük satır: gün/çıpa · alarm saati · n kez ertelendi.
   String _snoozedDetailText(AppLocalizations l10n) {
     final first = alarm.kind == AlarmKind.fixed
-        ? weekdaysLabel(alarm.weekdays, l10n)
+        ? alarmRepeatLabel(alarm, l10n)
         : alarmTimeLabel(alarm, l10n: l10n);
     return '$first · ${_timeText(l10n)} · ${l10n.stopSnoozedCount(snoozeUsed)}';
   }

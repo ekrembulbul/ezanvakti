@@ -174,16 +174,22 @@ object WidgetRenderer {
     private const val RULER_LABEL_WIDTH_DP = 64f
     /** Android 12 öncesinde sistemin widget köşe yarıçapı yok. */
     private const val FALLBACK_RADIUS_DP = 16f
-    /** Bu yükseklikten (dp) kısa küçük widget'ta sayaç küçülür. */
-    private const val SMALL_COMPACT_HEIGHT_DP = 150f
+    /** Bu yükseklikten (dp) kısa küçük widget'ta sayaç küçülür. Tek blok
+     *  yerleşimde içerik yaklaşık 159dp (kerahat kartıyla 163dp) tutar. */
+    private const val SMALL_COMPACT_HEIGHT_DP = 165f
     private const val SMALL_COMPACT_COUNTDOWN_SP = 26f
     /** Orta düzen bu yüksekliklerin altında önce sütunları, sonra cetveli
-     *  gizler (taşan içerik altta kesilmesin). */
-    private const val MEDIUM_COLUMNS_MIN_HEIGHT_DP = 158f
-    private const val MEDIUM_RULER_MIN_HEIGHT_DP = 122f
-    /** Kerahat bandı (30 dp) 22 dp'lik üst satırın yerini alır ve gövdenin
-     *  üst payı 12 → 8 dp iner: içerik 4 dp daha yer ister. */
-    private const val MEDIUM_BAND_EXTRA_DP = 4f
+     *  gizler (taşan içerik kesilmesin). İçerik tek blok, sabit aralıklı;
+     *  yazı satırları includeFontPadding kapalı ≈ 1.17 × sp (yazı ölçeği 1):
+     *  üst pay 12 + üst satır ≈ 14 + 10 + vakit satırı (11 + 24 sp) ≈ 41 +
+     *  alt pay 10 ≈ 87 dp; cetvel 10 + 16 + 22 = 48 dp ekler (≈ 135); sütunlar
+     *  6 + 3 + (11 sp) 13 + 2 + (14 sp) 16 + 3 ≈ 43 dp ekler (≈ 178). Eşikler
+     *  bunların üstünde birkaç dp pay bırakır. */
+    private const val MEDIUM_COLUMNS_MIN_HEIGHT_DP = 182f
+    private const val MEDIUM_RULER_MIN_HEIGHT_DP = 140f
+    /** Kerahat bandı (30 dp) üst satırın (≈ 14 dp + 10 dp alt boşluk) yerini
+     *  alır ve gövdenin üst payı 12 → 8 dp iner: içerik ≈ 2 dp daha yer ister. */
+    private const val MEDIUM_BAND_EXTRA_DP = 2f
     private const val MEDIUM_BODY_TOP_WITH_BAND_DP = 8f
     private const val MEDIUM_BODY_TOP_DP = 12f
     private const val MEDIUM_BODY_BOTTOM_DP = 10f

@@ -313,7 +313,7 @@ abstract class AppLocalizations {
   /// Ayar satırı
   ///
   /// In tr, this message translates to:
-  /// **'Sessiz pencereler'**
+  /// **'Sessiz vakitler'**
   String get settingsQuietWindows;
 
   /// Saat biçimi seçeneği
@@ -769,13 +769,13 @@ abstract class AppLocalizations {
   /// Ekran başlığı
   ///
   /// In tr, this message translates to:
-  /// **'Sessiz pencereler'**
+  /// **'Sessiz vakitler'**
   String get quietTitle;
 
   /// Açıklama
   ///
   /// In tr, this message translates to:
-  /// **'Bu aralıklarda Ezan Vakti bildirimleri sessiz gösterilir ya da hiç gösterilmez. \"Telefonu da sustur\" açıksa telefon aralık boyunca Rahatsız Etme moduna geçer, bitince eski haline döner. Alarmlar her durumda çalar.'**
+  /// **'Seçtiğin vaktin çevresinde ezan bildirimleri sessiz gelir ya da hiç gelmez. Alarmların bundan etkilenmez.'**
   String get quietIntro;
 
   /// Bölüm başlığı
@@ -787,7 +787,7 @@ abstract class AppLocalizations {
   /// Ayar
   ///
   /// In tr, this message translates to:
-  /// **'Cuma vaktinde sessiz'**
+  /// **'Cuma namazında sessiz'**
   String get quietFridayTitle;
 
   /// Ayar açıklaması
@@ -799,43 +799,43 @@ abstract class AppLocalizations {
   /// Bölüm başlığı
   ///
   /// In tr, this message translates to:
-  /// **'Özel pencereler'**
+  /// **'Diğer vakitler'**
   String get quietCustomSection;
 
   /// Boş durum
   ///
   /// In tr, this message translates to:
-  /// **'Henüz özel pencere yok.'**
+  /// **'Henüz başka sessiz vakit yok.'**
   String get quietNoCustom;
 
   /// Düğme
   ///
   /// In tr, this message translates to:
-  /// **'Pencere ekle'**
+  /// **'Sessiz vakit ekle'**
   String get quietAddWindow;
 
   /// Ayar
   ///
   /// In tr, this message translates to:
-  /// **'Kaç dakika önce'**
+  /// **'Vakitten önce'**
   String get quietMinutesBefore;
 
   /// Ayar
   ///
   /// In tr, this message translates to:
-  /// **'Kaç dakika sonra'**
+  /// **'Vakitten sonra'**
   String get quietMinutesAfter;
 
-  /// Ayar
+  /// Düzenleme panelinde bildirim seçiminin bölüm etiketi
   ///
   /// In tr, this message translates to:
-  /// **'Bu aralıkta'**
+  /// **'Bildirimler'**
   String get quietModeLabel;
 
   /// Seçenek
   ///
   /// In tr, this message translates to:
-  /// **'Sessiz göster'**
+  /// **'Sessiz gelsin'**
   String get quietModeSilent;
 
   /// Seçenek açıklaması
@@ -847,7 +847,7 @@ abstract class AppLocalizations {
   /// Seçenek
   ///
   /// In tr, this message translates to:
-  /// **'Hiç gösterme'**
+  /// **'Hiç gelmesin'**
   String get quietModeSkip;
 
   /// Seçenek açıklaması
@@ -1197,6 +1197,18 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Hafta sonu'**
   String get alarmWeekend;
+
+  /// Tekrar: tek seferlik alarm; çalıp kendiliğinden kapanır. Sıradaki çalışı atlayan "Yalnızca bu sefer" eyleminden ayrıdır
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir kez'**
+  String get alarmRepeatOnce;
+
+  /// Tek seferlik alarmın ne zaman çalacağı (düzenleme ekranı). day: bugün/yarın/gün adı/tarih, time: saat
+  ///
+  /// In tr, this message translates to:
+  /// **'Yalnız {day} {time} için kurulur, çaldıktan sonra kendiliğinden kapanır.'**
+  String alarmRepeatOnceHint(String day, String time);
 
   /// Kopyalanan alarmin etiketi.
   ///
@@ -2911,13 +2923,13 @@ abstract class AppLocalizations {
   /// Sessiz aralık düzenleme panelinin en altındaki silme düğmesi.
   ///
   /// In tr, this message translates to:
-  /// **'Aralığı sil'**
+  /// **'Sessiz vakti sil'**
   String get quietWindowDeleteAction;
 
   /// Sessiz aralık silinince çıkan çubuk; yanında "Geri al" durur.
   ///
   /// In tr, this message translates to:
-  /// **'Sessiz aralık silindi'**
+  /// **'Sessiz vakit silindi'**
   String get quietWindowDeleted;
 
   /// Bir olaydan bu yana geçen süre.
@@ -3331,13 +3343,13 @@ abstract class AppLocalizations {
   /// Sessiz pencere anahtarı
   ///
   /// In tr, this message translates to:
-  /// **'Telefonu da sustur'**
+  /// **'Telefonu da sessize al'**
   String get quietSilencePhone;
 
   /// Anahtar açıklaması
   ///
   /// In tr, this message translates to:
-  /// **'Aralık boyunca Rahatsız Etme açılır'**
+  /// **'Rahatsız Etme açılır, sessiz vakit bitince kapanır'**
   String get quietSilencePhoneHint;
 
   /// İzin uyarısı
@@ -3349,8 +3361,80 @@ abstract class AppLocalizations {
   /// Satır alt yazısı eki
   ///
   /// In tr, this message translates to:
-  /// **'Telefon susar'**
+  /// **'Telefon sessize alınır'**
   String get quietSilencePhoneSuffix;
+
+  /// Cuma satırının alt yazısı, anahtar kapalıyken
+  ///
+  /// In tr, this message translates to:
+  /// **'Kapalı'**
+  String get quietOff;
+
+  /// Sessiz vaktin bugünkü başlangıç ve bitiş saati
+  ///
+  /// In tr, this message translates to:
+  /// **'{start} – {end}'**
+  String quietTimeRange(String start, String end);
+
+  /// Cuma satırında bu cumanın saat aralığı ya da göreli süreler
+  ///
+  /// In tr, this message translates to:
+  /// **'Cuma {range}'**
+  String quietFridayRange(String range);
+
+  /// Cuma satırı mod özeti: sessiz
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirimler sessiz gelir'**
+  String get quietFridayModeSilent;
+
+  /// Cuma satırı mod özeti: hiç gelmez
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirimler gelmez'**
+  String get quietFridayModeSkip;
+
+  /// Diğer vakitler satırının başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'{prayer} · her gün'**
+  String quietEveryDayTitle(String prayer);
+
+  /// Satır mod özeti: sessiz
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirim sessiz gelir'**
+  String get quietRowModeSilent;
+
+  /// Satır mod özeti: hiç gelmez
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirim gelmez'**
+  String get quietRowModeSkip;
+
+  /// Sessiz vakit düzenleme panelinin başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'{prayer} vakti çevresinde'**
+  String quietPanelTitle(String prayer);
+
+  /// Cuma düzenleme panelinin başlığı
+  ///
+  /// In tr, this message translates to:
+  /// **'Cuma öğle vakti çevresinde'**
+  String get quietFridayPanelTitle;
+
+  /// Zaman çizgisinin ortasındaki vakit adı ve saati
+  ///
+  /// In tr, this message translates to:
+  /// **'{prayer} {time}'**
+  String quietTimelinePrayer(String prayer, String time);
+
+  /// Yeni sessiz vakit panelinin altındaki ekleme düğmesi
+  ///
+  /// In tr, this message translates to:
+  /// **'Ekle'**
+  String get quietAddConfirm;
 
   /// Alarm düzenleme anahtarı
   ///

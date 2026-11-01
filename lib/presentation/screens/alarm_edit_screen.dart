@@ -9,15 +9,19 @@ import '../../core/models/alarm_mission.dart';
 import '../../features/alarms/domain/math_challenge.dart';
 import '../../features/alarms/domain/snooze_options.dart';
 import '../utils/alarm_labels.dart';
+import '../utils/reminder_labels.dart';
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/constants/notification_constants.dart';
 import '../../core/di/service_locator.dart';
 import '../../core/interfaces/alarm_service.dart';
 import '../../core/interfaces/local_storage.dart';
 import '../../core/models/qr_code_entry.dart';
+import '../../core/providers/app_state.dart';
+import '../../features/alarms/domain/alarm_scheduler.dart';
 import '../../features/alarms/domain/alarms_manager.dart';
 import '../../features/alarms/domain/qr_library.dart';
 import '../../core/models/alarm.dart';
@@ -70,6 +74,10 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   late PrayerType _anchor;
   late int _offset; // negatif=önce, pozitif=sonra
   late Set<int> _weekdays;
+
+  /// "Bir kez" seçili mi? Seçiliyken gün kutuları söner; tekrar seçimi
+  /// ([_weekdays]) korunur ki kullanıcı geri dönünce kaybolmasın.
+  late bool _isOnce;
   late String _soundId;
   late bool _vibrate;
   late bool _fadeIn;
@@ -106,6 +114,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
     // ki "Her gün" hızlı seçimi ve gün çipleri tutarlı/senkron olsun.
     final wd = a?.weekdays ?? const <int>{};
     _weekdays = wd.isEmpty ? {1, 2, 3, 4, 5, 6, 7} : {...wd};
+    _isOnce = a?.isOnce ?? false;
     _soundId = a?.soundId ?? 'default';
     _vibrate = a?.vibrate ?? true;
     _fadeIn = a?.fadeIn ?? false;
@@ -151,12 +160,17 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
       id: id,
       kind: _kind,
       label: _label.text.trim(),
-      isActive: widget.alarm?.isActive ?? true,
+      // Tek seferlik alarmı kaydetmek onu yeniden kurmaktır: kendiliğinden
+      // kapanmış alarm düzenlenince de açık kaydedilir (cümle bunu söylüyor).
+      isActive: _isOnce || (widget.alarm?.isActive ?? true),
       hour: _hour,
       minute: _minute,
       anchor: _anchor,
       offsetMinutes: _offset,
       weekdays: weekdaysToSave,
+      isOnce: _isOnce,
+      // Hedef gün kaydederken yöneticide yeniden hesaplanır (ADR 0007).
+      onceDate: widget.alarm?.onceDate,
       soundId: _soundId,
       vibrate: _vibrate,
       fadeIn: _fadeIn,
@@ -581,6 +595,7 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
       _weekdays.length == 2 && _weekdays.containsAll(const {6, 7});
 
   Widget _weekdaysSelector() {
+    final onceHint = _isOnce ? _onceHint() : null;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -588,15 +603,36 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            _quickChip(context.l10n.alarmEveryDay, _isEveryDay, () {
-              setState(() => _weekdays = {1, 2, 3, 4, 5, 6, 7});
+            _quickChip(context.l10n.alarmRepeatOnce, _isOnce, () {
+              setState(() => _isOnce = true);
             }),
-            _quickChip(context.l10n.alarmWeekdays, _isWeekdaysOnly, () {
-              setState(() => _weekdays = {1, 2, 3, 4, 5});
+            // Başka bir hızlı seçim tek seferlik modundan çıkarır.
+            _quickChip(context.l10n.alarmEveryDay, !_isOnce && _isEveryDay, () {
+              setState(() {
+                _isOnce = false;
+                _weekdays = {1, 2, 3, 4, 5, 6, 7};
+              });
             }),
-            _quickChip(context.l10n.alarmWeekend, _isWeekendOnly, () {
-              setState(() => _weekdays = {6, 7});
-            }),
+            _quickChip(
+              context.l10n.alarmWeekdays,
+              !_isOnce && _isWeekdaysOnly,
+              () {
+                setState(() {
+                  _isOnce = false;
+                  _weekdays = {1, 2, 3, 4, 5};
+                });
+              },
+            ),
+            _quickChip(
+              context.l10n.alarmWeekend,
+              !_isOnce && _isWeekendOnly,
+              () {
+                setState(() {
+                  _isOnce = false;
+                  _weekdays = {6, 7};
+                });
+              },
+            ),
           ],
         ),
         const SizedBox(height: 12),
@@ -611,7 +647,53 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
             );
           }),
         ),
+        if (onceHint != null) ...[const SizedBox(height: 12), onceHint],
       ],
+    );
+  }
+
+  /// "Bir kez" seçiliyken alarmın ne zaman çalacağını söyleyen cümle.
+  ///
+  /// An planlayıcının hedef gün hesabından gelir: kaydedince kurulacak an
+  /// budur (ADR 0004, 0007). Ekrandaki seçime göre her çizimde yeniden
+  /// hesaplanır. Çıpalı alarmda vakit verisi yoksa an bilinmez; cümle
+  /// çizilmez.
+  Widget? _onceHint() {
+    final appState = context.watch<AppState>();
+    final now = DateTime.now();
+    final next = AlarmScheduler.nextOnceOccurrence(
+      alarm: Alarm(
+        id: widget.alarm?.id ?? '',
+        kind: _kind,
+        hour: _hour,
+        minute: _minute,
+        anchor: _anchor,
+        offsetMinutes: _offset,
+      ),
+      now: now,
+      prayerTimesByDate: {
+        for (final pt in appState.prayerTimes)
+          DateTime(pt.date.year, pt.date.month, pt.date.day): pt,
+      },
+      skips: appState.skips,
+    );
+    if (next == null) return null;
+    final sentence = context.l10n.alarmRepeatOnceHint(
+      reminderDayLabel(context, next.fire, now),
+      context.formatTime(next.fire),
+    );
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: tokens.accent.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: tokens.accent.withValues(alpha: 0.35)),
+      ),
+      child: Text(
+        sentence,
+        style: AppTypography.hint.copyWith(color: tokens.textPrimary),
+      ),
     );
   }
 
@@ -640,24 +722,33 @@ class _AlarmEditScreenState extends State<AlarmEditScreen> {
   Widget _dayCell(int day) {
     final names = [for (var d = 1; d <= 7; d++) context.l10n.weekdayLetter(d)];
     final selected = _weekdays.contains(day);
-    return GestureDetector(
-      onTap: () => _toggleDay(day),
-      child: Container(
-        height: 46,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: selected
-              ? tokens.accent.withValues(alpha: 0.2)
-              : tokens.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: selected ? tokens.accent : tokens.surface),
-        ),
-        child: Text(
-          names[day - 1],
-          style: TextStyle(
-            color: selected ? tokens.accent : tokens.textSecondary,
-            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-            fontSize: 13,
+    // "Bir kez" seçiliyken gün kutuları söner ve gün değiştirmez; dokunuş
+    // yalnız tek seferlik modundan çıkarır (tekrar seçimi olduğu gibi döner).
+    return Opacity(
+      opacity: _isOnce ? 0.35 : 1,
+      child: GestureDetector(
+        onTap: _isOnce
+            ? () => setState(() => _isOnce = false)
+            : () => _toggleDay(day),
+        child: Container(
+          height: 46,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: selected
+                ? tokens.accent.withValues(alpha: 0.2)
+                : tokens.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: selected ? tokens.accent : tokens.surface,
+            ),
+          ),
+          child: Text(
+            names[day - 1],
+            style: TextStyle(
+              color: selected ? tokens.accent : tokens.textSecondary,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              fontSize: 13,
+            ),
           ),
         ),
       ),

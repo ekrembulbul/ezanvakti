@@ -1,5 +1,7 @@
 import '../../../core/interfaces/local_storage.dart';
 import '../../../core/models/alarm.dart';
+import '../../../core/models/prayer_time.dart';
+import '../../../core/models/skipped_occurrence.dart';
 import 'alarm_scheduler.dart';
 
 /// Alarmların depolama (CRUD) giriş noktası. Planlama [AlarmScheduler] ile,
@@ -12,13 +14,43 @@ class AlarmsManager {
 
   Future<List<Alarm>> getAlarms() => storage.getAlarms();
 
-  /// Ekler veya (aynı id ise) günceller.
-  Future<void> save(Alarm alarm) => scheduler.saveDefinition(alarm);
+  /// Ekler veya (aynı id ise) günceller. Tek seferlik alarmın hedef günü
+  /// burada belirlenir ([AlarmScheduler.onceDateForSave]); [prayerTimes] ve
+  /// [skips] bu yüzden zorunlu — verilmezse çıpalı alarmın günü bulunamaz,
+  /// atlanan örnek hedef seçilirdi.
+  Future<void> save(
+    Alarm alarm, {
+    required List<PrayerTime> prayerTimes,
+    required Set<SkippedOccurrence> skips,
+  }) async => scheduler.saveDefinition(
+    await scheduler.onceDateForSave(
+      alarm,
+      prayerTimes: prayerTimes,
+      skips: skips,
+    ),
+  );
 
   Future<void> delete(String id) => scheduler.deleteDefinition(id);
 
-  Future<void> setActive(Alarm alarm, bool isActive) =>
-      scheduler.saveDefinition(alarm.copyWith(isActive: isActive));
+  /// Açılan tek seferlik alarm sıradaki uygun güne kurulur (eski hedef gün
+  /// geçmiş olabilir); kapatırken hedef gün olduğu gibi kalır.
+  Future<void> setActive(
+    Alarm alarm,
+    bool isActive, {
+    required List<PrayerTime> prayerTimes,
+    required Set<SkippedOccurrence> skips,
+  }) {
+    final changed = alarm.copyWith(isActive: isActive);
+    return scheduler.saveDefinition(
+      isActive
+          ? scheduler.withOnceDate(
+              changed,
+              prayerTimes: prayerTimes,
+              skips: skips,
+            )
+          : changed,
+    );
+  }
 }
 
 /// [source]'un yeni kimlikli kopyası; kopya açık başlar. **Kaydetmez** —
@@ -39,6 +71,8 @@ Alarm duplicateOf(
   anchor: source.anchor,
   offsetMinutes: source.offsetMinutes,
   weekdays: source.weekdays,
+  isOnce: source.isOnce,
+  onceDate: source.onceDate,
   soundId: source.soundId,
   vibrate: source.vibrate,
   snoozeEnabled: source.snoozeEnabled,

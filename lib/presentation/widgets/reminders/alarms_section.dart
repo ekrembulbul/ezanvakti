@@ -230,7 +230,7 @@ class AlarmsSection extends StatelessWidget {
                   '${context.formatTime(displayTime)}',
     ];
     final row = ReminderRow(
-      days: weekdaysLabel(alarm.weekdays, context.l10n),
+      days: alarmRepeatLabel(alarm, context.l10n),
       // Ertelenmiste kalan sure rozette sayiyor; alt metne ikinci kez yazilmaz.
       remaining: displayTime != null && status == null
           ? reminderRemaining(

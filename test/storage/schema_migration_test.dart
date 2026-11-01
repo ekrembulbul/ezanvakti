@@ -109,7 +109,7 @@ void main() {
       'sound_id': 'adhan',
       'created_at': DateTime(2026).toIso8601String(),
     });
-    await storage.onUpgrade(db, oldVersion, 16);
+    await storage.onUpgrade(db, oldVersion, 17);
     return db;
   }
 
@@ -183,6 +183,42 @@ void main() {
       isNull,
       reason: 'mevcut alarm telefonun seviyesiyle calmaya devam etmeli',
     );
+  });
+
+  test(
+    'v17 yukseltmesi tek seferlik kolonlarini ekler, alarmi tekrarli korur',
+    () async {
+      final db = await upgradeFrom(8);
+      addTearDown(db.close);
+
+      final columns = await db.rawQuery("PRAGMA table_info('alarms')");
+      final once = columns.where((c) => c['name'] == 'once');
+      expect(once, hasLength(1), reason: 'v17 kolonu olusmali');
+      expect(once.single['notnull'], 1);
+      expect(once.single['dflt_value'], '0');
+      expect(columns.where((c) => c['name'] == 'once_date'), hasLength(1));
+      final row = (await db.query('alarms')).single;
+      expect(row['id'], 'a1');
+      expect(
+        row['once'],
+        0,
+        reason: 'mevcut alarm tekrarli kalmali; davranis degismemeli',
+      );
+      expect(row['once_date'], isNull);
+    },
+  );
+
+  test('sema surumu v17', () {
+    final source = File(
+      'lib/features/prayer_times/data/sqlite_storage.dart',
+    ).readAsStringSync();
+    expect(source, contains('version: 17,'));
+    final create = source.substring(
+      source.indexOf('Future<void> _createAlarmsTable('),
+    );
+    final table = create.substring(0, create.indexOf("''');"));
+    expect(table, contains('once INTEGER NOT NULL DEFAULT 0'));
+    expect(table, contains('once_date TEXT'));
   });
 
   test('yukseltme bloklari artan sirada duruyor', () {

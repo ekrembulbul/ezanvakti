@@ -36,7 +36,7 @@ class SqliteStorage implements LocalStorage {
 
     return await openDatabase(
       path,
-      version: 16,
+      version: 17,
       onCreate: _onCreate,
       onUpgrade: onUpgrade,
     );
@@ -185,7 +185,9 @@ class SqliteStorage implements LocalStorage {
         mission_level INTEGER NOT NULL DEFAULT 1,
         qr_payload TEXT,
         max_snoozes INTEGER,
-        volume INTEGER
+        volume INTEGER,
+        once INTEGER NOT NULL DEFAULT 0,
+        once_date TEXT
       )
     ''');
   }
@@ -349,6 +351,14 @@ class SqliteStorage implements LocalStorage {
       // Alarm başına ses seviyesi (Android). Mevcut alarmlar NULL: telefonun
       // seviyesiyle çalmaya devam eder, davranış değişmez.
       await db.execute('ALTER TABLE alarms ADD COLUMN volume INTEGER');
+    }
+    if (oldVersion < 17) {
+      // Tek seferlik alarm (ADR 0007). Mevcut alarmlar 0: tekrarlı kalır,
+      // davranış değişmez. Hedef gün `yyyy-MM-dd`, yoksa NULL.
+      await db.execute(
+        'ALTER TABLE alarms ADD COLUMN once INTEGER NOT NULL DEFAULT 0',
+      );
+      await db.execute('ALTER TABLE alarms ADD COLUMN once_date TEXT');
     }
   }
 

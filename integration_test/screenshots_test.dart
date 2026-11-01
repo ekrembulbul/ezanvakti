@@ -225,6 +225,8 @@ Future<void> _seedAlarms() async {
       minute: 30,
       weekdays: {1, 2, 3, 4, 5},
     ),
+    prayerTimes: const [],
+    skips: const {},
   );
   await manager.save(
     const Alarm(
@@ -234,6 +236,8 @@ Future<void> _seedAlarms() async {
       anchor: PrayerType.fajr,
       offsetMinutes: -30,
     ),
+    prayerTimes: const [],
+    skips: const {},
   );
   debugPrint('SCREENSHOT-SEED: ${(await manager.getAlarms()).length} alarm');
 }
