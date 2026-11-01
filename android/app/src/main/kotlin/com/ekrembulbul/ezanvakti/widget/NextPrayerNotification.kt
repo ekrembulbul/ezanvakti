@@ -19,6 +19,7 @@ import android.view.View
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.graphics.drawable.IconCompat
 import com.ekrembulbul.ezanvakti.MainActivity
 import com.ekrembulbul.ezanvakti.R
 import java.util.Locale
@@ -39,6 +40,11 @@ object NextPrayerNotification {
     const val NOTIFICATION_ID = 9930001
     private const val CONTENT_REQUEST = 9930001
     private const val DELETE_REQUEST = 9930002
+
+    /** Kullanıcı satırı kaydırınca geri gelmeden önce beklenen süre. */
+    const val REPOST_DELAY_MILLIS = 60_000L
+    private const val PREFS = "ezanvakti_next_prayer"
+    private const val KEY_HIDDEN_UNTIL = "hidden_until"
 
     /** Kapalı gövde bazı sürümlerde 48 dp: satırdaki yazılar bu ölçeğin
      *  üstünde büyümez (22sp sayaç × 1.3 ≈ 29 dp, satır 48 dp'ye sığar). */
@@ -103,6 +109,9 @@ object NextPrayerNotification {
         }
         val snapshot = (WidgetSnapshotParser.parse(WidgetStore.snapshotJson(app)) as? SnapshotResult.Ok)?.snapshot
         val now = System.currentTimeMillis()
+        // Kaydırıldıktan sonraki bir dakikada başka bir tazeleme (ör. dakika
+        // ikonu) satırı erkenden geri getirmesin; süre dolunca alarm gösterir.
+        if (now < hiddenUntil(app)) return
         val state = snapshot?.let { WidgetTimeline.state(it, now) }
         if (snapshot == null || state == null || state.stale) {
             cancel(app)
@@ -121,7 +130,15 @@ object NextPrayerNotification {
 
         ensureChannel(app)
         val builder = NotificationCompat.Builder(app, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_stat_notification)
+        // Vakte son bir saatte durum çubuğunda hilalin içinde kalan dakika;
+        // sayı her dakika [SurfaceRefresher]'ın ikon alarmıyla yenilenir.
+        val minutes = StatusIconCountdown.minutesLeft(content.countdownTarget, now)
+        if (minutes != null) {
+            builder.setSmallIcon(IconCompat.createWithBitmap(StatusIconBitmap.draw(app, minutes)))
+        } else {
+            builder.setSmallIcon(R.drawable.ic_stat_notification)
+        }
+        builder
             .setStyle(NotificationCompat.DecoratedCustomViewStyle())
             .setCustomContentView(collapsedViews(app, content, now))
             .setCustomBigContentView(
@@ -158,6 +175,19 @@ object NextPrayerNotification {
             Log.w(TAG, "event=next_prayer_denied type=" + error.javaClass.simpleName)
         }
     }
+
+    /** Kaydırılan satırı [REPOST_DELAY_MILLIS] boyunca gizli tutar; geri
+     *  getiren alarmı çağıran kurar. Bitiş anını döndürür. */
+    fun hideAfterDismiss(context: Context, now: Long = System.currentTimeMillis()): Long {
+        val until = now + REPOST_DELAY_MILLIS
+        prefs(context).edit().putLong(KEY_HIDDEN_UNTIL, until).apply()
+        return until
+    }
+
+    private fun hiddenUntil(context: Context): Long = prefs(context).getLong(KEY_HIDDEN_UNTIL, 0L)
+
+    private fun prefs(context: Context) =
+        context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
     fun cancel(context: Context) {
         NotificationManagerCompat.from(context.applicationContext).cancel(NOTIFICATION_ID)
