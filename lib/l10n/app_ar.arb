@@ -183,6 +183,8 @@
   "alarmEveryDay": "كل يوم",
   "alarmWeekdays": "أيام الأسبوع",
   "alarmWeekend": "عطلة نهاية الأسبوع",
+  "alarmRepeatOnce": "مرة واحدة",
+  "alarmRepeatOnceHint": "يرنّ مرة واحدة {day} الساعة {time}، ثم يتوقف تلقائيًا.",
   "alarmCopySuffix": "{label} (نسخة)",
   "alarmDuplicate": "نسخ",
   "alarmDeleteAction": "حذف المنبه",

@@ -87,6 +87,7 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     final logger = AppLogger();
     logger.debug('HomePage initState called');
     _initializeServices();
+    _listenOnceAlarmsChanged();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       logger.debug('PostFrameCallback executing');
       _loadGeneralSettings();
@@ -121,8 +122,34 @@ class _HomePageState extends State<HomePage> with WidgetsBindingObserver {
     );
   }
 
+  /// Planlayıcı çalışı biten tek seferlik alarmı kendisi kapatır, boş hedef
+  /// gününü onarır (ADR 0007). Planlamayı tetikleyen yollar (açılış, ön
+  /// plana dönüş, görev sonu, ayar değişikliği) listeyi yeniden okumuyor;
+  /// okunmazsa satır eski hâlini göstermeye devam ederdi.
+  StreamSubscription<Set<String>>? _onceAlarmsChanged;
+
+  void _listenOnceAlarmsChanged() {
+    final locator = ServiceLocator();
+    if (!locator.isRegistered<AlarmsManager>()) return;
+    _onceAlarmsChanged = locator
+        .get<AlarmsManager>()
+        .scheduler
+        .onceAlarmsChanged
+        .listen((_) => unawaited(_reloadAlarms()));
+  }
+
+  Future<void> _reloadAlarms() async {
+    try {
+      final alarms = await ServiceLocator().get<AlarmsManager>().getAlarms();
+      if (mounted) context.read<AppState>().setAlarms(alarms);
+    } catch (error, stackTrace) {
+      AppLogger().warning('Alarm list refresh failed', error, stackTrace);
+    }
+  }
+
   @override
   void dispose() {
+    _onceAlarmsChanged?.cancel();
     _missionStops?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     _midnightTimer?.cancel();

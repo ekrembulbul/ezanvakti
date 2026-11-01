@@ -805,6 +805,63 @@ void main() {
     },
   );
 
+  group('Tek seferlik alarm', () {
+    final tomorrow = DateTime.now().add(const Duration(days: 1));
+    final once = sahur.copyWith(
+      isOnce: true,
+      onceDate: DateTime(tomorrow.year, tomorrow.month, tomorrow.day),
+    );
+
+    testWidgets('Kapatilinca "Yalnizca bu sefer" teklif edilmez, dogrudan '
+        'kapanir', (tester) async {
+      await storage.saveAlarm(once);
+      appState.setAlarms([once]);
+      await pump(tester);
+
+      await tester.tap(find.text('Alarmlar'));
+      await tester.pumpAndSettle();
+      expect(find.text('Bir kez'), findsOneWidget);
+
+      await tester.tap(find.byType(Switch));
+      await tester.pumpAndSettle();
+
+      expect(appState.alarms.single.isActive, isFalse);
+      expect(find.text('Alarm kapatıldı'), findsOneWidget);
+      expect(find.text('Yalnızca bu sefer'), findsNothing);
+      expect(appState.skips, isEmpty);
+
+      // Çubuk kendi süresinde kalksın; askıda timer kalmasın.
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pump(const Duration(milliseconds: 750));
+    });
+
+    testWidgets('Yeniden acilinca hedef gun yeniden hesaplanir', (
+      tester,
+    ) async {
+      final closed = once.copyWith(
+        isActive: false,
+        onceDate: DateTime(2020, 1, 1),
+      );
+      await storage.saveAlarm(closed);
+      appState.setAlarms([closed]);
+      await pump(tester);
+
+      await tester.tap(find.text('Alarmlar'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(Switch));
+      await tester.pumpAndSettle();
+
+      final now = DateTime.now();
+      final todayFire = DateTime(now.year, now.month, now.day, 6, 30);
+      final expected = todayFire.isAfter(now)
+          ? DateTime(now.year, now.month, now.day)
+          : DateTime(now.year, now.month, now.day + 1);
+      final reopened = appState.alarms.single;
+      expect(reopened.isActive, isTrue);
+      expect(reopened.onceDate, expected);
+    });
+  });
+
   testWidgets('Kapatma cubugu dokunulmazsa kendiliginden kalkar', (
     tester,
   ) async {

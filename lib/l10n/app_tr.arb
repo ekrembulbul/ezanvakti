@@ -797,6 +797,22 @@
   "@alarmWeekend": {
     "description": "Tekrar"
   },
+  "alarmRepeatOnce": "Bir kez",
+  "@alarmRepeatOnce": {
+    "description": "Tekrar: tek seferlik alarm; çalıp kendiliğinden kapanır. Sıradaki çalışı atlayan \"Yalnızca bu sefer\" eyleminden ayrıdır"
+  },
+  "alarmRepeatOnceHint": "Yalnız {day} {time} için kurulur, çaldıktan sonra kendiliğinden kapanır.",
+  "@alarmRepeatOnceHint": {
+    "description": "Tek seferlik alarmın ne zaman çalacağı (düzenleme ekranı). day: bugün/yarın/gün adı/tarih, time: saat",
+    "placeholders": {
+      "day": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "alarmCopySuffix": "{label} (kopya)",
   "@alarmCopySuffix": {
     "description": "Kopyalanan alarmin etiketi.",

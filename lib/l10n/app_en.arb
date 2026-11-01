@@ -183,6 +183,8 @@
   "alarmEveryDay": "Every day",
   "alarmWeekdays": "Weekdays",
   "alarmWeekend": "Weekend",
+  "alarmRepeatOnce": "Once",
+  "alarmRepeatOnceHint": "Rings once {day} at {time}, then turns itself off.",
   "alarmCopySuffix": "{label} (copy)",
   "alarmDuplicate": "Duplicate",
   "alarmDeleteAction": "Delete alarm",

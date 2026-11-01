@@ -26,7 +26,19 @@ class Alarm {
 
   // Ortak:
   /// Tekrar günleri (1=Pazartesi .. 7=Pazar). Boş küme = her gün.
+  /// [isOnce] açıkken yok sayılır; kullanıcı tekrara dönerse seçimi korunur.
   final Set<int> weekdays;
+
+  /// Tek seferlik ("Bir kez") alarm: yalnız [onceDate] gününün çalışı kurulur;
+  /// çalıp zincir süresi geçince planlayıcı alarmı kendisi kapatır
+  /// (docs/adr/0007). Boş [weekdays] "her gün" demek olduğu için tek seferlik
+  /// ayrı bir bayrakla tutulur.
+  final bool isOnce;
+
+  /// Tek seferlik alarmın **kaynak vakit günü** (saatsiz). Çıpalı alarmda
+  /// vaktin hangi günün tablosundan okunacağını belirler; ofset gece yarısını
+  /// geçirse de gün budur. `null` = henüz hesaplanamadı (vakit verisi yok).
+  final DateTime? onceDate;
 
   /// Gömülü ses kimliği (örn. 'adhan') ya da özel ses işareti (`custom:<uri>`).
   final String soundId;
@@ -69,6 +81,8 @@ class Alarm {
     this.anchor = PrayerType.fajr,
     this.offsetMinutes = 0,
     this.weekdays = const {},
+    this.isOnce = false,
+    this.onceDate,
     this.soundId = 'default',
     this.vibrate = true,
     this.fadeIn = false,
@@ -86,6 +100,17 @@ class Alarm {
   bool firesOnWeekday(int weekday) =>
       weekdays.isEmpty || weekdays.contains(weekday);
 
+  /// [day] (kaynak vakit günü) bu alarmın çalış günü mü? Tek seferlikte
+  /// yalnız [onceDate]; tekrarlıda gün kümesi.
+  bool firesOnDay(DateTime day) {
+    if (!isOnce) return firesOnWeekday(day.weekday);
+    final target = onceDate;
+    return target != null &&
+        target.year == day.year &&
+        target.month == day.month &&
+        target.day == day.day;
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -97,6 +122,8 @@ class Alarm {
       'anchor': anchor.name,
       'offset_minutes': offsetMinutes,
       'weekdays': (weekdays.toList()..sort()).join(','),
+      'once': isOnce ? 1 : 0,
+      'once_date': onceDate == null ? null : _formatOnceDate(onceDate!),
       'sound_id': soundId,
       'vibrate': vibrate ? 1 : 0,
       'fade_in': fadeIn ? 1 : 0,
@@ -132,6 +159,8 @@ class Alarm {
       ),
       offsetMinutes: map['offset_minutes'] as int? ?? 0,
       weekdays: weekdays,
+      isOnce: (map['once'] as int? ?? 0) == 1,
+      onceDate: _parseOnceDate(map['once_date']),
       soundId: _migrateSoundId(map['sound_id'] as String?),
       vibrate: (map['vibrate'] as int? ?? 1) == 1,
       fadeIn: (map['fade_in'] as int? ?? 0) == 1,
@@ -158,6 +187,11 @@ class Alarm {
     PrayerType? anchor,
     int? offsetMinutes,
     Set<int>? weekdays,
+    bool? isOnce,
+    DateTime? onceDate,
+
+    /// `onceDate` null'a çekilemiyor (`??`); temizlemek için.
+    bool clearOnceDate = false,
     String? soundId,
     bool? vibrate,
     bool? fadeIn,
@@ -179,6 +213,8 @@ class Alarm {
       anchor: anchor ?? this.anchor,
       offsetMinutes: offsetMinutes ?? this.offsetMinutes,
       weekdays: weekdays ?? this.weekdays,
+      isOnce: isOnce ?? this.isOnce,
+      onceDate: clearOnceDate ? null : (onceDate ?? this.onceDate),
       soundId: soundId ?? this.soundId,
       vibrate: vibrate ?? this.vibrate,
       fadeIn: fadeIn ?? this.fadeIn,
@@ -206,6 +242,8 @@ class Alarm {
           anchor == other.anchor &&
           offsetMinutes == other.offsetMinutes &&
           _setEquals(weekdays, other.weekdays) &&
+          isOnce == other.isOnce &&
+          onceDate == other.onceDate &&
           soundId == other.soundId &&
           vibrate == other.vibrate &&
           fadeIn == other.fadeIn &&
@@ -228,6 +266,8 @@ class Alarm {
     anchor,
     offsetMinutes,
     Object.hashAllUnordered(weekdays),
+    // Object.hash en çok 20 değer alıyor.
+    Object.hash(isOnce, onceDate),
     soundId,
     vibrate,
     fadeIn,
@@ -252,6 +292,29 @@ String _migrateSoundId(String? stored) {
   if (stored == null || stored.isEmpty) return 'default';
   if (stored == 'adhan' || stored == 'alarm') return 'default';
   return stored;
+}
+
+/// Tek seferlik hedef gün `yyyy-MM-dd` saklanır: saat ve saat dilimi taşımaz,
+/// gün yerel takvimde okunur.
+String _formatOnceDate(DateTime date) {
+  final month = date.month.toString().padLeft(2, '0');
+  final day = date.day.toString().padLeft(2, '0');
+  return '${date.year}-$month-$day';
+}
+
+/// Bozuk ya da geçersiz tarih `null` okunur: planlayıcı onu "hesaplanamadı"
+/// sayar, alarmı ne kurar ne kapatır.
+DateTime? _parseOnceDate(Object? value) {
+  if (value is! String) return null;
+  final match = RegExp(r'^(\d{4})-(\d{2})-(\d{2})$').firstMatch(value);
+  if (match == null) return null;
+  final year = int.parse(match.group(1)!);
+  final month = int.parse(match.group(2)!);
+  final day = int.parse(match.group(3)!);
+  final date = DateTime(year, month, day);
+  // DateTime taşmayı sessizce ileri kaydırır (13. ay); geri dönüş tutmazsa bozuk.
+  if (date.year != year || date.month != month || date.day != day) return null;
+  return date;
 }
 
 /// Bozuk ya da aralık dışı değer telefonun seviyesine düşer.

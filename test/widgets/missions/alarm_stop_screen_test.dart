@@ -113,6 +113,26 @@ void main() {
     expect(find.textContaining('Her gün'), findsOneWidget);
   });
 
+  testWidgets('tek seferlik alarmin tekrar ozeti "Bir kez"', (tester) async {
+    await pump(
+      tester,
+      alarm: plain.copyWith(isOnce: true, onceDate: DateTime(2026, 8, 30)),
+      gated: false,
+    );
+    expect(find.textContaining('Bir kez'), findsOneWidget);
+    expect(find.textContaining('Her gün'), findsNothing);
+
+    await pump(
+      tester,
+      alarm: plain.copyWith(isOnce: true, onceDate: DateTime(2026, 8, 30)),
+      gated: false,
+      snoozedUntil: DateTime(2026, 8, 30, 8, 55),
+      snoozeUsed: 1,
+      onClose: () {},
+    );
+    expect(find.textContaining('Bir kez'), findsOneWidget);
+  });
+
   testWidgets('Durdurulma üzerinden bir saat geçince süreyi saate çevirir', (
     tester,
   ) async {

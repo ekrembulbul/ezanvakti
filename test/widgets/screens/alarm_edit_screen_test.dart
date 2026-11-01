@@ -3,6 +3,9 @@ import 'package:ezanvakti/core/interfaces/local_storage.dart';
 import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/core/models/alarm_mission.dart';
 import 'package:ezanvakti/core/models/qr_code_entry.dart';
+import 'package:ezanvakti/core/models/general_settings.dart';
+import 'package:ezanvakti/core/providers/app_state.dart';
+import 'package:ezanvakti/core/utils/time_formatter.dart';
 import 'package:ezanvakti/presentation/screens/alarm_edit_screen.dart';
 import 'package:ezanvakti/presentation/widgets/common/delete_action_button.dart';
 import 'package:ezanvakti/presentation/widgets/common/option_picker.dart';
@@ -119,6 +122,212 @@ void main() {
 
     // Yedi gunu de kapatmak mumkun degil; sonuncu secili kalir.
     expect(find.text('Pa'), findsOneWidget);
+  });
+
+  group('Bir kez', () {
+    const sentenceTail =
+        ' için kurulur, çaldıktan sonra kendiliğinden kapanır.';
+
+    String twoDigits(int value) => value.toString().padLeft(2, '0');
+
+    /// Saat [hour]:[minute] için ekranın göstermesi gereken gün etiketi:
+    /// yedi gün kabul edildiği için bugünkü saat ilerdeyse bugün, değilse
+    /// yarın.
+    String dayFor(int hour, int minute) {
+      final now = DateTime.now();
+      final todayFire = DateTime(now.year, now.month, now.day, hour, minute);
+      return todayFire.isAfter(now) ? 'Bugün' : 'Yarın';
+    }
+
+    String sentenceFor(int hour, int minute) =>
+        'Yalnız ${dayFor(hour, minute).toLowerCase()} '
+        '${twoDigits(hour)}:${twoDigits(minute)}'
+        '$sentenceTail';
+
+    /// Şimdiden 12 saat uzak bir saat: test dakika sınırında oynamasın.
+    int farHour() => (DateTime.now().hour + 12) % 24;
+
+    Future<Alarm? Function()> openForResult(
+      WidgetTester tester, {
+      Alarm? alarm,
+      AppState? appState,
+    }) async {
+      tester.view.physicalSize = const Size(1206, 2622);
+      tester.view.devicePixelRatio = 3.0;
+      addTearDown(tester.view.reset);
+      Alarm? saved;
+      // Itilen rota harness'in 24 saat MediaQuery'sinin disinda kaliyor;
+      // saat bicimi tercihle sabitleniyor.
+      final state = appState ?? AppState();
+      state.setGeneralSettings(
+        const GeneralSettings(timeFormat: TimeFormatPreference.h24),
+      );
+      await tester.pumpWidget(
+        wrapWithTheme(
+          Builder(
+            builder: (context) => TextButton(
+              onPressed: () async {
+                saved = await Navigator.of(context).push<Alarm>(
+                  MaterialPageRoute(
+                    builder: (_) => AlarmEditScreen(alarm: alarm),
+                  ),
+                );
+              },
+              child: const Text('aç'),
+            ),
+          ),
+          appState: state,
+        ),
+      );
+      await tester.tap(find.text('aç'));
+      await tester.pumpAndSettle();
+      return () => saved;
+    }
+
+    Future<void> save(WidgetTester tester) async {
+      await tester.tap(find.text('Kaydet'));
+      await tester.pumpAndSettle();
+    }
+
+    double dayOpacity(WidgetTester tester, String day) => tester
+        .widget<Opacity>(
+          find
+              .ancestor(of: find.text(day), matching: find.byType(Opacity))
+              .first,
+        )
+        .opacity;
+
+    testWidgets('"Bir kez" hizli secimlerin basinda durur; yeni alarm her gun '
+        'baslar', (tester) async {
+      await pumpEdit(tester);
+
+      final once = find.text('Bir kez');
+      expect(once, findsOneWidget);
+      expect(
+        tester.getTopLeft(once).dx,
+        lessThan(tester.getTopLeft(find.text('Her gün')).dx),
+      );
+      expect(find.textContaining(sentenceTail), findsNothing);
+    });
+
+    testWidgets('Secilince gunler soner, cumle cikar ve tek seferlik '
+        'kaydedilir', (tester) async {
+      final hour = farHour();
+      final result = await openForResult(
+        tester,
+        alarm: Alarm(id: '1', kind: AlarmKind.fixed, hour: hour, minute: 30),
+      );
+
+      expect(dayOpacity(tester, 'Pt'), 1.0);
+      await tester.tap(find.text('Bir kez'));
+      await tester.pumpAndSettle();
+
+      expect(find.text(sentenceFor(hour, 30)), findsOneWidget);
+      for (final day in ['Pt', 'Sa', 'Ça', 'Pe', 'Cu', 'Ct', 'Pa']) {
+        expect(dayOpacity(tester, day), 0.35);
+      }
+
+      await save(tester);
+      expect(result()!.isOnce, isTrue);
+    });
+
+    testWidgets('Kapanmis tek seferlik alarm kaydedilince acik kaydedilir; '
+        'tekrarli kapali alarm kapali kalir', (tester) async {
+      final once = await openForResult(
+        tester,
+        alarm: Alarm(
+          id: '1',
+          kind: AlarmKind.fixed,
+          hour: 7,
+          isActive: false,
+          isOnce: true,
+          onceDate: DateTime(2026, 11, 2),
+        ),
+      );
+      await save(tester);
+      expect(once()!.isActive, isTrue);
+
+      final repeating = await openForResult(
+        tester,
+        alarm: const Alarm(
+          id: '2',
+          kind: AlarmKind.fixed,
+          hour: 7,
+          isActive: false,
+        ),
+      );
+      await save(tester);
+      expect(repeating()!.isActive, isFalse);
+    });
+
+    testWidgets('Baska bir cip tek seferlik modundan cikarir', (tester) async {
+      final result = await openForResult(tester);
+
+      await tester.tap(find.text('Bir kez'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Hafta içi'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining(sentenceTail), findsNothing);
+      expect(dayOpacity(tester, 'Pt'), 1.0);
+      await save(tester);
+      expect(result()!.isOnce, isFalse);
+      expect(result()!.weekdays, {1, 2, 3, 4, 5});
+    });
+
+    testWidgets('Gun kutusuna dokunmak tek seferlik modundan cikarir, gunu '
+        'degistirmez', (tester) async {
+      final result = await openForResult(tester);
+
+      await tester.tap(find.text('Bir kez'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Ça'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining(sentenceTail), findsNothing);
+      await save(tester);
+      expect(result()!.isOnce, isFalse);
+      expect(result()!.weekdays, isEmpty, reason: 'her gun secimi korunur');
+    });
+
+    testWidgets('Kayitli tek seferlik alarm "Bir kez" secili acilir; cumle '
+        'secili ayarla canli guncellenir', (tester) async {
+      final appState = AppState();
+      final today = DateTime.now();
+      appState.setPrayerTimes([
+        for (var i = 0; i < 3; i++)
+          prayerTimeFor(DateTime(today.year, today.month, today.day + i)),
+      ]);
+      final hour = farHour();
+      final result = await openForResult(
+        tester,
+        appState: appState,
+        alarm: Alarm(
+          id: '1',
+          kind: AlarmKind.fixed,
+          hour: hour,
+          minute: 0,
+          weekdays: const {6, 7},
+          isOnce: true,
+          onceDate: DateTime(2026, 1, 1),
+        ),
+      );
+
+      expect(find.text(sentenceFor(hour, 0)), findsOneWidget);
+
+      // Vakte göre: imsak (yardımcı veride 04:11), ofset 0.
+      await tester.tap(find.text('Vakte göre'));
+      await tester.pumpAndSettle();
+      expect(find.text(sentenceFor(4, 11)), findsOneWidget);
+
+      await save(tester);
+      expect(result()!.isOnce, isTrue);
+      expect(
+        result()!.weekdays,
+        {6, 7},
+        reason: 'tekrar secimi saklanir; tek seferlikte yok sayilir',
+      );
+    });
   });
 
   group('Zorluk', () {

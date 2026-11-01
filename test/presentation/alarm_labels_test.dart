@@ -98,6 +98,30 @@ void main() {
 
       expect(alarmSubtitle(alarm, l10n), 'Her gün');
     });
+
+    test('Tek seferlik alarmda gunler yerine "Bir kez"', () {
+      const alarm = Alarm(
+        id: '1',
+        kind: AlarmKind.fixed,
+        label: 'Sahur',
+        weekdays: {1, 2, 3, 4, 5},
+        isOnce: true,
+      );
+
+      expect(alarmSubtitle(alarm, l10n), 'Sahur · Bir kez');
+    });
+  });
+
+  group('alarmRepeatLabel', () {
+    test('Tekrarli alarmda gun etiketi, tek seferlikte "Bir kez"', () {
+      const repeating = Alarm(id: '1', kind: AlarmKind.fixed, weekdays: {6, 7});
+
+      expect(alarmRepeatLabel(repeating, l10n), 'Hafta sonu');
+      expect(
+        alarmRepeatLabel(repeating.copyWith(isOnce: true), l10n),
+        'Bir kez',
+      );
+    });
   });
 
   group('missionLevelLabel', () {

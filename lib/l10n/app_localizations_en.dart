@@ -618,6 +618,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get alarmWeekend => 'Weekend';
 
   @override
+  String get alarmRepeatOnce => 'Once';
+
+  @override
+  String alarmRepeatOnceHint(String day, String time) {
+    return 'Rings once $day at $time, then turns itself off.';
+  }
+
+  @override
   String alarmCopySuffix(String label) {
     return '$label (copy)';
   }

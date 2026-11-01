@@ -95,6 +95,36 @@ void main() {
     },
   );
 
+  testWidgets('Tek seferlik alarm kartı günler yerine "Bir kez" yazar', (
+    tester,
+  ) async {
+    final once = sahur.copyWith(
+      weekdays: {1, 2, 3, 4, 5},
+      isOnce: true,
+      onceDate: DateTime(2026, 9, 7),
+    );
+    await tester.pumpWidget(
+      wrapWithTheme(
+        AlarmsSection(
+          alarms: [once],
+          isSupported: true,
+          isPermissionGranted: true,
+          onRequestPermission: () {},
+          onToggle: (_, _) {},
+          onEdit: (_) {},
+          onDelete: (_) async {},
+          now: DateTime(2026, 9, 6, 18),
+          nextFireByAlarm: {'sahur': DateTime(2026, 9, 7, 6, 30)},
+        ),
+      ),
+    );
+
+    expect(find.text('Bir kez'), findsOneWidget);
+    expect(find.text('Hafta içi'), findsNothing);
+    // Gün ayrıntısı mevcut Bugün/Yarın/tarih kuralıyla kalır.
+    expect(find.textContaining('yarın'), findsOneWidget);
+  });
+
   testWidgets('Uzun etiket kurulamadı durumunu görünmez yapmaz', (
     tester,
   ) async {

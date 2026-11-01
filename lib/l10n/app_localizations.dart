@@ -1198,6 +1198,18 @@ abstract class AppLocalizations {
   /// **'Hafta sonu'**
   String get alarmWeekend;
 
+  /// Tekrar: tek seferlik alarm; çalıp kendiliğinden kapanır. Sıradaki çalışı atlayan "Yalnızca bu sefer" eyleminden ayrıdır
+  ///
+  /// In tr, this message translates to:
+  /// **'Bir kez'**
+  String get alarmRepeatOnce;
+
+  /// Tek seferlik alarmın ne zaman çalacağı (düzenleme ekranı). day: bugün/yarın/gün adı/tarih, time: saat
+  ///
+  /// In tr, this message translates to:
+  /// **'Yalnız {day} {time} için kurulur, çaldıktan sonra kendiliğinden kapanır.'**
+  String alarmRepeatOnceHint(String day, String time);
+
   /// Kopyalanan alarmin etiketi.
   ///
   /// In tr, this message translates to:

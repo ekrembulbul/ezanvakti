@@ -32,6 +32,8 @@ Alarm normalizeAlarmSnoozeLimit(Alarm alarm) {
       anchor: alarm.anchor,
       offsetMinutes: alarm.offsetMinutes,
       weekdays: alarm.weekdays,
+      isOnce: alarm.isOnce,
+      onceDate: alarm.onceDate,
       soundId: alarm.soundId,
       vibrate: alarm.vibrate,
       snoozeEnabled: alarm.snoozeEnabled,

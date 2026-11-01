@@ -689,7 +689,11 @@ class _RemindersScreenState extends State<RemindersScreen>
   Future<void> _saveAlarm(AppState appState, Alarm alarm) async {
     await _changeAlarm(
       appState,
-      () => _alarmsManager.save(alarm),
+      () => _alarmsManager.save(
+        alarm,
+        prayerTimes: appState.prayerTimes,
+        skips: appState.skips,
+      ),
       () => _saveAlarm(appState, alarm),
     );
   }
@@ -745,8 +749,9 @@ class _RemindersScreenState extends State<RemindersScreen>
     final l10n = context.l10n;
     final appState = context.read<AppState>();
     // Sıradaki çalış kapatmadan **önce** hesaplanmalı: kapalı alarm
-    // planlamada yer almıyor.
-    final fireAt = isActive
+    // planlamada yer almıyor. Tek seferlik alarmda atlama teklif edilmez:
+    // atlanacak ikinci bir çalış yok, alarm doğrudan kapanır (ADR 0007).
+    final fireAt = isActive || alarm.isOnce
         ? null
         : MissionSession.pendingForAlarm(
                 appState.missionSessions,
@@ -756,7 +761,12 @@ class _RemindersScreenState extends State<RemindersScreen>
 
     final changed = await _changeAlarm(
       appState,
-      () => _alarmsManager.setActive(alarm, isActive),
+      () => _alarmsManager.setActive(
+        alarm,
+        isActive,
+        prayerTimes: appState.prayerTimes,
+        skips: appState.skips,
+      ),
       () => _toggleAlarm(alarm, isActive),
     );
     if (!changed) return;
@@ -787,7 +797,12 @@ class _RemindersScreenState extends State<RemindersScreen>
     appState.setSkips(next);
     await _changeAlarm(
       appState,
-      () => _alarmsManager.setActive(alarm, true),
+      () => _alarmsManager.setActive(
+        alarm,
+        true,
+        prayerTimes: appState.prayerTimes,
+        skips: next,
+      ),
       () => _skipOnceAlarm(alarm, fireAt),
     );
   }

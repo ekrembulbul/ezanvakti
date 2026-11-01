@@ -41,10 +41,10 @@ gerekir. Testler cihazda zamanında çalmayı ve Samsung'daki gerçek görünüm
   `widget/WidgetRenderer.kt` · doğrulama: `./gradlew :app:testDebugUnitTest`, `flutter build apk --debug`
 - [x] **Görev 3 — Sessiz vakitler ekranı** · dosyalar: `lib/presentation/screens/quiet_windows_screen.dart`,
   `lib/l10n/app_{tr,en,ar}.arb`, ekran testleri · doğrulama: `flutter test test/widgets/screens/quiet_windows*`
-- [ ] **Görev 4 — Tek seferlik alarm** · dosyalar: alarm modeli, SQLite şeması (v17), alarm planlayıcı,
+- [x] **Görev 4 — Tek seferlik alarm** · dosyalar: alarm modeli, SQLite şeması (v17), alarm planlayıcı,
   alarm düzenleme ekranı, etiketler, alarm listesi ve hatırlatmalar ekranı, ARB, ADR 0004, testler ·
   doğrulama: `flutter test test/alarms test/storage test/presentation test/widgets` · önce: Görev 3 (ARB)
-- [ ] **Görev 5 — Tam doğrulama** · `flutter analyze`, `flutter test`, `flutter build apk --debug`,
+- [x] **Görev 5 — Tam doğrulama** · `flutter analyze`, `flutter test`, `flutter build apk --debug`,
   `flutter build ios --simulator --debug`
 
 ## Kararlar
@@ -52,3 +52,7 @@ gerekir. Testler cihazda zamanında çalmayı ve Samsung'daki gerçek görünüm
 - 2026-11-01 Cuma sessizliği ayrı ve basit bir kart olarak kalır (kullanıcı geri bildirimi); listede
   rozetli satır önerisi geri alındı.
 - 2026-11-01 Açık bildirimin altında boş alan bırakılmaz (kullanıcı geri bildirimi).
+- 2026-11-01 Tek seferlik cümle eke bağlı olmayacak biçimde "Yalnız {gün} {saat} için kurulur, çaldıktan
+  sonra kendiliğinden kapanır." oldu — "{saat}'da" eki saate göre yanlış düşüyordu.
+- 2026-11-01 Review sonrası: hedef gün iki günden eskiyse vakit verisine bakmadan kapanır; düzenlenen
+  tek seferlik alarm açık kaydedilir; hesaplanamayan hedef gün silinmez, planlama boş günü onarır.

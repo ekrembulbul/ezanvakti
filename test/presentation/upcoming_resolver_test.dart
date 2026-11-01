@@ -474,6 +474,32 @@ void main() {
 
       expect(result.keys, ['fixed']);
     });
+
+    test('tek seferlik alarm yalnız hedef günün çalışını alır', () {
+      final once = Alarm(
+        id: 'once',
+        kind: AlarmKind.anchored,
+        anchor: PrayerType.fajr,
+        offsetMinutes: -30,
+        isOnce: true,
+        onceDate: DateTime(2026, 8, 5),
+      );
+
+      final before = resolveEffectiveNextFirePerAlarm(
+        alarms: [once],
+        prayerTimes: _window,
+        now: DateTime(2026, 8, 3, 23),
+      );
+      // Ertesi gün (4 Ağustos) değil, hedef gün: 5 Ağustos 04:11 − 30 dk.
+      expect(before['once'], DateTime(2026, 8, 5, 3, 41));
+
+      final after = resolveEffectiveNextFirePerAlarm(
+        alarms: [once],
+        prayerTimes: _window,
+        now: DateTime(2026, 8, 5, 4),
+      );
+      expect(after.containsKey('once'), isFalse);
+    });
   });
 
   group('notificationOccurrence', () {
