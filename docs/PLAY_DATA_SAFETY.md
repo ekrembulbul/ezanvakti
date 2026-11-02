@@ -16,21 +16,49 @@ yalnızca işlev için işlenir, kullanıcı kimliğine bağlanmaz.
 
 ---
 
-## Data types — yalnızca **Location**
+## Data types — **Location** ve **App activity → In-app search history**
 
-### Location → **Approximate location** ve **Precise location**
+Console'a 2 Kasım 2026'da bu haliyle girildi. Hesap oluşturma: "Uygulamam hesap
+oluşturmaya izin vermiyor"; uygulama dışı hesapla giriş: Hayır; veri silme talebi
+(isteğe bağlı soru) boş bırakıldı.
+
+### Location → **Approximate location**
+
+Sunucunun erişim günlüğü her isteğin IP adresini tutar; IP yaklaşık konum verir ve
+günlük kısa süreli değildir. Bu yüzden ayrı ve muhafazakâr beyan edildi.
 
 | Soru | Cevap |
 |------|-------|
-| Collected? | **Yes** |
-| Shared? | **No** (konum yalnızca geliştiriciye ait vakit sunucusuna, işlev için ve geçici olarak gider; üçüncü tarafa aktarılmaz) |
-| Processed ephemerally? | **Yes** — sunucuya giden yaklaşık koordinat yalnızca en yakın ilçeyi bulmak için anlık işlenir, saklanmaz ve loglanmaz. Cihazda önbellek çevrimdışı içindir. |
-| Required or optional? | **Optional** (kullanıcı GPS yerine il/ilçe de arayabilir) |
-| **Purposes** | **App functionality** (namaz vakti hesaplama ve hatırlatma) |
-| Is this data used to track users? | **No** |
-| Is this data linked to the user's identity? | **No** (hesap yok, kimliğe bağlanmaz) |
+| Collected? | **Yes** · Shared? **No** |
+| Processed ephemerally? | **No** (erişim günlüğü, boyut sınırlı) |
+| Required or optional? | **Required** (her istekte) |
+| **Purposes** | **App functionality**, **Fraud prevention, security, and compliance** |
 
-> Not: "Shared" konusunda Play, veriyi **üçüncü tarafa** aktarmayı kasteder. Konum
+### Location → **Precise location**
+
+GPS koordinatı ~100 m'ye yuvarlanır; Play'in tanımına göre bu hâlâ "precise"tır.
+
+| Soru | Cevap |
+|------|-------|
+| Collected? | **Yes** · Shared? **No** |
+| Processed ephemerally? | **Yes** — en yakın ilçeyi bulmak için anlık işlenir, saklanmaz ve loglanmaz |
+| Required or optional? | **Optional** (kullanıcı GPS yerine il/ilçe arayabilir) |
+| **Purposes** | **App functionality** |
+
+### App activity → **In-app search history**
+
+İl/ilçe arama metni sunucuya gider; ne saklanır ne loglanır.
+
+| Soru | Cevap |
+|------|-------|
+| Collected? | **Yes** · Shared? **No** |
+| Processed ephemerally? | **Yes** |
+| Required or optional? | **Optional** |
+| **Purposes** | **App functionality** |
+
+Hiçbiri izleme (tracking) için kullanılmaz ve kimliğe bağlanmaz (hesap yok).
+
+> Not (konum ve arama için geçerli): "Shared" konusunda Play, veriyi **üçüncü tarafa** aktarmayı kasteder. Konum
 > yalnızca geliştiricinin kendi sunucusuna (`vakit-api`) gider; üçüncü taraf vakit/adres
 > servisi kullanılmaz. Bu yüzden beyan **No**'dur; "Collected" ise **Yes** kalır (veri
 > cihazdan çıkıp geliştiricinin sunucusuna ulaşıyor). Veri pazarlanmaz, izleme için
@@ -45,7 +73,7 @@ Aşağıdakilerin **hiçbiri** toplanmaz veya paylaşılmaz:
 - Financial info — **No**
 - Messages, Photos/Videos, Audio, Files — **No**
 - Contacts, Calendar — **No**
-- App activity / analytics — **No**
+- App activity (arama geçmişi dışında) / analytics — **No**
 - Device or other identifiers — **No**
 - Web browsing history — **No**
 

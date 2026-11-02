@@ -70,6 +70,7 @@ WIDGET
 
 DİĞER
 • Türkçe, İngilizce ve Arapça
+• Telefon ve tablette çalışır
 • Açık ve koyu tema; gün içinde vakitle değişen renkler
 • Her vakti −15 ile +15 dakika arasında düzeltme
 
