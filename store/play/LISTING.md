@@ -134,7 +134,12 @@ Your location is used only to find the nearest district, approximately and witho
 
 - Uygulama simgesi: `store/play/icon_512.png`
 - Öne çıkan grafik: `store/play/feature_graphic_1024x500.png`
-- Telefon ekran görüntüleri: 1080×2160 (2:1); emülatörden release APK ile alınır
+- Ekran görüntüleri: `store/play/screenshots/phone` (1080×1920, 9:16) ve
+  `store/play/screenshots/tablet` (2560×1440, 16:9). `integration_test/store_screenshots_test.dart`
+  ile Pixel 7 ve Pixel Tablet emülatörlerinde alınıp, Play'in istediği orana kenarları
+  zemin rengiyle doldurularak oturtuldu. Emülatörde saat biçimi 24 saat olmalı ve
+  bildirim izni kurulumdan hemen sonra verilmeli; yoksa hatırlatıcılar ekranında izin
+  uyarısı çıkar.
 
 ---
 
