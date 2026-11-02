@@ -1772,6 +1772,10 @@
   "@privacyBody": {
     "description": "Gizlilik metni"
   },
+  "privacyFullPolicy": "Tam metni aç",
+  "@privacyFullPolicy": {
+    "description": "Gizlilik penceresinde yayındaki tam politikayı açan düğme"
+  },
   "dstSummer": "Yaz saati uygulanıyor ({offset})",
   "@dstSummer": {
     "description": "Saat dilimi",

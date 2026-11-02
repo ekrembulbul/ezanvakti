@@ -4,10 +4,13 @@ import 'package:flutter/material.dart';
 import '../utils/directional_icons.dart';
 import '../../l10n/l10n_extensions.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/config/vakit_api_config.dart';
 import '../../core/models/location.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/tokens_context.dart';
+import '../../core/utils/app_logger.dart';
 import '../widgets/common/app_bar_widgets.dart';
 import '../widgets/common/app_surface.dart';
 import '../widgets/common/grouped_list.dart';
@@ -301,8 +304,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  /// Gizlilik özeti. Tam metin `docs/privacy.html`'de; uygulamaya gömmek ayrı
-  /// bir iş olduğu için burada özet gösteriliyor.
+  /// Gizlilik politikasının tam metni vakit sunucusunda yayında (mağaza
+  /// kayıtlarındaki adresle aynı); App Store uygulama içinden de açılmasını
+  /// istiyor.
+  Future<void> _openPrivacyPolicy() async {
+    final uri = Uri.parse('${VakitApiConfig.baseUrl}/privacy');
+    try {
+      await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
+    } catch (e, s) {
+      AppLogger().warning('Privacy policy open failed', e, s);
+    }
+  }
+
+  /// Gizlilik özeti; tam metin [_openPrivacyPolicy] ile açılır.
   void _showPrivacy() {
     final tokens = context.tokens;
 
@@ -323,6 +337,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
         actions: [
+          TextButton(
+            onPressed: _openPrivacyPolicy,
+            child: Text(context.l10n.privacyFullPolicy),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(context.l10n.actionOk),
