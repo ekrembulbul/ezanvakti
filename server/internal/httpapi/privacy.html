@@ -24,7 +24,7 @@
 <body>
 <main>
   <h1>Gizlilik Politikası — Ezan Vakti &amp; Alarm</h1>
-  <p class="meta">Son güncelleme: 17 Eylül 2026</p>
+  <p class="meta">Son güncelleme: 2 Kasım 2026</p>
 
   <p>Bu gizlilik politikası, <strong>Ezan Vakti &amp; Alarm</strong> mobil uygulamasının
   ("Uygulama") kişisel verileri nasıl ele aldığını açıklar. Uygulamayı kullanarak bu
@@ -33,8 +33,8 @@
   <h2>Özet</h2>
   <p>Uygulama; Diyanet İşleri Başkanlığı'nın namaz vakitlerini göstermek ve hatırlatmak
   için tasarlanmıştır. <strong>Hesap oluşturmanız gerekmez.</strong> Vakit ve ilçe verisini
-  sunan sunucumuz kimlik bilgisi almaz ve isteklerinizi saklamaz. Verileriniz cihazınızda
-  saklanır. Reklam ağı veya analitik (kullanım izleme) servisi kullanılmaz.</p>
+  sunan sunucumuz kimlik bilgisi almaz; yalnızca boyutu sınırlı, teknik bir erişim günlüğü
+  tutar. Verileriniz cihazınızda saklanır. Reklam ağı veya analitik (kullanım izleme) servisi kullanılmaz.</p>
 
   <h2>İşlenen veriler</h2>
   <ul>
@@ -69,8 +69,14 @@
     <li>Vakit tablosu için seçilen ilçenin kimliği,</li>
     <li>Günün ayeti, hadisi ve duası için yalnız tarih.</li>
   </ul>
-  <p>Sunucu bu istekleri saklamaz, günlüğe yazmaz ve kimliğinizle ilişkilendirmez; hesap
-  veya cihaz kimliği gönderilmez. Bağlantı HTTPS ile şifrelenir.</p>
+  <p>Hesap veya cihaz kimliği gönderilmez ve bağlantı HTTPS ile şifrelenir. Arama metni ve
+  koordinat sunucuda saklanmaz ve günlüğe yazılmaz.</p>
+  <p>Sunucu, güvenlik ve hata ayıklama amacıyla teknik bir erişim günlüğü tutar. Bu günlükte
+  her isteğin IP adresi, istenen adres (örneğin ilçe kimliği ve yıl), yanıt durumu, süresi
+  ve zamanı yer alır. Günlüğün boyutu sınırlıdır; dolduğunda en eski kayıtlar kendiliğinden
+  silinir. Günlük başka bir amaçla kullanılmaz, kimliğinizle ilişkilendirilmez ve kimseyle
+  paylaşılmaz. Sunucuya giden istekler Cloudflare ağı üzerinden iletilir; Cloudflare de bu
+  iletim sırasında IP adresinizi işler.</p>
   <p>Vakit tabloları, günün içeriği ve hutbeler <strong>Diyanet İşleri Başkanlığı</strong>'ndan
   (hutbeler Diyanet Haber ve Din Hizmetleri yayınlarından) alınır; hutbe istekleri kişisel
   veri taşımaz. Hutbenin İngilizce/Arapça PDF'ini ya da “Kaynak” bağlantısını açtığınızda
@@ -80,7 +86,7 @@
 
   <h2>Veri saklama ve silme</h2>
   <p>Tüm uygulama verileri <strong>yalnızca cihazınızda</strong> tutulur; sunucu tarafında
-  size ait bir kayıt oluşmaz. Uygulamayı kaldırdığınızda bu veriler cihazınızdan silinir. Konum ve diğer tercihleri uygulama
+  yalnızca yukarıda anlatılan erişim günlüğü bulunur. Uygulamayı kaldırdığınızda bu veriler cihazınızdan silinir. Konum ve diğer tercihleri uygulama
   içinden de değiştirebilir veya kaldırabilirsiniz.</p>
 
   <h2>İzinler</h2>
@@ -88,6 +94,10 @@
     <li><strong>Konum:</strong> Bulunduğunuz ilçeyi bulup vakitleri ona göre göstermek ve
     “Yakındaki camiler”de bulunduğunuz yerin çevresinde arama yapmak için.</li>
     <li><strong>Bildirim:</strong> Vakit hatırlatmalarını göstermek için.</li>
+    <li><strong>Alarm (iOS):</strong> Vakitler ve seçtiğiniz saatler için sesli alarm kurmak
+    için.</li>
+    <li><strong>Kamera:</strong> Yalnızca alarmı QR kod göreviyle kapatmayı seçtiğinizde,
+    kaydettiğiniz kodu okutmak için. Görüntü cihazdan çıkmaz ve saklanmaz.</li>
     <li><strong>Tam zamanlı alarm (Android 12+):</strong> Hatırlatmaların doğru vakitte
     çalması için.</li>
     <li><strong>Yeniden başlatmada çalışma (Android):</strong> Cihaz yeniden başladığında

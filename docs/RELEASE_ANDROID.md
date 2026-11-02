@@ -139,7 +139,7 @@ base64 -i service-account.json | tr -d '\n' | gh secret set PLAY_SERVICE_ACCOUNT
 ## Mağaza içeriği (App content / Data safety)
 - Mağaza metinleri ve App content cevapları: `store/play/LISTING.md`
 - Data Safety cevapları: `docs/PLAY_DATA_SAFETY.md`
-- Gizlilik politikası: `docs/privacy.html` (host edilip URL girilir; henüz yayında değil)
+- Gizlilik politikası: https://ezanvakti.ekrembulbul.me/privacy (kaynak `server/internal/httpapi/privacy.html`, sunucu dağıtımıyla yayına çıkar)
 - Görseller: `store/play/icon_512.png`, `store/play/feature_graphic_1024x500.png`
 - Ekran görüntüleri: emülatör/cihazdan alınır (en az 2 telefon görüntüsü)
 

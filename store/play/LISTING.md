@@ -23,7 +23,7 @@ Paket adı (`com.ekrembulbul.ezanvakti`) ilk AAB yüklemesinden gelir.
 |------|-------|
 | Kategori | Yaşam Tarzı |
 | İletişim e-postası | ekrembulbull@proton.me (gizlilik politikasındaki adres) |
-| Gizlilik politikası | `docs/privacy.html` yayımlandığı URL |
+| Gizlilik politikası | https://ezanvakti.ekrembulbul.me/privacy |
 
 ---
 
@@ -141,7 +141,7 @@ Your location is used only to find the nearest district, approximately and witho
 
 | Bölüm | Cevap |
 |-------|-------|
-| Gizlilik politikası | `docs/privacy.html` yayımlandığı URL |
+| Gizlilik politikası | https://ezanvakti.ekrembulbul.me/privacy |
 | Reklamlar | Uygulamamda reklam yok |
 | Uygulama erişimi | Tüm işlevler özel erişim gerektirmez |
 | İçerik derecelendirme | Kategori: "Diğer tüm uygulama türleri"; şiddet, cinsellik, dil, madde, kumar, kullanıcı etkileşimi, konum paylaşımı, dijital satın alma sorularının hepsi **Hayır** |

@@ -34,8 +34,12 @@ Tasarım: `docs/superpowers/specs/2026-09-15-vakit-api-sunucu-design.md`; hutbe:
     GET /v1/sermons                            son 20 cuma/bayram hutbesi, tarih azalan; en/ar PDF bağlantıları (15 dk cache)
     GET /v1/sermons/{id}                       Türkçe hutbe metni, id `2026-09-25-cuma` biçiminde (1 saat cache; bilinmeyen 404)
     GET /v1/health
+    GET /privacy                               gizlilik politikası (HTML, mağaza kayıtlarındaki adres)
 
 Gizlilik: arama metni ve koordinat loglanmaz; koordinat ~100 m'ye yuvarlanır, saklanmaz.
+Erişim günlüğü yalnız IP, yol, durum ve süreyi yazar (Docker log sınırı 3 × 10 MB). Gizlilik
+politikasının metni `internal/httpapi/privacy.html`'dedir ve binary'ye gömülür; bu davranış
+değişirse metin de güncellenir.
 
 ## Komutlar
 

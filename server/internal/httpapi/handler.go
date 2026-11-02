@@ -113,6 +113,7 @@ func NewHandler(st *store.Store, states StateLoader, opts Options, logger *slog.
 		return store.SermonTextPath(id), nil
 	}))
 	mux.HandleFunc("/v1/health", h.health)
+	mux.HandleFunc("/privacy", privacy)
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { writeError(w, errNotFound) })
 	return accessLog(logger, mux)
 }
