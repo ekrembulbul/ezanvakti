@@ -6,6 +6,7 @@ import '../../core/models/alarm.dart';
 import '../../core/theme/app_tokens.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/theme/tokens_context.dart';
+import '../widgets/common/content_width.dart';
 import '../widgets/missions/mission_metrics.dart';
 
 const Key kMissionAbortKey = Key('mission_abort');
@@ -60,21 +61,23 @@ class MissionScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: tokens.backgroundStops.last,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _header(tokens, l10n),
-              const SizedBox(height: 20),
-              Expanded(child: child),
-              const SizedBox(height: 20),
-              if (onSnooze != null && snoozeRemaining > 0) ...[
-                _snoozeButton(tokens, l10n),
-                const SizedBox(height: 12),
+        child: ContentWidth(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _header(tokens, l10n),
+                const SizedBox(height: 20),
+                Expanded(child: child),
+                const SizedBox(height: 20),
+                if (onSnooze != null && snoozeRemaining > 0) ...[
+                  _snoozeButton(tokens, l10n),
+                  const SizedBox(height: 12),
+                ],
+                _abortButton(tokens, l10n),
               ],
-              _abortButton(tokens, l10n),
-            ],
+            ),
           ),
         ),
       ),
