@@ -1,5 +1,6 @@
 import 'package:ezanvakti/core/theme/app_typography.dart';
 import 'package:ezanvakti/presentation/widgets/common/app_surface.dart';
+import 'package:ezanvakti/presentation/widgets/common/content_width.dart';
 import 'package:ezanvakti/presentation/widgets/common/section_label.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -63,6 +64,49 @@ void main() {
 
       expect(decoration.gradient, tokensFor().backgroundGradient);
       expect(find.text('içerik'), findsOneWidget);
+    });
+
+    Future<void> pumpAt(
+      WidgetTester tester,
+      Size size, {
+      bool limitContentWidth = true,
+    }) async {
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        wrapWithTheme(
+          AppSurface(
+            limitContentWidth: limitContentWidth,
+            child: const SizedBox.expand(key: Key('content')),
+          ),
+        ),
+      );
+    }
+
+    testWidgets('Tablette içerik ortada sınırlı genişlikte, zemin tam ekran', (
+      tester,
+    ) async {
+      await pumpAt(tester, const Size(1024, 1366));
+
+      final content = tester.getRect(find.byKey(const Key('content')));
+      expect(content.width, ContentWidth.max);
+      expect(content.center.dx, 512);
+      expect(tester.getSize(find.byType(AppSurface)).width, 1024);
+    });
+
+    testWidgets('Telefonda içerik ekranın tamamını kullanır', (tester) async {
+      await pumpAt(tester, const Size(390, 844));
+
+      expect(tester.getSize(find.byKey(const Key('content'))).width, 390);
+    });
+
+    testWidgets('Sınır kapatılınca içerik tam genişlikte kalır', (
+      tester,
+    ) async {
+      await pumpAt(tester, const Size(1024, 1366), limitContentWidth: false);
+
+      expect(tester.getSize(find.byKey(const Key('content'))).width, 1024);
     });
   });
 }

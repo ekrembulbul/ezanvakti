@@ -14,6 +14,7 @@ import '../utils/alarm_labels.dart';
 import '../utils/time_format_context.dart';
 import '../utils/reminder_labels.dart';
 import '../../core/utils/duration_formatter.dart';
+import '../widgets/common/content_width.dart';
 import '../widgets/missions/mission_metrics.dart';
 import '../widgets/reminders/snooze_countdown.dart';
 
@@ -110,69 +111,71 @@ class AlarmStopScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: tokens.backgroundStops.last,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SizedBox(
-                height: 40,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
+        child: ContentWidth(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(
+                  height: 40,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Text(
+                        _snoozed ? l10n.stopSnoozedHeadline : l10n.stopHeadline,
+                        textAlign: TextAlign.center,
+                        style: AppTypography.sectionLabel.copyWith(
+                          color: tokens.textTertiary,
+                        ),
+                      ),
+                      if (onClose != null)
+                        Align(
+                          alignment: AlignmentDirectional.centerEnd,
+                          child: IconButton(
+                            key: kStopCloseKey,
+                            tooltip: l10n.actionCancel,
+                            icon: const Icon(Icons.close_rounded),
+                            color: tokens.textSecondary,
+                            onPressed: onClose,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                _header(context, tokens, l10n),
+                if (gated) ...[
+                  const SizedBox(height: 24),
+                  _missionCard(tokens, l10n),
+                ],
+                if (nextPrayerType != null && nextPrayerTime != null) ...[
+                  const SizedBox(height: 24),
+                  _nextPrayerLine(context, tokens, l10n),
+                ],
+                const Spacer(),
+                _primaryButton(tokens, l10n),
+                if (onSnooze != null) ...[
+                  const SizedBox(height: 12),
+                  _snoozeButton(tokens, l10n),
+                  if (snoozeRemaining != null) ...[
+                    const SizedBox(height: 8),
                     Text(
-                      _snoozed ? l10n.stopSnoozedHeadline : l10n.stopHeadline,
+                      l10n.stopSnoozeLeft(snoozeRemaining ?? 0),
                       textAlign: TextAlign.center,
-                      style: AppTypography.sectionLabel.copyWith(
+                      style: AppTypography.hint.copyWith(
+                        fontSize: 14,
                         color: tokens.textTertiary,
                       ),
                     ),
-                    if (onClose != null)
-                      Align(
-                        alignment: AlignmentDirectional.centerEnd,
-                        child: IconButton(
-                          key: kStopCloseKey,
-                          tooltip: l10n.actionCancel,
-                          icon: const Icon(Icons.close_rounded),
-                          color: tokens.textSecondary,
-                          onPressed: onClose,
-                        ),
-                      ),
                   ],
-                ),
-              ),
-              const Spacer(),
-              _header(context, tokens, l10n),
-              if (gated) ...[
-                const SizedBox(height: 24),
-                _missionCard(tokens, l10n),
-              ],
-              if (nextPrayerType != null && nextPrayerTime != null) ...[
-                const SizedBox(height: 24),
-                _nextPrayerLine(context, tokens, l10n),
-              ],
-              const Spacer(),
-              _primaryButton(tokens, l10n),
-              if (onSnooze != null) ...[
-                const SizedBox(height: 12),
-                _snoozeButton(tokens, l10n),
-                if (snoozeRemaining != null) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    l10n.stopSnoozeLeft(snoozeRemaining ?? 0),
-                    textAlign: TextAlign.center,
-                    style: AppTypography.hint.copyWith(
-                      fontSize: 14,
-                      color: tokens.textTertiary,
-                    ),
-                  ),
+                ],
+                if (!_snoozed) ...[
+                  const SizedBox(height: 20),
+                  _footer(tokens, l10n),
                 ],
               ],
-              if (!_snoozed) ...[
-                const SizedBox(height: 20),
-                _footer(tokens, l10n),
-              ],
-            ],
+            ),
           ),
         ),
       ),

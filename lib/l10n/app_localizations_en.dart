@@ -1336,6 +1336,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your location and saved districts stay on your device. Search text and an approximate coordinate (~100 m) for location resolution are sent only to our own prayer-time server; it does not store them or link them to you. Prayer times come from the Presidency of Religious Affairs (Diyanet). For nearby mosques, the coordinate is passed only to the maps app you open.';
 
   @override
+  String get privacyFullPolicy => 'Read full policy';
+
+  @override
   String dstSummer(Object offset) {
     return 'Daylight saving time in effect ($offset)';
   }

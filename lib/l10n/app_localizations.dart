@@ -2446,6 +2446,12 @@ abstract class AppLocalizations {
   /// **'Konumun ve kayıtlı ilçelerin cihazında saklanır. Arama metni ve konum çözümleme için yaklaşık koordinat (~100 m) yalnızca bize ait vakit sunucusuna gönderilir; sunucu bunları saklamaz ve kimliğinle ilişkilendirmez. Vakit verisi Diyanet İşleri Başkanlığı\'ndan alınır. Yakındaki camiler aramasında koordinat yalnız açtığın harita uygulamasına iletilir.'**
   String get privacyBody;
 
+  /// Gizlilik penceresinde yayındaki tam politikayı açan düğme
+  ///
+  /// In tr, this message translates to:
+  /// **'Tam metni aç'**
+  String get privacyFullPolicy;
+
   /// Saat dilimi
   ///
   /// In tr, this message translates to:

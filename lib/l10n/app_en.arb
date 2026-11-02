@@ -391,6 +391,7 @@
   "settingsVersion": "Version {version}",
   "settingsFooter": "Times are stored on your device; only district search and location resolution reach the server.",
   "privacyBody": "Your location and saved districts stay on your device. Search text and an approximate coordinate (~100 m) for location resolution are sent only to our own prayer-time server; it does not store them or link them to you. Prayer times come from the Presidency of Religious Affairs (Diyanet). For nearby mosques, the coordinate is passed only to the maps app you open.",
+  "privacyFullPolicy": "Read full policy",
   "dstSummer": "Daylight saving time in effect ({offset})",
   "dstWinter": "Standard time in effect ({offset})",
   "weekdayShortMon": "Mon",

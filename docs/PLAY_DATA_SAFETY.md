@@ -57,5 +57,5 @@ Aşağıdakilerin **hiçbiri** toplanmaz veya paylaşılmaz:
 - **App access:** Giriş (login) gerektiren bölüm var mı? → **No** (tüm işlevler girişsiz)
 - **Content rating:** IARC anketi — şiddet/uygunsuz içerik yok; büyük olasılıkla **Everyone / 3+**
 - **Target audience:** Genel kullanım; çocuklara özel tasarlanmadı
-- **Privacy policy URL:** `docs/privacy.html` host edildikten sonra o URL
+- **Privacy policy URL:** https://ezanvakti.ekrembulbul.me/privacy
 - **Government / News / Financial / COVID app:** Hepsi **No**

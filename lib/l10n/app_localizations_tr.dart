@@ -1331,6 +1331,9 @@ class AppLocalizationsTr extends AppLocalizations {
       'Konumun ve kayıtlı ilçelerin cihazında saklanır. Arama metni ve konum çözümleme için yaklaşık koordinat (~100 m) yalnızca bize ait vakit sunucusuna gönderilir; sunucu bunları saklamaz ve kimliğinle ilişkilendirmez. Vakit verisi Diyanet İşleri Başkanlığı\'ndan alınır. Yakındaki camiler aramasında koordinat yalnız açtığın harita uygulamasına iletilir.';
 
   @override
+  String get privacyFullPolicy => 'Tam metni aç';
+
+  @override
   String dstSummer(Object offset) {
     return 'Yaz saati uygulanıyor ($offset)';
   }

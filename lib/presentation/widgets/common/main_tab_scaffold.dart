@@ -82,6 +82,7 @@ class _MainTabScaffoldState extends State<MainTabScaffold> {
         body: AppSurface(
           safeAreaTop: false,
           safeAreaBottom: false,
+          limitContentWidth: false,
           child: PageView(
             controller: _pageController,
             onPageChanged: _onPageChanged,
