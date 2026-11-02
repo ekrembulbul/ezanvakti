@@ -4,6 +4,15 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [0.33.0] - 2026-11-02
+
+### Eklendi
+- **Tablet desteği:** iPad'de ve Android tablette ekranlar artık kenardan kenara gerilmez; içerik ortada, okunur genişlikte durur, zemin ekranı doldurur. Telefonda görünüm değişmedi.
+- **Gizlilik politikasının tam metni:** Ayarlar → Gizlilik penceresindeki "Tam metni aç" düğmesi yayındaki politikayı uygulama içinde açar.
+
+### Android
+- Kamerası, GPS'i ya da pusulası olmayan tabletler de uygulamayı Google Play'de görebilir; bu donanımlar yalnız ilgili özellik için kullanılır.
+
 ## [0.32.1] - 2026-11-01
 
 ### Android
