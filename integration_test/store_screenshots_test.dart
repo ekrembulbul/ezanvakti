@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:ezanvakti/core/di/service_locator.dart';
 import 'package:ezanvakti/core/models/alarm.dart';
 import 'package:ezanvakti/core/models/location.dart';
@@ -52,6 +54,10 @@ void main() {
       const Duration(seconds: 90),
     );
     await _wait(tester, const Duration(seconds: 3));
+
+    // Android'de görüntü ancak Flutter yüzeyi resme çevrildikten sonra
+    // alınabiliyor; iOS'ta gerekmez.
+    if (Platform.isAndroid) await binding.convertFlutterSurfaceToImage();
 
     Future<void> shot(String name) async {
       await tester.pump();
