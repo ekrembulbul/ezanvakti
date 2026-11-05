@@ -17,7 +17,7 @@ const (
 	DefaultDinHizmetleriURL = "https://dinhizmetleri.diyanet.gov.tr"
 	feedPath                = "/rss/hutbeler"
 	// Din Hizmetleri'ne kim olduğumuzu ve nereden ulaşılacağını söyleriz.
-	userAgent       = "vakit-api/1.0 (+https://ezanvakti.ekrembulbul.me)"
+	userAgent       = "vakit-api/1.0 (+https://ezanvakti.ekrembulbul.com)"
 	defaultTimeout  = 30 * time.Second
 	defaultInterval = time.Second
 	maxBodyBytes    = 4 << 20

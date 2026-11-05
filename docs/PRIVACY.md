@@ -1,6 +1,6 @@
 # Gizlilik Politikası — Ezan Vakti & Alarm
 
-Yayındaki adres: **https://ezanvakti.ekrembulbul.me/privacy**
+Yayındaki adres: **https://ezanvakti.ekrembulbul.com/privacy**
 
 Metnin tek kaynağı [`server/internal/httpapi/privacy.html`](../server/internal/httpapi/privacy.html)
 dosyasıdır. Dosya sunucu binary'sine gömülür; değişiklik `main`'e alınıp sunucu dağıtımı

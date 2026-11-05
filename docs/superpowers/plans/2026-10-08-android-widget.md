@@ -223,7 +223,7 @@ object SurfaceRefresher { fun refreshAll(context: Context) }
 - [ ] Raporları oku, `git status`'u dosya kümeleriyle karşılaştır; Opus high dosyalarını tam oku.
 - [ ] `flutter gen-l10n && dart format` (yalnız değişen dosyalar) `&& flutter analyze && flutter test`.
 - [ ] `cd android && ./gradlew :app:testDebugUnitTest :app:lintDebug` (yeni `NewApi`/`GestureBackNavigation` dışı hata yok).
-- [ ] `flutter build apk --debug --dart-define=VAKIT_API_BASE_URL=https://ezanvakti.ekrembulbul.me`; `flutter build ios --simulator --debug`.
+- [ ] `flutter build apk --debug --dart-define=VAKIT_API_BASE_URL=https://ezanvakti.ekrembulbul.com`; `flutter build ios --simulator --debug`.
 
 ### Task 8: Emülatör ve simülatör (ana oturum)
 

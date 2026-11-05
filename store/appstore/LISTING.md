@@ -14,8 +14,8 @@ kelimeler 100, tanıtım metni 170, açıklama 4000 karakter. Play karşılığ�
 | Alt başlık | Diyanet vakitleri, sesli alarm |
 | Birincil kategori | Yaşam Tarzı (Lifestyle) |
 | İkincil kategori | Araçlar (Utilities) |
-| Gizlilik politikası | https://ezanvakti.ekrembulbul.me/privacy |
-| Destek adresi | https://ezanvakti.ekrembulbul.me/privacy (sayfada iletişim e-postası var) |
+| Gizlilik politikası | https://ezanvakti.ekrembulbul.com/privacy |
+| Destek adresi | https://ezanvakti.ekrembulbul.com/privacy (sayfada iletişim e-postası var) |
 | Telif | 2026 Ekrem Bülbül |
 | Fiyat | Ücretsiz |
 

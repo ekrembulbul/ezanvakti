@@ -71,7 +71,7 @@ Bir kerelik kurulum **tamam**; sürümler otomatik çıkar.
 
 ```bash
 flutter build appbundle --release \
-  --dart-define=VAKIT_API_BASE_URL=https://ezanvakti.ekrembulbul.me
+  --dart-define=VAKIT_API_BASE_URL=https://ezanvakti.ekrembulbul.com
 # çıktı: build/app/outputs/bundle/release/app-release.aab
 ```
 - `--dart-define` verilmezse uygulama yerel geliştirme sunucusuna (`127.0.0.1`) bağlanır,
@@ -139,7 +139,7 @@ base64 -i service-account.json | tr -d '\n' | gh secret set PLAY_SERVICE_ACCOUNT
 ## Mağaza içeriği (App content / Data safety)
 - Mağaza metinleri ve App content cevapları: `store/play/LISTING.md`
 - Data Safety cevapları: `docs/PLAY_DATA_SAFETY.md`
-- Gizlilik politikası: https://ezanvakti.ekrembulbul.me/privacy (kaynak `server/internal/httpapi/privacy.html`, sunucu dağıtımıyla yayına çıkar)
+- Gizlilik politikası: https://ezanvakti.ekrembulbul.com/privacy (kaynak `server/internal/httpapi/privacy.html`, sunucu dağıtımıyla yayına çıkar)
 - Görseller: `store/play/icon_512.png`, `store/play/feature_graphic_1024x500.png`
 - Ekran görüntüleri: emülatör/cihazdan alınır (en az 2 telefon görüntüsü)
 

@@ -164,8 +164,8 @@ jobs:
             done
             docker compose -f ~/vakit-api/compose.yml logs --tail 50 vakit; exit 1'
           code=$(curl -sS -o /dev/null -w '%{http_code}' --retry 5 --retry-delay 3 --retry-all-errors \
-            https://ezanvakti.ekrembulbul.me/v1/health || true)
-          echo "https://ezanvakti.ekrembulbul.me/v1/health: $code"
+            https://ezanvakti.ekrembulbul.com/v1/health || true)
+          echo "https://ezanvakti.ekrembulbul.com/v1/health: $code"
           # Tünel/Cloudflare sorunu dağıtımı geri almaz; uyarı olarak görünür.
           [ "$code" = 200 ] || echo "::warning::Dış adres $code döndü; tünel ve Cloudflare ayarlarını kontrol et."
 

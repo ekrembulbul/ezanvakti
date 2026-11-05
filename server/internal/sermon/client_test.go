@@ -32,7 +32,7 @@ func TestClient_GetSendsUserAgent(t *testing.T) {
 	if err != nil || string(body) != "ok" {
 		t.Fatalf("body=%q err=%v", body, err)
 	}
-	if agent != "vakit-api/1.0 (+https://ezanvakti.ekrembulbul.me)" {
+	if agent != "vakit-api/1.0 (+https://ezanvakti.ekrembulbul.com)" {
 		t.Fatalf("User-Agent = %q", agent)
 	}
 }

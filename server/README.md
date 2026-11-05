@@ -59,7 +59,7 @@ değişirse metin de güncellenir.
 
 `main`'e `server/` değişikliği gelince `.github/workflows/server-deploy.yml` çalışır (elle: Actions → server-deploy →
 Run workflow): Go testleri → `ghcr.io/ekrembulbul/vakit-api:sha-<commit>` imajı → SSH ile sunucuda `ezanvakti`
-kullanıcısına dağıtım → `127.0.0.1:3060` ve `https://ezanvakti.ekrembulbul.me` sağlık kontrolü. `dev` ve PR'larda
+kullanıcısına dağıtım → `127.0.0.1:3060` ve `https://ezanvakti.ekrembulbul.com` sağlık kontrolü. `dev` ve PR'larda
 yalnız `server-ci` (test + imaj derleme) koşar.
 
 `production` ortamının secret'ları (Settings → Environments → production; dağıtım dalı yalnız `main`). Başka daldan
@@ -95,7 +95,7 @@ Türkçe metin sayfadaki JSON-LD `articleBody`'den alınır, değiştirilmez; 50
 çözülemeyen sayfada eski metin korunur. İngilizce/Arapça PDF adresleri Din Hizmetleri ana sayfası ve hutbe
 sayfasından (`/Detay/…`) bulunur, PDF kopyalanmaz; eksikse hutbe tarihinden 7 gün geçene kadar yeniden aranır.
 RSS okunamazsa ya da hiç hutbe çözülemezse dosyalara dokunulmaz, iş çıkış kodu 1 ile biter. Listeden düşen
-hutbenin metni silinir. İstekler arası en az 1 sn, `User-Agent: vakit-api/1.0 (+https://ezanvakti.ekrembulbul.me)`;
+hutbenin metni silinir. İstekler arası en az 1 sn, `User-Agent: vakit-api/1.0 (+https://ezanvakti.ekrembulbul.com)`;
 Din Hizmetleri'nin robots.txt ile kapattığı `/kategoriler/` hiç istenmez. Sağlık ucundaki `datasets.sermons`
 (`updatedAt`, `count`) dizin dosyasından okunur.
 
@@ -113,15 +113,15 @@ Yerelde imajla deneme: `deploy/compose.yml` (kaynaktan derler, `deploy/vakit.env
 ### Cloudflare Tunnel
 
 Tünel Cloudflare panelinden yönetiliyor (token'lı `cloudflared`, yerel config yok): Zero Trust → Networks →
-Tunnels → Published application `ezanvakti.ekrembulbul.me` → **HTTP** `localhost:3060`. Origin düz HTTP konuşur;
+Tunnels → Published application `ezanvakti.ekrembulbul.com` → **HTTP** `localhost:3060`. Origin düz HTTP konuşur;
 servis türü HTTPS seçilirse tünel origin'e TLS ile bağlanmaya çalışır ve istekler 502 döner. Yerel config'li
 tünel için `deploy/cloudflared.example.yml`. Cloudflare panelinde:
 
-- **Cache Rule:** `(http.host eq "ezanvakti.ekrembulbul.me" and starts_with(http.request.uri.path, "/v1/"))` →
+- **Cache Rule:** `(http.host eq "ezanvakti.ekrembulbul.com" and starts_with(http.request.uri.path, "/v1/"))` →
   Eligible for cache, origin `Cache-Control`'e uy. (JSON varsayılan olarak cache'lenmez; kural şart.)
 - **Rate limiting:** `/v1/*` için IP başına 60 istek / 10 sn.
 
-Doğrulama: `curl -I https://ezanvakti.ekrembulbul.me/v1/health` → 200; ikinci istekte vakit ucunda `cf-cache-status: HIT`.
+Doğrulama: `curl -I https://ezanvakti.ekrembulbul.com/v1/health` → 200; ikinci istekte vakit ucunda `cf-cache-status: HIT`.
 
 ## Diyanet API kotası
 
