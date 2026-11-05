@@ -22,7 +22,7 @@ import 'package:intl/date_symbol_data_local.dart';
 ///   flutter drive \
 ///     --driver=test_driver/integration_test.dart \
 ///     --target=integration_test/store_screenshots_test.dart \
-///     --dart-define=VAKIT_API_BASE_URL=https://ezanvakti.ekrembulbul.me \
+///     --dart-define=VAKIT_API_BASE_URL=https://ezanvakti.ekrembulbul.com \
 ///     -d `cihaz`
 /// Görüntüler `screenshots/` altına düşer (git dışı). Kalıcı veri yazdığı
 /// için koşudan sonra uygulamayı cihazdan kaldır.

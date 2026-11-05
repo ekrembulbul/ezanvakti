@@ -10,7 +10,7 @@ services:
     user: "${VAKIT_UID:?VAKIT_UID tanımlı değil}:${VAKIT_GID:?VAKIT_GID tanımlı değil}"
     restart: unless-stopped
     ports:
-      # Yalnız localhost; cloudflared (host servisi) ezanvakti.ekrembulbul.me'yi buraya yönlendirir.
+      # Yalnız localhost; cloudflared (host servisi) ezanvakti.ekrembulbul.com'yi buraya yönlendirir.
       - "127.0.0.1:3060:8080"
     env_file:
       - vakit.env
