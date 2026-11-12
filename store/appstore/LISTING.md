@@ -85,6 +85,37 @@ On first launch, choose a district (e.g. search "Istanbul") or allow location to
 Alarms use AlarmKit: on the Reminders tab, add an alarm (fixed time or relative to a prayer time) and grant alarm permission when asked; it rings like the Clock app until stopped or snoozed. Location is used only to pick the nearest district and the qibla direction; the camera is used only if the user chooses the optional "scan QR code" task to stop an alarm.
 ```
 
+### 2.1 "Information Needed" cevabı (1.0 reddi, 4 Kasım 2026)
+
+Apple, inceleme notuna şunların eklenmesini istedi: gerçek cihazda, uygulamanın
+açılışıyla başlayan ekran kaydı; amaç ve hedef kitle; kurulum ve ana özelliklere
+erişim; dış servisler; bölgesel farklar; gerekiyorsa yetki belgesi. Kayıt 1.0.1
+derlemesiyle (yeni sunucu adresi) çekilmelidir; 1.0.0 sunucuya ulaşamaz. Notlar
+alanına aşağıdaki metin, kaydın bağlantısıyla birlikte yazılır.
+
+```
+1. Screen recording (physical iPhone, latest iOS, starting from app launch):
+<RECORDING LINK>
+
+2. Purpose and audience
+Ezan Vakti & Alarm is a free prayer-times app for Muslims in Türkiye. It shows the daily prayer times published by the Presidency of Religious Affairs of Türkiye (Diyanet) for the user's district and rings an alarm at a prayer time (or a set offset before/after it) until the user stops or snoozes it, like the Clock app. It also offers a monthly prayer calendar, makruh (kerahat) time warnings, qibla direction, nearby mosques, the weekly Friday sermon, daily religious content, a dhikr counter and home/lock screen widgets. It solves a common problem: generic alarm apps cannot follow prayer times that shift every day, and notifications are easy to miss. There are no accounts, ads, in-app purchases or user-generated content.
+
+3. Setup and main features
+No login or sample files are needed. On first launch, search for a district (e.g. "Istanbul") or allow location to pick the nearest one; the home screen then shows today's times and a countdown. To create an alarm: Reminders tab > add > choose a prayer time (optionally with an offset) or a fixed time, choose days, save, and allow alarm permission when asked. Other features are on the main tabs and the home screen cards.
+
+4. External services
+- Our own server (ezanvakti.ekrembulbul.com) serves prayer times, district lists, religious days, the Friday sermon and daily content. The server collects this public data from Diyanet's official websites; the app never talks to third parties for this data. The server sits behind Cloudflare.
+- Apple frameworks: AlarmKit (alarms), WidgetKit (widgets), Core Location (nearest district and qibla only), User Notifications.
+- Apple Maps / Google Maps are opened by link only when the user taps a mosque.
+No authentication, payment, analytics, advertising or AI services are used.
+
+5. Regional differences
+The app works the same in every region and its interface is available in Turkish, English and Arabic. Prayer-time data is currently provided for districts in Türkiye only, because the data source is Diyanet.
+
+6. Regulated industry / third-party material
+Not applicable. Prayer times, the Friday sermon and daily content are public information published by Diyanet, a government body, and are shown with their source.
+```
+
 ## İhracat uyumluluğu
 
 `ITSAppUsesNonExemptEncryption = false` (Info.plist); yalnız standart HTTPS.
