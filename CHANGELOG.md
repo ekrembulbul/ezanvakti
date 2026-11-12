@@ -4,6 +4,11 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [1.0.1] - 2026-11-12
+
+### Düzeltildi
+- **Sunucu bağlantısı:** Vakit sunucusu yeni adresine (`ezanvakti.ekrembulbul.com`) taşındı; eski adres kapandığı için 1.0.0 yeni vakit, konum araması, günün içeriği ve hutbe alamıyordu. Uygulama artık yeni adrese bağlanır.
+
 ## [1.0.0] - 2026-11-02
 
 İlk mağaza sürümü: App Store'a ve Google Play kapalı teste gönderilecek derleme. İşlevler 0.33.0 ile aynıdır.
