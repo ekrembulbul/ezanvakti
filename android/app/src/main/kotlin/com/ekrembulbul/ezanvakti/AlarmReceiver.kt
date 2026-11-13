@@ -38,6 +38,7 @@ class AlarmReceiver : BroadcastReceiver() {
         if (suppressed) {
             Log.i("EzanAlarm", "event=delivery_suppressed id=" + args.id)
             AlarmJournal(context).record("suppressed", args)
+            refreshSurfaces(context)
             return
         }
 
@@ -51,6 +52,19 @@ class AlarmReceiver : BroadcastReceiver() {
             context.startForegroundService(serviceIntent)
         } else {
             context.startService(serviceIntent)
+        }
+        refreshSurfaces(context)
+    }
+
+    /** Vakit alarmı (`setAlarmClock`) üretici pil yöneticilerinden en az
+     *  etkilenen alarm türü: geldiği anda sabit satır, widget'lar ve onların
+     *  yenileme alarmları da tazelenir (düşürülmüş alarmlar yeniden kurulur).
+     *  Çalma servisi zaten başlatıldı; buradaki hata alarmı etkilemez. */
+    private fun refreshSurfaces(context: Context) {
+        try {
+            com.ekrembulbul.ezanvakti.widget.SurfaceRefresher.refreshAll(context)
+        } catch (error: Exception) {
+            Log.e("EzanAlarm", "event=surface_refresh_failed type=" + error.javaClass.simpleName)
         }
     }
 }

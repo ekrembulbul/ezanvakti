@@ -566,6 +566,7 @@
   "ringLimitUnlimited": "أبدًا",
   "fullScreenAlarmOff": "إذن المنبه بملء الشاشة متوقف. لن يظهر المنبه على شاشة القفل، بل كتنبيه فقط.",
   "batteryOptimizationWarning": "قد يُنيم هذا الهاتف التطبيق ويؤخر المنبه. استثنِ Ezan Vakti من تحسين البطارية.",
+  "nextPrayerBatteryWarning": "قد يتأخر هذا الهاتف في تحديث الإشعار. استثنِ Ezan Vakti من تحسين البطارية.",
   "actionDontShowAgain": "لا تعرض مجددًا",
   "qiblaCompassUnavailable": "لا توجد بوصلة في هذا الهاتف. استخدم الزاوية أعلاه مقيسة من الشمال.",
   "prefsNextPrayerNotification": "الصلاة القادمة في شريط الإشعارات",

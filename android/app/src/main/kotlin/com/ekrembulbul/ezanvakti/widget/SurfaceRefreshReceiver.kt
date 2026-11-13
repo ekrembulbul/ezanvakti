@@ -9,6 +9,7 @@ import android.content.Intent
  *  geldiği alarmda yalnız sabit satırı. */
 class SurfaceRefreshReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
+        SurfaceRefresher.logDelivery(intent.action, intent.getLongExtra(SurfaceRefresher.EXTRA_PLANNED_AT, 0L))
         when (intent.action) {
             SurfaceRefresher.ACTION_ICON, SurfaceRefresher.ACTION_REPOST ->
                 SurfaceRefresher.refreshNotification(context)

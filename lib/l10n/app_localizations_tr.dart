@@ -1952,6 +1952,10 @@ class AppLocalizationsTr extends AppLocalizations {
       'Bu telefon uygulamayı arka planda uyutup alarmı geciktirebilir. Ezan Vakti\'yi pil optimizasyonundan çıkar.';
 
   @override
+  String get nextPrayerBatteryWarning =>
+      'Bu telefon bildirimi geç yenileyebilir. Ezan Vakti\'yi pil optimizasyonundan çıkar.';
+
+  @override
   String get actionDontShowAgain => 'Bir daha gösterme';
 
   @override

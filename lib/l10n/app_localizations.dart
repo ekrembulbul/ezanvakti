@@ -3496,6 +3496,12 @@ abstract class AppLocalizations {
   /// **'Bu telefon uygulamayı arka planda uyutup alarmı geciktirebilir. Ezan Vakti\'yi pil optimizasyonundan çıkar.'**
   String get batteryOptimizationWarning;
 
+  /// Ayarlarda, bildirim çubuğundaki sıradaki vakit anahtarının altındaki pil uyarısı
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu telefon bildirimi geç yenileyebilir. Ezan Vakti\'yi pil optimizasyonundan çıkar.'**
+  String get nextPrayerBatteryWarning;
+
   /// Düğme
   ///
   /// In tr, this message translates to:

@@ -566,6 +566,7 @@
   "ringLimitUnlimited": "Never",
   "fullScreenAlarmOff": "Full-screen alarm permission is off. Alarms won't open on the lock screen, only as a notification.",
   "batteryOptimizationWarning": "This phone may put the app to sleep and delay alarms. Exclude Ezan Vakti from battery optimization.",
+  "nextPrayerBatteryWarning": "This phone may update the notification late. Exclude Ezan Vakti from battery optimization.",
   "actionDontShowAgain": "Don't show again",
   "qiblaCompassUnavailable": "This phone has no compass. Use the angle above, measured from north.",
   "prefsNextPrayerNotification": "Next prayer in the notification bar",
