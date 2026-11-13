@@ -74,4 +74,44 @@ void main() {
       isFalse,
     );
   });
+
+  group('sabit satır (bildirim çubuğunda sıradaki vakit)', () {
+    test('ayar açık, bilinen marka ve optimizasyon açıksa uyarır', () {
+      expect(
+        BatteryAdvice.shouldWarnForNextPrayer(
+          status: status(m: 'samsung', b: 'samsung'),
+          enabled: true,
+        ),
+        isTrue,
+      );
+    });
+
+    test('ayar kapalı, muaf, bilinmeyen marka ya da durumda uyarmaz', () {
+      expect(
+        BatteryAdvice.shouldWarnForNextPrayer(status: status(), enabled: false),
+        isFalse,
+      );
+      expect(
+        BatteryAdvice.shouldWarnForNextPrayer(
+          status: status(ignoring: true),
+          enabled: true,
+        ),
+        isFalse,
+      );
+      expect(
+        BatteryAdvice.shouldWarnForNextPrayer(
+          status: status(m: 'google', b: 'google'),
+          enabled: true,
+        ),
+        isFalse,
+      );
+      expect(
+        BatteryAdvice.shouldWarnForNextPrayer(
+          status: BatteryStatus.unknown,
+          enabled: true,
+        ),
+        isFalse,
+      );
+    });
+  });
 }

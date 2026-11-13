@@ -3,6 +3,7 @@ package com.ekrembulbul.ezanvakti
 import android.app.Activity
 import android.app.NotificationManager
 import android.content.ActivityNotFoundException
+import android.content.ComponentName
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -41,9 +42,15 @@ class DeviceChannel(private val activity: Activity) {
                         ))
                     }
                     "openBatteryOptimizationSettings" -> {
-                        // Liste ekranı: REQUEST_IGNORE_BATTERY_OPTIMIZATIONS izni
-                        // Play politikasında kısıtlı, bu ekran izin istemez.
-                        open(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+                        // Xiaomi'de (MIUI/HyperOS) asıl engel "otomatik başlatma":
+                        // kapalıyken alarmlar kapalı uygulamaya hiç ulaşmıyor.
+                        // Ekranın adı resmi değil, sürüme göre değişebilir;
+                        // açılamazsa genel listeye düşülür.
+                        if (!openXiaomiAutostart()) {
+                            // Liste ekranı: REQUEST_IGNORE_BATTERY_OPTIMIZATIONS izni
+                            // Play politikasında kısıtlı, bu ekran izin istemez.
+                            open(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+                        }
                         result.success(null)
                     }
                     "isQuietModeSupported" -> result.success(QuietModeController.isSupported())
@@ -67,6 +74,26 @@ class DeviceChannel(private val activity: Activity) {
     }
 
     /** Ayar ekranı bulunamazsa uygulama ayrıntıları açılır. */
+    private fun openXiaomiAutostart(): Boolean {
+        val brands = setOf("xiaomi", "redmi", "poco")
+        if (Build.MANUFACTURER.lowercase() !in brands && Build.BRAND.lowercase() !in brands) return false
+        return try {
+            activity.startActivity(
+                Intent().setComponent(
+                    ComponentName(
+                        "com.miui.securitycenter",
+                        "com.miui.permcenter.autostart.AutoStartManagementActivity",
+                    ),
+                ),
+            )
+            true
+        } catch (_: ActivityNotFoundException) {
+            false
+        } catch (_: SecurityException) {
+            false
+        }
+    }
+
     private fun open(action: String, withPackage: Boolean = false) {
         val packageUri = Uri.fromParts("package", activity.packageName, null)
         try {

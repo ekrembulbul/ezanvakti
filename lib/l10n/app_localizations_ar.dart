@@ -1943,6 +1943,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'قد يُنيم هذا الهاتف التطبيق ويؤخر المنبه. استثنِ Ezan Vakti من تحسين البطارية.';
 
   @override
+  String get nextPrayerBatteryWarning =>
+      'قد يتأخر هذا الهاتف في تحديث الإشعار. استثنِ Ezan Vakti من تحسين البطارية.';
+
+  @override
   String get actionDontShowAgain => 'لا تعرض مجددًا';
 
   @override

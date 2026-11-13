@@ -10,9 +10,12 @@ import '../../../core/interfaces/local_storage.dart';
 import '../../../core/interfaces/widget_publisher.dart';
 import '../../../core/models/general_settings.dart';
 import '../../../core/providers/app_state.dart';
+import '../../../core/services/device_settings_service.dart';
+import '../../../features/alarms/domain/battery_advice.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/tokens_context.dart';
 import '../../../core/utils/duration_formatter.dart';
+import '../common/info_banner.dart';
 import '../common/option_picker.dart';
 
 /// Ayarlar → Bildirim ve ses: yeni bildirimlerin varsayılan sesi, alarmın
@@ -188,6 +191,8 @@ class NotificationPrefsSection extends StatelessWidget {
                     .publishNextPrayerNotification(value);
               },
             ),
+            if (settings.nextPrayerNotification)
+              const _NextPrayerBatteryBanner(),
             const SizedBox(height: 8),
           ],
           Divider(height: 1, thickness: 1, color: tokens.divider),
@@ -246,6 +251,74 @@ class NotificationPrefsSection extends StatelessWidget {
           ),
           const SizedBox(height: 4),
         ],
+      ),
+    );
+  }
+}
+
+/// "Sıradaki vakit" anahtarının altındaki pil uyarısı (karar
+/// [BatteryAdvice.shouldWarnForNextPrayer]'da). Kullanıcı sistem ayarından
+/// dönünce durum yeniden okunur: muaf tutulduysa uyarı kalkar.
+class _NextPrayerBatteryBanner extends StatefulWidget {
+  const _NextPrayerBatteryBanner();
+
+  @override
+  State<_NextPrayerBatteryBanner> createState() =>
+      _NextPrayerBatteryBannerState();
+}
+
+class _NextPrayerBatteryBannerState extends State<_NextPrayerBatteryBanner>
+    with WidgetsBindingObserver {
+  BatteryStatus _status = BatteryStatus.unknown;
+
+  DeviceSettingsService? get _device {
+    final locator = ServiceLocator();
+    return locator.isRegistered<DeviceSettingsService>()
+        ? locator.get<DeviceSettingsService>()
+        : null;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _load();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _load();
+  }
+
+  Future<void> _load() async {
+    final status = await _device?.batteryStatus();
+    if (!mounted || status == null) return;
+    setState(() => _status = status);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!BatteryAdvice.shouldWarnForNextPrayer(
+      status: _status,
+      enabled: true,
+    )) {
+      return const SizedBox.shrink();
+    }
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: InfoBanner(
+        icon: Icons.battery_alert_rounded,
+        text: context.l10n.nextPrayerBatteryWarning,
+        action: TextButton(
+          onPressed: () => _device?.openBatteryOptimizationSettings(),
+          child: Text(context.l10n.actionOpen),
+        ),
       ),
     );
   }

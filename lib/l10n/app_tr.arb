@@ -2385,6 +2385,8 @@
   "@fullScreenAlarmOff": {"description": "Uyarı"},
   "batteryOptimizationWarning": "Bu telefon uygulamayı arka planda uyutup alarmı geciktirebilir. Ezan Vakti'yi pil optimizasyonundan çıkar.",
   "@batteryOptimizationWarning": {"description": "Uyarı"},
+  "nextPrayerBatteryWarning": "Bu telefon bildirimi geç yenileyebilir. Ezan Vakti'yi pil optimizasyonundan çıkar.",
+  "@nextPrayerBatteryWarning": {"description": "Ayarlarda, bildirim çubuğundaki sıradaki vakit anahtarının altındaki pil uyarısı"},
   "actionDontShowAgain": "Bir daha gösterme",
   "@actionDontShowAgain": {"description": "Düğme"},
   "qiblaCompassUnavailable": "Bu telefonda pusula yok. Yukarıdaki açıyı kuzeye göre kullan.",

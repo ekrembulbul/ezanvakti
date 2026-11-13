@@ -1960,6 +1960,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'This phone may put the app to sleep and delay alarms. Exclude Ezan Vakti from battery optimization.';
 
   @override
+  String get nextPrayerBatteryWarning =>
+      'This phone may update the notification late. Exclude Ezan Vakti from battery optimization.';
+
+  @override
   String get actionDontShowAgain => 'Don\'t show again';
 
   @override

@@ -3,6 +3,7 @@ import 'package:ezanvakti/core/interfaces/local_storage.dart';
 import 'package:ezanvakti/core/interfaces/widget_publisher.dart';
 import 'package:ezanvakti/core/models/appearance_settings.dart';
 import 'package:ezanvakti/core/providers/app_state.dart';
+import 'package:ezanvakti/core/services/device_settings_service.dart';
 import 'package:ezanvakti/features/home_widget/domain/widget_snapshot.dart';
 import 'package:ezanvakti/presentation/widgets/settings/notification_prefs_section.dart';
 import 'package:flutter/material.dart';
@@ -28,12 +29,32 @@ class _RecordingPublisher implements WidgetPublisher {
   Future<void> publishTimeFormat(String storageValue) async {}
 }
 
+class _FakeDevice extends DeviceSettingsService {
+  BatteryStatus status;
+  int opened = 0;
+
+  _FakeDevice(this.status) : super(isAndroid: true);
+
+  @override
+  Future<BatteryStatus> batteryStatus() async => status;
+
+  @override
+  Future<void> openBatteryOptimizationSettings() async => opened++;
+}
+
+const _warning =
+    "Bu telefon bildirimi geç yenileyebilir. Ezan Vakti'yi pil "
+    'optimizasyonundan çıkar.';
+
 /// Ayarlar → Bildirim ve ses: "Bildirim çubuğunda sıradaki vakit" (Android).
 void main() {
   late FakeStorage storage;
   late _RecordingPublisher publisher;
+  late _FakeDevice device;
 
   setUp(() {
+    device = _FakeDevice(BatteryStatus.unknown);
+    ServiceLocator().register<DeviceSettingsService>(device);
     storage = FakeStorage();
     publisher = _RecordingPublisher();
     ServiceLocator().register<LocalStorage>(storage);
@@ -95,5 +116,75 @@ void main() {
       isFalse,
     );
     expect(publisher.published, [false]);
+  });
+
+  group('pil uyarısı', () {
+    const restricted = BatteryStatus(
+      manufacturer: 'samsung',
+      brand: 'samsung',
+      ignoringOptimizations: false,
+    );
+
+    testWidgets('kısıtlı markada anahtarın altında çıkar, Aç ayarı açar', (
+      tester,
+    ) async {
+      device.status = restricted;
+      await pump(tester, show: true);
+      await tester.pump();
+
+      expect(find.text(_warning), findsOneWidget);
+      await tester.tap(find.text('Aç'));
+      await tester.pump();
+      expect(device.opened, 1);
+    });
+
+    testWidgets('uygulama muafsa çıkmaz', (tester) async {
+      device.status = const BatteryStatus(
+        manufacturer: 'samsung',
+        brand: 'samsung',
+        ignoringOptimizations: true,
+      );
+      await pump(tester, show: true);
+      await tester.pump();
+
+      expect(find.text(_warning), findsNothing);
+    });
+
+    testWidgets('anahtar kapatılınca kalkar', (tester) async {
+      device.status = restricted;
+      await pump(tester, show: true);
+      await tester.pump();
+      expect(find.text(_warning), findsOneWidget);
+
+      final row = find.ancestor(
+        of: find.text('Bildirim çubuğunda sıradaki vakit'),
+        matching: find.byType(Row),
+      );
+      await tester.tap(
+        find.descendant(of: row.first, matching: find.byType(Switch)),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text(_warning), findsNothing);
+    });
+
+    testWidgets('ayarlardan dönünce durum yeniden okunur', (tester) async {
+      device.status = restricted;
+      await pump(tester, show: true);
+      await tester.pump();
+      expect(find.text(_warning), findsOneWidget);
+
+      device.status = const BatteryStatus(
+        manufacturer: 'samsung',
+        brand: 'samsung',
+        ignoringOptimizations: true,
+      );
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text(_warning), findsNothing);
+    });
   });
 }
