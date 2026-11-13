@@ -4,6 +4,13 @@ Bu projedeki dikkate değer değişiklikler bu dosyada belgelenir.
 Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.0.0/) temellidir ve
 proje [Semantic Versioning](https://semver.org/lang/tr/) kullanır.
 
+## [1.0.2] - 2026-11-13
+
+### Android
+- **Kalıcı bildirim daha güvenilir yenileniyor:** Bildirim çubuğundaki "sıradaki vakit" satırı, pil yöneticisi bir yenilemeyi düşürse bile bir sonraki yenilemede ya da vakit alarmı çaldığında kendini toparlıyor; eski vakitte takılı kalmamalı.
+- **Açık bildirimdeki boşluk daraldı:** Geri sayım ile vakit cetveli arasındaki gereksiz boşluk kalktı.
+- **Pil uyarısı ayarlarda da görünüyor:** Samsung, Xiaomi ve benzeri telefonlarda "Bildirim çubuğunda sıradaki vakit" açıkken uygulama pil optimizasyonundan çıkarılmamışsa ayarın altında uyarı ve "Aç" düğmesi çıkıyor.
+
 ## [1.0.1] - 2026-11-12
 
 ### Düzeltildi
