@@ -318,11 +318,12 @@ object NextPrayerNotification {
 
         val fraction = ruler.nowFraction
         if (fraction == null) {
-            // Gösterilen gün yarın: nokta yok, etiket yerini korur (ritim bozulmasın).
-            views.setViewVisibility(R.id.next_prayer_clock, View.INVISIBLE)
+            // Gösterilen gün yarın: nokta yok; etiket satırı yer tutmasın,
+            // yoksa sayaçla cetvel arasında boş bir şerit kalır.
+            views.setViewVisibility(R.id.next_prayer_clock_box, View.GONE)
             return
         }
-        views.setViewVisibility(R.id.next_prayer_clock, View.VISIBLE)
+        views.setViewVisibility(R.id.next_prayer_clock_box, View.VISIBLE)
         views.setTextColor(R.id.next_prayer_clock, content.highlightColor)
         // Kullanıcının 12/24 tercihi sistemden bağımsız: iki biçim de aynı kalıp.
         views.setCharSequence(R.id.next_prayer_clock, "setFormat12Hour", clockPattern)
